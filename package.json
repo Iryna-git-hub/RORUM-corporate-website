@@ -1,0 +1,28 @@
+{
+  "name": "rorum-website-mini",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portfolio-quality MVP website for RORUM.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "lucide-react": "^1.11.0",
+    "next": "^16.2.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "25.5.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.2",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^6.0.2"
+  }
+}
