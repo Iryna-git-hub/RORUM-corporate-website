@@ -7,13 +7,13 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata("/");
 export default function Home() {
     const paths = [
-        ["Events", "Join dinners, salons and workshops at RORUM.", "/events"],
-        ["Host an Event", "Bring a thoughtful format to the RORUM community.", "/host-an-event"],
-        ["Book the Space", "Reserve the room for a meeting, workshop or private gathering.", "/book-the-space"],
-        ["Services", "Add catering, styling and hospitality details.", "/services"]
+        ["Events", "Join dinners, salons and workshops at RORUM.", "/events", "/images/events/meeting.png"],
+        ["Host an Event", "Bring a thoughtful format to the RORUM community.", "/host-an-event", "/images/events/workshop.png"],
+        ["Book the Space", "Reserve the room for a meeting, workshop or private gathering.", "/book-the-space", "/images/space/space-1.png"],
+        ["Services", "Add catering, styling and hospitality details.", "/services", "/images/catering/catering-1.png"]
     ];
     return (<>
-      <HomeHero label="Copenhagen Event Space" title="A space for people who bring people together" text="Join upcoming events, host your own workshop or gathering, or book Rorum for a private format." image="/images/hero.jpg" actions={<><Button href="/host-an-event">Host an event</Button><Button href="/events" variant="secondary">Explore events</Button><Button href="/book-the-space" variant="secondary">Book the space</Button></>}/>
+      <HomeHero label="Copenhagen Event Space" title="A space for people who bring people together" text="Join upcoming events, host your own workshop or gathering, or book Rorum for a private format." image="/images/hero.jpg" video="/videos/home-hero.mp4" actions={<><Button href="/host-an-event">Host an event</Button><Button href="/events" variant="secondary">Explore events</Button><Button href="/book-the-space" variant="secondary">Book the space</Button></>}/>
       <section className="section quick-paths-section">
         <Container>
           <div className="section-head"><SectionLabel>Quick paths</SectionLabel><h2 className="heading">Start with what you need.</h2></div>

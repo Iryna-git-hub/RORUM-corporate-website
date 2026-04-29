@@ -32,8 +32,9 @@ export function PageHero({ label, title, text, image = "/images/hero.jpg", actio
       </Container>
     </section>);
 }
-export function HomeHero({ label, title, text, image = "/images/hero.jpg", actions }) {
+export function HomeHero({ label, title, text, image = "/images/hero.jpg", video, actions }) {
     return (<section className="home-hero-full" style={{ backgroundImage: `url(${image})` }}>
+      {video ? <video className="home-hero-video" src={video} poster={image} autoPlay muted loop playsInline aria-hidden="true"/> : null}
       <div className="home-hero-overlay"/>
       <Container>
         <div className="home-hero-copy">
