@@ -20,7 +20,7 @@ export function InquiryForm({ type, title, showPortfolio = false }) {
         form.reset();
     }
     return (<form className="form card card-pad" onSubmit={onSubmit}>
-      <h2 className="heading" style={{ fontSize: "clamp(40px, 6vw, 72px)", margin: 0 }}>{title}</h2>
+      <h2 className="heading form-title">{title}</h2>
       {sent ? <div className="success">Thank you. Your inquiry has been received for this MVP flow.</div> : null}
       <div className="form-grid">
         <label>Full name<input name="name" required placeholder="Your name"/></label>

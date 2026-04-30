@@ -12,7 +12,7 @@ export default function ContactPage() {
             <div className="card">
               <div className="card-pad">
                 <SectionLabel>Details</SectionLabel>
-                <h2 className="heading">Copenhagen, Denmark</h2>
+                <h2 className="heading detail-title">Copenhagen, Denmark</h2>
                 <p className="muted">Email: hello@rorum.dk<br />Instagram: @rorum_space<br />Address: Copenhagen location placeholder for MVP</p>
               </div>
               <div className="map-placeholder">Map placeholder</div>

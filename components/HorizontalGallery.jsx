@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function HorizontalGallery({ images }) {
   const trackRef = useRef(null);
@@ -8,7 +8,7 @@ export function HorizontalGallery({ images }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [slideDirection, setSlideDirection] = useState(0);
 
-  function moveLightbox(direction) {
+  const moveLightbox = useCallback((direction) => {
     setLightboxIndex((current) => {
       if (current === null) return current;
       const next = current + direction;
@@ -16,7 +16,7 @@ export function HorizontalGallery({ images }) {
       setSlideDirection(direction);
       return next;
     });
-  }
+  }, [images.length]);
 
   function handleDragStart(clientX) {
     dragStartRef.current = clientX;
@@ -45,7 +45,7 @@ export function HorizontalGallery({ images }) {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [lightboxIndex, images.length]);
+  }, [lightboxIndex, images.length, moveLightbox]);
 
   useEffect(() => {
     if (lightboxIndex === null) return;
@@ -97,8 +97,8 @@ export function HorizontalGallery({ images }) {
             ) : null}
             <img key={images[lightboxIndex]} className={`gallery-lightbox-main ${slideDirection < 0 ? "slide-from-left" : slideDirection > 0 ? "slide-from-right" : ""}`} src={images[lightboxIndex]} alt="" />
             <div className="gallery-lightbox-hit-zones" aria-hidden="true">
-              {lightboxIndex > 0 ? <button type="button" onClick={() => moveLightbox(-1)} tabIndex={-1} aria-label="Previous image" /> : <span />}
-              {lightboxIndex < images.length - 1 ? <button type="button" onClick={() => moveLightbox(1)} tabIndex={-1} aria-label="Next image" /> : <span />}
+              {lightboxIndex > 0 ? <span onClick={() => moveLightbox(-1)} /> : <span />}
+              {lightboxIndex < images.length - 1 ? <span onClick={() => moveLightbox(1)} /> : <span />}
             </div>
             {lightboxIndex < images.length - 1 ? (
               <button className="gallery-lightbox-side gallery-lightbox-side-next" type="button" onClick={() => moveLightbox(1)} aria-label="Next image">
