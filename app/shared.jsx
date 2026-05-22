@@ -4,7 +4,7 @@ import { ArrowUpRight, CalendarDays, ConciergeBell, Megaphone, Presentation } fr
 const quickPathIcons = {
     "/events": CalendarDays,
     "/host-an-event": Megaphone,
-    "/book-the-space": Presentation,
+    "/private-events": Presentation,
     "/services": ConciergeBell
 };
 

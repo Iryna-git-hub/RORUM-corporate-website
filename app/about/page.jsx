@@ -36,7 +36,7 @@ export default function AboutPage() {
             <div className="hero-actions">
               <Button href="/events" variant="secondary">View Events</Button>
               <Button href="/host-an-event">Host an Event</Button>
-              <Button href="/book-the-space" variant="secondary">Book the Space</Button>
+              <Button href="/private-events" variant="secondary">Private Events</Button>
             </div>
           </Card>
         </Container>

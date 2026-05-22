@@ -1,8 +1,8 @@
 import { QuickPathsGrid } from "@/app/shared";
 import { EventList } from "@/components/EventCard";
-import { ServiceCard } from "@/components/Cards";
-import { Button, Card, Container, CTASection, HomeHero, Section, SectionHeader, SectionLabel } from "@/components/ui";
-import { homeEvents, serviceCards } from "@/lib/data";
+import { CommunityTeaserSection, EditorialFeatureSection, ServicesTeaserSection } from "@/components/HomeEditorialSections";
+import { Button, Container, CTASection, HomeHero, Section, SectionHeader } from "@/components/ui";
+import { homeEvents } from "@/lib/data";
 import { pageMetadata } from "@/lib/seo";
 import { ArrowRight } from "lucide-react";
 export const metadata = pageMetadata("/");
@@ -10,11 +10,27 @@ export default function Home() {
     const paths = [
         ["Events", "Join dinners, salons and workshops at RORUM.", "/events", "/images/events/mosaic-variants/events-mosaic-3x4-border.jpg"],
         ["Host an Event", "Bring a thoughtful format to the RORUM community.", "/host-an-event", "/images/events/host-event-workshop-quickpath.png"],
-        ["Book the Space", "Reserve the room for a meeting, workshop or private gathering.", "/book-the-space", "/images/space/space-1.png"],
+        ["Private Events", "Reserve the room for a meeting, workshop or private gathering.", "/private-events", "/images/space/space-1.png"],
         ["Services", "Add catering, styling and hospitality details.", "/services", "/images/services/services-split.png"]
     ];
+    const services = [
+        {
+            title: "Catering",
+            text: "Fresh, simple and elegant catering for meetings, private events, workshops and special gatherings.",
+            cta: "Explore catering",
+            href: "/catering",
+            image: "/images/catering/catering-1.png"
+        },
+        {
+            title: "Event decoration",
+            text: "Flowers, table styling, candles and visual details designed to create a warm and memorable atmosphere.",
+            cta: "Explore decoration",
+            href: "/space-decoration-event-styling",
+            image: "/images/decoration/decoration-1.png"
+        }
+    ];
     return (<>
-      <HomeHero label="Copenhagen Event Space" title="A space for people who bring people together" text="Join upcoming events, host your own workshop or gathering, or book Rorum for a private format." image="/images/hero.jpg" video="/videos/home-hero.mp4" actions={<><Button href="/host-an-event">Host an event</Button><Button href="/events" variant="secondary">Explore events</Button><Button href="/book-the-space" variant="secondary">Book the space</Button></>}/>
+      <HomeHero label="Copenhagen Event Space" title="A space for people who bring people together" text="Join upcoming events, host your own workshop or gathering, or book Rorum for a private format." image="/images/hero.jpg" video="/videos/home-hero.mp4" actions={<><Button href="/host-an-event">Host an event</Button><Button href="/events" variant="secondary">Explore events</Button><Button href="/private-events" variant="secondary">Private events</Button></>}/>
       <section className="section quick-paths-section">
         <Container>
           <SectionHeader label="Quick paths" title="Start with what you need."/>
@@ -30,20 +46,30 @@ export default function Home() {
           <EventList events={homeEvents} variant="scroll"/>
         </Container>
       </Section>
-      <Section>
-        <Container>
-          <div className="split">
-            <Card className="card-pad"><SectionLabel>Host</SectionLabel><h2 className="heading section-title">A home for intimate formats.</h2><p>Workshops, talks, tastings, circles, supper clubs and creative sessions can all be shaped with the RORUM team.</p><Button href="/host-an-event">Plan an event</Button></Card>
-            <Card className="card-pad"><SectionLabel>Book</SectionLabel><h2 className="heading section-title">Use the space for focused work.</h2><p>Morning meetings, small team rituals, offsites and content shoots get a calmer setting than a generic rental room.</p><Button href="/book-the-space" variant="secondary">Book the space</Button></Card>
-          </div>
-        </Container>
-      </Section>
-      <Section tight>
-        <Container>
-          <SectionHeader label="Services" title="Food, flowers and the feeling of arrival."/>
-          <div className="grid-2">{serviceCards.map((card) => <ServiceCard key={card.title} {...card}/>)}</div>
-        </Container>
-      </Section>
-      <CTASection title="Want to be part of the room?" text="Volunteer, collaborate, facilitate or help shape the next RORUM gathering." href="/volunteer" label="Volunteer with us"/>
+      <EditorialFeatureSection
+        eyebrow="FOR HOSTS & FACILITATORS"
+        title="Host an event at RORUM"
+        description="A calm, intimate space in central Copenhagen for workshops, classes, circles, networking events and community gatherings. Designed for facilitators, teachers, creatives and hosts who want to bring people together in a thoughtful setting."
+        features={["4-15 guests", "Flexible setup", "On-site support", "Tea & water included"]}
+        ctaLabel="Host an event"
+        ctaHref="/host-an-event"
+        image="/images/events/host-event-workshop-quickpath.png"
+        imageAlt="Workshop gathering around a table at RORUM"
+      />
+      <EditorialFeatureSection
+        eyebrow="PRIVATE & CORPORATE GATHERINGS"
+        title="Meetings & private events"
+        description="Plan a small meeting, workshop or private gathering in a hosted space with a warm atmosphere, simple setup and thoughtful support throughout your session. Ideal for teams, founders and intimate groups of up to 12 guests."
+        features={["Up to 12 guests", "Screen & Wi-Fi", "Coffee, tea & water", "Optional catering"]}
+        note="All sessions are supported by RORUM and are not offered as self-service room rental."
+        ctaLabel="Plan a private event"
+        ctaHref="/private-events"
+        image="/images/events/meeting.png"
+        imageAlt="Small private meeting in the RORUM room"
+        reversed
+      />
+      <ServicesTeaserSection services={services}/>
+      <CommunityTeaserSection/>
+      <CTASection title="Have an idea for an event?" text="Tell us what you would like to create, and we'll help you find the right format." href="/contact" label="Let's talk"/>
     </>);
 }

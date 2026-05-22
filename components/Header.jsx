@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { CalendarDays, ChevronDown, Handshake, Mail, MessageCircle, Paintbrush, Sparkles, Store, Ticket, Utensils } from "lucide-react";
+import { CalendarDays, ChevronDown, Handshake, Mail, MessageCircle, Paintbrush, Presentation, Sparkles, Ticket, Utensils } from "lucide-react";
 import { useEffect, useState } from "react";
 import { navItems } from "@/lib/data";
 import { Button, Container } from "@/components/ui";
@@ -10,7 +10,7 @@ import { Button, Container } from "@/components/ui";
 const mobileNavIcons = {
     "/events": Ticket,
     "/host-an-event": CalendarDays,
-    "/book-the-space": Store,
+    "/private-events": Presentation,
     "/services": Sparkles,
     "/community-membership": Handshake,
     "/catering": Utensils,

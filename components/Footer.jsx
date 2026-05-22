@@ -4,39 +4,43 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import { Container } from "@/components/ui";
 
 const exploreLinks = [
-    { href: "/events", label: "Explore events" },
-    { href: "/host-an-event", label: "Host an event" },
-    { href: "/book-the-space", label: "Book the space" },
+    { href: "/events", label: "Events" },
+    { href: "/host-an-event", label: "Host an Event" },
+    { href: "/private-events", label: "Private Events" },
     { href: "/catering", label: "Catering" },
-    { href: "/space-decoration-event-styling", label: "Event decoration" }
+    { href: "/space-decoration-event-styling", label: "Event Decoration" }
 ];
 
 const communityLinks = [
     { href: "/community-membership", label: "Membership" },
     { href: "/work-with-us", label: "Work with us" },
-    { href: "/volunteer", label: "Volunteer with us" },
-    { href: "/about", label: "About" },
-    { href: "/contact", label: "Contact" }
+    { href: "/volunteer", label: "Volunteer with us" }
 ];
 
-const usefulLinks = [
-    { href: "/faq", label: "Frequently asked questions" },
+const companyLinks = [
+    { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
+    { href: "/faq", label: "FAQ" }
+];
+
+const legalLinks = [
     { href: "/terms", label: "Terms" },
-    { href: "/privacy-policy", label: "Privacy policy" },
-    { href: "/cookie-policy", label: "Cookie policy" }
+    { href: "/privacy-policy", label: "Privacy Policy" },
+    { href: "/cookie-policy", label: "Cookie Policy" }
 ];
 
 const socialLinks = [
-    { href: "https://facebook.com", label: "Facebook", mark: "f" },
     { href: "https://instagram.com/rorum_space", label: "Instagram", mark: "ig" },
-    { href: "https://linkedin.com", label: "LinkedIn", mark: "in" },
-    { href: "https://youtube.com", label: "YouTube", mark: "yt" }
+    { href: "https://facebook.com", label: "Facebook", mark: "f" },
+    { href: "https://linkedin.com", label: "LinkedIn", mark: "in" }
 ];
 
-function FooterLinkColumn({ title, links }) {
+function FooterLinkColumn({ title, links, external = false }) {
     return (<nav className="footer-links" aria-label={title}>
       <span>{title}</span>
-      {links.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}
+      {links.map((link) => external
+        ? <a key={link.href} href={link.href} target="_blank" rel="noreferrer">{link.label}</a>
+        : <Link key={link.href} href={link.href}>{link.label}</Link>)}
     </nav>);
 }
 
@@ -58,11 +62,13 @@ export function Footer() {
           </div>
           <FooterLinkColumn title="Explore" links={exploreLinks}/>
           <FooterLinkColumn title="Community" links={communityLinks}/>
-          <FooterLinkColumn title="Useful links" links={usefulLinks}/>
+          <FooterLinkColumn title="Company" links={companyLinks}/>
+          <FooterLinkColumn title="Legal" links={legalLinks}/>
+          <FooterLinkColumn title="Social" links={socialLinks} external/>
         </div>
         <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} RORUM. All rights reserved.</span>
-          <span>Website developed by <a href="https://irynadev.netlify.app" target="_blank" rel="noreferrer">irynadev</a></span>
+          <span>© RORUM</span>
+          <span>Developed by <a href="https://irynadev.netlify.app" target="_blank" rel="noreferrer">IrinaDev</a></span>
         </div>
       </Container>
     </footer>);
