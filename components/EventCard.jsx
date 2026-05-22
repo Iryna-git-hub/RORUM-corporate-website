@@ -1,5 +1,5 @@
 ﻿import Link from "next/link";
-import { MapPin } from "lucide-react";
+import { CalendarDays, Clock } from "lucide-react";
 import { Card } from "@/components/ui";
 
 export function EventList({ events, variant = "grid" }) {
@@ -38,13 +38,16 @@ export function EventCard({ event }) {
         <div className="event-body">
           <h3>{event.title}</h3>
           <div className="event-meta-list">
-            <time className="event-date-line" dateTime={`${event.date}T${event.time.split("-")[0]}`}>
-              {formatEventDate(event.date)} <span aria-hidden="true">&middot;</span> {event.time}
-            </time>
             <span className="event-info-row">
-              <span className="event-info-icon"><MapPin aria-hidden="true"/></span>
+              <span className="event-info-icon"><CalendarDays aria-hidden="true"/></span>
               <span className="event-info-copy">
-                <strong>Buermistersgade 26, 1 th, Copenhagen</strong>
+                <time dateTime={event.date}>{formatEventDate(event.date)}</time>
+              </span>
+            </span>
+            <span className="event-info-row">
+              <span className="event-info-icon"><Clock aria-hidden="true"/></span>
+              <span className="event-info-copy">
+                <time dateTime={`${event.date}T${event.time.split("-")[0]}`}>{event.time}</time>
               </span>
             </span>
           </div>

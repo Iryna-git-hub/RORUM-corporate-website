@@ -2,29 +2,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { CalendarDays, ChevronDown, Handshake, Mail, MessageCircle, Paintbrush, Presentation, Sparkles, Ticket, Utensils } from "lucide-react";
+import { ChevronDown, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { navItems } from "@/lib/data";
 import { Button, Container } from "@/components/ui";
-
-const mobileNavIcons = {
-    "/events": Ticket,
-    "/host-an-event": CalendarDays,
-    "/private-events": Presentation,
-    "/services": Sparkles,
-    "/community-membership": Handshake,
-    "/catering": Utensils,
-    "/space-decoration-event-styling": Paintbrush,
-    "/volunteer": Handshake,
-    "/work-with-us": Handshake,
-    "/about": Sparkles,
-    "/contact": Mail
-};
-
-function MobileNavIcon({ href, child = false }) {
-    const Icon = mobileNavIcons[href] ?? Sparkles;
-    return <Icon className={child ? "mobile-nav-icon mobile-nav-icon-child" : "mobile-nav-icon"} aria-hidden="true" strokeWidth={1.9}/>;
-}
 
 export function Header() {
     const pathname = usePathname();
@@ -92,6 +73,13 @@ export function Header() {
                 </div>
               </div>) : <Link key={item.href} href={item.href} onClick={closeMenus}>{item.label}</Link>)}
           </nav>
+          <div className="language-switcher" aria-label="Language selector">
+            <span>EN</span>
+            <i aria-hidden="true">|</i>
+            <span>DA</span>
+            <i aria-hidden="true">|</i>
+            <span>UK</span>
+          </div>
           <div className="header-cta">
             <Button href="/contact">
               <MessageCircle className="talk-icon" aria-hidden="true" strokeWidth={2}/>
@@ -110,7 +98,6 @@ export function Header() {
         <nav className="mobile-panel-nav">
           {navItems.map((item) => (<div className="mobile-nav-group" key={item.label}>
               <Link className="mobile-nav-parent" href={item.href} onClick={closeMenus}>
-                <MobileNavIcon href={item.href}/>
                 <span>{item.label}</span>
               </Link>
               {item.children ? (<div className="mobile-nav-children">
@@ -121,6 +108,8 @@ export function Header() {
             </div>))}
         </nav>
         <div className="mobile-panel-socials">
+          <span>Language</span>
+          <div className="mobile-language-switcher" aria-label="Language selector"><span>EN</span><i aria-hidden="true">|</i><span>DA</span><i aria-hidden="true">|</i><span>UK</span></div>
           <span>Social</span>
           <a href="https://instagram.com/rorum_space" target="_blank" rel="noreferrer">Instagram</a>
           <a href="mailto:hello@rorum.dk">hello@rorum.dk</a>

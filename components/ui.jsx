@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HandHelping, MapPin, Sparkles, Users, Wine } from "lucide-react";
 
 export function Container({ children }) {
     return <div className="container">{children}</div>;
@@ -33,6 +34,16 @@ export function Card({ children, className = "", variant = "" }) {
     return <div className={`card ${variantClass} ${className}`.trim()}>{children}</div>;
 }
 
+function TrustIcon({ item }) {
+    const normalized = item.toLowerCase();
+    const Icon = normalized.includes("guest") ? Users
+        : normalized.includes("copenhagen") ? MapPin
+          : normalized.includes("support") ? HandHelping
+            : normalized.includes("catering") ? Wine
+              : Sparkles;
+    return <Icon aria-hidden="true" strokeWidth={1.8}/>;
+}
+
 export function PageHero({ label, title, text, image = "/images/hero.jpg", actions }) {
     return (<section className="hero">
       <Container>
@@ -51,7 +62,7 @@ export function PageHero({ label, title, text, image = "/images/hero.jpg", actio
     </section>);
 }
 
-export function HomeHero({ label, title, text, image = "/images/hero.jpg", video, actions }) {
+export function HomeHero({ label, title, text, microcopy, trustItems = [], image = "/images/hero.jpg", video, actions }) {
     return (<section className="home-hero-full" style={{ backgroundImage: `url(${image})` }}>
       {video ? <video className="home-hero-video" src={video} poster={image} autoPlay muted loop playsInline aria-hidden="true"/> : null}
       <div className="home-hero-overlay"/>
@@ -61,8 +72,12 @@ export function HomeHero({ label, title, text, image = "/images/hero.jpg", video
           <h1 className="heading">{title}</h1>
           <p>{text}</p>
           {actions ? <div className="hero-actions">{actions}</div> : null}
+          {microcopy ? <p className="home-hero-microcopy">{microcopy}</p> : null}
         </div>
       </Container>
+      {trustItems.length ? (<ul className="home-hero-trust" aria-label="RORUM highlights">
+          {trustItems.map((item) => <li key={item}><TrustIcon item={item}/><span>{item}</span></li>)}
+        </ul>) : null}
     </section>);
 }
 

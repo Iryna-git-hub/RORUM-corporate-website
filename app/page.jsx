@@ -10,13 +10,13 @@ export default function Home() {
     const paths = [
         ["Events", "Join dinners, salons and workshops at RORUM.", "/events", "/images/events/mosaic-variants/events-mosaic-3x4-border.jpg"],
         ["Host an Event", "Bring a thoughtful format to the RORUM community.", "/host-an-event", "/images/events/host-event-workshop-quickpath.png"],
-        ["Private Events", "Reserve the room for a meeting, workshop or private gathering.", "/private-events", "/images/space/space-1.png"],
+        ["Private Meetings", "Plan a hosted meeting, workshop or private gathering.", "/private-meetings", "/images/space/space-1.png"],
         ["Services", "Add catering, styling and hospitality details.", "/services", "/images/services/services-split.png"]
     ];
     const services = [
         {
             title: "Catering",
-            text: "Fresh, simple and elegant catering for meetings, private events, workshops and special gatherings.",
+            text: "Fresh, simple and elegant catering for meetings, private gatherings, workshops and special moments.",
             cta: "Explore catering",
             href: "/catering",
             image: "/images/catering/catering-1.png"
@@ -30,7 +30,7 @@ export default function Home() {
         }
     ];
     return (<>
-      <HomeHero label="Copenhagen Event Space" title="A space for people who bring people together" text="Join upcoming events, host your own workshop or gathering, or book Rorum for a private format." image="/images/hero.jpg" video="/videos/home-hero.mp4" actions={<><Button href="/host-an-event">Host an event</Button><Button href="/events" variant="secondary">Explore events</Button><Button href="/private-events" variant="secondary">Private events</Button></>}/>
+      <HomeHero label="Copenhagen event space" title="A warm Copenhagen space for meaningful events and private gatherings" text="Host workshops, creative sessions, community events and private meetings in a calm, thoughtfully prepared space with support from the RORUM team." trustItems={["4–15 guests", "Central Copenhagen", "On-site support", "Catering & decoration available"]} image="/images/hero.jpg" video="/videos/home-hero.mp4" actions={<><Button href="/host-an-event">Host an Event</Button><Button href="/events" variant="secondary">Explore Events</Button><Button href="/private-meetings" variant="secondary">Private Meetings</Button></>}/>
       <section className="section quick-paths-section">
         <Container>
           <SectionHeader label="Quick paths" title="Start with what you need."/>
@@ -58,12 +58,12 @@ export default function Home() {
       />
       <EditorialFeatureSection
         eyebrow="PRIVATE & CORPORATE GATHERINGS"
-        title="Meetings & private events"
-        description="Plan a small meeting, workshop or private gathering in a hosted space with a warm atmosphere, simple setup and thoughtful support throughout your session. Ideal for teams, founders and intimate groups of up to 12 guests."
+        title="Private meetings"
+        description="Plan a focused meeting, workshop or private gathering in a hosted space with a warm atmosphere, simple setup and thoughtful support throughout your session. Ideal for teams, founders and intimate groups of up to 12 guests."
         features={["Up to 12 guests", "Screen & Wi-Fi", "Coffee, tea & water", "Optional catering"]}
         note="All sessions are supported by RORUM and are not offered as self-service room rental."
         ctaLabel="Plan a private event"
-        ctaHref="/private-events"
+        ctaHref="/private-meetings"
         image="/images/events/meeting.png"
         imageAlt="Small private meeting in the RORUM room"
         reversed

@@ -7,7 +7,7 @@ export const metadata = pageMetadata("/about");
 
 export default function AboutPage() {
     return (<>
-      <PageHero label="About RORUM" title="A small Copenhagen room for thoughtful gatherings." text="RORUM is a curated ground-floor creative and event space for workshops, meetings, private events, catering, styling and community moments." image="/images/space/space-2.png"/>
+      <PageHero label="About RORUM" title="A small Copenhagen room for thoughtful gatherings." text="RORUM is a curated ground-floor creative and event space for workshops, private meetings, catering, styling and community moments." image="/images/space/space-2.png"/>
       <Section>
         <Container>
           <div className="split about-editorial">
@@ -16,7 +16,7 @@ export default function AboutPage() {
               <SectionLabel>Story</SectionLabel>
               <h2 className="heading section-title">Built for people who bring people together.</h2>
               <p>RORUM gives Copenhagen hosts, facilitators, teams and creative communities a warm room with enough structure to feel easy and enough character to feel personal.</p>
-              <p>The space supports workshops, meetings, private events, content days, catering, space decoration and intimate community formats.</p>
+              <p>The space supports workshops, private meetings, content days, catering, event decoration and intimate community formats.</p>
             </Card>
           </div>
         </Container>
@@ -36,7 +36,7 @@ export default function AboutPage() {
             <div className="hero-actions">
               <Button href="/events" variant="secondary">View Events</Button>
               <Button href="/host-an-event">Host an Event</Button>
-              <Button href="/private-events" variant="secondary">Private Events</Button>
+              <Button href="/private-meetings" variant="secondary">Private Meetings</Button>
             </div>
           </Card>
         </Container>

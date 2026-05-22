@@ -1,4 +1,5 @@
 import { EditorialCard } from "@/components/Cards";
+import { InquiryForm } from "@/components/InquiryForm";
 import { Button, Card, Container, CTASection, PageHero, Section, SectionHeader, SectionLabel } from "@/components/ui";
 import { communityPillars, membershipAudiences, membershipBenefits } from "@/lib/data";
 import { pageMetadata } from "@/lib/seo";
@@ -55,6 +56,11 @@ export default function CommunityMembershipPage() {
           </div>
         </Container>
       </Section>
-      <CTASection title="Join the RORUM community." text="Membership is currently free and built around events, support and practical creative connection." href="/contact" label="Join the Community"/>
+      <Section>
+        <Container>
+          <InquiryForm type="membership" title="Membership interest"/>
+        </Container>
+      </Section>
+      <CTASection title="Join the RORUM community." text="Membership is currently free and built around events, support and practical creative connection." href="/contact" label="Contact RORUM"/>
     </>);
 }
