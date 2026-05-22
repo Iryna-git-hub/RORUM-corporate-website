@@ -23,7 +23,7 @@ export default function BookSpacePage() {
           <div className="book-space-hero-copy">
             <SectionLabel>Book the space</SectionLabel>
             <h1 className="heading">A calm room for focused gatherings.</h1>
-            <p className="muted">Use RORUM for meetings, private workshops, planning days, photography, content and intimate celebrations.</p>
+            <p>Use RORUM for meetings, private workshops, planning days, photography, content and intimate celebrations.</p>
           </div>
           <HorizontalGallery images={galleryImages}/>
         </Container>

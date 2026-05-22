@@ -17,7 +17,7 @@ export function SectionHeader({ label, title, text, level = 2 }) {
     return (<div className="section-head">
       {label ? <SectionLabel>{label}</SectionLabel> : null}
       <HeadingTag className="heading section-title">{title}</HeadingTag>
-      {text ? <p className="muted">{text}</p> : null}
+      {text ? <p>{text}</p> : null}
     </div>);
 }
 
@@ -40,11 +40,11 @@ export function PageHero({ label, title, text, image = "/images/hero.jpg", actio
           <div className="hero-copy">
             <SectionLabel>{label}</SectionLabel>
             <h1 className="heading page-hero-title">{title}</h1>
-            <p className="muted">{text}</p>
+            <p>{text}</p>
             {actions ? <div className="hero-actions">{actions}</div> : null}
           </div>
           <div className="hero-image" style={{ backgroundImage: `url(${image})` }}>
-            <div className="hero-note muted">A warm Copenhagen room for people, ideas, food and thoughtful gatherings.</div>
+            <div className="hero-note">A warm Copenhagen room for people, ideas, food and thoughtful gatherings.</div>
           </div>
         </div>
       </Container>
@@ -73,7 +73,7 @@ export function CTASection({ title, text, href, label }) {
           <div>
             <SectionLabel>Next step</SectionLabel>
             <h2 className="heading cta-title">{title}</h2>
-            <p className="muted">{text}</p>
+            <p>{text}</p>
           </div>
           <Button href={href}>{label}</Button>
         </Card>

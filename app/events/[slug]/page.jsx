@@ -50,7 +50,7 @@ export default async function EventDetailPage({ params }) {
           <div className="split">
             <div className="event-detail-copy">
               <SectionLabel>About this event</SectionLabel>
-              <p className="muted">{event.longDescription ?? event.shortDescription}</p>
+              <p>{event.longDescription ?? event.shortDescription}</p>
               {event.included?.length ? (<Card className="card-pad">
                 <h3 className="heading">Included</h3>
                 <ul className="clean-list">{event.included.map((item) => <li key={item}>{item}</li>)}</ul>

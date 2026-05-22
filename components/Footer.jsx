@@ -48,7 +48,7 @@ export function Footer() {
             <Image className="footer-logo" src="/logos/rorum-creative-event-space.png" alt="RORUM Creative & Event Space" width={264} height={58}/>
             <p className="footer-subheading">Creative event space, hospitality and community moments in Copenhagen.</p>
             <div className="footer-contact-list">
-              <span><MapPin aria-hidden="true"/>Copenhagen, Denmark</span>
+              <span><MapPin aria-hidden="true"/>Buermistersgade 26, 1 th, Copenhagen</span>
               <a href="mailto:hello@rorum.dk"><Mail aria-hidden="true"/>hello@rorum.dk</a>
               <span><Phone aria-hidden="true"/>Phone on request</span>
             </div>

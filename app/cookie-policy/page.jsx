@@ -8,7 +8,7 @@ export default function CookiePolicyPage() {
       <PageHero label="Cookie policy" title="How cookies may be used." text="Plain-language cookie information for the RORUM website. A preference banner can be added in a later production phase."/>
       <Section>
         <Container>
-          <div className="policy-content muted">
+          <div className="policy-content">
             <h2>What cookies are</h2>
             <p>Cookies are small files stored by your browser. They can help a website remember basic choices, understand how pages are used or support external tools.</p>
             <h2>Necessary cookies</h2>

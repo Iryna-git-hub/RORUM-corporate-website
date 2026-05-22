@@ -14,11 +14,11 @@ export default function CommunityMembershipPage() {
             <Card className="card-pad">
               <SectionLabel>Mission</SectionLabel>
               <h2 className="heading section-title">Connection with a practical shape.</h2>
-              <p className="muted">RORUM community membership is for people who want to meet through real formats: workshops, dinners, salons, volunteering, collaboration and shared creative work.</p>
+              <p>RORUM community membership is for people who want to meet through real formats: workshops, dinners, salons, volunteering, collaboration and shared creative work.</p>
             </Card>
             <Card className="card-pad">
               <SectionLabel>WECODA</SectionLabel>
-              <p className="muted">RORUM is connected to WECODA as a practical community pathway: a way to support people in creating, hosting, learning and finding useful relationships around a physical space.</p>
+              <p>RORUM is connected to WECODA as a practical community pathway: a way to support people in creating, hosting, learning and finding useful relationships around a physical space.</p>
               <p className="provider">Membership is currently free. Terms may change in the future.</p>
             </Card>
           </div>
@@ -45,7 +45,7 @@ export default function CommunityMembershipPage() {
             </Card>
             <Card className="card-pad">
               <SectionLabel>Start here</SectionLabel>
-              <p className="muted">Come to an event, volunteer for a room moment, or share the kind of collaboration you want to build with RORUM.</p>
+              <p>Come to an event, volunteer for a room moment, or share the kind of collaboration you want to build with RORUM.</p>
               <div className="hero-actions">
                 <Button href="/events" variant="secondary">View Events</Button>
                 <Button href="/volunteer" variant="secondary">Volunteer With Us</Button>

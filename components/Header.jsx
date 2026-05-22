@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { CalendarDays, ChevronDown, Handshake, Mail, Paintbrush, Sparkles, Store, Ticket, Utensils } from "lucide-react";
+import { CalendarDays, ChevronDown, Handshake, Mail, MessageCircle, Paintbrush, Sparkles, Store, Ticket, Utensils } from "lucide-react";
 import { useEffect, useState } from "react";
 import { navItems } from "@/lib/data";
 import { Button, Container } from "@/components/ui";
@@ -67,7 +67,7 @@ export function Header() {
         };
     }, [menuOpen]);
     const homeScrolled = isHome && homePastGreenSection;
-    const logoSrc = isHome && !homeScrolled ? "/logos/rorum-home-logo-gold.png" : "/logos/rorum-creative-event-space.png";
+    const logoSrc = "/logos/rorum-creative-event-space.png";
     function closeMenus() {
         setMenuOpen(false);
         setOpenDropdown(null);
@@ -94,7 +94,7 @@ export function Header() {
           </nav>
           <div className="header-cta">
             <Button href="/contact">
-              <span className="talk-icon" aria-hidden="true"/>
+              <MessageCircle className="talk-icon" aria-hidden="true" strokeWidth={2}/>
               Let&apos;s Talk
             </Button>
           </div>
