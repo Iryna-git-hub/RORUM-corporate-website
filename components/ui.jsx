@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, Smile, Sparkles, Users, Wine } from "lucide-react";
+import { MapPin, MessageCircle, MessagesSquare, Smile, Sparkles, Users, Wine } from "lucide-react";
 
 export function Container({ children }) {
     return <div className="container">{children}</div>;
@@ -81,16 +81,26 @@ export function HomeHero({ label, title, text, microcopy, trustItems = [], image
     </section>);
 }
 
-export function CTASection({ title, text, href, label }) {
-    return (<section className="section-tight next-step-section">
+export function CTASection({ title, text, href, label, eyebrow = "Next step", links = [], variant = "" }) {
+    const sectionClass = `section-tight next-step-section ${variant ? `next-step-section-${variant}` : ""}`.trim();
+    const cardClass = `cta next-step-card ${variant ? `next-step-card-${variant}` : ""}`.trim();
+    return (<section className={sectionClass}>
       <Container>
-        <Card className="cta next-step-card">
-          <div>
-            <SectionLabel>Next step</SectionLabel>
+        <Card className={cardClass}>
+          <div className="next-step-copy">
+            <SectionLabel>{eyebrow}</SectionLabel>
             <h2 className="heading cta-title">{title}</h2>
             <p>{text}</p>
+            {links.length ? (<div className="next-step-links" aria-label="Suggested paths">
+              {links.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}
+            </div>) : null}
           </div>
-          <Button href={href}>{label}</Button>
+          {variant === "final" ? (<div className="final-cta-illustration" aria-hidden="true">
+            <MessagesSquare strokeWidth={1.15}/>
+          </div>) : null}
+          <div className="next-step-action">
+            <Button href={href}>{variant === "final" ? <MessageCircle aria-hidden="true" strokeWidth={1.9}/> : null}{label}</Button>
+          </div>
         </Card>
       </Container>
     </section>);

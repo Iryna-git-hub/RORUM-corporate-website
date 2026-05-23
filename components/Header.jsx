@@ -14,7 +14,7 @@ export function Header() {
     const [hidden, setHidden] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [openDropdown, setOpenDropdown] = useState(null);
-    const [pastDarkHero, setPastDarkHero] = useState(false);
+    const [overDarkSection, setOverDarkSection] = useState(false);
     useEffect(() => {
         let lastY = window.scrollY;
         const onScroll = () => {
@@ -30,9 +30,13 @@ export function Header() {
             return;
         }
         const onScroll = () => {
-            const greenSection = document.querySelector(isHome ? ".home-hero-full" : ".host-page-hero");
+            const darkSections = document.querySelectorAll(isHome ? ".home-hero-full, .community-section, .next-step-section-final" : ".host-page-hero");
             const headerHeight = document.querySelector(".header")?.offsetHeight ?? 0;
-            setPastDarkHero(Boolean(greenSection && greenSection.getBoundingClientRect().bottom <= headerHeight));
+            const sampleY = Math.max(1, Math.round(headerHeight / 2));
+            setOverDarkSection(Array.from(darkSections).some((section) => {
+                const rect = section.getBoundingClientRect();
+                return rect.top <= sampleY && rect.bottom >= sampleY;
+            }));
         };
         onScroll();
         window.addEventListener("scroll", onScroll, { passive: true });
@@ -48,7 +52,7 @@ export function Header() {
             document.body.style.overflow = "";
         };
     }, [menuOpen]);
-    const darkHeroScrolled = usesDarkHeroHeader && pastDarkHero;
+    const darkHeroScrolled = usesDarkHeroHeader && !overDarkSection;
     const logoSrc = "/logos/rorum-creative-event-space.png";
     function closeMenus() {
         setMenuOpen(false);

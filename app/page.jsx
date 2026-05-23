@@ -69,6 +69,19 @@ export default function Home() {
       />
       <ServicesTeaserSection services={services}/>
       <CommunityTeaserSection/>
-      <CTASection title="Have an idea for an event?" text="Tell us what you would like to create, and we'll help you find the right format." href="/contact" label="Let's talk"/>
+      <CTASection
+        variant="final"
+        eyebrow="NOT SURE WHERE TO START?"
+        title="Let's shape your idea together"
+        text="Whether you are planning a workshop, private session, community gathering, catering request or event styling idea — tell us what you have in mind, and we'll help you find the right format."
+        href="/contact"
+        label="Let's Talk"
+        links={[
+          { href: "/host-an-event", label: "Host an Event" },
+          { href: "/private-meetings", label: "Private Meetings" },
+          { href: "/catering", label: "Catering" },
+          { href: "/space-decoration-event-styling", label: "Event Decoration" }
+        ]}
+      />
     </>);
 }

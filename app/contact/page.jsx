@@ -15,7 +15,7 @@ export default function ContactPage() {
                 <h2 className="heading detail-title">Buermistersgade 26, 1 th, Copenhagen</h2>
                 <p>Email: hello@rorum.dk<br />Instagram: @rorum_space<br />Address: Buermistersgade 26, 1 th, Copenhagen</p>
               </div>
-              <div className="map-placeholder">Map placeholder</div>
+              <div className="map-placeholder" id="map">Map placeholder</div>
             </div>
           </div>
         </Container>

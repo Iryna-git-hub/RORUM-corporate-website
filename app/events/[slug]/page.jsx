@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { EventList } from "@/components/EventCard";
 import { Button, Card, Container, CTASection, PageHero, Section, SectionHeader, SectionLabel } from "@/components/ui";
 import { events, siteUrl } from "@/lib/data";
+import { ArrowLeft } from "lucide-react";
 
 function getEvent(slug) {
     return events.find((event) => event.slug === slug);
@@ -42,29 +44,50 @@ export default async function EventDetailPage({ params }) {
     const relatedEvents = (event.relatedEventSlugs ?? []).map((slug) => getEvent(slug)).filter(Boolean);
     const ticketLabel = event.isSoldOut ? "Join waitlist" : "Book ticket";
     const ticketHref = event.isSoldOut ? event.waitlistUrl : event.ticketUrl;
+    const formattedDate = date.toLocaleDateString("en", { month: "long", day: "numeric", year: "numeric" });
+    const whatToExpect = event.whatToExpect ?? event.included ?? [
+        "Small group format",
+        "Guided experience",
+        "Warm RORUM atmosphere",
+        "Tea & refreshments",
+        "Time for conversation"
+    ];
+    const practicalDetails = event.practicalDetails ?? [
+        { label: "Address", value: event.location ?? "Buermistersgade 26, 1 th, Copenhagen" },
+        { label: "Arrival", value: "Please arrive 5-10 minutes before the event begins." },
+        { label: "Duration", value: event.duration ?? event.time },
+        { label: "Language", value: event.language },
+        { label: "Tickets", value: event.isSoldOut ? "Join the waitlist for updates" : event.ticketProvider ? `Purchased externally via ${event.ticketProvider}` : "Available on request" }
+    ];
 
     return (<>
       <PageHero label={event.category} title={event.title} text={event.shortDescription} image={event.image ?? "/images/hero.jpg"} actions={ticketHref ? <Button href={ticketHref}>{ticketLabel}</Button> : null}/>
       <Section>
         <Container>
-          <div className="split">
+          <Link className="event-back-link" href="/events"><ArrowLeft aria-hidden="true" strokeWidth={1.9}/>Back to Events</Link>
+          <div className="event-detail-layout">
             <div className="event-detail-copy">
               <SectionLabel>About this event</SectionLabel>
               <p>{event.longDescription ?? event.shortDescription}</p>
-              {event.included?.length ? (<Card className="card-pad">
-                <h3 className="heading">Included</h3>
-                <ul className="clean-list">{event.included.map((item) => <li key={item}>{item}</li>)}</ul>
-              </Card>) : null}
+              {whatToExpect.length ? (<div className="event-expect-section">
+                <h2 className="heading event-subtitle">What to expect</h2>
+                <div className="event-expect-chips">
+                  {whatToExpect.map((item) => <span key={item}>{item}</span>)}
+                </div>
+              </div>) : null}
+              {event.host ? (<div className="event-hosted-by">
+                <h2 className="heading event-subtitle">Hosted by</h2>
+                <p>{event.host}</p>
+              </div>) : null}
             </div>
             <Card className="card-pad event-detail-panel">
               <SectionLabel>Event details</SectionLabel>
               <dl className="detail-list">
-                <div><dt>Date</dt><dd>{date.toLocaleDateString("en", { month: "long", day: "numeric", year: "numeric" })}</dd></div>
+                <div><dt>Date</dt><dd>{formattedDate}</dd></div>
                 <div><dt>Time</dt><dd>{event.time}</dd></div>
-                <div><dt>Category</dt><dd>{event.category}</dd></div>
+                <div><dt>Location</dt><dd>{event.location ?? "Buermistersgade 26, 1 th, Copenhagen"}</dd></div>
                 <div><dt>Price</dt><dd>{event.price}</dd></div>
                 <div><dt>Language</dt><dd>{event.language}</dd></div>
-                {event.host ? <div><dt>Host</dt><dd>{event.host}</dd></div> : null}
                 {event.ticketProvider ? <div><dt>Tickets</dt><dd>{event.isSoldOut ? "Sold out" : `Via ${event.ticketProvider}`}</dd></div> : null}
               </dl>
               <div className="hero-actions">
@@ -73,6 +96,25 @@ export default async function EventDetailPage({ params }) {
               </div>
               {event.isSoldOut ? <p className="provider">This event is currently sold out. Join the waitlist for updates.</p> : <p className="provider">Tickets via {event.ticketProvider}</p>}
             </Card>
+          </div>
+          {practicalDetails.length ? (<div className="event-practical-section">
+            <h2 className="heading event-subtitle">Practical details</h2>
+            <dl className="event-practical-list">
+              {practicalDetails.map((detail) => <div key={detail.label}>
+                <dt>{detail.label}</dt>
+                <dd>{detail.value}</dd>
+              </div>)}
+            </dl>
+          </div>) : null}
+          <div className="event-ticket-cta">
+            <div>
+              <SectionLabel>Tickets</SectionLabel>
+              <h2 className="heading event-subtitle">{event.isSoldOut ? "Join the waitlist" : "Ready to join us?"}</h2>
+            </div>
+            <div className="event-ticket-actions">
+              {ticketHref ? <Button href={ticketHref}>{ticketLabel}</Button> : null}
+              <Link className="event-back-link" href="/events"><ArrowLeft aria-hidden="true" strokeWidth={1.9}/>Back to Events</Link>
+            </div>
           </div>
         </Container>
       </Section>
