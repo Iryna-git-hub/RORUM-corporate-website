@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Button, Container, Section, SectionHeader, SectionLabel } from "@/components/ui";
+import { ArrowRight, Coffee, HandHeart, SlidersHorizontal, UtensilsCrossed, Users, Wifi, Wrench } from "lucide-react";
+import { Container, Section, SectionHeader, SectionLabel } from "@/components/ui";
 
 export function EditorialFeatureSection({
     eyebrow,
@@ -14,6 +14,9 @@ export function EditorialFeatureSection({
     reversed = false,
     note
 }) {
+    const hostFeatureIcons = [Users, SlidersHorizontal, HandHeart, Coffee];
+    const privateFeatureIcons = [Users, Wifi, Coffee, UtensilsCrossed];
+    const featureIcons = reversed ? privateFeatureIcons : hostFeatureIcons;
     return (<section className={`editorial-feature ${reversed ? "editorial-feature-reversed" : ""}`}>
       <Container>
         <div className="editorial-feature-grid">
@@ -22,10 +25,16 @@ export function EditorialFeatureSection({
             <h2 className="heading section-title">{title}</h2>
             <p>{description}</p>
             {features.length ? (<ul className="editorial-feature-list">
-                {features.map((feature) => <li key={feature}>{feature}</li>)}
+                {features.map((feature, index) => {
+                    const FeatureIcon = featureIcons[index] ?? Wrench;
+                    return <li key={feature}><FeatureIcon aria-hidden="true" strokeWidth={1.9}/><span>{feature}</span></li>;
+                })}
               </ul>) : null}
             {note ? <p className="editorial-feature-note">{note}</p> : null}
-            <Button href={ctaHref}>{ctaLabel}</Button>
+            <Link className="btn editorial-feature-btn" href={ctaHref}>
+              <span>{ctaLabel}</span>
+              <ArrowRight aria-hidden="true" strokeWidth={1.9}/>
+            </Link>
           </div>
           <div className="editorial-feature-media" role="img" aria-label={imageAlt} style={{ backgroundImage: `url(${image})` }}/>
         </div>
@@ -43,7 +52,9 @@ export function ServicesTeaserSection({ services }) {
         />
         <div className="services-teaser-grid">
           {services.map((service) => (<article className="services-teaser-card" key={service.title}>
-            <div className="services-teaser-media" style={{ backgroundImage: `url(${service.image})` }}/>
+            <div className="services-teaser-media">
+              <span className="services-teaser-media-image" style={{ backgroundImage: `url(${service.image})` }} aria-hidden="true"/>
+            </div>
             <div className="services-teaser-copy">
               <h3>{service.title}</h3>
               <p>{service.text}</p>
@@ -65,7 +76,7 @@ export function CommunityTeaserSection() {
         { href: "/volunteer", label: "Volunteer with us" }
     ];
 
-    return (<Section tight>
+    return (<section className="section-tight community-section">
       <Container>
         <div className="community-teaser">
           <div>
@@ -78,5 +89,5 @@ export function CommunityTeaserSection() {
           </div>
         </div>
       </Container>
-    </Section>);
+    </section>);
 }

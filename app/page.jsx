@@ -40,7 +40,7 @@ export default function Home() {
       <Section tight>
         <Container>
           <div className="event-section-head">
-            <SectionHeader label="Future events" title="Upcoming moments at RORUM."/>
+            <SectionHeader label="Future events" title="Upcoming events at RORUM."/>
             <Button href="/events" variant="event-all"><span>View all events</span><ArrowRight className="event-all-icon" aria-hidden="true" strokeWidth={1.9}/></Button>
           </div>
           <EventList events={homeEvents} variant="scroll"/>
@@ -61,10 +61,9 @@ export default function Home() {
         title="Private meetings"
         description="Plan a focused meeting, workshop or private gathering in a hosted space with a warm atmosphere, simple setup and thoughtful support throughout your session. Ideal for teams, founders and intimate groups of up to 12 guests."
         features={["Up to 12 guests", "Screen & Wi-Fi", "Coffee, tea & water", "Optional catering"]}
-        note="All sessions are supported by RORUM and are not offered as self-service room rental."
         ctaLabel="Plan a private event"
         ctaHref="/private-meetings"
-        image="/images/events/meeting.png"
+        image="/images/events/private-meetings.png"
         imageAlt="Small private meeting in the RORUM room"
         reversed
       />

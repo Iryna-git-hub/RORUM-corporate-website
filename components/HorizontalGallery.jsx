@@ -5,13 +5,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export function HorizontalGallery({ images }) {
   const trackRef = useRef(null);
   const dragStartRef = useRef(null);
+  const openerRef = useRef(null);
   const [lightboxIndex, setLightboxIndex] = useState(null);
+
+  const closeLightbox = useCallback(() => {
+    setLightboxIndex(null);
+    requestAnimationFrame(() => openerRef.current?.focus?.());
+  }, []);
 
   const moveLightbox = useCallback((direction) => {
     setLightboxIndex((current) => {
       if (current === null) return current;
-      const next = current + direction;
-      if (next < 0 || next >= images.length) return current;
+      const next = (current + direction + images.length) % images.length;
       return next;
     });
   }, [images.length]);
@@ -37,13 +42,13 @@ export function HorizontalGallery({ images }) {
   useEffect(() => {
     if (lightboxIndex === null) return;
     const onKeyDown = (event) => {
-      if (event.key === "Escape") setLightboxIndex(null);
+      if (event.key === "Escape") closeLightbox();
       if (event.key === "ArrowLeft") moveLightbox(-1);
       if (event.key === "ArrowRight") moveLightbox(1);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [lightboxIndex, images.length, moveLightbox]);
+  }, [lightboxIndex, images.length, moveLightbox, closeLightbox]);
 
   useEffect(() => {
     if (lightboxIndex === null) return;
@@ -63,7 +68,8 @@ export function HorizontalGallery({ images }) {
                 key={`${image}-${index}`}
                 className="horizontal-gallery-item"
                 type="button"
-                onClick={() => {
+                onClick={(event) => {
+                  openerRef.current = event.currentTarget;
                   setLightboxIndex(index);
                 }}
                 aria-label={`Open gallery image ${index + 1}`}
@@ -76,7 +82,7 @@ export function HorizontalGallery({ images }) {
       </div>
       {lightboxIndex !== null ? (
         <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label="Image preview">
-          <button className="gallery-lightbox-backdrop" type="button" onClick={() => setLightboxIndex(null)} aria-label="Close image preview" />
+          <button className="gallery-lightbox-backdrop" type="button" onClick={closeLightbox} aria-label="Close image preview" />
           <div
             className="gallery-lightbox-content"
             onTouchStart={(event) => handleDragStart(event.touches[0]?.clientX ?? 0)}
@@ -86,21 +92,20 @@ export function HorizontalGallery({ images }) {
             onMouseLeave={(event) => handleDragEnd(event.clientX)}
             onWheel={handleWheel}
           >
-            <button className="gallery-lightbox-close" type="button" onClick={() => setLightboxIndex(null)} aria-label="Close image preview">Close</button>
+            <button className="gallery-lightbox-close" type="button" onClick={closeLightbox} aria-label="Close image preview">Close</button>
+            <div className="gallery-lightbox-counter" aria-live="polite">{lightboxIndex + 1} / {images.length}</div>
+            <button className="gallery-lightbox-nav gallery-lightbox-nav-prev" type="button" onClick={() => moveLightbox(-1)} aria-label="Previous image">Previous</button>
+            <button className="gallery-lightbox-nav gallery-lightbox-nav-next" type="button" onClick={() => moveLightbox(1)} aria-label="Next image">Next</button>
             <div className="gallery-lightbox-slider">
-              {lightboxIndex > 0 ? (
-                <div className="gallery-lightbox-slide gallery-lightbox-slide-prev">
-                  <img src={images[lightboxIndex - 1]} alt="" draggable="false" />
-                </div>
-              ) : <span className="gallery-lightbox-spacer" />}
+              <div className="gallery-lightbox-slide gallery-lightbox-slide-prev">
+                <img src={images[(lightboxIndex - 1 + images.length) % images.length]} alt="" draggable="false" />
+              </div>
               <div className="gallery-lightbox-slide gallery-lightbox-slide-active" key={images[lightboxIndex]}>
                 <img src={images[lightboxIndex]} alt="" draggable="false" />
               </div>
-              {lightboxIndex < images.length - 1 ? (
-                <div className="gallery-lightbox-slide gallery-lightbox-slide-next">
-                  <img src={images[lightboxIndex + 1]} alt="" draggable="false" />
-                </div>
-              ) : <span className="gallery-lightbox-spacer" />}
+              <div className="gallery-lightbox-slide gallery-lightbox-slide-next">
+                <img src={images[(lightboxIndex + 1) % images.length]} alt="" draggable="false" />
+              </div>
             </div>
           </div>
         </div>

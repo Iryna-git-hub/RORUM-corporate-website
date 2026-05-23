@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HandHelping, MapPin, Sparkles, Users, Wine } from "lucide-react";
+import { MapPin, Smile, Sparkles, Users, Wine } from "lucide-react";
 
 export function Container({ children }) {
     return <div className="container">{children}</div>;
@@ -38,7 +38,7 @@ function TrustIcon({ item }) {
     const normalized = item.toLowerCase();
     const Icon = normalized.includes("guest") ? Users
         : normalized.includes("copenhagen") ? MapPin
-          : normalized.includes("support") ? HandHelping
+          : normalized.includes("support") ? Smile
             : normalized.includes("catering") ? Wine
               : Sparkles;
     return <Icon aria-hidden="true" strokeWidth={1.8}/>;
@@ -82,9 +82,9 @@ export function HomeHero({ label, title, text, microcopy, trustItems = [], image
 }
 
 export function CTASection({ title, text, href, label }) {
-    return (<Section tight>
+    return (<section className="section-tight next-step-section">
       <Container>
-        <Card className="cta">
+        <Card className="cta next-step-card">
           <div>
             <SectionLabel>Next step</SectionLabel>
             <h2 className="heading cta-title">{title}</h2>
@@ -93,5 +93,5 @@ export function CTASection({ title, text, href, label }) {
           <Button href={href}>{label}</Button>
         </Card>
       </Container>
-    </Section>);
+    </section>);
 }

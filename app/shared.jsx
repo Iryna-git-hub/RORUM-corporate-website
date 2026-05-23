@@ -39,8 +39,7 @@ function QuickPathCard({ title, text, href, image }) {
       </span>
       <span className="quick-card-actions">
         {meta.links ? (<span className="quick-card-links" aria-label="Service links">
-            {meta.links.map((link, index) => <span className="quick-card-link-item" key={link.href}>
-              {index > 0 ? <span className="quick-card-link-divider" aria-hidden="true">|</span> : null}
+            {meta.links.map((link) => <span className="quick-card-link-item" key={link.href}>
               <Link className="quick-card-service-link" href={link.href}>
               <span>{link.label}</span>
               <ArrowRight aria-hidden="true" strokeWidth={1.9}/>

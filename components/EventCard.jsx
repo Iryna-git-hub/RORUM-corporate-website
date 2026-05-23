@@ -29,7 +29,8 @@ export function EventCard({ event }) {
     const badgeDate = formatEventBadgeDate(event.date);
     const card = (
       <Card className="event-card" variant="event">
-        <div className="event-media" style={{ backgroundImage: `url(${event.image ?? "/images/hero.jpg"})` }}>
+        <div className="event-media">
+          <span className="event-media-image" style={{ backgroundImage: `url(${event.image ?? "/images/hero.jpg"})` }} aria-hidden="true"/>
           <time className="event-date-card" dateTime={event.date}>
             <span className="event-date-day">{badgeDate.day}</span>
             <span className="event-date-month">{badgeDate.month}</span>

@@ -11,7 +11,7 @@ export default function PrivateMeetingsPage() {
     const galleryImages = [
         "/images/space/space-1.png",
         "/images/space/space-2.png",
-        "/images/events/meeting.png",
+        "/images/events/private-meetings.png",
         "/images/events/workshop.png",
         "/images/catering/catering-1.png",
         "/images/catering/catering-2.png",
