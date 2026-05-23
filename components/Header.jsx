@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ChevronDown, MessageCircle } from "lucide-react";
+import { ChevronDown, MessageCircle, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { navItems } from "@/lib/data";
 import { Button, Container } from "@/components/ui";
@@ -54,6 +54,11 @@ export function Header() {
     }, [menuOpen]);
     const darkHeroScrolled = usesDarkHeroHeader && !overDarkSection;
     const logoSrc = "/logos/rorum-creative-event-space.png";
+    const socialLinks = [
+        { href: "https://instagram.com/rorum_space", label: "Instagram", mark: "ig" },
+        { href: "https://facebook.com", label: "Facebook", mark: "f" },
+        { href: "https://linkedin.com", label: "LinkedIn", mark: "in" }
+    ];
     function closeMenus() {
         setMenuOpen(false);
         setOpenDropdown(null);
@@ -101,7 +106,7 @@ export function Header() {
               Let&apos;s Talk
             </Button>
           </div>
-          <button className="mobile-menu-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>
+          <button className="mobile-menu-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} tabIndex={menuOpen ? -1 : 0} onClick={() => setMenuOpen((open) => !open)}>
             <span />
             <span />
             <span />
@@ -110,6 +115,12 @@ export function Header() {
       </Container>
       <button className="mobile-menu-backdrop" type="button" aria-label="Close menu" onClick={closeMenus}/>
       <aside className="mobile-menu-panel" aria-label="Mobile menu">
+        <div className="mobile-menu-topbar">
+          <div className="mobile-language-switcher" aria-label="Language selector"><span>EN</span><i aria-hidden="true">|</i><span>DA</span><i aria-hidden="true">|</i><span>UK</span></div>
+          <button className="mobile-menu-close" type="button" aria-label="Close menu" onClick={closeMenus}>
+            <X aria-hidden="true" strokeWidth={2}/>
+          </button>
+        </div>
         <nav className="mobile-panel-nav">
           {navItems.map((item) => {
             const active = isActiveItem(item);
@@ -129,11 +140,11 @@ export function Header() {
           })}
         </nav>
         <div className="mobile-panel-socials">
-          <span>Language</span>
-          <div className="mobile-language-switcher" aria-label="Language selector"><span>EN</span><i aria-hidden="true">|</i><span>DA</span><i aria-hidden="true">|</i><span>UK</span></div>
-          <span>Social</span>
-          <a href="https://instagram.com/rorum_space" target="_blank" rel="noreferrer">Instagram</a>
-          <a href="mailto:hello@rorum.dk">hello@rorum.dk</a>
+          {socialLinks.map((link) => (
+            <a className="mobile-social-link" href={link.href} key={link.label} target="_blank" rel="noopener noreferrer" aria-label={link.label}>
+              {link.mark}
+            </a>
+          ))}
         </div>
       </aside>
     </header>);

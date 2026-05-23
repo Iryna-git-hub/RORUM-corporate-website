@@ -51,19 +51,19 @@ export function ServicesTeaserSection({ services }) {
           text="From food to atmosphere, RORUM can support events both inside our space and at selected external locations."
         />
         <div className="services-teaser-grid">
-          {services.map((service) => (<article className="services-teaser-card" key={service.title}>
+          {services.map((service) => (<Link className="services-teaser-card" href={service.href} aria-label={service.cta ?? service.title} key={service.title}>
             <div className="services-teaser-media">
               <span className="services-teaser-media-image" style={{ backgroundImage: `url(${service.image})` }} aria-hidden="true"/>
             </div>
             <div className="services-teaser-copy">
               <h3>{service.title}</h3>
               <p>{service.text}</p>
-              <Link className="services-teaser-link" href={service.href}>
+              <span className="services-teaser-link">
                 <span>{service.cta}</span>
                 <ArrowRight aria-hidden="true" strokeWidth={1.9}/>
-              </Link>
+              </span>
             </div>
-          </article>))}
+          </Link>))}
         </div>
       </Container>
     </Section>);

@@ -1,28 +1,39 @@
-import { Container, PageHero, Section } from "@/components/ui";
-import { pageMetadata } from "@/lib/seo";
+import { LegalPage } from "@/components/LegalPage";
 
-export const metadata = pageMetadata("/cookie-policy");
+export const metadata = {
+    title: "Cookie Policy | RORUM",
+    description: "How RORUM may use cookies and similar technologies."
+};
 
 export default function CookiePolicyPage() {
-    return (<>
-      <PageHero label="Cookie policy" title="How cookies may be used." text="Plain-language cookie information for the RORUM website. A preference banner can be added in a later production phase."/>
-      <Section>
-        <Container>
-          <div className="policy-content">
-            <h2>What cookies are</h2>
-            <p>Cookies are small files stored by your browser. They can help a website remember basic choices, understand how pages are used or support external tools.</p>
-            <h2>Necessary cookies</h2>
-            <p>Necessary cookies support core website functions such as security, forms and basic page behavior. These are usually required for the site to work.</p>
-            <h2>Analytics cookies</h2>
-            <p>Analytics cookies may help RORUM understand which pages are useful and where the website can be improved. Analytics should be configured with privacy in mind.</p>
-            <h2>Marketing cookies</h2>
-            <p>Marketing cookies may be used later to measure campaigns or improve communication. They should only be enabled with the correct consent setup.</p>
-            <h2>External media</h2>
-            <p>Some embedded media or external services may set their own cookies. RORUM should explain these clearly when those tools are added.</p>
-            <h2>Changing preferences</h2>
-            <p>When a cookie banner is implemented, visitors will be able to change their cookie preferences. This MVP does not include a cookie banner yet.</p>
-          </div>
-        </Container>
-      </Section>
-    </>);
+    return (
+      <LegalPage title="Cookie Policy" subtitle="How RORUM may use cookies and similar technologies.">
+            <h2>1. Company details</h2>
+            <p><strong>RORUM</strong><br/>Address: Buermistersgade 26, 1 th, Copenhagen<br/>CVR: 00000000<br/>Contact: <a href="mailto:hello@rorum.dk">hello@rorum.dk</a><br/>Website: ro-rum.dk</p>
+
+            <h2>2. What cookies are</h2>
+            <p>Cookies are small files stored by your browser. Similar technologies may also be used to load website features or external services.</p>
+
+            <h2>3. Necessary website cookies</h2>
+            <p>The RORUM website may use necessary cookies or similar technologies required for basic website functionality, security or page behavior.</p>
+
+            <h2>4. Forms</h2>
+            <p>Forms on this website are email-only. Form submissions are not stored in Sanity, and no inquiry database is used in this simplified setup.</p>
+
+            <h2>5. Analytics and marketing tracking</h2>
+            <p>Google Analytics, Meta Pixel and marketing tracking cookies are not intentionally used by default on this simplified website.</p>
+
+            <h2>6. Google Maps</h2>
+            <p>The Contact page may include a Google Maps iframe. Google Maps may set cookies or process data when the map is loaded.</p>
+
+            <h2>7. Billetto</h2>
+            <p>Event ticket links may lead to Billetto, which is an external ticket provider. Billetto may use its own cookies or similar technologies.</p>
+
+            <h2>8. Social media links</h2>
+            <p>Social media links on this website are external links only. Social platforms may use their own cookies or tracking when you visit them.</p>
+
+            <h2>9. Contact</h2>
+            <p>For cookie questions, contact <a href="mailto:hello@rorum.dk">hello@rorum.dk</a>.</p>
+      </LegalPage>
+    );
 }
