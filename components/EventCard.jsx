@@ -1,5 +1,5 @@
 ﻿import Link from "next/link";
-import { CalendarDays, Clock } from "lucide-react";
+import { CalendarDays, Clock, TicketCheck, TicketX } from "lucide-react";
 import { Card } from "@/components/ui";
 
 export function EventList({ events, variant = "grid" }) {
@@ -37,13 +37,20 @@ function formatEventTime(time) {
 export function EventCard({ event, variant = "grid" }) {
     const badgeDate = formatEventBadgeDate(event.date);
     const isListingCard = variant !== "scroll";
-    const hasTicketsLeft = typeof event.ticketsLeft === "number";
-    const ticketStatus = event.isSoldOut ? "Sold out" : hasTicketsLeft ? `${event.ticketsLeft} ${event.ticketsLeft === 1 ? "spot" : "spots"} left` : "";
+    const spotsLeft = typeof event.spotsLeft === "number" ? event.spotsLeft : event.ticketsLeft;
+    const hasSpotsLeft = typeof spotsLeft === "number";
+    const ticketStatus = event.isSoldOut ? "Sold out" : hasSpotsLeft ? `${spotsLeft} ${spotsLeft === 1 ? "spot" : "spots"} left` : "";
+    const homeAvailability = event.isSoldOut
+        ? "Sold out"
+        : hasSpotsLeft
+          ? `${spotsLeft} ${spotsLeft === 1 ? "spot" : "spots"} left`
+          : "";
+    const ListingAvailabilityIcon = event.isSoldOut ? TicketX : TicketCheck;
+    const HomeAvailabilityIcon = event.isSoldOut ? TicketX : TicketCheck;
     const card = (
       <Card className={`event-card ${isListingCard ? "event-card-listing" : ""} ${event.isSoldOut ? "is-sold-out" : ""}`.trim()} variant="event">
         <div className="event-media">
           <span className="event-media-image" style={{ backgroundImage: `url(${event.image ?? "/images/hero.jpg"})` }} aria-hidden="true"/>
-          {isListingCard && event.isSoldOut ? <span className="event-sold-out-badge">Sold out</span> : null}
           <time className="event-date-card" dateTime={event.date}>
             <span className="event-date-day">{badgeDate.day}</span>
             <span className="event-date-month">{badgeDate.month}</span>
@@ -55,31 +62,52 @@ export function EventCard({ event, variant = "grid" }) {
             <>
               <div className="event-card-meta">
                 <span className="event-card-meta-item">
-                  <CalendarDays aria-hidden="true"/>
+                  <span className="event-card-meta-icon">
+                    <CalendarDays aria-hidden="true"/>
+                  </span>
                   <time dateTime={event.date}>{formatListingDate(event.date)}</time>
                 </span>
                 <span className="event-card-meta-item">
-                  <Clock aria-hidden="true"/>
+                  <span className="event-card-meta-icon">
+                    <Clock aria-hidden="true"/>
+                  </span>
                   <time dateTime={`${event.date}T${event.time.split("-")[0]}`}>{formatEventTime(event.time)}</time>
                 </span>
               </div>
-              {ticketStatus ? <p className={event.isSoldOut ? "event-card-availability is-sold-out" : "event-card-availability"}>{ticketStatus}</p> : null}
+              {ticketStatus ? (
+                <p className={event.isSoldOut ? "event-card-availability is-sold-out" : "event-card-availability"}>
+                  <span className="event-card-availability-icon">
+                    <ListingAvailabilityIcon aria-hidden="true"/>
+                  </span>
+                  <span>{ticketStatus}</span>
+                </p>
+              ) : null}
             </>
           ) : (
-            <div className="event-meta-list">
-              <span className="event-info-row">
-                <span className="event-info-icon"><CalendarDays aria-hidden="true"/></span>
-                <span className="event-info-copy">
-                  <time dateTime={event.date}>{formatEventDate(event.date)}</time>
+            <>
+              <div className="event-meta-list">
+                <span className="event-info-row">
+                  <span className="event-info-icon"><CalendarDays aria-hidden="true"/></span>
+                  <span className="event-info-copy">
+                    <time dateTime={event.date}>{formatEventDate(event.date)}</time>
+                  </span>
                 </span>
-              </span>
-              <span className="event-info-row">
-                <span className="event-info-icon"><Clock aria-hidden="true"/></span>
-                <span className="event-info-copy">
-                  <time dateTime={`${event.date}T${event.time.split("-")[0]}`}>{event.time}</time>
+                <span className="event-info-row">
+                  <span className="event-info-icon"><Clock aria-hidden="true"/></span>
+                  <span className="event-info-copy">
+                    <time dateTime={`${event.date}T${event.time.split("-")[0]}`}>{event.time}</time>
+                  </span>
                 </span>
-              </span>
-            </div>
+                {homeAvailability ? (
+                  <span className={event.isSoldOut ? "event-info-row event-home-availability is-sold-out" : "event-info-row event-home-availability"}>
+                    <span className="event-info-icon event-home-availability-icon"><HomeAvailabilityIcon aria-hidden="true"/></span>
+                    <span className="event-info-copy">
+                      <span className="event-home-availability-text">{homeAvailability}</span>
+                    </span>
+                  </span>
+                ) : null}
+              </div>
+            </>
           )}
         </div>
       </Card>

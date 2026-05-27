@@ -17,6 +17,7 @@ const eventPackages = [
   {
     title: "Single Session",
     price: "700 DKK ex VAT",
+    description: "A compact hosted format for one workshop, class or community session.",
     meta: "Up to 2 hours",
     items: ["Space setup", "Wi-Fi", "Tea & water", "Light on-site support"]
   },
@@ -24,11 +25,14 @@ const eventPackages = [
     title: "Evening Series",
     price: "1250 DKK ex VAT / 4 sessions",
     secondPrice: "2000 DKK ex VAT / 8 sessions",
+    description: "A recurring slot for formats that need rhythm and consistency.",
+    meta: "Weekly sessions",
     items: ["Reserved weekly time slot", "Consistent setup", "Tea & water", "Storage option by agreement"]
   },
   {
     title: "Weekend Event",
     price: "1200 DKK ex VAT",
+    description: "A longer format for deeper workshops, gatherings or facilitated sessions.",
     meta: "Up to 4 hours",
     items: ["Space setup", "Flexible setup", "Tea & water", "On-site support"]
   }
@@ -85,19 +89,23 @@ export default function HostPage() {
           <div className="host-package-grid">
             {eventPackages.map((item) => (
               <article className="host-package-card" key={item.title}>
-                <div>
+                <div className="host-package-main">
                   <h3>{item.title}</h3>
                   <p className="host-package-price">{item.price}</p>
                   {item.secondPrice ? <p className="host-package-price host-package-price-secondary">{item.secondPrice}</p> : null}
+                  <p className="host-package-description">{item.description}</p>
                   {item.meta ? <p className="host-package-meta">{item.meta}</p> : null}
+                  <Link className="btn host-package-cta" href="#event-inquiry">
+                    <span>Select package</span>
+                    <ArrowRight aria-hidden="true" strokeWidth={1.9}/>
+                  </Link>
                 </div>
-                <ul>
-                  {item.items.map((feature) => <li key={feature}>{feature}</li>)}
-                </ul>
-                <Link className="btn host-package-cta" href="#event-inquiry">
-                  <span>Select package</span>
-                  <ArrowRight aria-hidden="true" strokeWidth={1.9}/>
-                </Link>
+                <div className="host-package-included">
+                  <p className="host-package-included-title">What included</p>
+                  <ul>
+                    {item.items.map((feature) => <li key={feature}>{feature}</li>)}
+                  </ul>
+                </div>
               </article>
             ))}
           </div>

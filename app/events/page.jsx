@@ -11,6 +11,6 @@ export default function EventsPage() {
           <EventList events={events}/>
         </Container>
       </section>
-      <CTASection title="Have a format for the room?" text="Send a hosting inquiry and we will explore audience, timing and setup together." href="/host-an-event" label="Host an event"/>
+      <CTASection variant="host" title="Have a format for the room?" text="Send a hosting inquiry and we will explore audience, timing and setup together." href="/host-an-event" label="Host an event"/>
     </>);
 }

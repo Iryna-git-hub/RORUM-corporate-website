@@ -30,7 +30,7 @@ export default function Home() {
         }
     ];
     return (<>
-      <HomeHero label="Copenhagen event space" title="A warm Copenhagen space for meaningful events and private gatherings" text="Host workshops, creative sessions, community events and private meetings in a calm, thoughtfully prepared space with support from the RORUM team." trustItems={["4–15 guests", "Central Copenhagen", "On-site support", "Catering & decoration available"]} image="/images/hero.jpg" video="/videos/home-hero.mp4" actions={<><Button href="/host-an-event">Host an Event</Button><Button href="/events" variant="secondary">Explore Events</Button><Button href="/private-meetings" variant="secondary">Private Meetings</Button></>}/>
+      <HomeHero label="Copenhagen event space" title="A Copenhagen space for meaningful gatherings" text="Host public events and private meetings in a calm, thoughtfully prepared space with support from the RORUM team." trustItems={["4–15 guests", "Central Copenhagen", "On-site support", "Catering & decoration available"]} image="/images/hero.jpg" video="/videos/home-hero.mp4" actions={<><Button href="/host-an-event">Host an Event</Button><Button href="/events" variant="secondary">Explore Events</Button><Button href="/private-meetings" variant="secondary">Private Meetings</Button></>}/>
       <section className="section quick-paths-section">
         <Container>
           <SectionHeader label="Quick paths" title="Start with what you need."/>

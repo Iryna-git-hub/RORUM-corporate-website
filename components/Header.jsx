@@ -98,7 +98,7 @@ export function Header() {
             <i aria-hidden="true">|</i>
             <span>DA</span>
             <i aria-hidden="true">|</i>
-            <span>UK</span>
+            <span>UA</span>
           </div>
           <div className="header-cta">
             <Button href="/contact">
@@ -116,7 +116,7 @@ export function Header() {
       <button className="mobile-menu-backdrop" type="button" aria-label="Close menu" onClick={closeMenus}/>
       <aside className="mobile-menu-panel" aria-label="Mobile menu">
         <div className="mobile-menu-topbar">
-          <div className="mobile-language-switcher" aria-label="Language selector"><span>EN</span><i aria-hidden="true">|</i><span>DA</span><i aria-hidden="true">|</i><span>UK</span></div>
+          <div className="mobile-language-switcher" aria-label="Language selector"><span>EN</span><i aria-hidden="true">|</i><span>DA</span><i aria-hidden="true">|</i><span>UA</span></div>
           <button className="mobile-menu-close" type="button" aria-label="Close menu" onClick={closeMenus}>
             <X aria-hidden="true" strokeWidth={2}/>
           </button>

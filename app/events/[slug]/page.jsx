@@ -33,13 +33,49 @@ function formatTime(time) {
     return time?.replace("-", "\u2013") ?? "Time to be announced";
 }
 
+function formatDurationFromHours(hours) {
+    if (!Number.isFinite(hours) || hours <= 0) return null;
+    const rounded = Math.round(hours * 2) / 2;
+    if (rounded === 1) return "1 hour";
+    return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)} hours`;
+}
+
+function parseTimeToMinutes(timeValue) {
+    const match = timeValue?.trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return null;
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    if (hours > 23 || minutes > 59) return null;
+    return hours * 60 + minutes;
+}
+
+function calculateDuration(startTime, endTime) {
+    const start = parseTimeToMinutes(startTime);
+    const end = parseTimeToMinutes(endTime);
+    if (start === null || end === null || end <= start) return null;
+    return formatDurationFromHours((end - start) / 60);
+}
+
+function getDurationFromTimeRange(timeRange) {
+    const [startTime, endTime] = timeRange?.split(/\s*[-–]\s*/) ?? [];
+    return calculateDuration(startTime, endTime);
+}
+
+function getEventDuration(event) {
+    return event.duration
+        ?? calculateDuration(event.startTime, event.endTime)
+        ?? getDurationFromTimeRange(event.time)
+        ?? getPracticalDetail(event, "Duration")
+        ?? "2.5 hours";
+}
+
 function getPracticalDetail(event, label) {
     return event.practicalDetails?.find((detail) => detail.label === label)?.value;
 }
 
 function TicketButton({ event }) {
     if (event.isSoldOut) {
-        return <button className="event-detail-ticket-button is-disabled" type="button" disabled>Sold Out</button>;
+        return <button className="event-detail-ticket-button is-disabled is-sold-out" type="button" disabled>Sold Out</button>;
     }
 
     if (!event.ticketUrl) {
@@ -114,16 +150,21 @@ export default async function EventDetailPage({ params }) {
     const shortDate = formatShortDate(event.date);
     const time = formatTime(event.time);
     const location = event.location ?? fallbackLocation;
-    const duration = event.duration ?? getPracticalDetail(event, "Duration") ?? time;
+    const duration = getEventDuration(event);
     const language = event.language ?? getPracticalDetail(event, "Language") ?? "English";
     const description = event.longDescription ?? event.fullDescription ?? event.description ?? fallbackDescription;
     const expectations = event.whatToExpect?.length ? event.whatToExpect : fallbackExpectations;
+    const availability = event.isSoldOut
+        ? <span className="event-availability-pill is-sold-out">Sold out</span>
+        : typeof event.ticketsLeft === "number"
+          ? `${event.ticketsLeft} ${event.ticketsLeft === 1 ? "spot" : "spots"} left`
+          : null;
 
     return (
       <>
         <section className="event-detail-hero" aria-label={`${event.title} event image`}>
           <Image
-            className="event-detail-hero-image"
+            className={event.isSoldOut ? "event-detail-hero-image is-sold-out" : "event-detail-hero-image"}
             src={event.image ?? "/images/hero.jpg"}
             alt={`${event.title} event atmosphere`}
             fill
@@ -181,6 +222,7 @@ export default async function EventDetailPage({ params }) {
                 <dl className="event-detail-summary-list">
                   <DetailRow label="Event language" value={language} />
                   <DetailRow label="Duration" value={duration} />
+                  <DetailRow label="Availability" value={availability} />
                   <DetailRow label="Arrival" value="Please arrive 5-10 minutes before the event begins." />
                   <DetailRow label="Ticket provider" value={event.ticketProvider ?? "Billetto"} />
                 </dl>

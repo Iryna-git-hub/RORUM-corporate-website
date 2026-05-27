@@ -1,7 +1,6 @@
 import { Merriweather, Quicksand } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { SiteShell } from "@/components/SiteShell";
 const merriweather = Merriweather({ subsets: ["latin"], variable: "--font-heading", weight: ["300", "400", "700", "900"], display: "swap" });
 const quicksand = Quicksand({ subsets: ["latin"], variable: "--font-body", weight: ["400", "500", "600", "700"], display: "swap" });
 export const metadata = {
@@ -13,11 +12,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (<html lang="en">
       <body className={`${merriweather.variable} ${quicksand.variable}`}>
-        <div className="site-shell">
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </div>
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>);
 }

@@ -75,7 +75,7 @@ export function Footer() {
           <nav className="footer-legal" aria-label="Legal links">
             {legalLinks.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}
           </nav>
-          <span>developed by <a href="https://irynadev.netlify.app" target="_blank" rel="noreferrer">iryna dev</a></span>
+          <span>Developed by <a href="https://irynadev.netlify.app" target="_blank" rel="noreferrer">irynadev</a></span>
         </div>
       </Container>
     </footer>);
