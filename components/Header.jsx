@@ -65,6 +65,7 @@ export function Header() {
         document.activeElement?.blur?.();
     }
     function isActiveItem(item) {
+        if (!item.href) return Boolean(item.children?.some((child) => pathname === child.href || pathname.startsWith(`${child.href}/`)));
         if (item.href === "/") return pathname === "/";
         return pathname === item.href || pathname.startsWith(`${item.href}/`) || Boolean(item.children?.some((child) => pathname === child.href || pathname.startsWith(`${child.href}/`)));
     }
@@ -80,10 +81,10 @@ export function Header() {
               return item.children ? (<div className={`nav-dropdown ${openDropdown === item.label ? "nav-dropdown-open" : ""} ${active ? "nav-active" : ""}`} key={item.label} onMouseEnter={() => setOpenDropdown(item.label)} onMouseLeave={() => setOpenDropdown(null)} onFocus={() => setOpenDropdown(item.label)} onBlur={(event) => {
                 if (!event.currentTarget.contains(event.relatedTarget)) setOpenDropdown(null);
             }}>
-                <Link className="nav-trigger" href={item.href} aria-haspopup="true" aria-expanded={openDropdown === item.label} aria-current={active ? "page" : undefined} onClick={closeMenus}>
+                <button className="nav-trigger" type="button" aria-haspopup="true" aria-expanded={openDropdown === item.label} aria-current={active ? "page" : undefined} onClick={() => setOpenDropdown(openDropdown === item.label ? null : item.label)}>
                   {item.label}
                   <ChevronDown aria-hidden="true" className="nav-caret" strokeWidth={2.2}/>
-                </Link>
+                </button>
                 <div className="dropdown-menu">
                   {item.children.map((child) => {
                     const childActive = pathname === child.href || pathname.startsWith(`${child.href}/`);
@@ -125,9 +126,11 @@ export function Header() {
           {navItems.map((item) => {
             const active = isActiveItem(item);
             return (<div className={`mobile-nav-group ${active ? "mobile-nav-active" : ""}`} key={item.label}>
-              <Link className="mobile-nav-parent" href={item.href} aria-current={active ? "page" : undefined} onClick={closeMenus}>
+              {item.children ? <button className="mobile-nav-parent" type="button" aria-current={active ? "page" : undefined}>
                 <span>{item.label}</span>
-              </Link>
+              </button> : <Link className="mobile-nav-parent" href={item.href} aria-current={active ? "page" : undefined} onClick={closeMenus}>
+                <span>{item.label}</span>
+              </Link>}
               {item.children ? (<div className="mobile-nav-children">
                   {item.children.map((child) => {
                     const childActive = pathname === child.href || pathname.startsWith(`${child.href}/`);

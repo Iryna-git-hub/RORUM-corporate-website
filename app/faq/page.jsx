@@ -1,10 +1,15 @@
 import { FAQAccordion } from "@/components/FAQAccordion";
-import { Container, PageHero, Section } from "@/components/ui";
+import { Container, Section, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata("/faq");
 export default function FAQPage() {
     return (<>
-      <PageHero label="FAQ" title="Practical answers before you write." text="A simple MVP knowledge base for events, hosting, bookings, services and volunteering." image="/images/space/space-1.png"/>
+      <section className="faq-hero">
+        <Container>
+          <SectionLabel>FAQ</SectionLabel>
+          <h1 className="heading faq-title">Frequently Asked Questions</h1>
+        </Container>
+      </section>
       <Section><Container><FAQAccordion /></Container></Section>
     </>);
 }

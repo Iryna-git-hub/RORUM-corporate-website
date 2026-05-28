@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Container } from "@/components/ui";
 import { EventShare } from "@/components/EventShare";
 import { events, siteUrl } from "@/lib/data";
-import { ArrowRight, BadgeCheck, CalendarDays, Clock, MapPin, Ticket } from "lucide-react";
+import { ArrowRight, CalendarDays, CircleCheckBig, Clock, MapPin, Ticket } from "lucide-react";
 
 const fallbackDescription = "Join us for an intimate gathering at RORUM, designed for people who enjoy thoughtful details, warm atmosphere and meaningful conversation.";
 const fallbackLocation = "Buermistersgade 26, Copenhagen";
@@ -209,7 +209,7 @@ export default async function EventDetailPage({ params }) {
                   <ul className="event-detail-bullet-list">
                     {expectations.map((item) => (
                       <li key={item}>
-                        <BadgeCheck aria-hidden="true" strokeWidth={1.9} />
+                        <CircleCheckBig aria-hidden="true" strokeWidth={1.9} />
                         <span>{item}</span>
                       </li>
                     ))}

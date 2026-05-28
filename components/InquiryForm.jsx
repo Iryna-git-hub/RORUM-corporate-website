@@ -46,7 +46,7 @@ function getErrorMessage(name, value, label) {
     return "";
 }
 
-export function InquiryForm({ type = "default", title }) {
+export function InquiryForm({ type = "default", title, intro, submitLabel = "Send inquiry" }) {
     const [sent, setSent] = useState(false);
     const [errors, setErrors] = useState({});
     const config = formConfig[type] ?? formConfig.default;
@@ -82,7 +82,10 @@ export function InquiryForm({ type = "default", title }) {
     }
 
     return (<form className="form card card-pad" onSubmit={onSubmit} noValidate>
-      <h2 className="heading form-title">{title}</h2>
+      <div className="form-heading">
+        <h2 className="heading form-title">{title}</h2>
+        {intro ? <p>{intro}</p> : null}
+      </div>
       {sent ? <div className="success" role="status">Thank you. Your message is ready for the RORUM team.</div> : null}
       <div className="form-grid">
         {fields.slice(0, 2).map((field) => <label key={field.name} htmlFor={`${type}-${field.name}`}>
@@ -111,6 +114,6 @@ export function InquiryForm({ type = "default", title }) {
         <textarea id={`${type}-message`} name="message" rows={5} aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? `${type}-message-error` : undefined}/>
         {errors.message ? <small className="form-error" id={`${type}-message-error`}>{errors.message}</small> : null}
       </label>
-      <button className="btn" type="submit">Send inquiry</button>
+      <button className="btn" type="submit">{submitLabel}</button>
     </form>);
 }

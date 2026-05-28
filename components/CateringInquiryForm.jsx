@@ -50,19 +50,19 @@ export function CateringInquiryForm() {
       <div className="form-grid">
         <label htmlFor="catering-name">
           Full name<span aria-hidden="true">*</span>
-          <input id="catering-name" name="name" type="text" autoComplete="name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? "catering-name-error" : undefined}/>
+          <input id="catering-name" name="name" type="text" autoComplete="name" placeholder="Your full name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? "catering-name-error" : undefined}/>
           {errors.name ? <small className="form-error" id="catering-name-error">{errors.name}</small> : null}
         </label>
         <label htmlFor="catering-email">
           Email<span aria-hidden="true">*</span>
-          <input id="catering-email" name="email" type="email" autoComplete="email" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "catering-email-error" : undefined}/>
+          <input id="catering-email" name="email" type="email" autoComplete="email" placeholder="you@example.com" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "catering-email-error" : undefined}/>
           {errors.email ? <small className="form-error" id="catering-email-error">{errors.email}</small> : null}
         </label>
       </div>
       <div className="form-grid">
         <label htmlFor="catering-phone">
           Phone number<span aria-hidden="true">*</span>
-          <input id="catering-phone" name="phone" type="tel" autoComplete="tel" aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? "catering-phone-error" : undefined}/>
+          <input id="catering-phone" name="phone" type="tel" autoComplete="tel" placeholder="+45 12 34 56 78" aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? "catering-phone-error" : undefined}/>
           {errors.phone ? <small className="form-error" id="catering-phone-error">{errors.phone}</small> : null}
         </label>
         <label htmlFor="catering-date">
@@ -81,7 +81,7 @@ export function CateringInquiryForm() {
         </label>
         <label htmlFor="catering-guests">
           Number of guests
-          <input id="catering-guests" name="guests" type="number" min="1" inputMode="numeric"/>
+          <input id="catering-guests" name="guests" type="number" min="1" inputMode="numeric" placeholder="Approx. number"/>
         </label>
       </div>
       <label htmlFor="catering-type">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CalendarCheck, Coffee, SlidersHorizontal, Smile, Users, Wine } from "lucide-react";
+import { ArrowRight, CalendarCheck, CircleCheckBig, Coffee, HandHeart, SlidersHorizontal, Users, Wine } from "lucide-react";
 import { HostEventInquiryForm } from "@/components/HostEventInquiryForm";
 import { Button, Container, Section, SectionHeader, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
@@ -9,8 +9,8 @@ export const metadata = pageMetadata("/host-an-event");
 const quickFacts = [
   { label: "4–15 guests", icon: Users },
   { label: "Flexible setup", icon: SlidersHorizontal },
-  { label: "On-site support", icon: Smile },
-  { label: "Catering & styling available", icon: Wine }
+  { label: "On-site support", icon: HandHeart },
+  { label: "Catering and decoration optional", icon: Wine }
 ];
 
 const eventPackages = [
@@ -49,6 +49,19 @@ const steps = [
   ["Host your event", "RORUM prepares the space and supports the event flow."]
 ];
 
+function PackagePrice({ children, secondary = false }) {
+  const [amount, rest = ""] = children.split("ex VAT");
+  const className = secondary ? "host-package-price host-package-price-secondary" : "host-package-price";
+
+  return (
+    <p className={className}>
+      <span>{amount.trim()}</span>
+      <span className="host-package-tax">ex VAT</span>
+      {rest ? <span className="host-package-tax">{rest.trim()}</span> : null}
+    </p>
+  );
+}
+
 export default function HostPage() {
   return (
     <>
@@ -84,32 +97,45 @@ export default function HostPage() {
       <Section tight>
         <Container>
           <div id="packages" className="host-section-anchor">
-            <SectionHeader label="Packages" title="Choose your event format" text="Simple formats for one-time workshops, recurring sessions and deeper weekend gatherings."/>
+            <SectionHeader label="Packages" title="Choose your event package" text="Simple packages for one-time workshops, recurring sessions and deeper weekend gathering."/>
           </div>
           <div className="host-package-grid">
             {eventPackages.map((item) => (
               <article className="host-package-card" key={item.title}>
                 <div className="host-package-main">
                   <h3>{item.title}</h3>
-                  <p className="host-package-price">{item.price}</p>
-                  {item.secondPrice ? <p className="host-package-price host-package-price-secondary">{item.secondPrice}</p> : null}
-                  <p className="host-package-description">{item.description}</p>
+                  <PackagePrice>{item.price}</PackagePrice>
+                  {item.secondPrice ? <PackagePrice secondary>{item.secondPrice}</PackagePrice> : null}
                   {item.meta ? <p className="host-package-meta">{item.meta}</p> : null}
                   <Link className="btn host-package-cta" href="#event-inquiry">
                     <span>Select package</span>
                     <ArrowRight aria-hidden="true" strokeWidth={1.9}/>
                   </Link>
+                  <p className="host-package-description">{item.description}</p>
                 </div>
                 <div className="host-package-included">
                   <p className="host-package-included-title">What included</p>
                   <ul>
-                    {item.items.map((feature) => <li key={feature}>{feature}</li>)}
+                    {item.items.map((feature) => (
+                      <li key={feature}>
+                        <CircleCheckBig aria-hidden="true" strokeWidth={1.9}/>
+                        <span>{feature}</span>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </article>
             ))}
           </div>
-          <p className="host-package-note">Not sure which format fits? Tell us your idea and we&apos;ll guide you.</p>
+          <p className="host-package-note">
+            <span>
+              Not sure which format fits?{" "}
+              <Link href="/contact">
+                <span>Tell us</span>
+              </Link>{" "}
+              your idea and we&apos;ll guide you.
+            </span>
+          </p>
         </Container>
       </Section>
 
@@ -145,13 +171,13 @@ export default function HostPage() {
         </Container>
       </Section>
 
-      <Section>
+      <section className="section form-section">
         <Container>
           <div id="event-inquiry" className="host-form-wrap">
             <div className="host-form-aside">
-              <SectionLabel>Inquiry</SectionLabel>
+              <SectionLabel>Event request</SectionLabel>
               <h2 className="heading section-title">Ready to shape your event?</h2>
-              <p>Pricing is visible above. Share your preferred format and the RORUM team will suggest the calmest setup for your gathering.</p>
+              <p>Share your preferred package, date, group size and optional details. The RORUM team will suggest the clearest setup for your gathering.</p>
               <div className="host-form-aside-note">
                 <CalendarCheck aria-hidden="true" strokeWidth={1.8}/>
                 <span>One clear inquiry is enough to start the conversation.</span>
@@ -164,7 +190,7 @@ export default function HostPage() {
             <HostEventInquiryForm/>
           </div>
         </Container>
-      </Section>
+      </section>
     </>
   );
 }

@@ -56,11 +56,11 @@ export default function CommunityMembershipPage() {
           </div>
         </Container>
       </Section>
-      <Section>
+      <section className="section form-section">
         <Container>
           <InquiryForm type="membership" title="Membership interest"/>
         </Container>
-      </Section>
+      </section>
       <CTASection title="Join the RORUM community." text="Membership is currently free and built around events, support and practical creative connection." href="/contact" label="Contact RORUM"/>
     </>);
 }

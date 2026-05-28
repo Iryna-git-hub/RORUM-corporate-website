@@ -32,7 +32,14 @@ const legalLinks = [
     { href: "/cookie-policy", label: "Cookie Policy" }
 ];
 
-const socialLinks = [
+export const contactDetails = {
+    address: "Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark",
+    phone: "+45 31 42 86 19",
+    email: "hello@rorum.dk",
+    mapHref: "/contact#map"
+};
+
+export const socialLinks = [
     { href: "https://instagram.com/rorum_space", label: "Instagram", mark: "ig" },
     { href: "https://facebook.com", label: "Facebook", mark: "f" },
     { href: "https://linkedin.com", label: "LinkedIn", mark: "in" }
@@ -52,10 +59,10 @@ export function Footer() {
           <div className="footer-brand">
             <Image className="footer-logo" src="/logos/rorum-creative-event-space.png" alt="RORUM Creative & Event Space" width={264} height={58}/>
             <div className="footer-contact-stack">
-              <p><MapPin aria-hidden="true" strokeWidth={1.8}/>Buermistersgade 26, 1 th, Copenhagen</p>
-              <Link className="footer-map-link" href="/contact#map">View on map</Link>
-              <p className="footer-phone-line"><Phone aria-hidden="true" strokeWidth={1.8}/>+45 31 42 86 19</p>
-              <a href="mailto:hello@rorum.dk"><Mail aria-hidden="true" strokeWidth={1.8}/>hello@rorum.dk</a>
+              <p><MapPin aria-hidden="true" strokeWidth={1.8}/>{contactDetails.address}</p>
+              <Link className="footer-map-link" href={contactDetails.mapHref}>View on map</Link>
+              <p className="footer-phone-line"><Phone aria-hidden="true" strokeWidth={1.8}/>{contactDetails.phone}</p>
+              <a href={`mailto:${contactDetails.email}`}><Mail aria-hidden="true" strokeWidth={1.8}/>{contactDetails.email}</a>
             </div>
             <div className="footer-socials" aria-label="Social links">
               {socialLinks.map(({ href, label, mark }) => <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label}><span aria-hidden="true">{mark}</span></a>)}
