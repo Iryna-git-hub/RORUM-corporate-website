@@ -1,4 +1,18 @@
-import { ArrowRight, Balloon, BadgeCheck, CircleEllipsis, Flame, Flower, Flower2, Gem, HeartHandshake, Lightbulb, PartyPopper, Sparkles, UtensilsCrossed } from "lucide-react";
+import {
+  ArrowRight,
+  Balloon,
+  BadgeCheck,
+  CircleEllipsis,
+  Flame,
+  Flower,
+  Flower2,
+  Gem,
+  HeartHandshake,
+  Lightbulb,
+  PartyPopper,
+  Sparkles,
+  UtensilsCrossed,
+} from "lucide-react";
 import { HorizontalGallery } from "@/components/HorizontalGallery";
 import { InquiryForm } from "@/components/InquiryForm";
 import { Button, Container, Section, SectionLabel } from "@/components/ui";
@@ -20,35 +34,35 @@ const galleryImages = [
   "/images/decoration/decoration-place-setting.png",
   "/images/decoration/decoration-modern-lounge-floral-accents.png",
   "/images/decoration/decoration-contrast-floral-table.png",
-  "/images/decoration/decoration-entrance-arch.png"
+  "/images/decoration/decoration-entrance-arch.png",
 ];
 
 const decorationFormats = [
   {
     title: "Table Styling",
     text: "Elegant table setups with flowers, candles, place details and carefully selected visual accents.",
-    icon: UtensilsCrossed
+    icon: UtensilsCrossed,
   },
   {
     title: "Florals",
     text: "Seasonal floral arrangements designed around your event mood, space and color palette.",
-    icon: Flower
+    icon: Flower,
   },
   {
     title: "Balloon Accents",
     text: "Soft and elegant balloon decor for entrances, celebration corners, photo zones and backdrops.",
-    icon: Balloon
+    icon: Balloon,
   },
   {
     title: "Atmosphere Details",
     text: "Candles, textures, fabrics, signs and decorative objects that make the space feel warm and complete.",
-    icon: Flame
+    icon: Flame,
   },
   {
     title: "Personal Touches",
     text: "Custom details for birthdays, weddings, dinners, workshops, private celebrations and meaningful moments.",
-    icon: BadgeCheck
-  }
+    icon: BadgeCheck,
+  },
 ];
 
 const suitableFor = [
@@ -59,13 +73,22 @@ const suitableFor = [
   ["Dinner tables", UtensilsCrossed],
   ["Photo corners", Sparkles],
   ["Seasonal moments", Flower2],
-  ["And more", CircleEllipsis]
+  ["And more", CircleEllipsis],
 ];
 
 const steps = [
-  ["Share the occasion", "Tell us about the event format, date, guests and atmosphere you want."],
-  ["We suggest the visual direction", "We match decoration details to the room, table and rhythm of the event."],
-  ["We prepare the setup", "The decorative layer is arranged with care before guests arrive."]
+  [
+    "Share the occasion",
+    "Tell us about the event format, date, guests and atmosphere you want.",
+  ],
+  [
+    "We suggest the visual direction",
+    "We match decoration details to the room, table and rhythm of the event.",
+  ],
+  [
+    "We prepare the setup",
+    "The decorative layer is arranged with care before guests arrive.",
+  ],
 ];
 
 export default function DecorationPage() {
@@ -77,24 +100,41 @@ export default function DecorationPage() {
             <div className="service-hero-copy">
               <SectionLabel>Event decoration</SectionLabel>
               <h1 className="heading">Event decoration</h1>
-              <p>Flowers, table styling, candles, balloon decor and visual details for warm, memorable events at RORUM or selected external locations.</p>
+              <p>
+                Flowers, table styling, candles, balloon decor and visual
+                details for warm, memorable events at RORUM or selected external
+                locations.
+              </p>
               <div className="hero-actions catering-hero-actions">
-                <Button href="#decoration-inquiry">Request Decoration<ArrowRight className="button-arrow" aria-hidden="true" strokeWidth={1.9}/></Button>
+                <Button href="#decoration-inquiry">
+                  Request Decoration
+                  <ArrowRight
+                    className="button-arrow"
+                    aria-hidden="true"
+                    strokeWidth={1.9}
+                  />
+                </Button>
               </div>
             </div>
           </div>
         </Container>
       </section>
 
-      <section id="decoration-gallery" className="catering-gallery-section decoration-gallery-section">
+      <section
+        id="decoration-gallery"
+        className="catering-gallery-section decoration-gallery-section"
+      >
         <Container>
-          <HorizontalGallery images={galleryImages}/>
+          <HorizontalGallery images={galleryImages} />
           <div className="catering-suitable-tags">
             <p>Suitable for:</p>
-            <div className="catering-chip-grid" aria-label="Suitable decoration formats">
+            <div
+              className="catering-chip-grid"
+              aria-label="Suitable decoration formats"
+            >
               {suitableFor.map(([item, Icon]) => (
                 <span key={item}>
-                  <Icon aria-hidden="true" strokeWidth={1.8}/>
+                  <Icon aria-hidden="true" strokeWidth={1.8} />
                   {item}
                 </span>
               ))}
@@ -109,12 +149,22 @@ export default function DecorationPage() {
             <div className="catering-intro">
               <SectionLabel>Decoration</SectionLabel>
               <h2 className="heading section-title">What We Style</h2>
-              <p className="catering-philosophy-lead">We create decoration concepts that bring warmth, beauty and personality to your event.</p>
-              <p>Our styling can include table settings, seasonal flowers, candles, balloon accents, textiles, decorative objects, photo moments and personal details. Each element is selected to work together as one cohesive atmosphere.</p>
+              <p className="catering-philosophy-lead">
+                We create decoration concepts that bring warmth, beauty and
+                personality to your event.
+              </p>
+              <p>
+                Our styling can include table settings, seasonal flowers,
+                candles, balloon accents, textiles, decorative objects, photo
+                moments and personal details. Each element is selected to work
+                together as one cohesive atmosphere.
+              </p>
               <div className="catering-philosophy-list decoration-philosophy-list">
                 {decorationFormats.map(({ title, text, icon: Icon }) => (
                   <div className="catering-philosophy-item" key={title}>
-                    <span className="decoration-philosophy-icon"><Icon aria-hidden="true" strokeWidth={1.75}/></span>
+                    <span className="decoration-philosophy-icon">
+                      <Icon aria-hidden="true" strokeWidth={1.75} />
+                    </span>
                     <div>
                       <h3>{title}</h3>
                       <p>{text}</p>
@@ -132,9 +182,19 @@ export default function DecorationPage() {
           <div className="decoration-tailored-row">
             <div className="decoration-tailored-note">
               <h3>Tailored upon request</h3>
-              <p>We create each setup individually according to your event format, location and wishes.</p>
+              <p>
+                We create each setup individually according to your event
+                format, location and wishes.
+              </p>
             </div>
-            <Button href="#decoration-inquiry">Request Decoration<ArrowRight className="button-arrow" aria-hidden="true" strokeWidth={1.9}/></Button>
+            <Button href="#decoration-inquiry">
+              Request Decoration
+              <ArrowRight
+                className="button-arrow"
+                aria-hidden="true"
+                strokeWidth={1.9}
+              />
+            </Button>
           </div>
         </Container>
       </Section>
@@ -144,11 +204,11 @@ export default function DecorationPage() {
           <div id="decoration-inquiry" className="catering-form-wrap">
             <div className="catering-form-aside">
               <SectionLabel>How it works</SectionLabel>
-              <h2 className="heading section-title">How decoration works</h2>
+              <h2 className="heading section-title">3-Step Setup</h2>
               <div className="catering-steps">
                 {steps.map(([title, text], index) => (
                   <article className="catering-step" key={title}>
-                    <span>{index + 1}</span>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
                     <div>
                       <h3>{title}</h3>
                       <p>{text}</p>

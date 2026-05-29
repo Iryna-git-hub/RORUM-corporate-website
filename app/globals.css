@@ -857,7 +857,7 @@ button.btn,
   overflow: hidden;
 }
 .card-pad {
-  padding: clamp(20px, 3vw, 30px);
+  padding: clamp(20px, 3vw, 4rem);
 }
 
 /* Hero sections */
@@ -1350,10 +1350,13 @@ button.btn,
 .form-heading {
   display: grid;
   gap: 8px;
+  margin-bottom: 4px;
 }
 .form-heading p {
   margin: 0;
   color: var(--color-text-primary);
+  font-size: 15px;
+  line-height: 1.65;
 }
 .checkbox-group {
   display: grid;
@@ -2066,14 +2069,17 @@ button.btn,
   border-bottom: 1px solid rgba(var(--rgb-cream), 0.34);
 }
 .catering-step > span {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
+  display: inline-block;
+  width: auto;
+  height: auto;
   border-radius: 0;
-  background: rgba(var(--rgb-cream), 0.16);
+  background: transparent;
+  padding: 0;
   color: var(--color-gold);
+  font-size: 13px;
   font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
 }
 .catering-step h3 {
   margin: 0 0 4px;
@@ -2092,7 +2098,7 @@ button.btn,
 .catering-form-wrap {
   display: grid;
   grid-template-columns: minmax(260px, 0.62fr) minmax(0, 1fr);
-  gap: 24px;
+  gap: 6rem;
   align-items: start;
   scroll-margin-top: 96px;
 }
@@ -5103,7 +5109,7 @@ form.card {
   align-items: center;
   justify-content: flex-end;
   padding-right: clamp(24px, 4vw, 80px);
-  color: rgba(var(--rgb-gold), 0.72);
+  color: rgb(212 236 152);
   opacity: 0.04;
 }
 .final-cta-illustration svg {
@@ -5436,6 +5442,14 @@ form.card {
 }
 .contact-form .form-heading {
   margin-bottom: 4px;
+}
+.form .form-title {
+  margin: 0;
+  color: var(--color-text-heading);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(17px, 1.35vw, 20px);
+  line-height: 1.25;
+  font-weight: 900;
 }
 .contact-form .form-title {
   margin: 0;

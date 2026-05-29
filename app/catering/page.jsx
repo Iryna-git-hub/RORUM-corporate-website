@@ -1,4 +1,23 @@
-import { ArrowRight, BriefcaseBusiness, Building2, Cake, ClipboardList, ConciergeBell, CookingPot, Flame, Gem, Handshake, Landmark, Lightbulb, PartyPopper, Presentation, Sparkles, Utensils, Users } from "lucide-react";
+import {
+  ArrowRight,
+  BriefcaseBusiness,
+  Building2,
+  CalendarCheck,
+  Cake,
+  ClipboardList,
+  ConciergeBell,
+  CookingPot,
+  Flame,
+  Gem,
+  Handshake,
+  Landmark,
+  Lightbulb,
+  PartyPopper,
+  Presentation,
+  Sparkles,
+  Utensils,
+  Users,
+} from "lucide-react";
 import { CateringInquiryForm } from "@/components/CateringInquiryForm";
 import { HorizontalGallery } from "@/components/HorizontalGallery";
 import { Button, Container, Section, SectionLabel } from "@/components/ui";
@@ -36,44 +55,44 @@ const galleryImages = [
   "/images/catering/catering-gallery-added-09.png",
   "/images/catering/catering-gallery-added-10.png",
   "/images/catering/catering-gallery-added-11.png",
-  "/images/catering/catering-gallery-added-14.png"
+  "/images/catering/catering-gallery-added-14.png",
 ];
 
 const formats = [
   {
     title: "Ukrainian Cuisine",
     text: "Traditional Ukrainian cuisine in harmony with modern European gastronomy, created with attention to taste, presentation and detail.",
-    icon: CookingPot
+    icon: CookingPot,
   },
   {
     title: "Finger Food & Buffet",
     text: "Elegant small bites, light buffet solutions and beautifully served dishes for receptions, celebrations and business events.",
-    icon: Utensils
+    icon: Utensils,
   },
   {
     title: "Individual Menu",
     text: "Each menu is tailored to your event format, number of guests, preferences and desired atmosphere.",
-    icon: ClipboardList
+    icon: ClipboardList,
   },
   {
     title: "On-site Cooking",
     text: "If needed, we can organize cooking directly at your location for a fresh, seamless and memorable experience.",
-    icon: Flame
+    icon: Flame,
   },
   {
     title: "Full Event Support",
     text: "Our professional team can support the event with preparation, serving and attentive service throughout the occasion.",
-    icon: ConciergeBell
+    icon: ConciergeBell,
   },
   {
     title: "Grill Parties",
     text: "Lively grill experiences for warm, informal gatherings where food, conversation and atmosphere come together.",
-    icon: Flame
-  }
+    icon: Flame,
+  },
 ];
 
 const suitableFor = [
-  ["Private meetings", Users],
+  ["Private meetings", CalendarCheck],
   ["Workshops", Presentation],
   ["Community events", Handshake],
   ["Creative sessions", Lightbulb],
@@ -84,13 +103,22 @@ const suitableFor = [
   ["Business meetings", Building2],
   ["Conferences", Users],
   ["External events", PartyPopper],
-  ["And more", Sparkles]
+  ["And more", Sparkles],
 ];
 
 const steps = [
-  ["Tell us about your event", "Share the date, location, guest count and format."],
-  ["We suggest the right setup", "We help match the catering format to the rhythm and atmosphere of your event."],
-  ["We prepare the experience", "Food and presentation are arranged with care so your guests feel welcomed."]
+  [
+    "Tell us about your event",
+    "Share the date, location, guest count and format.",
+  ],
+  [
+    "We suggest the right setup",
+    "We help match the catering format to the rhythm and atmosphere of your event.",
+  ],
+  [
+    "We prepare the experience",
+    "Food and presentation are arranged with care so your guests feel welcomed.",
+  ],
 ];
 
 export default function CateringPage() {
@@ -102,10 +130,28 @@ export default function CateringPage() {
             <div className="service-hero-copy">
               <SectionLabel>Catering</SectionLabel>
               <h1 className="heading">Catering</h1>
-              <p>Traditional Ukrainian cuisine in harmonious combination with modern European gastronomy. We create not just dishes, but an atmosphere where taste, aesthetics, and service work together.</p>
+              <p>
+                Traditional Ukrainian cuisine in harmonious combination with
+                modern European gastronomy. We create not just dishes, but an
+                atmosphere where taste, aesthetics, and service work together.
+              </p>
               <div className="hero-actions catering-hero-actions">
-                <Button href="#catering-inquiry">Request Catering<ArrowRight className="button-arrow" aria-hidden="true" strokeWidth={1.9}/></Button>
-                <Button href="#catering-gallery" variant="secondary">Menu examples<ArrowRight className="button-arrow" aria-hidden="true" strokeWidth={1.9}/></Button>
+                <Button href="#catering-inquiry">
+                  Request Catering
+                  <ArrowRight
+                    className="button-arrow"
+                    aria-hidden="true"
+                    strokeWidth={1.9}
+                  />
+                </Button>
+                <Button href="#catering-gallery" variant="secondary">
+                  Menu examples
+                  <ArrowRight
+                    className="button-arrow"
+                    aria-hidden="true"
+                    strokeWidth={1.9}
+                  />
+                </Button>
               </div>
             </div>
           </div>
@@ -114,13 +160,16 @@ export default function CateringPage() {
 
       <section id="catering-gallery" className="catering-gallery-section">
         <Container>
-          <HorizontalGallery images={galleryImages}/>
+          <HorizontalGallery images={galleryImages} />
           <div className="catering-suitable-tags">
             <p>Suitable for:</p>
-            <div className="catering-chip-grid" aria-label="Suitable catering formats">
+            <div
+              className="catering-chip-grid"
+              aria-label="Suitable catering formats"
+            >
               {suitableFor.map(([item, Icon]) => (
                 <span key={item}>
-                  <Icon aria-hidden="true" strokeWidth={1.8}/>
+                  <Icon aria-hidden="true" strokeWidth={1.8} />
                   {item}
                 </span>
               ))}
@@ -135,24 +184,40 @@ export default function CateringPage() {
             <div className="catering-offer-content">
               <SectionLabel>Catering</SectionLabel>
               <h2 className="heading section-title">What We Offer</h2>
-              <p className="catering-offer-lead">Catering shaped around your event, your guests and your atmosphere.</p>
-              <p className="catering-offer-intro">We create catering for different types of events - from elegant finger food and light buffet solutions to full menus for family celebrations, corporate events and official occasions. Each menu is developed individually, combining authentic Ukrainian recipes with a modern European approach, thoughtful presentation and attentive service.</p>
+              <p className="catering-offer-lead">
+                Catering shaped around your event, your guests and your
+                atmosphere.
+              </p>
+              <p className="catering-offer-intro">
+                We create catering for different types of events - from elegant
+                finger food and light buffet solutions to full menus for family
+                celebrations, corporate events and official occasions. Each menu
+                is developed individually, combining authentic Ukrainian recipes
+                with a modern European approach, thoughtful presentation and
+                attentive service.
+              </p>
               <div className="catering-offer-grid">
                 {formats.map(({ title, text, icon: Icon }) => (
                   <article className="catering-offer-card" key={title}>
-                    <Icon aria-hidden="true" strokeWidth={1.55}/>
+                    <Icon aria-hidden="true" strokeWidth={1.55} />
                     <h3>{title}</h3>
                     <p>{text}</p>
                   </article>
                 ))}
               </div>
               <div className="catering-offer-note">
-                <Sparkles aria-hidden="true" strokeWidth={1.7}/>
-                <p><strong>Tailored upon request</strong> - Every catering concept is created individually based on your event, location, guest count and wishes.</p>
+                <Sparkles aria-hidden="true" strokeWidth={1.7} />
+                <p>
+                  <strong>Tailored upon request</strong> - Every catering
+                  concept is created individually based on your event, location,
+                  guest count and wishes.
+                </p>
               </div>
               <div className="catering-offer-actions">
                 <Button href="#catering-inquiry">Request Catering</Button>
-                <Button href="#catering-gallery" variant="secondary">Menu examples</Button>
+                <Button href="#catering-gallery" variant="secondary">
+                  Menu examples
+                </Button>
               </div>
             </div>
             <div className="catering-offer-media">
@@ -169,8 +234,14 @@ export default function CateringPage() {
         <Container>
           <div className="catering-menu-preview">
             <SectionLabel>Menu examples</SectionLabel>
-            <h2 className="heading section-title">Menu examples will be added soon</h2>
-            <p>Later, this section can show sample menus for finger food, buffet solutions, family celebrations, corporate events, official occasions, and grill parties.</p>
+            <h2 className="heading section-title">
+              Menu examples will be added soon
+            </h2>
+            <p>
+              Later, this section can show sample menus for finger food, buffet
+              solutions, family celebrations, corporate events, official
+              occasions, and grill parties.
+            </p>
           </div>
         </Container>
       </Section>
@@ -180,11 +251,11 @@ export default function CateringPage() {
           <div id="catering-inquiry" className="catering-form-wrap">
             <div className="catering-form-aside">
               <SectionLabel>How it works</SectionLabel>
-              <h2 className="heading section-title">How catering works</h2>
+              <h2 className="heading section-title">3-Step Setup</h2>
               <div className="catering-steps">
                 {steps.map(([title, text], index) => (
                   <article className="catering-step" key={title}>
-                    <span>{index + 1}</span>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
                     <div>
                       <h3>{title}</h3>
                       <p>{text}</p>
@@ -193,7 +264,7 @@ export default function CateringPage() {
                 ))}
               </div>
             </div>
-            <CateringInquiryForm/>
+            <CateringInquiryForm />
           </div>
         </Container>
       </section>
