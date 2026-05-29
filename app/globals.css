@@ -1928,9 +1928,6 @@ button.btn,
 .catering-offer-list {
   margin-top: 8px;
 }
-.catering-offer-list .catering-philosophy-item > .decoration-philosophy-icon {
-  color: var(--color-gold);
-}
 .catering-offer-tailored-row .catering-offer-note {
   display: grid;
   gap: 6px;
@@ -2215,6 +2212,40 @@ button.btn,
 .private-meetings-hero .label {
   color: var(--color-red);
   border-bottom-color: var(--color-red);
+}
+.private-meetings-hero-actions .btn {
+  gap: 8px;
+}
+.private-meetings-hero-actions .button-arrow {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+.private-meetings-hero-actions .btn:hover .button-arrow,
+.private-meetings-hero-actions .btn:focus-visible .button-arrow {
+  transform: translateX(4px);
+}
+@media (min-width: 981px) {
+  .private-meetings-hero .book-space-hero-copy {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: clamp(28px, 5vw, 72px);
+    align-items: start;
+  }
+  .private-meetings-hero .book-space-hero-copy .label,
+  .private-meetings-hero .book-space-hero-copy h1 {
+    grid-column: 1 / -1;
+  }
+  .private-meetings-hero .book-space-hero-copy p {
+    grid-column: 1;
+  }
+  .private-meetings-hero .hero-actions {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: start;
+    justify-self: end;
+    justify-content: flex-end;
+  }
 }
 .private-meetings-hero .horizontal-gallery-track {
   padding-bottom: 20px;
@@ -2617,6 +2648,10 @@ button.btn,
   max-width: 760px;
   margin-bottom: 28px;
 }
+.section-head:has(+ .services-teaser-grid) .label {
+  color: var(--color-red);
+  border-bottom-color: var(--color-red);
+}
 
 /* Quick paths */
 .quick-paths-section {
@@ -2929,6 +2964,10 @@ button.btn,
   gap: 22px;
   margin-bottom: 28px;
 }
+.event-section-head .label {
+  color: var(--color-red);
+  border-bottom-color: var(--color-red);
+}
 .event-section-head .section-head {
   margin-bottom: 0;
 }
@@ -3168,8 +3207,8 @@ button.btn,
   width: 30px;
   height: 30px;
   border-radius: 0;
-  background: rgba(var(--rgb-gold), 0.14);
-  color: var(--color-gold);
+  background: rgba(var(--rgb-light-green), 0.12);
+  color: var(--color-light-green);
   transform: translateY(-4px);
 }
 .event-info-icon svg {
@@ -3262,8 +3301,8 @@ button.btn,
   width: 30px;
   height: 30px;
   border-radius: 0;
-  background: rgba(var(--rgb-gold), 0.14);
-  color: var(--color-gold);
+  background: rgba(var(--rgb-light-green), 0.12);
+  color: var(--color-light-green);
   flex: 0 0 auto;
 }
 .event-card-meta-icon svg {
@@ -3629,8 +3668,8 @@ button.btn,
   width: 48px;
   height: 48px;
   border-radius: 0;
-  background: rgba(var(--rgb-gold), 0.14);
-  color: var(--color-gold);
+  background: rgba(var(--rgb-light-green), 0.12);
+  color: var(--color-light-green);
 }
 .event-detail-info-icon svg {
   width: 26px;
@@ -3972,6 +4011,10 @@ button.btn,
 .editorial-feature-copy > * {
   max-width: 560px;
 }
+.editorial-feature-copy .label {
+  color: var(--color-red);
+  border-bottom-color: var(--color-red);
+}
 .editorial-feature-copy p {
   margin: 0;
   line-height: 1.7;
@@ -3996,7 +4039,7 @@ button.btn,
 .editorial-feature-list svg {
   width: 28px;
   height: 28px;
-  color: var(--color-gold);
+  color: var(--color-red);
   transform: translateY(-2px);
 }
 .editorial-feature-note {
@@ -4400,8 +4443,8 @@ button.btn,
   height: 44px;
   padding: 10px;
   border-radius: 50%;
-  background: var(--color-white);
-  color: var(--color-gold);
+  background: rgba(var(--rgb-red), 0.1);
+  color: var(--color-red);
 }
 .about-pillar h3 {
   margin: 0;
@@ -4682,57 +4725,137 @@ button.btn,
 }
 .meeting-includes-section {
   background: var(--color-white);
+  padding: 0;
 }
-.meeting-info-grid {
+.meeting-includes-section > .container {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+}
+.meeting-session-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.72fr);
-  gap: 18px;
-  align-items: stretch;
-}
-.meeting-info-card {
-  display: grid;
-  gap: 14px;
-  padding: clamp(22px, 3vw, 34px);
-  background: var(--color-cream);
-  box-shadow: 0 16px 34px rgba(var(--rgb-brown), 0.09);
-}
-.meeting-info-card-main {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  align-items: stretch;
+  min-height: clamp(560px, 50vw, 720px);
 }
-.meeting-info-card-optional {
-  align-content: start;
-  background: rgba(var(--rgb-light-green), 0.13);
+
+.meeting-session-media {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  background: var(--color-beige) center/cover no-repeat;
 }
-.meeting-info-card-optional h3 {
-  margin: 0 0 4px;
-  color: var(--color-light-green);
-  font-size: 28px;
-}
-.meeting-info-item {
+
+.meeting-session-content {
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 18px;
+  align-content: center;
+  padding: clamp(56px, 8vw, 96px) max(16px, calc((100vw - 1180px) / 2))
+    clamp(56px, 8vw, 96px) clamp(42px, 6vw, 86px);
+  min-width: 0;
+}
+
+.meeting-session-content > * {
+  max-width: 560px;
+}
+
+.meeting-session-content .section-head {
   gap: 12px;
-  align-items: center;
-  min-height: 72px;
+  margin-bottom: clamp(12px, 1.5vw, 20px);
 }
-.meeting-info-item span {
+
+.meeting-session-content .section-title {
+  margin-bottom: 0;
+}
+
+.meeting-session-included-list,
+.meeting-session-optional-list {
   display: grid;
-  place-items: center;
-  width: 46px;
-  height: 46px;
-  background: var(--color-white);
-  color: var(--color-gold);
+  gap: clamp(10px, 1.5vw, 14px);
 }
-.meeting-info-item svg {
-  width: 22px;
-  height: 22px;
+
+.meeting-session-included-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 24px);
 }
-.meeting-info-item p {
+
+.meeting-session-included-col {
+  display: grid;
+  gap: clamp(10px, 1.5vw, 14px);
+  align-content: start;
+}
+
+.meeting-session-optional-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 24px);
+}
+
+.meeting-session-item {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+}
+
+.meeting-session-item svg {
+  width: 30px;
+  height: 30px;
+  color: var(--color-red);
+  margin-top: 1px;
+}
+
+.meeting-session-item p {
   margin: 0;
   color: var(--color-text-primary);
   font-size: 16px;
   line-height: 1.45;
-  font-weight: 650;
+  font-weight: 620;
+}
+
+.meeting-session-optional-group {
+  display: grid;
+  gap: 12px;
+  margin-top: clamp(6px, 1.2vw, 10px);
+  padding-top: clamp(12px, 1.6vw, 18px);
+  border-top: 1px solid rgba(var(--rgb-beige), 0.68);
+}
+
+.meeting-session-optional-title {
+  margin: 0;
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  color: var(--color-light-green);
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.meeting-session-item-optional svg {
+  color: var(--color-light-green);
+}
+
+.meeting-session-cta {
+  margin-top: auto;
+  padding-top: clamp(6px, 1vw, 12px);
+}
+
+.meeting-session-cta .btn {
+  gap: 8px;
+}
+
+.meeting-session-cta .button-arrow {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.meeting-session-cta .btn:hover .button-arrow,
+.meeting-session-cta .btn:focus-visible .button-arrow {
+  transform: translateX(4px);
 }
 .private-meeting-request {
   align-items: center;
@@ -4752,6 +4875,12 @@ button.btn,
 .form-section {
   background: var(--color-light-green);
   color: var(--color-cream);
+}
+.meeting-includes-section .label,
+.catering-offer-intro-copy .label,
+.decoration-philosophy-grid .label {
+  color: var(--color-red);
+  border-bottom-color: var(--color-red);
 }
 .form {
   display: grid;
@@ -5710,6 +5839,16 @@ form.card {
   .catering-form-wrap {
     grid-template-columns: 1fr;
   }
+  .meeting-session-layout {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .meeting-session-media {
+    min-height: 320px;
+  }
+  .meeting-session-content {
+    padding: 44px max(16px, calc((100vw - 720px) / 2));
+  }
   .catering-offer-media {
     order: -1;
   }
@@ -5943,9 +6082,20 @@ form.card {
   .catering-offer-grid,
   .catering-format-grid,
   .catering-steps,
-  .meeting-info-grid,
-  .meeting-info-card-main,
   .checkbox-group {
+    grid-template-columns: 1fr;
+  }
+  .meeting-session-layout {
+    min-height: auto;
+  }
+  .meeting-session-media {
+    min-height: clamp(280px, 56vw, 360px);
+  }
+  .meeting-session-content {
+    padding: 44px max(16px, calc((100vw - 720px) / 2));
+  }
+  .meeting-session-included-list,
+  .meeting-session-optional-list {
     grid-template-columns: 1fr;
   }
   .service-hero {

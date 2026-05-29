@@ -98,8 +98,8 @@ export default function DecorationPage() {
         <Container>
           <div className="catering-hero-layout">
             <div className="service-hero-copy">
-              <SectionLabel>Event decoration</SectionLabel>
-              <h1 className="heading">Event decoration</h1>
+              <SectionLabel>Event Decoration</SectionLabel>
+              <h1 className="heading">Event Decoration</h1>
               <p>
                 Flowers, table styling, candles, balloon decor and visual
                 details for warm, memorable events at RORUM or selected external

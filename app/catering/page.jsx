@@ -5,6 +5,7 @@ import {
   CalendarCheck,
   Cake,
   ChefHat,
+  CircleEllipsis,
   ClipboardList,
   ConciergeBell,
   CookingPot,
@@ -15,7 +16,6 @@ import {
   Lightbulb,
   PartyPopper,
   Presentation,
-  Sparkles,
   Utensils,
   Users,
 } from "lucide-react";
@@ -104,7 +104,7 @@ const suitableFor = [
   ["Business meetings", Building2],
   ["Conferences", Users],
   ["External events", PartyPopper],
-  ["And more", Sparkles],
+  ["And more", CircleEllipsis],
 ];
 
 const steps = [
