@@ -1,4 +1,5 @@
 import { LegalPage } from "@/components/LegalPage";
+import { companyDetails, contactDetails } from "@/lib/siteConfig";
 
 export const metadata = {
     title: "Cookie Policy | RORUM",
@@ -9,7 +10,7 @@ export default function CookiePolicyPage() {
     return (
       <LegalPage title="Cookie Policy" subtitle="How RORUM may use cookies and similar technologies.">
             <h2>1. Company details</h2>
-            <p><strong>RORUM</strong><br/>Address: Buermistersgade 26, 1 th, Copenhagen<br/>CVR: 00000000<br/>Contact: <a href="mailto:hello@rorum.dk">hello@rorum.dk</a><br/>Website: ro-rum.dk</p>
+            <p><strong>{companyDetails.name}</strong><br/>Address: {contactDetails.shortAddress}<br/>CVR: {companyDetails.cvr}<br/>Contact: <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a><br/>Website: {companyDetails.website}</p>
 
             <h2>2. What cookies are</h2>
             <p>Cookies are small files stored by your browser. Similar technologies may also be used to load website features or external services.</p>
@@ -33,7 +34,7 @@ export default function CookiePolicyPage() {
             <p>Social media links on this website are external links only. Social platforms may use their own cookies or tracking when you visit them.</p>
 
             <h2>9. Contact</h2>
-            <p>For cookie questions, contact <a href="mailto:hello@rorum.dk">hello@rorum.dk</a>.</p>
+            <p>For cookie questions, contact <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a>.</p>
       </LegalPage>
     );
 }

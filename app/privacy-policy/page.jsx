@@ -1,4 +1,5 @@
 import { LegalPage } from "@/components/LegalPage";
+import { companyDetails, contactDetails } from "@/lib/siteConfig";
 
 export const metadata = {
     title: "Privacy Policy | RORUM",
@@ -10,7 +11,7 @@ export default function PrivacyPage() {
       <LegalPage title="Privacy Policy" subtitle="How RORUM handles personal information submitted through this website.">
             <h2>1. Company details</h2>
             <p>RORUM is a Copenhagen-based business connected to events, private meetings, catering, event decoration and community experiences.</p>
-            <p><strong>RORUM</strong><br/>Address: Buermistersgade 26, 1 th, Copenhagen<br/>CVR: 00000000<br/>Contact: <a href="mailto:hello@rorum.dk">hello@rorum.dk</a><br/>Website: ro-rum.dk</p>
+            <p><strong>{companyDetails.name}</strong><br/>Address: {contactDetails.shortAddress}<br/>CVR: {companyDetails.cvr}<br/>Contact: <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a><br/>Website: {companyDetails.website}</p>
 
             <h2>2. Information you submit</h2>
             <p>When you contact RORUM through a form or email, you may provide information such as your name, email address, phone number and message details.</p>
@@ -35,7 +36,7 @@ export default function PrivacyPage() {
             <p>Email inquiries may be kept for as long as needed to respond to your request and manage the conversation. You can ask RORUM to delete your inquiry email where possible.</p>
 
             <h2>9. Contact</h2>
-            <p>For privacy questions, contact <a href="mailto:hello@rorum.dk">hello@rorum.dk</a>.</p>
+            <p>For privacy questions, contact <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a>.</p>
       </LegalPage>
     );
 }

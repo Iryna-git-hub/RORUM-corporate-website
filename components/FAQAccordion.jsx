@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronRight } from "lucide-react";
 import { faqs } from "@/lib/data";
 
 export function FAQAccordion({ categories = Object.keys(faqs) }) {
@@ -23,7 +24,10 @@ export function FAQAccordion({ categories = Object.keys(faqs) }) {
                   aria-expanded={isOpen}
                   onClick={() => setOpenItem(isOpen ? null : id)}
                 >
-                  <span>{question}</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+                    <ChevronRight size={16} aria-hidden="true" />
+                    <span>{question}</span>
+                  </span>
                 </button>
                 <div className="faq-answer">
                   <div>

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Container } from "@/components/ui";
+import { contactDetails, socialLinks } from "@/lib/siteConfig";
 
 const visitHostLinks = [
     { href: "/events", label: "Events" },
@@ -30,19 +31,6 @@ const legalLinks = [
     { href: "/terms", label: "Terms" },
     { href: "/privacy-policy", label: "Privacy Policy" },
     { href: "/cookie-policy", label: "Cookie Policy" }
-];
-
-export const contactDetails = {
-    address: "Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark",
-    phone: "+45 31 42 86 19",
-    email: "hello@rorum.dk",
-    mapHref: "/contact#map"
-};
-
-export const socialLinks = [
-    { href: "https://instagram.com/rorum_space", label: "Instagram", mark: "ig" },
-    { href: "https://facebook.com", label: "Facebook", mark: "f" },
-    { href: "https://linkedin.com", label: "LinkedIn", mark: "in" }
 ];
 
 function FooterLinkColumn({ title, links }) {

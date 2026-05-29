@@ -1,12 +1,12 @@
 import { ContactForm } from "@/components/ContactForm";
-import { contactDetails, socialLinks } from "@/components/Footer";
 import { Container, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
+import { contactDetails, socialLinks } from "@/lib/siteConfig";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 export const metadata = pageMetadata("/contact");
 
-const mapQuery = encodeURIComponent(contactDetails.address);
+const mapQuery = encodeURIComponent(contactDetails.mapQueryAddress);
 
 export default function ContactPage() {
     return (<>
@@ -23,7 +23,7 @@ export default function ContactPage() {
                 </div>
                 <div className="contact-detail-list">
                   <p><MapPin aria-hidden="true" strokeWidth={1.8}/><span>{contactDetails.address}</span></p>
-                  <p><Phone aria-hidden="true" strokeWidth={1.8}/><a href={`tel:${contactDetails.phone.replace(/\s/g, "")}`}>{contactDetails.phone}</a></p>
+                  <p><Phone aria-hidden="true" strokeWidth={1.8}/><a href={contactDetails.phoneHref}>{contactDetails.phone}</a></p>
                   <p><Mail aria-hidden="true" strokeWidth={1.8}/><a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a></p>
                 </div>
                 <div className="contact-follow">

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, MessageCircle, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { navItems } from "@/lib/data";
+import { socialLinks } from "@/lib/siteConfig";
 import { Button, Container } from "@/components/ui";
 
 export function Header() {
@@ -54,11 +55,6 @@ export function Header() {
     }, [menuOpen]);
     const darkHeroScrolled = usesDarkHeroHeader && !overDarkSection;
     const logoSrc = "/logos/rorum-creative-event-space.png";
-    const socialLinks = [
-        { href: "https://instagram.com/rorum_space", label: "Instagram", mark: "ig" },
-        { href: "https://facebook.com", label: "Facebook", mark: "f" },
-        { href: "https://linkedin.com", label: "LinkedIn", mark: "in" }
-    ];
     function closeMenus() {
         setMenuOpen(false);
         setOpenDropdown(null);

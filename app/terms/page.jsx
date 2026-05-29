@@ -1,4 +1,5 @@
 import { LegalPage } from "@/components/LegalPage";
+import { companyDetails, contactDetails } from "@/lib/siteConfig";
 
 export const metadata = {
     title: "Terms | RORUM",
@@ -10,7 +11,7 @@ export default function TermsPage() {
       <LegalPage title="Terms" subtitle="Terms for using the RORUM website, submitting inquiries and following external ticket links.">
             <h2>1. Company details</h2>
             <p>RORUM is a Copenhagen-based business connected to events, private meetings, catering, event decoration and community experiences.</p>
-            <p><strong>RORUM</strong><br/>Address: Buermistersgade 26, 1 th, Copenhagen<br/>CVR: 00000000<br/>Contact: <a href="mailto:hello@rorum.dk">hello@rorum.dk</a><br/>Website: ro-rum.dk</p>
+            <p><strong>{companyDetails.name}</strong><br/>Address: {contactDetails.shortAddress}<br/>CVR: {companyDetails.cvr}<br/>Contact: <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a><br/>Website: {companyDetails.website}</p>
 
             <h2>2. Use of this website</h2>
             <p>This website provides information about RORUM, events, private meetings, catering, event decoration and related community experiences. The website is intended for general information and inquiries.</p>
@@ -31,7 +32,7 @@ export default function TermsPage() {
             <p>RORUM aims to keep the website available and accurate, but the website may change, be unavailable or contain errors from time to time.</p>
 
             <h2>8. Contact</h2>
-            <p>For questions about these terms, contact <a href="mailto:hello@rorum.dk">hello@rorum.dk</a>.</p>
+            <p>For questions about these terms, contact <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a>.</p>
       </LegalPage>
     );
 }
