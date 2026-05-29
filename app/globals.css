@@ -601,10 +601,10 @@ main {
 }
 .mobile-menu-panel .mobile-language-switcher span {
   color: var(--color-dark-green);
-  min-height: 30px;
   min-width: 28px;
-  font-size: 16px;
-  font-weight: 750;
+  min-height: 30px;
+  font-size: 15px;
+  font-weight: 600;
 }
 .mobile-menu-panel .mobile-language-switcher span:first-child {
   color: var(--color-beige);
@@ -633,6 +633,7 @@ main {
 }
 .mobile-nav-group {
   display: grid;
+  border-bottom: 1px solid #dddddd2e;
 }
 .mobile-panel-nav a,
 .mobile-panel-nav button {
@@ -670,10 +671,10 @@ main {
   display: grid;
 }
 .mobile-panel-nav .mobile-nav-child {
-  padding: 12px 0 12px 12px;
-  font-size: 13px;
-  font-weight: 650;
   color: var(--color-cream);
+  padding: 12px 0 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
 }
 .mobile-nav-active .mobile-nav-parent,
 .mobile-nav-child-active {
