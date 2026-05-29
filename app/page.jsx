@@ -149,6 +149,7 @@ export default function Home() {
       <CommunityTeaserSection />
       <CTASection
         variant="final"
+        className="next-step-section-not-sure"
         eyebrow="NOT SURE WHERE TO START?"
         title="Let's shape your idea together"
         text="Whether you are planning a workshop, private session, community gathering, catering request or event styling idea — tell us what you have in mind, and we'll help you find the right format."

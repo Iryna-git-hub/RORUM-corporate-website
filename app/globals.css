@@ -201,7 +201,7 @@ main {
   right: 0;
   z-index: 40;
   border-bottom: 1px solid transparent;
-  background: transparent;
+  background-color: #ffffffc9;
   color: var(--color-primary-dark);
   backdrop-filter: blur(18px);
   transition:
@@ -2208,6 +2208,11 @@ button.btn,
 .private-meetings-hero {
   background: var(--color-cream);
   color: var(--color-text-primary);
+  padding-top: clamp(40px, 6vw, 76px);
+  padding-bottom: clamp(42px, 6vw, 72px);
+}
+.private-meetings-hero .book-space-hero-copy {
+  margin-bottom: clamp(28px, 4vw, 48px);
 }
 .private-meetings-hero .label {
   color: var(--color-red);
@@ -5284,6 +5289,10 @@ form.card {
   font-weight: 700;
   animation: finalCtaPulse 2.8s ease-in-out infinite;
 }
+.next-step-section-not-sure .next-step-card-final .btn {
+  outline-color: rgba(var(--rgb-red), 0.23);
+  animation: notSureCtaPulse 2.8s ease-in-out infinite;
+}
 .next-step-card-final .btn svg {
   width: 18px;
   height: 18px;
@@ -5343,13 +5352,22 @@ form.card {
     outline-color: rgba(var(--rgb-red), 0);
   }
 }
+@keyframes notSureCtaPulse {
+  0%,
+  100% {
+    outline-color: rgba(var(--rgb-red), 0.23);
+  }
+  50% {
+    outline-color: rgba(var(--rgb-red), 0);
+  }
+}
 .footer {
-  --footer-text: var(--color-light-green);
-  --footer-link: var(--color-dark-brown);
-  --footer-heading: var(--color-light-green);
-  --rgb-footer-heading: var(--rgb-light-green);
+  --footer-text: var(--color-text-primary);
+  --footer-link: var(--color-red);
+  --footer-heading: var(--color-text-primary);
+  --rgb-footer-heading: var(--rgb-brown);
   border-top: 1px solid rgba(var(--rgb-light-green), 0.18);
-  background: var(--color-beige);
+  background: var(--color-cream);
   color: var(--footer-text);
   font-weight: 500;
   padding: clamp(44px, 6vw, 72px) 0 28px;
@@ -5390,11 +5408,26 @@ form.card {
   line-height: 1.55;
   font-weight: 500;
 }
-.footer-contact-stack svg {
-  width: 16px;
-  height: 16px;
-  color: var(--color-light-green);
+.footer-contact-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(var(--rgb-red), 0.1);
+  color: var(--color-red);
+  flex: 0 0 34px;
+  line-height: 1;
+  overflow: visible;
+}
+.footer-contact-icon svg {
+  width: 18px;
+  height: 18px;
+  color: var(--color-red);
+  display: block;
   flex: 0 0 auto;
+  overflow: visible;
   transition:
     color 0.18s ease,
     stroke 0.18s ease,
@@ -5411,24 +5444,24 @@ form.card {
 }
 .footer-contact-stack a:hover,
 .footer-contact-stack a:focus-visible {
-  color: var(--color-red);
+  color: color-mix(in srgb, var(--color-red) 82%, var(--color-white));
 }
 .footer-contact-stack a:nth-child(2) {
   margin-top: 2px;
 }
 .footer-contact-stack .footer-map-link {
-  margin-left: 25px;
+  margin-left: 43px;
   font-size: 14px;
   line-height: 1.35;
 }
 .footer-contact-stack .footer-phone-line {
-  font-size: 24px;
-  line-height: 1.25;
+  font-size: 17px;
+  line-height: 1.55;
   font-weight: 500;
 }
 .footer-contact-stack .footer-phone-line svg {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
 }
 .footer-columns {
   display: grid;
@@ -5440,7 +5473,7 @@ form.card {
 }
 .footer a:hover,
 .footer a:focus-visible {
-  color: var(--color-red);
+  color: color-mix(in srgb, var(--color-red) 82%, var(--color-white));
   text-decoration: none;
 }
 .footer-links {
@@ -5471,7 +5504,7 @@ form.card {
 .footer-links a {
   width: fit-content;
   color: var(--footer-link);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.45;
   font-weight: 500;
   transition:
@@ -5553,7 +5586,7 @@ form.card {
 }
 .footer-bottom,
 .footer-bottom a {
-  color: var(--color-light-green);
+  color: var(--color-text-primary);
 }
 .map-placeholder {
   min-height: 320px;
