@@ -4,6 +4,7 @@ import {
   Building2,
   CalendarCheck,
   Cake,
+  ChefHat,
   ClipboardList,
   ConciergeBell,
   CookingPot,
@@ -62,7 +63,7 @@ const formats = [
   {
     title: "Ukrainian Cuisine",
     text: "Traditional Ukrainian cuisine in harmony with modern European gastronomy, created with attention to taste, presentation and detail.",
-    icon: CookingPot,
+    icon: ChefHat,
   },
   {
     title: "Finger Food & Buffet",
@@ -77,7 +78,7 @@ const formats = [
   {
     title: "On-site Cooking",
     text: "If needed, we can organize cooking directly at your location for a fresh, seamless and memorable experience.",
-    icon: Flame,
+    icon: CookingPot,
   },
   {
     title: "Full Event Support",
@@ -180,15 +181,22 @@ export default function CateringPage() {
 
       <section className="section catering-offer-section">
         <Container>
-          <div className="catering-offer-layout">
-            <div className="catering-offer-content">
+          <div className="catering-offer-layout catering-philosophy-grid catering-offer-grid-mirror">
+            <div className="catering-offer-media-frame">
+              <img
+                className="catering-philosophy-image catering-offer-media"
+                src="/images/catering/catering-service-team.png"
+                alt="RORUM catering team preparing food for an event"
+              />
+            </div>
+            <div className="catering-intro catering-offer-intro-copy">
               <SectionLabel>Catering</SectionLabel>
               <h2 className="heading section-title">What We Offer</h2>
-              <p className="catering-offer-lead">
+              <p className="catering-philosophy-lead">
                 Catering shaped around your event, your guests and your
                 atmosphere.
               </p>
-              <p className="catering-offer-intro">
+              <p>
                 We create catering for different types of events - from elegant
                 finger food and light buffet solutions to full menus for family
                 celebrations, corporate events and official occasions. Each menu
@@ -196,35 +204,34 @@ export default function CateringPage() {
                 with a modern European approach, thoughtful presentation and
                 attentive service.
               </p>
-              <div className="catering-offer-grid">
+              <div className="catering-philosophy-list decoration-philosophy-list catering-offer-list">
                 {formats.map(({ title, text, icon: Icon }) => (
-                  <article className="catering-offer-card" key={title}>
-                    <Icon aria-hidden="true" strokeWidth={1.55} />
-                    <h3>{title}</h3>
-                    <p>{text}</p>
-                  </article>
+                  <div className="catering-philosophy-item" key={title}>
+                    <span className="decoration-philosophy-icon">
+                      <Icon aria-hidden="true" strokeWidth={1.55} />
+                    </span>
+                    <div>
+                      <h3>{title}</h3>
+                      <p>{text}</p>
+                    </div>
+                  </div>
                 ))}
               </div>
-              <div className="catering-offer-note">
-                <Sparkles aria-hidden="true" strokeWidth={1.7} />
-                <p>
-                  <strong>Tailored upon request</strong> - Every catering
-                  concept is created individually based on your event, location,
-                  guest count and wishes.
-                </p>
-              </div>
-              <div className="catering-offer-actions">
-                <Button href="#catering-inquiry">Request Catering</Button>
-                <Button href="#catering-gallery" variant="secondary">
-                  Menu examples
-                </Button>
-              </div>
             </div>
-            <div className="catering-offer-media">
-              <img
-                src="/images/catering/catering-service-team.png"
-                alt="RORUM catering team preparing food for an event"
-              />
+          </div>
+          <div className="decoration-tailored-row catering-offer-tailored-row">
+            <div className="decoration-tailored-note catering-offer-note">
+              <h3>Tailored upon request</h3>
+              <p>
+                Every catering concept is created individually based on your
+                event, location, guest count and wishes.
+              </p>
+            </div>
+            <div className="catering-offer-actions">
+              <Button href="#catering-inquiry">Request Catering</Button>
+              <Button href="#catering-gallery" variant="secondary">
+                Menu examples
+              </Button>
             </div>
           </div>
         </Container>

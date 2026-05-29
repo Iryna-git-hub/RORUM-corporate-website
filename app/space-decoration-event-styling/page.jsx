@@ -7,7 +7,7 @@ import {
   Flower,
   Flower2,
   Gem,
-  HeartHandshake,
+  CalendarCheck,
   Lightbulb,
   PartyPopper,
   Sparkles,
@@ -66,7 +66,7 @@ const decorationFormats = [
 ];
 
 const suitableFor = [
-  ["Private events", HeartHandshake],
+  ["Private events", CalendarCheck],
   ["Weddings", Gem],
   ["Birthdays", PartyPopper],
   ["Workshops", Lightbulb],
