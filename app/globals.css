@@ -1302,7 +1302,7 @@ button.btn,
   height: 34px;
   border-radius: 0;
   background: var(--color-dark-green);
-  color: var(--color-cream);
+  color: var(--color-gold);
   font-weight: 900;
 }
 .host-step h3 {
@@ -1442,6 +1442,11 @@ button.btn,
 .service-hero-copy {
   display: grid;
   gap: 18px;
+}
+.service-hero .label,
+.service-hero.decoration-hero .label {
+  color: var(--color-red);
+  border-bottom-color: var(--color-red);
 }
 .service-hero-copy h1 {
   margin: 0;
@@ -1738,6 +1743,7 @@ button.btn,
   grid-template-columns: minmax(0, 1fr) auto;
   gap: clamp(16px, 3vw, 34px);
   align-items: center;
+  margin-top: clamp(28px, 5vw, 68px);
   padding: clamp(18px, 2.5vw, 26px);
   background: transparent;
   border: 1px solid rgba(var(--rgb-beige), 0.72);
@@ -1823,7 +1829,7 @@ button.btn,
 .catering-offer-card > svg {
   width: 46px;
   height: 46px;
-  color: var(--color-gold);
+  color: var(--color-red);
 }
 .catering-offer-card h3 {
   margin: 0;
@@ -1953,7 +1959,7 @@ button.btn,
   padding: 7px 10px;
   border-radius: 0;
   background: rgba(var(--rgb-cream), 0.1);
-  color: var(--color-cream);
+  color: var(--color-gold);
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.04em;
@@ -2656,7 +2662,7 @@ button.btn,
     transform 0.42s ease;
 }
 .quick-path-card-static .quick-card-icon {
-  color: var(--color-light-green);
+  color: var(--color-red);
 }
 .quick-card-title {
   display: block;
@@ -3096,8 +3102,8 @@ button.btn,
   width: 30px;
   height: 30px;
   border-radius: 0;
-  background: rgba(var(--rgb-light-green), 0.14);
-  color: var(--color-light-green);
+  background: rgba(var(--rgb-gold), 0.14);
+  color: var(--color-gold);
   transform: translateY(-4px);
 }
 .event-info-icon svg {
@@ -3190,8 +3196,8 @@ button.btn,
   width: 30px;
   height: 30px;
   border-radius: 0;
-  background: rgba(var(--rgb-light-green), 0.14);
-  color: var(--color-light-green);
+  background: rgba(var(--rgb-gold), 0.14);
+  color: var(--color-gold);
   flex: 0 0 auto;
 }
 .event-card-meta-icon svg {
@@ -3557,8 +3563,8 @@ button.btn,
   width: 48px;
   height: 48px;
   border-radius: 0;
-  background: rgba(var(--rgb-light-green), 0.14);
-  color: var(--color-light-green);
+  background: rgba(var(--rgb-gold), 0.14);
+  color: var(--color-gold);
 }
 .event-detail-info-icon svg {
   width: 26px;
@@ -4305,6 +4311,10 @@ button.btn,
 .about-pillars-section {
   background: var(--color-beige);
 }
+.about-pillars-section .label {
+  color: var(--color-red);
+  border-bottom-color: var(--color-red);
+}
 .about-pillars-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -4364,7 +4374,7 @@ button.btn,
   border-bottom: 1px solid rgba(var(--rgb-beige), 0.7);
 }
 .about-principle > span {
-  color: var(--color-red);
+  color: var(--color-gold);
   font-size: 13px;
   font-weight: 900;
   line-height: 1.2;
@@ -4385,6 +4395,10 @@ button.btn,
 }
 .about-location-section {
   background: var(--color-cream);
+}
+.about-location-section .label {
+  color: var(--color-red);
+  border-bottom-color: var(--color-red);
 }
 .about-location-grid {
   display: grid;
@@ -4458,7 +4472,7 @@ button.btn,
   width: 17px;
   height: 17px;
   margin-top: 4px;
-  color: var(--color-red);
+  color: var(--color-gold);
 }
 .package {
   display: grid;
@@ -4847,6 +4861,10 @@ form.card {
   font-weight: 900;
   text-align: left;
 }
+.faq-question > span > svg {
+  flex-shrink: 0;
+  color: var(--color-red);
+}
 .faq-question::before,
 .faq-question::after {
   content: "";
@@ -4934,8 +4952,8 @@ form.card {
   max-width: 760px;
 }
 .next-step-card .label {
-  color: var(--color-gold);
-  border-bottom-color: var(--color-gold);
+  color: var(--color-red);
+  border-bottom-color: var(--color-red);
   font-weight: 600;
 }
 .next-step-card .cta-title {
@@ -5359,7 +5377,6 @@ form.card {
   padding: clamp(42px, 7vw, 88px) 0;
 }
 .contact-page-hero .label,
-.next-step-section .label,
 .host-quick-facts .label {
   color: var(--color-red);
   border-bottom-color: var(--color-red);

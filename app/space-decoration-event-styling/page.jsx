@@ -1,4 +1,4 @@
-import { ArrowRight, Balloon, BadgeCheck, CircleEllipsis, FlameKindling, Flower2, Gem, HeartHandshake, Lightbulb, PartyPopper, Sparkles, UtensilsCrossed } from "lucide-react";
+import { ArrowRight, Balloon, BadgeCheck, CircleEllipsis, Flame, Flower, Flower2, Gem, HeartHandshake, Lightbulb, PartyPopper, Sparkles, UtensilsCrossed } from "lucide-react";
 import { HorizontalGallery } from "@/components/HorizontalGallery";
 import { InquiryForm } from "@/components/InquiryForm";
 import { Button, Container, Section, SectionLabel } from "@/components/ui";
@@ -32,7 +32,7 @@ const decorationFormats = [
   {
     title: "Florals",
     text: "Seasonal floral arrangements designed around your event mood, space and color palette.",
-    icon: Flower2
+    icon: Flower
   },
   {
     title: "Balloon Accents",
@@ -42,7 +42,7 @@ const decorationFormats = [
   {
     title: "Atmosphere Details",
     text: "Candles, textures, fabrics, signs and decorative objects that make the space feel warm and complete.",
-    icon: FlameKindling
+    icon: Flame
   },
   {
     title: "Personal Touches",
@@ -128,13 +128,13 @@ export default function DecorationPage() {
               src="/images/decoration/decoration-entrance-arch.png"
               alt=""
             />
-            <div className="decoration-tailored-row">
-              <div className="decoration-tailored-note">
-                <h3>Tailored upon request</h3>
-                <p>We create each setup individually according to your event format, location and wishes.</p>
-              </div>
-              <Button href="#decoration-inquiry">Request Decoration<ArrowRight className="button-arrow" aria-hidden="true" strokeWidth={1.9}/></Button>
+          </div>
+          <div className="decoration-tailored-row">
+            <div className="decoration-tailored-note">
+              <h3>Tailored upon request</h3>
+              <p>We create each setup individually according to your event format, location and wishes.</p>
             </div>
+            <Button href="#decoration-inquiry">Request Decoration<ArrowRight className="button-arrow" aria-hidden="true" strokeWidth={1.9}/></Button>
           </div>
         </Container>
       </Section>
