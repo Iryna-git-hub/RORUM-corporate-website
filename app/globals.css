@@ -614,7 +614,7 @@ button.btn,
 }
 .host-addon-card > svg:first-child {
   width: 42px; height: 42px; padding: 10px; border-radius: 0;
-  background: rgba(var(--rgb-light-green), .14); color: var(--color-dark-green);
+  background: rgba(var(--rgb-red), .14); color: var(--color-red);
 }
 .host-addon-card span { display: grid; gap: 2px; }
 .host-addon-card strong { color: var(--color-text-heading); font-size: 15px; }
@@ -646,7 +646,7 @@ button.btn,
   display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start;
   color: rgba(var(--rgb-cream), .9); font-weight: 700;
 }
-.host-form-aside-note svg { width: 22px; height: 22px; color: var(--color-cream); }
+.host-form-aside-note svg { width: 22px; height: 22px; color: var(--color-gold); }
 .form-heading { display: grid; gap: 8px; }
 .form-heading p { margin: 0; color: var(--color-text-primary); }
 .checkbox-group {
@@ -911,8 +911,8 @@ button.btn,
   display: grid; align-content: start; gap: 18px;
 }
 .catering-offer-content .label {
-  width: fit-content; padding: 7px 24px; border: 1px solid rgba(var(--rgb-red), .44); border-radius: 999px;
-  color: var(--color-red); background: transparent; font-size: 11px; letter-spacing: .18em;
+  width: fit-content; padding: 7px 24px; border: 1px solid rgba(var(--rgb-gold), .44); border-radius: 999px;
+  color: var(--color-gold); background: transparent; font-size: 11px; letter-spacing: .18em;
 }
 .catering-offer-content .section-title {
   margin: 0; max-width: 9ch; color: var(--color-dark-green);
@@ -934,7 +934,7 @@ button.btn,
   background: rgba(var(--rgb-cream), .34); text-align: center; box-shadow: 0 14px 30px rgba(var(--rgb-brown), .04);
 }
 .catering-offer-card > svg {
-  width: 46px; height: 46px; color: var(--color-brown);
+  width: 46px; height: 46px; color: var(--color-gold);
 }
 .catering-offer-card h3 {
   margin: 0; color: var(--color-text-heading); font-family: var(--font-heading), Georgia, serif;
@@ -951,7 +951,7 @@ button.btn,
   margin-top: clamp(12px, 2vw, 22px); padding-top: 20px; border-top: 1px solid rgba(var(--rgb-brown), .32);
 }
 .catering-offer-note svg {
-  width: 24px; height: 24px; color: var(--color-red);
+  width: 24px; height: 24px; color: var(--color-gold);
 }
 .catering-offer-note p {
   margin: 0; color: var(--color-text-primary); line-height: 1.55;
@@ -973,7 +973,7 @@ button.btn,
   background: var(--color-light-green); color: var(--color-white);
 }
 .catering-format-section .label {
-  color: var(--color-cream); border-bottom-color: var(--color-cream);
+  color: var(--color-gold); border-bottom-color: var(--color-gold);
 }
 .catering-format-section .section-title,
 .catering-format-section .section-head p {
@@ -995,7 +995,7 @@ button.btn,
 }
 .catering-format-card > svg {
   width: 44px; height: 44px; padding: 10px; border-radius: 50%;
-  background: rgba(var(--rgb-cream), .14); color: var(--color-cream);
+  background: rgba(var(--rgb-cream), .14); color: var(--color-gold);
 }
 .catering-format-card h3 {
   margin: 0; max-width: 12ch; font-family: var(--font-heading), Georgia, serif; color: var(--color-white);
@@ -1052,7 +1052,7 @@ button.btn,
 }
 .catering-inquiry-section .label,
 .form-section .label {
-  color: var(--color-cream); border-bottom-color: var(--color-cream);
+  color: var(--color-gold); border-bottom-color: var(--color-gold);
 }
 .catering-inquiry-section .section-title,
 .form-section .section-title {
@@ -1069,7 +1069,7 @@ button.btn,
 .catering-step:last-child { border-bottom: 1px solid rgba(var(--rgb-cream), .34); }
 .catering-step > span {
   display: grid; place-items: center; width: 34px; height: 34px; border-radius: 0;
-  background: rgba(var(--rgb-cream), .16); color: var(--color-cream); font-weight: 900;
+  background: rgba(var(--rgb-cream), .16); color: var(--color-gold); font-weight: 900;
 }
 .catering-step h3 {
   margin: 0 0 4px; color: var(--color-white);
@@ -2248,7 +2248,7 @@ button.btn,
 }
 .about-pillar > svg {
   width: 44px; height: 44px; padding: 10px; border-radius: 50%;
-  background: var(--color-white); color: var(--color-light-green);
+  background: var(--color-white); color: var(--color-gold);
 }
 .about-pillar h3 {
   margin: 0; color: var(--color-text-heading); font-family: var(--font-heading), Georgia, serif;
@@ -2308,7 +2308,7 @@ button.btn,
 }
 .about-location-card > svg {
   width: 44px; height: 44px; padding: 10px; border-radius: 50%;
-  background: rgba(var(--rgb-light-green), .12); color: var(--color-light-green);
+  background: rgba(var(--rgb-gold), .12); color: var(--color-gold);
 }
 .about-location-card h3 {
   margin: 0; color: var(--color-text-heading); font-size: clamp(24px, 2vw, 34px);
@@ -2416,7 +2416,7 @@ button.btn,
 }
 .meeting-info-item span {
   display: grid; place-items: center; width: 46px; height: 46px;
-  background: var(--color-white); color: var(--color-light-green);
+  background: var(--color-white); color: var(--color-gold);
 }
 .meeting-info-item svg {
   width: 22px; height: 22px;
@@ -2527,13 +2527,13 @@ form.card {
 .faq-question::before,
 .faq-question::after {
   content: ""; grid-column: 2; grid-row: 1; align-self: center; justify-self: center; width: 34px; height: 34px;
-  border: 1px solid rgba(var(--rgb-red), .35); border-radius: 50%; background: transparent;
+  border: 1px solid rgba(var(--rgb-gold), .45); border-radius: 50%; background: transparent;
 }
 .faq-question::after {
   width: 12px; height: 12px; border: 0; border-radius: 0; background: none;
   background-image:
-    linear-gradient(var(--color-red), var(--color-red)),
-    linear-gradient(var(--color-red), var(--color-red));
+    linear-gradient(var(--color-gold), var(--color-gold)),
+    linear-gradient(var(--color-gold), var(--color-gold));
   background-size: 12px 2px, 2px 12px;
   background-position: center;
   background-repeat: no-repeat;
