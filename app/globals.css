@@ -2309,6 +2309,94 @@ button.btn,
   position: relative;
   overflow: hidden;
 }
+.horizontal-gallery-frame::before,
+.horizontal-gallery-frame::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: clamp(36px, 5vw, 64px);
+  z-index: 1;
+  pointer-events: none;
+}
+.horizontal-gallery-frame::before {
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--rgb-dark-brown), 0.22),
+    rgba(var(--rgb-dark-brown), 0)
+  );
+}
+.horizontal-gallery-frame::after {
+  right: 0;
+  background: linear-gradient(
+    270deg,
+    rgba(var(--rgb-dark-brown), 0.22),
+    rgba(var(--rgb-dark-brown), 0)
+  );
+}
+.horizontal-gallery-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(var(--rgb-dark-brown), 0.42);
+  color: var(--color-white);
+  backdrop-filter: blur(6px);
+  transform: translateY(-50%);
+  transition:
+    background-color 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+.horizontal-gallery-nav:hover,
+.horizontal-gallery-nav:focus-visible {
+  background: rgba(var(--rgb-dark-brown), 0.56);
+  outline: none;
+}
+.horizontal-gallery-nav:focus-visible {
+  box-shadow: 0 0 0 2px rgba(var(--rgb-cream), 0.85);
+}
+.horizontal-gallery-nav:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+.horizontal-gallery-nav:not(:disabled):hover,
+.horizontal-gallery-nav:not(:disabled):focus-visible {
+  transform: translateY(-50%) scale(1.03);
+}
+.horizontal-gallery-nav svg {
+  width: 20px;
+  height: 20px;
+}
+.horizontal-gallery-nav-prev {
+  left: -21px;
+}
+.horizontal-gallery-nav-next {
+  right: -21px;
+}
+.horizontal-gallery-counter {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 2;
+  min-width: 58px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(var(--rgb-dark-brown), 0.42);
+  color: var(--color-white);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  backdrop-filter: blur(6px);
+}
 .horizontal-gallery-track {
   display: flex;
   gap: 14px;
@@ -6428,6 +6516,21 @@ form.card {
   }
   .horizontal-gallery-item {
     height: 210px;
+  }
+  .horizontal-gallery-nav {
+    width: 40px;
+    height: 40px;
+  }
+  .horizontal-gallery-nav-prev {
+    left: 10px;
+  }
+  .horizontal-gallery-nav-next {
+    right: 10px;
+  }
+  .horizontal-gallery-counter {
+    right: 10px;
+    bottom: 10px;
+    padding: 5px 9px;
   }
   .editorial-feature {
     padding: 52px 0;
