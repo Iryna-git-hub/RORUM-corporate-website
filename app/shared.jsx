@@ -4,18 +4,22 @@ import { ArrowRight, CalendarDays, ConciergeBell, Megaphone, Presentation } from
 const quickPathMeta = {
     "/events": {
         icon: CalendarDays,
-        cta: "Explore Events"
+        cta: "Explore Events",
+        tone: "red"
     },
     "/host-an-event": {
         icon: Megaphone,
-        cta: "Host with us"
+        cta: "Host with us",
+        tone: "red"
     },
     "/private-meetings": {
         icon: Presentation,
-        cta: "View Formats"
+        cta: "View Formats",
+        tone: "red"
     },
     "/services": {
         icon: ConciergeBell,
+        tone: "green",
         links: [
             { href: "/catering", label: "Catering" },
             { href: "/space-decoration-event-styling", label: "Event Decoration" }
@@ -26,6 +30,7 @@ const quickPathMeta = {
 function QuickPathCard({ title, text, href, image }) {
     const meta = quickPathMeta[href] ?? quickPathMeta["/services"];
     const Icon = meta.icon;
+    const cardClassName = `quick-path-card quick-path-card-${meta.tone} quick-path-card-${href.replace("/", "").replaceAll("/", "-") || "home"}`;
     const inner = (<>
       <span className="quick-card-media" style={{ backgroundImage: `url(${image})` }} aria-hidden="true"/>
       <span className="quick-card-content">
@@ -53,10 +58,10 @@ function QuickPathCard({ title, text, href, image }) {
     </>);
 
     if (meta.links) {
-        return <article className="quick-path-card quick-path-card-static">{inner}</article>;
+        return <article className={`${cardClassName} quick-path-card-static`}>{inner}</article>;
     }
 
-    return <Link className="quick-path-card" href={href}>{inner}</Link>;
+    return <Link className={cardClassName} href={href}>{inner}</Link>;
 }
 
 export function QuickPathsGrid({ items }) {

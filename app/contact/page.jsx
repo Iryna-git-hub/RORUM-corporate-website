@@ -1,4 +1,5 @@
 import { ContactForm } from "@/components/ContactForm";
+import { SocialIcon } from "@/components/SocialIcon";
 import { Container, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 import { contactDetails, socialLinks } from "@/lib/siteConfig";
@@ -50,15 +51,16 @@ export default function ContactPage() {
                   <h2>Follow us</h2>
                 </div>
                 <div className="contact-socials" aria-label="Social links">
-                  {socialLinks.map(({ href, label, mark }) => (
+                  {socialLinks.map(({ href, label, icon, brandColor }) => (
                     <a
                       key={label}
                       href={href}
                       target="_blank"
                       rel="noreferrer"
                       aria-label={label}
+                      style={{ "--social-brand-color": brandColor }}
                     >
-                      <span aria-hidden="true">{mark}</span>
+                      <SocialIcon icon={icon} />
                     </a>
                   ))}
                 </div>

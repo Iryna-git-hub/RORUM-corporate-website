@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const requiredFields = [
   ["name", "Full name"],
@@ -12,6 +12,14 @@ const requiredFields = [
   ["message", "Message"]
 ];
 
+const packageOptions = ["Single Session", "Evening Series", "Weekend Event", "Not sure yet"];
+
+function getInitialPackage() {
+  if (typeof window === "undefined") return "";
+  const packageName = new URLSearchParams(window.location.search).get("package") ?? "";
+  return packageOptions.includes(packageName) ? packageName : "";
+}
+
 function validateField(name, value, label) {
   if (!String(value ?? "").trim()) return `${label} is required.`;
   if (name === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Please enter a valid email address.";
@@ -21,6 +29,15 @@ function validateField(name, value, label) {
 export function HostEventInquiryForm() {
   const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState({});
+  const [selectedPackage, setSelectedPackage] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const packageName = getInitialPackage();
+    if (!packageName) return undefined;
+    const timeoutId = window.setTimeout(() => setSelectedPackage(packageName), 0);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   function onSubmit(event) {
     event.preventDefault();
@@ -40,6 +57,7 @@ export function HostEventInquiryForm() {
     }
 
     setSent(true);
+    setSelectedPackage("");
     form.reset();
   }
 
@@ -92,9 +110,9 @@ export function HostEventInquiryForm() {
       <div className="form-grid">
         <label htmlFor="host-package">
           Package<span aria-hidden="true">*</span>
-          <select id="host-package" name="package" defaultValue="" aria-invalid={Boolean(errors.package)} aria-describedby={errors.package ? "host-package-error" : undefined}>
-            <option value="" disabled>Select package</option>
-            {["Single Session", "Evening Series", "Weekend Event", "Not sure yet"].map((option) => <option key={option}>{option}</option>)}
+          <select id="host-package" name="package" value={selectedPackage} onChange={(event) => setSelectedPackage(event.target.value)} aria-invalid={Boolean(errors.package)} aria-describedby={errors.package ? "host-package-error" : undefined}>
+            <option value="" disabled>Select Package</option>
+            {packageOptions.map((option) => <option key={option}>{option}</option>)}
           </select>
           {errors.package ? <small className="form-error" id="host-package-error">{errors.package}</small> : null}
         </label>

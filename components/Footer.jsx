@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Container } from "@/components/ui";
+import { SocialIcon } from "@/components/SocialIcon";
 import { contactDetails, socialLinks } from "@/lib/siteConfig";
 
 const visitHostLinks = [
@@ -83,15 +84,16 @@ export function Footer() {
               </a>
             </div>
             <div className="footer-socials" aria-label="Social links">
-              {socialLinks.map(({ href, label, mark }) => (
+              {socialLinks.map(({ href, label, icon, brandColor }) => (
                 <a
                   key={label}
                   href={href}
                   target="_blank"
                   rel="noreferrer"
                   aria-label={label}
+                  style={{ "--social-brand-color": brandColor }}
                 >
-                  <span aria-hidden="true">{mark}</span>
+                  <SocialIcon icon={icon} />
                 </a>
               ))}
             </div>

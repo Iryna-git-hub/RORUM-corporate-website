@@ -6,6 +6,7 @@ import { ChevronDown, MessageCircle, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { navItems } from "@/lib/data";
 import { socialLinks } from "@/lib/siteConfig";
+import { SocialIcon } from "@/components/SocialIcon";
 import { Button, Container } from "@/components/ui";
 
 export function Header() {
@@ -140,8 +141,8 @@ export function Header() {
         </nav>
         <div className="mobile-panel-socials">
           {socialLinks.map((link) => (
-            <a className="mobile-social-link" href={link.href} key={link.label} target="_blank" rel="noopener noreferrer" aria-label={link.label}>
-              {link.mark}
+            <a className="mobile-social-link" href={link.href} key={link.label} target="_blank" rel="noopener noreferrer" aria-label={link.label} style={{ "--social-brand-color": link.brandColor }}>
+              <SocialIcon icon={link.icon} />
             </a>
           ))}
         </div>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Card } from "@/components/ui";
-import { CircleCheckBig } from "lucide-react";
+import { ArrowRight, CircleCheckBig } from "lucide-react";
 
 export function EditorialCard({ title, text, children }) {
     return (<Card className="card-pad" variant="editorial">
@@ -21,26 +21,32 @@ export function ServiceCard({ title, text, href, image }) {
     </Card>);
 }
 
-export function PackageCard({ title, price, items }) {
-    const priceMatch = typeof price === "string" ? price.match(/^Price:\s*(.+?)\s+ex VAT$/i) : null;
-    const amountMatch = priceMatch ? priceMatch[1].match(/^(.+?)\s+([A-Z]{3})$/) : null;
+export function PackageCard({ title, price, items, ctaHref, ctaLabel }) {
+    const priceMatch = typeof price === "string" ? price.match(/^(Price:\s*)?(.+?)\s+(ex VAT)$/i) : null;
     return (<Card className="package card-pad" variant="package">
-      <span className="tag">
+      <h3 className="package-title">{title}</h3>
+      <span className="tag package-price">
         {priceMatch ? (<>
-          <span className="package-price-label">Price:</span>
-          <span className="package-price-main">
-            {amountMatch ? <><span>{amountMatch[1]}</span> <small>{amountMatch[2]}</small></> : priceMatch[1]}
-          </span>
-          <span className="package-price-vat">ex VAT</span>
+          {priceMatch[1] ? <span className="package-price-label">{priceMatch[1].trim()}</span> : null}
+          <span className="package-price-main">{priceMatch[2]}</span>
+          <span className="package-price-vat">{priceMatch[3]}</span>
         </>) : price}
       </span>
-      <h3>{title}</h3>
-      <ul>{items.map((item) => <li key={item}><CircleCheckBig aria-hidden="true" strokeWidth={1.9}/><span>{item}</span></li>)}</ul>
+      {ctaHref && ctaLabel ? (
+        <a className="btn package-select-cta" href={ctaHref}>
+          <span>{ctaLabel}</span>
+          <ArrowRight aria-hidden="true" strokeWidth={1.9}/>
+        </a>
+      ) : null}
+      <ul className="package-options">{items.map((item) => <li key={item}><CircleCheckBig aria-hidden="true" strokeWidth={1.9}/><span>{item}</span></li>)}</ul>
     </Card>);
 }
 
-export function PackageGrid({ items }) {
-    return <div className="grid-3">{items.map((item) => <PackageCard key={item.title} {...item}/>)}</div>;
+export function PackageGrid({ items, ctaHref, ctaLabel }) {
+    return <div className="grid-3">{items.map((item) => {
+      const packageHref = ctaHref ? `${ctaHref.includes("?") ? ctaHref : `${ctaHref.split("#")[0]}?package=${encodeURIComponent(item.title)}#${ctaHref.split("#")[1]}`}` : "";
+      return <PackageCard key={item.title} {...item} ctaHref={packageHref} ctaLabel={ctaLabel}/>;
+    })}</div>;
 }
 
 export function ImageGallery({ images }) {

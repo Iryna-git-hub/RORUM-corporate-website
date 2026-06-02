@@ -20,7 +20,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata("/host-an-event");
 
 const quickFacts = [
-  { label: "4–15 guests", icon: Users },
+  { label: "4â€“15 guests", icon: Users },
   { label: "Flexible setup", icon: SlidersHorizontal },
   { label: "On-site support", icon: HandHeart },
   { label: "Catering and decoration optional", icon: Wine },
@@ -29,7 +29,7 @@ const quickFacts = [
 const eventPackages = [
   {
     title: "Single Session",
-    price: "700 DKK ex VAT",
+    price: "700 kr. ex VAT",
     description:
       "A compact hosted format for one workshop, class or community session.",
     meta: "Up to 2 hours",
@@ -37,8 +37,8 @@ const eventPackages = [
   },
   {
     title: "Evening Series",
-    price: "1250 DKK ex VAT / 4 sessions",
-    secondPrice: "2000 DKK ex VAT / 8 sessions",
+    price: "1250 kr. ex VAT / 4 sessions",
+    secondPrice: "2000 kr. ex VAT / 8 sessions",
     description:
       "A recurring slot for formats that need rhythm and consistency.",
     meta: "Weekly sessions",
@@ -51,7 +51,7 @@ const eventPackages = [
   },
   {
     title: "Weekend Event",
-    price: "1200 DKK ex VAT",
+    price: "1200 kr. ex VAT",
     description:
       "A longer format for deeper workshops, gatherings or facilitated sessions.",
     meta: "Up to 4 hours",
@@ -148,10 +148,13 @@ export default function HostPage() {
                   {item.meta ? (
                     <p className="host-package-meta">{item.meta}</p>
                   ) : null}
-                  <Link className="btn host-package-cta" href="#event-inquiry">
-                    <span>Select package</span>
+                  <a
+                    className="btn host-package-cta"
+                    href={`?package=${encodeURIComponent(item.title)}#event-inquiry`}
+                  >
+                    <span>Select Package</span>
                     <ArrowRight aria-hidden="true" strokeWidth={1.9} />
-                  </Link>
+                  </a>
                   <p className="host-package-description">{item.description}</p>
                 </div>
                 <div className="host-package-included">

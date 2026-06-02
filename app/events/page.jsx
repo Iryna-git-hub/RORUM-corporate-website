@@ -1,10 +1,11 @@
-import Link from "next/link";
 import { EventList } from "@/components/EventCard";
+import { EventFilters } from "@/components/EventFilters";
 import { Container, CTASection, SectionHeader } from "@/components/ui";
 import { events } from "@/lib/data";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/events");
+const EVENTS_PER_PAGE = 20;
 
 function normalizeDate(value) {
   const parsed = new Date(`${value}T12:00:00`);
@@ -68,16 +69,14 @@ function eventMatchesAvailability(event, selected) {
 
 export default function EventsPage({ searchParams }) {
   const query = searchParams ?? {};
-  const selectedSort =
-    query.sort === "price-asc" || query.sort === "price-desc"
-      ? query.sort
-      : "soonest";
   const selectedDate =
-    query.date === "week" || query.date === "month" || query.date === "upcoming"
+    query.date === "soonest" || query.date === "week" || query.date === "month"
       ? query.date
       : "all";
   const selectedPrice =
-    query.price === "free" || query.price === "paid" ? query.price : "all";
+    query.price === "price-asc" || query.price === "price-desc"
+      ? query.price
+      : "all";
   const selectedAvailability =
     query.availability === "available" || query.availability === "sold-out"
       ? query.availability
@@ -88,6 +87,7 @@ export default function EventsPage({ searchParams }) {
   const selectedLanguage = languageOptions.includes(query.language)
     ? query.language
     : "all";
+  const requestedPage = Number(query.page);
 
   const now = new Date();
   const { start: dateStart, end: dateEnd } = getDateWindow(now, selectedDate);
@@ -112,16 +112,6 @@ export default function EventsPage({ searchParams }) {
       if (selectedLanguage !== "all" && event.language !== selectedLanguage) {
         return false;
       }
-      const priceValue = parsePriceValue(event.price);
-      if (selectedPrice === "free" && priceValue !== 0) {
-        return false;
-      }
-      if (
-        selectedPrice === "paid" &&
-        (!Number.isFinite(priceValue) || priceValue <= 0)
-      ) {
-        return false;
-      }
       return eventMatchesAvailability(event, selectedAvailability);
     })
     .sort((a, b) => {
@@ -129,16 +119,44 @@ export default function EventsPage({ searchParams }) {
         normalizeDate(a.date)?.getTime() ?? Number.POSITIVE_INFINITY;
       const dateB =
         normalizeDate(b.date)?.getTime() ?? Number.POSITIVE_INFINITY;
-      if (selectedSort === "soonest") {
-        return dateA - dateB;
-      }
       const priceA = parsePriceValue(a.price);
       const priceB = parsePriceValue(b.price);
-      if (priceA !== priceB) {
-        return selectedSort === "price-asc" ? priceA - priceB : priceB - priceA;
+      if (selectedPrice === "price-asc" || selectedPrice === "price-desc") {
+        if (priceA !== priceB) {
+          return selectedPrice === "price-asc"
+            ? priceA - priceB
+            : priceB - priceA;
+        }
       }
       return dateA - dateB;
     });
+  const totalPages = Math.max(
+    1,
+    Math.ceil(visibleEvents.length / EVENTS_PER_PAGE),
+  );
+  const currentPage =
+    Number.isInteger(requestedPage) && requestedPage > 0
+      ? Math.min(requestedPage, totalPages)
+      : 1;
+  const paginatedEvents = visibleEvents.slice(
+    (currentPage - 1) * EVENTS_PER_PAGE,
+    currentPage * EVENTS_PER_PAGE,
+  );
+
+  function getPageHref(page) {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query)) {
+      if (key === "page" || value === undefined || value === null) {
+        continue;
+      }
+      params.set(key, String(value));
+    }
+    if (page > 1) {
+      params.set("page", String(page));
+    }
+    const queryString = params.toString();
+    return queryString ? `/events?${queryString}` : "/events";
+  }
 
   return (
     <>
@@ -146,78 +164,67 @@ export default function EventsPage({ searchParams }) {
         <Container>
           <SectionHeader
             title="Upcoming events at RORUM."
-            text="Find community workshops, creative salons and intimate gatherings shaped for the room."
             level={1}
           />
-          <form
-            className="events-controls"
-            method="get"
-            action="/events"
-            aria-label="Filter and sort events"
-          >
-            <div
-              className="events-filters"
-              role="group"
-              aria-label="Event filters"
-            >
-              <label className="events-control-field">
-                <span>Date</span>
-                <select name="date" defaultValue={selectedDate}>
-                  <option value="all">All dates</option>
-                  <option value="upcoming">Upcoming</option>
-                  <option value="week">This week</option>
-                  <option value="month">This month</option>
-                </select>
-              </label>
-              <label className="events-control-field">
-                <span>Language</span>
-                <select name="language" defaultValue={selectedLanguage}>
-                  <option value="all">All languages</option>
-                  {languageOptions.map((language) => (
-                    <option key={language} value={language}>
-                      {language}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="events-control-field">
-                <span>Price</span>
-                <select name="price" defaultValue={selectedPrice}>
-                  <option value="all">All prices</option>
-                  <option value="free">Free</option>
-                  <option value="paid">Paid</option>
-                </select>
-              </label>
-              <label className="events-control-field">
-                <span>Availability</span>
-                <select name="availability" defaultValue={selectedAvailability}>
-                  <option value="all">All availability</option>
-                  <option value="available">Available</option>
-                  <option value="sold-out">Sold out</option>
-                </select>
-              </label>
-            </div>
-            <div className="events-controls-actions">
-              <label className="events-control-field events-sort-field">
-                <span>Sort</span>
-                <select name="sort" defaultValue={selectedSort}>
-                  <option value="soonest">Soonest first</option>
-                  <option value="price-asc">Price: low to high</option>
-                  <option value="price-desc">Price: high to low</option>
-                </select>
-              </label>
-              <button className="btn" type="submit">
-                Apply
-              </button>
-              {hasActiveFilters ? (
-                <Link className="events-clear-filters" href="/events">
-                  Clear filters
-                </Link>
-              ) : null}
-            </div>
-          </form>
+          <EventFilters
+            selectedDate={selectedDate}
+            selectedLanguage={selectedLanguage}
+            selectedPrice={selectedPrice}
+            selectedAvailability={selectedAvailability}
+            languageOptions={languageOptions}
+            hasActiveFilters={hasActiveFilters}
+          />
           {visibleEvents.length > 0 ? (
-            <EventList events={visibleEvents} />
+            <>
+              <EventList events={paginatedEvents} />
+              {totalPages > 1 ? (
+                <nav className="events-pagination" aria-label="Events pages">
+                  <a
+                    className={
+                      currentPage === 1
+                        ? "events-pagination-link is-disabled"
+                        : "events-pagination-link"
+                    }
+                    href={getPageHref(Math.max(1, currentPage - 1))}
+                    aria-disabled={currentPage === 1}
+                    aria-label="Previous page"
+                  >
+                    <span aria-hidden="true">←</span>
+                  </a>
+                  <div className="events-pagination-pages">
+                    {Array.from({ length: totalPages }, (_, index) => {
+                      const page = index + 1;
+                      return (
+                        <a
+                          className={
+                            page === currentPage
+                              ? "events-pagination-page is-active"
+                              : "events-pagination-page"
+                          }
+                          href={getPageHref(page)}
+                          key={page}
+                          aria-current={page === currentPage ? "page" : undefined}
+                        >
+                          {page}
+                        </a>
+                      );
+                    })}
+                  </div>
+                  <a
+                    className={
+                      currentPage === totalPages
+                        ? "events-pagination-link is-disabled"
+                        : "events-pagination-link"
+                    }
+                    href={getPageHref(Math.min(totalPages, currentPage + 1))}
+                    aria-disabled={currentPage === totalPages}
+                    aria-label="Next page"
+                  >
+                    <span aria-hidden="true">→</span>
+                  </a>
+                </nav>
+              ) : null}
+            </>
           ) : (
             <div
               className="events-empty-state"
@@ -232,6 +239,7 @@ export default function EventsPage({ searchParams }) {
       </section>
       <CTASection
         variant="host"
+        className="events-next-step-section"
         title="Have a format for the room?"
         text="Send a hosting inquiry and we will explore audience, timing and setup together."
         href="/host-an-event"

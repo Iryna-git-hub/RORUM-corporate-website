@@ -83,6 +83,9 @@ export default function PrivateMeetingsPage() {
                   strokeWidth={1.9}
                 />
               </Button>
+              <Button href="#meeting-packages" variant="secondary">
+                View Meeting Packages
+              </Button>
             </div>
           </div>
           <HorizontalGallery images={galleryImages} />
@@ -144,15 +147,25 @@ export default function PrivateMeetingsPage() {
                     strokeWidth={1.9}
                   />
                 </Button>
+                <Button href="#meeting-packages" variant="secondary">
+                  View Meeting Packages
+                </Button>
               </div>
             </div>
           </div>
         </Container>
       </section>
-      <section className="section-tight private-meeting-packages-section">
+      <section
+        id="meeting-packages"
+        className="section-tight private-meeting-packages-section"
+      >
         <Container>
           <SectionHeader label="Packages" title="Meeting Packages" level={3} />
-          <PackageGrid items={packages.booking} />
+          <PackageGrid
+            items={packages.booking}
+            ctaHref="#request-private-meeting"
+            ctaLabel="Select Package"
+          />
           <div className="meeting-cancellation-policy">
             <p className="meeting-cancellation-title">Cancellation Policy:</p>
             <ul>

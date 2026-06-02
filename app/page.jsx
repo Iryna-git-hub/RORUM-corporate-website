@@ -20,6 +20,12 @@ export const metadata = pageMetadata("/");
 export default function Home() {
   const paths = [
     [
+      "Services",
+      "Add catering, styling and hospitality details.",
+      "/services",
+      "/images/services/services-split.png",
+    ],
+    [
       "Events",
       "Join dinners, salons and workshops at RORUM.",
       "/events",
@@ -36,12 +42,6 @@ export default function Home() {
       "Plan a hosted meeting, workshop or private gathering.",
       "/private-meetings",
       "/images/space/space-1.png",
-    ],
-    [
-      "Services",
-      "Add catering, styling and hospitality details.",
-      "/services",
-      "/images/services/services-split.png",
     ],
   ];
   const services = [
