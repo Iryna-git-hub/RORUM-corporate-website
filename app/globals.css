@@ -700,22 +700,23 @@ main {
   width: 44px;
   height: 44px;
   border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--color-text-primary);
+  border-radius: 50%;
+  background: var(--social-brand-color, var(--color-light-green));
+  color: var(--color-white);
   transition:
     color 0.18s ease,
     transform 0.18s ease;
 }
 .mobile-panel-socials a:hover,
 .mobile-panel-socials a:focus-visible {
-  background: transparent;
-  color: var(--color-text-primary);
+  background: var(--social-brand-color, var(--color-light-green));
+  color: var(--color-white);
   outline: none;
   transform: translateY(-1px);
+  filter: brightness(1.08) saturate(1.05);
 }
 .mobile-panel-socials a:focus-visible {
-  box-shadow: 0 2px 0 currentColor;
+  box-shadow: 0 0 0 2px var(--color-beige);
 }
 
 /* Buttons */
@@ -4187,9 +4188,9 @@ button.btn,
   width: 36px;
   height: 36px;
   border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--color-text-primary);
+  border-radius: 50%;
+  background: var(--color-light-green);
+  color: var(--color-white);
   cursor: pointer;
   font-size: 12px;
   font-weight: 900;
@@ -4201,27 +4202,41 @@ button.btn,
     transform 0.18s ease;
 }
 .event-share-actions .event-share-brand-link {
-  background: transparent;
-  color: var(--color-text-primary);
+  background: var(--social-brand-color);
+  color: var(--color-white);
+}
+.event-share-actions .event-share-utility-link {
+  background: var(--color-light-green);
+  color: var(--color-white);
+}
+.event-share-actions .event-share-email-link {
+  background: rgba(var(--rgb-dark-brown), 0.34);
+  color: var(--color-white);
 }
 .event-share-actions svg {
-  width: 24px;
-  height: 24px;
+  width: 17px;
+  height: 17px;
   color: currentColor;
 }
 .event-share-actions .social-icon {
-  width: 26px;
-  height: 26px;
+  width: 18px;
+  height: 18px;
 }
 .event-share-actions button:hover,
 .event-share-actions a:hover {
-  background: transparent;
-  color: var(--color-text-primary);
+  color: var(--color-white);
   transform: translateY(-1px);
+  filter: brightness(1.08) saturate(1.05);
 }
 .event-share-actions .event-share-brand-link:hover {
-  background: transparent;
-  color: var(--color-text-primary);
+  background: var(--social-brand-color);
+  color: var(--color-white);
+}
+.event-share-actions .event-share-utility-link:hover {
+  background: var(--color-light-green);
+}
+.event-share-actions .event-share-email-link:hover {
+  background: rgba(var(--rgb-dark-brown), 0.44);
 }
 .event-share-actions button:focus-visible,
 .event-share-actions a:focus-visible {
@@ -5934,7 +5949,7 @@ form.card {
 }
 .footer-links a {
   width: fit-content;
-  color: var(--footer-link);
+  color: var(--color-red);
   font-size: 16px;
   line-height: 1.45;
   font-weight: 500;
@@ -5944,6 +5959,7 @@ form.card {
 }
 .footer-links a:hover,
 .footer-links a:focus-visible {
+  color: var(--color-cta-red-hover);
   transform: translateX(2px);
 }
 .footer-socials {
@@ -5959,22 +5975,23 @@ form.card {
   align-items: center;
   justify-content: center;
   border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--footer-text);
+  border-radius: 50%;
+  background: var(--social-brand-color, var(--color-light-green));
+  color: var(--color-white);
   transition:
     color 0.18s ease,
     transform 0.18s ease;
 }
 .footer-socials svg {
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
 }
 .footer-socials a:hover,
 .footer-socials a:focus-visible {
-  background: transparent;
-  color: var(--footer-text);
+  background: var(--social-brand-color, var(--color-light-green));
+  color: var(--color-white);
   transform: translateY(-1px);
+  filter: brightness(1.08) saturate(1.05);
   text-decoration: none;
 }
 .footer-bottom {
@@ -6147,25 +6164,26 @@ form.card {
   justify-content: center;
   width: 42px;
   height: 42px;
-  border-radius: 0;
+  border-radius: 50%;
   border: 0;
-  background: transparent;
-  color: var(--color-text-primary);
+  background: var(--social-brand-color, var(--color-red));
+  color: var(--color-white);
   transition:
     color 0.18s ease,
     transform 0.18s ease;
 }
 .contact-socials a:hover,
 .contact-socials a:focus-visible {
-  background: transparent;
-  border-color: transparent;
-  color: var(--color-text-primary);
+  background: var(--social-brand-color, var(--color-red));
+  border-color: var(--social-brand-color, var(--color-red));
+  color: var(--color-white);
   transform: translateY(-1px);
+  filter: brightness(1.08) saturate(1.04);
 }
 .social-icon {
   display: block;
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
   flex: 0 0 auto;
 }
 .contact-page-map-wrap {

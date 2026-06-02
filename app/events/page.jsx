@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { EventList } from "@/components/EventCard";
 import { EventFilters } from "@/components/EventFilters";
 import { Container, CTASection, SectionHeader } from "@/components/ui";
@@ -166,14 +167,16 @@ export default function EventsPage({ searchParams }) {
             title="Upcoming events at RORUM."
             level={1}
           />
-          <EventFilters
-            selectedDate={selectedDate}
-            selectedLanguage={selectedLanguage}
-            selectedPrice={selectedPrice}
-            selectedAvailability={selectedAvailability}
-            languageOptions={languageOptions}
-            hasActiveFilters={hasActiveFilters}
-          />
+          <Suspense fallback={null}>
+            <EventFilters
+              selectedDate={selectedDate}
+              selectedLanguage={selectedLanguage}
+              selectedPrice={selectedPrice}
+              selectedAvailability={selectedAvailability}
+              languageOptions={languageOptions}
+              hasActiveFilters={hasActiveFilters}
+            />
+          </Suspense>
           {visibleEvents.length > 0 ? (
             <>
               <EventList events={paginatedEvents} />

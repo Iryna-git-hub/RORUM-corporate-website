@@ -54,16 +54,16 @@ export function EventShare({ title, text, url }) {
       <div className="event-share">
         <p className="event-share-title">Share with friends</p>
         <div className="event-share-actions">
-          <button type="button" aria-label="Share this event" onClick={shareEvent}>
+          <button className="event-share-utility-link" type="button" aria-label="Share this event" onClick={shareEvent}>
             <Share2 aria-hidden="true" strokeWidth={1.8}/>
           </button>
-          <button type="button" aria-label="Copy event link" onClick={copyLink}>
+          <button className="event-share-utility-link" type="button" aria-label="Copy event link" onClick={copyLink}>
             <Link2 aria-hidden="true" strokeWidth={1.8}/>
           </button>
           <a className="event-share-brand-link" aria-label="Share on WhatsApp" href={links.whatsapp} target="_blank" rel="noopener noreferrer" style={{ "--social-brand-color": "#25D366" }}>
             <SocialIcon icon="whatsapp" />
           </a>
-          <a aria-label="Share by email" href={links.email}>
+          <a className="event-share-email-link" aria-label="Share by email" href={links.email}>
             <Mail aria-hidden="true" strokeWidth={1.8}/>
           </a>
           <a className="event-share-brand-link" aria-label="Share on LinkedIn" href={links.linkedin} target="_blank" rel="noopener noreferrer" style={{ "--social-brand-color": "#0A66C2" }}>
