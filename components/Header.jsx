@@ -12,10 +12,11 @@ import { Button, Container } from "@/components/ui";
 export function Header() {
     const pathname = usePathname();
     const isHome = pathname === "/";
-    const usesDarkHeroHeader = isHome || pathname === "/host-an-event";
+    const usesDarkHeroHeader = isHome;
     const [hidden, setHidden] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [openDropdown, setOpenDropdown] = useState(null);
+    const [openMobileDropdown, setOpenMobileDropdown] = useState(null);
     const [overDarkSection, setOverDarkSection] = useState(false);
     useEffect(() => {
         let lastY = window.scrollY;
@@ -32,7 +33,7 @@ export function Header() {
             return;
         }
         const onScroll = () => {
-            const darkSections = document.querySelectorAll(isHome ? ".home-hero-full, .community-section, .next-step-section-final" : ".host-page-hero");
+            const darkSections = document.querySelectorAll(".home-hero-full, .community-section, .next-step-section-final");
             const headerHeight = document.querySelector(".header")?.offsetHeight ?? 0;
             const sampleY = Math.max(1, Math.round(headerHeight / 2));
             setOverDarkSection(Array.from(darkSections).some((section) => {
@@ -59,6 +60,7 @@ export function Header() {
     function closeMenus() {
         setMenuOpen(false);
         setOpenDropdown(null);
+        setOpenMobileDropdown(null);
         document.activeElement?.blur?.();
     }
     function isActiveItem(item) {
@@ -120,15 +122,20 @@ export function Header() {
           </button>
         </div>
         <nav className="mobile-panel-nav">
+          <Link className={pathname === "/" ? "mobile-nav-parent mobile-nav-home mobile-nav-child-active" : "mobile-nav-parent mobile-nav-home"} href="/" aria-current={pathname === "/" ? "page" : undefined} onClick={closeMenus}>
+            <span>Home</span>
+          </Link>
           {navItems.map((item) => {
             const active = isActiveItem(item);
+            const isOpen = openMobileDropdown === item.label;
             return (<div className={`mobile-nav-group ${active ? "mobile-nav-active" : ""}`} key={item.label}>
-              {item.children ? <button className="mobile-nav-parent" type="button" aria-current={active ? "page" : undefined}>
+              {item.children ? <button className="mobile-nav-parent mobile-nav-toggle" type="button" aria-current={active ? "page" : undefined} aria-expanded={isOpen} onClick={() => setOpenMobileDropdown(isOpen ? null : item.label)}>
                 <span>{item.label}</span>
+                <ChevronDown aria-hidden="true" className="mobile-nav-caret" strokeWidth={2.2}/>
               </button> : <Link className="mobile-nav-parent" href={item.href} aria-current={active ? "page" : undefined} onClick={closeMenus}>
                 <span>{item.label}</span>
               </Link>}
-              {item.children ? (<div className="mobile-nav-children">
+              {item.children && isOpen ? (<div className="mobile-nav-children">
                   {item.children.map((child) => {
                     const childActive = pathname === child.href || pathname.startsWith(`${child.href}/`);
                     return <Link className={`mobile-nav-child ${childActive ? "mobile-nav-child-active" : ""}`} aria-current={childActive ? "page" : undefined} key={child.href} href={child.href} onClick={closeMenus}>

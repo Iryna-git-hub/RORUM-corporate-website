@@ -71,19 +71,19 @@ export function HostEventInquiryForm() {
       <div className="form-grid">
         <label htmlFor="host-name">
           Full name<span aria-hidden="true">*</span>
-          <input id="host-name" name="name" type="text" autoComplete="name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? "host-name-error" : undefined}/>
+          <input id="host-name" name="name" type="text" autoComplete="name" placeholder="Your full name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? "host-name-error" : undefined}/>
           {errors.name ? <small className="form-error" id="host-name-error">{errors.name}</small> : null}
         </label>
         <label htmlFor="host-email">
           Email<span aria-hidden="true">*</span>
-          <input id="host-email" name="email" type="email" autoComplete="email" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "host-email-error" : undefined}/>
+          <input id="host-email" name="email" type="email" autoComplete="email" placeholder="you@example.com" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "host-email-error" : undefined}/>
           {errors.email ? <small className="form-error" id="host-email-error">{errors.email}</small> : null}
         </label>
       </div>
       <div className="form-grid">
         <label htmlFor="host-phone">
           Phone number<span aria-hidden="true">*</span>
-          <input id="host-phone" name="phone" type="tel" autoComplete="tel" aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? "host-phone-error" : undefined}/>
+          <input id="host-phone" name="phone" type="tel" autoComplete="tel" placeholder="+45 12 34 56 78" aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? "host-phone-error" : undefined}/>
           {errors.phone ? <small className="form-error" id="host-phone-error">{errors.phone}</small> : null}
         </label>
         <label htmlFor="host-event-type">
@@ -103,7 +103,7 @@ export function HostEventInquiryForm() {
         </label>
         <label htmlFor="host-guests">
           Number of guests<span aria-hidden="true">*</span>
-          <input id="host-guests" name="guests" type="number" min="1" max="30" inputMode="numeric" aria-invalid={Boolean(errors.guests)} aria-describedby={errors.guests ? "host-guests-error" : undefined}/>
+          <input id="host-guests" name="guests" type="number" min="1" max="30" inputMode="numeric" placeholder="Approx. number" aria-invalid={Boolean(errors.guests)} aria-describedby={errors.guests ? "host-guests-error" : undefined}/>
           {errors.guests ? <small className="form-error" id="host-guests-error">{errors.guests}</small> : null}
         </label>
       </div>
@@ -132,7 +132,7 @@ export function HostEventInquiryForm() {
       </fieldset>
       <label htmlFor="host-message">
         Message<span aria-hidden="true">*</span>
-        <textarea id="host-message" name="message" rows={5} aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? "host-message-error" : undefined}/>
+        <textarea id="host-message" name="message" rows={5} placeholder="Tell us about your event, timing, guests and atmosphere." aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? "host-message-error" : undefined}/>
         {errors.message ? <small className="form-error" id="host-message-error">{errors.message}</small> : null}
       </label>
       <button className="btn host-form-submit" type="submit">Send Event Inquiry</button>

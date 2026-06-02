@@ -3,12 +3,13 @@ import { InquiryForm } from "@/components/InquiryForm";
 import { Button, Card, Container, CTASection, PageHero, Section, SectionHeader, SectionLabel } from "@/components/ui";
 import { communityPillars, membershipAudiences, membershipBenefits } from "@/lib/data";
 import { pageMetadata } from "@/lib/seo";
+import { ArrowRight } from "lucide-react";
 
 export const metadata = pageMetadata("/community-membership");
 
 export default function CommunityMembershipPage() {
     return (<>
-      <PageHero label="Community membership" title="A practical creative community around the room." text="Join RORUM for events, useful introductions, shared hosting opportunities and grounded creative support in Copenhagen." image="/images/events/meeting.png" actions={<Button href="/contact">Join the Community</Button>}/>
+      <PageHero label="Community membership" title="A practical creative community around the room." text="Join RORUM for events, useful introductions, shared hosting opportunities and grounded creative support in Copenhagen." image="/images/events/meeting.png" actions={<Button href="/contact">Join the Community<ArrowRight className="button-arrow" aria-hidden="true" strokeWidth={1.9}/></Button>}/>
       <Section>
         <Container>
           <div className="split">
@@ -48,9 +49,9 @@ export default function CommunityMembershipPage() {
               <SectionLabel>Start here</SectionLabel>
               <p>Come to an event, volunteer for a room moment, or share the kind of collaboration you want to build with RORUM.</p>
               <div className="hero-actions">
-                <Button href="/events" variant="secondary">View Events</Button>
-                <Button href="/volunteer" variant="secondary">Volunteer With Us</Button>
-                <Button href="/work-with-us" variant="secondary">Work With Us</Button>
+                <Button href="/events" variant="secondary">View Events<ArrowRight className="button-arrow" aria-hidden="true" strokeWidth={1.9}/></Button>
+                <Button href="/volunteer" variant="secondary">Volunteer With Us<ArrowRight className="button-arrow" aria-hidden="true" strokeWidth={1.9}/></Button>
+                <Button href="/work-with-us" variant="secondary">Work With Us<ArrowRight className="button-arrow" aria-hidden="true" strokeWidth={1.9}/></Button>
               </div>
             </Card>
           </div>

@@ -85,6 +85,11 @@ export default function PrivateMeetingsPage() {
               </Button>
               <Button href="#meeting-packages" variant="secondary">
                 View Meeting Packages
+                <ArrowRight
+                  className="button-arrow"
+                  aria-hidden="true"
+                  strokeWidth={1.9}
+                />
               </Button>
             </div>
           </div>
@@ -149,6 +154,11 @@ export default function PrivateMeetingsPage() {
                 </Button>
                 <Button href="#meeting-packages" variant="secondary">
                   View Meeting Packages
+                  <ArrowRight
+                    className="button-arrow"
+                    aria-hidden="true"
+                    strokeWidth={1.9}
+                  />
                 </Button>
               </div>
             </div>

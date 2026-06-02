@@ -1,14 +1,27 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export function HorizontalGallery({ images }) {
   const trackRef = useRef(null);
   const dragStartRef = useRef(null);
   const openerRef = useRef(null);
+  const [brokenImages, setBrokenImages] = useState(() => new Set());
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const availableImages = useMemo(
+    () => images.filter((image) => !brokenImages.has(image)),
+    [brokenImages, images],
+  );
+  const safeCurrentIndex = Math.min(
+    currentIndex,
+    Math.max(availableImages.length - 1, 0),
+  );
+  const safeLightboxIndex =
+    lightboxIndex === null
+      ? null
+      : Math.min(lightboxIndex, Math.max(availableImages.length - 1, 0));
 
   const syncCurrentIndex = useCallback(() => {
     const track = trackRef.current;
@@ -55,6 +68,16 @@ export function HorizontalGallery({ images }) {
     [currentIndex],
   );
 
+  const removeUnavailableImage = useCallback((image) => {
+    setBrokenImages((current) => {
+      if (current.has(image)) return current;
+      const next = new Set(current);
+      next.add(image);
+      return next;
+    });
+    setCurrentIndex((current) => Math.max(0, current - 1));
+  }, []);
+
   const closeLightbox = useCallback(() => {
     setLightboxIndex(null);
     requestAnimationFrame(() => openerRef.current?.focus?.());
@@ -64,11 +87,14 @@ export function HorizontalGallery({ images }) {
     (direction) => {
       setLightboxIndex((current) => {
         if (current === null) return current;
-        const next = (current + direction + images.length) % images.length;
+        if (availableImages.length === 0) return null;
+        const next =
+          (current + direction + availableImages.length) %
+          availableImages.length;
         return next;
       });
     },
-    [images.length],
+    [availableImages.length],
   );
 
   function handleDragStart(clientX) {
@@ -102,7 +128,7 @@ export function HorizontalGallery({ images }) {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [lightboxIndex, images.length, moveLightbox, closeLightbox]);
+  }, [lightboxIndex, availableImages.length, moveLightbox, closeLightbox]);
 
   useEffect(() => {
     if (lightboxIndex === null) return;
@@ -124,20 +150,24 @@ export function HorizontalGallery({ images }) {
       track.removeEventListener("scroll", syncCurrentIndex);
       window.removeEventListener("resize", syncCurrentIndex);
     };
-  }, [images.length, syncCurrentIndex]);
+  }, [availableImages.length, syncCurrentIndex]);
+
+  if (availableImages.length === 0) {
+    return null;
+  }
 
   return (
     <>
       <div className="horizontal-gallery">
         <div className="horizontal-gallery-frame">
-          {images.length > 1 ? (
+          {availableImages.length > 1 ? (
             <>
               <button
                 className="horizontal-gallery-nav horizontal-gallery-nav-prev"
                 type="button"
                 onClick={() => moveTrack(-1)}
                 aria-label="Previous slide"
-                disabled={currentIndex === 0}
+                disabled={safeCurrentIndex === 0}
               >
                 <ChevronLeft aria-hidden="true" strokeWidth={2.2} />
               </button>
@@ -146,17 +176,17 @@ export function HorizontalGallery({ images }) {
                 type="button"
                 onClick={() => moveTrack(1)}
                 aria-label="Next slide"
-                disabled={currentIndex === images.length - 1}
+                disabled={safeCurrentIndex === availableImages.length - 1}
               >
                 <ChevronRight aria-hidden="true" strokeWidth={2.2} />
               </button>
               <div className="horizontal-gallery-counter" aria-live="polite">
-                {currentIndex + 1} / {images.length}
+                {safeCurrentIndex + 1} / {availableImages.length}
               </div>
             </>
           ) : null}
           <div className="horizontal-gallery-track" ref={trackRef}>
-            {images.map((image, index) => (
+            {availableImages.map((image, index) => (
               <button
                 key={`${image}-${index}`}
                 className="horizontal-gallery-item"
@@ -167,13 +197,18 @@ export function HorizontalGallery({ images }) {
                 }}
                 aria-label={`Open gallery image ${index + 1}`}
               >
-                <img src={image} alt="" draggable="false" />
+                <img
+                  src={image}
+                  alt=""
+                  draggable="false"
+                  onError={() => removeUnavailableImage(image)}
+                />
               </button>
             ))}
           </div>
         </div>
       </div>
-      {lightboxIndex !== null ? (
+      {safeLightboxIndex !== null ? (
         <div
           className="gallery-lightbox"
           role="dialog"
@@ -208,7 +243,7 @@ export function HorizontalGallery({ images }) {
               Close
             </button>
             <div className="gallery-lightbox-counter" aria-live="polite">
-              {lightboxIndex + 1} / {images.length}
+              {safeLightboxIndex + 1} / {availableImages.length}
             </div>
             <button
               className="gallery-lightbox-nav gallery-lightbox-nav-prev"
@@ -230,23 +265,52 @@ export function HorizontalGallery({ images }) {
               <div className="gallery-lightbox-slide gallery-lightbox-slide-prev">
                 <img
                   src={
-                    images[(lightboxIndex - 1 + images.length) % images.length]
+                    availableImages[
+                      (safeLightboxIndex - 1 + availableImages.length) %
+                        availableImages.length
+                    ]
                   }
                   alt=""
                   draggable="false"
+                  onError={() =>
+                    removeUnavailableImage(
+                      availableImages[
+                        (safeLightboxIndex - 1 + availableImages.length) %
+                          availableImages.length
+                      ],
+                    )
+                  }
                 />
               </div>
               <div
                 className="gallery-lightbox-slide gallery-lightbox-slide-active"
-                key={images[lightboxIndex]}
+                key={availableImages[safeLightboxIndex]}
               >
-                <img src={images[lightboxIndex]} alt="" draggable="false" />
+                <img
+                  src={availableImages[safeLightboxIndex]}
+                  alt=""
+                  draggable="false"
+                  onError={() =>
+                    removeUnavailableImage(availableImages[safeLightboxIndex])
+                  }
+                />
               </div>
               <div className="gallery-lightbox-slide gallery-lightbox-slide-next">
                 <img
-                  src={images[(lightboxIndex + 1) % images.length]}
+                  src={
+                    availableImages[
+                      (safeLightboxIndex + 1) % availableImages.length
+                    ]
+                  }
                   alt=""
                   draggable="false"
+                  onError={() =>
+                    removeUnavailableImage(
+                      availableImages[
+                        (safeLightboxIndex + 1) % availableImages.length
+                      ],
+                    )
+                  }
                 />
               </div>
             </div>

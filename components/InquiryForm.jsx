@@ -60,9 +60,9 @@ export function InquiryForm({ type = "default", title, intro, submitLabel = "Sen
     const [errors, setErrors] = useState({});
     const [selectedPackage, setSelectedPackage] = useState("");
     const fields = [
-        { name: "name", label: "Full name", type: "text", autoComplete: "name" },
-        { name: "email", label: "Email", type: "email", autoComplete: "email" },
-        { name: "phone", label: "Phone number", type: "tel", autoComplete: "tel" }
+        { name: "name", label: "Full name", type: "text", autoComplete: "name", placeholder: "Your full name" },
+        { name: "email", label: "Email", type: "email", autoComplete: "email", placeholder: "you@example.com" },
+        { name: "phone", label: "Phone number", type: "tel", autoComplete: "tel", placeholder: "+45 12 34 56 78" }
     ];
 
     useEffect(() => {
@@ -114,14 +114,14 @@ export function InquiryForm({ type = "default", title, intro, submitLabel = "Sen
       <div className="form-grid">
         {fields.slice(0, 2).map((field) => <label key={field.name} htmlFor={`${type}-${field.name}`}>
           {field.label}<span aria-hidden="true">*</span>
-          <input id={`${type}-${field.name}`} name={field.name} type={field.type} autoComplete={field.autoComplete} aria-invalid={Boolean(errors[field.name])} aria-describedby={errors[field.name] ? `${type}-${field.name}-error` : undefined}/>
+          <input id={`${type}-${field.name}`} name={field.name} type={field.type} autoComplete={field.autoComplete} placeholder={field.placeholder} aria-invalid={Boolean(errors[field.name])} aria-describedby={errors[field.name] ? `${type}-${field.name}-error` : undefined}/>
           {errors[field.name] ? <small className="form-error" id={`${type}-${field.name}-error`}>{errors[field.name]}</small> : null}
         </label>)}
       </div>
       <div className="form-grid">
         <label htmlFor={`${type}-phone`}>
           Phone number<span aria-hidden="true">*</span>
-          <input id={`${type}-phone`} name="phone" type="tel" autoComplete="tel" aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? `${type}-phone-error` : undefined}/>
+          <input id={`${type}-phone`} name="phone" type="tel" autoComplete="tel" placeholder="+45 12 34 56 78" aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? `${type}-phone-error` : undefined}/>
           {errors.phone ? <small className="form-error" id={`${type}-phone-error`}>{errors.phone}</small> : null}
         </label>
         {hasPackageSelect ? (
@@ -147,7 +147,7 @@ export function InquiryForm({ type = "default", title, intro, submitLabel = "Sen
       </div>
       <label htmlFor={`${type}-message`}>
         Message<span aria-hidden="true">*</span>
-        <textarea id={`${type}-message`} name="message" rows={5} aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? `${type}-message-error` : undefined}/>
+        <textarea id={`${type}-message`} name="message" rows={5} placeholder="Tell us a little about your request, timing and preferences." aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? `${type}-message-error` : undefined}/>
         {errors.message ? <small className="form-error" id={`${type}-message-error`}>{errors.message}</small> : null}
       </label>
       <button className="btn" type="submit">{submitLabel}</button>

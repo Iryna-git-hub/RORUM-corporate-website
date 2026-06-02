@@ -76,12 +76,29 @@ export default function Home() {
         video="/videos/home-hero.mp4"
         actions={
           <>
-            <Button href="/host-an-event">Host an Event</Button>
+            <Button href="/host-an-event">
+              Host an Event
+              <ArrowRight
+                className="button-arrow"
+                aria-hidden="true"
+                strokeWidth={1.9}
+              />
+            </Button>
             <Button href="/events" variant="secondary">
               Explore Events
+              <ArrowRight
+                className="button-arrow"
+                aria-hidden="true"
+                strokeWidth={1.9}
+              />
             </Button>
             <Button href="/private-meetings" variant="secondary">
               Private Meetings
+              <ArrowRight
+                className="button-arrow"
+                aria-hidden="true"
+                strokeWidth={1.9}
+              />
             </Button>
           </>
         }

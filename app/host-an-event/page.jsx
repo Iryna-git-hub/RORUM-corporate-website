@@ -20,7 +20,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata("/host-an-event");
 
 const quickFacts = [
-  { label: "4â€“15 guests", icon: Users },
+  { label: "4-15 guests", icon: Users },
   { label: "Flexible setup", icon: SlidersHorizontal },
   { label: "On-site support", icon: HandHeart },
   { label: "Catering and decoration optional", icon: Wine },
@@ -93,21 +93,33 @@ export default function HostPage() {
   return (
     <>
       <section className="host-page-hero">
-        <div className="host-page-hero-media" aria-hidden="true" />
-        <div className="host-page-hero-overlay" />
         <Container>
-          <div className="host-page-hero-copy">
-            <SectionLabel>HOST AT RORUM</SectionLabel>
-            <h1 className="heading">Host your event at RORUM</h1>
-            <p>
-              Create a workshop, talk, wellness session, creative class or
-              community gathering in a warm Copenhagen space with support from
-              the RORUM team.
-            </p>
+          <div className="host-page-hero-layout">
+            <div className="host-page-hero-copy">
+              <SectionLabel>Host Event</SectionLabel>
+              <h1 className="heading">Host your event at RORUM</h1>
+              <p>
+                Create a workshop, talk, wellness session, creative class or
+                community gathering in a warm Copenhagen space with support from
+                the RORUM team.
+              </p>
+            </div>
             <div className="host-hero-actions">
-              <Button href="#event-inquiry">Send Event Inquiry</Button>
+              <Button href="#event-inquiry">
+                Send Event Inquiry
+                <ArrowRight
+                  className="button-arrow"
+                  aria-hidden="true"
+                  strokeWidth={1.9}
+                />
+              </Button>
               <Button href="#packages" variant="secondary">
                 See Packages
+                <ArrowRight
+                  className="button-arrow"
+                  aria-hidden="true"
+                  strokeWidth={1.9}
+                />
               </Button>
             </div>
           </div>

@@ -50,12 +50,12 @@ export function ContactForm() {
       <div className="form-grid">
         <label htmlFor="contact-name">
           Name<span aria-hidden="true">*</span>
-          <input id="contact-name" name="name" type="text" autoComplete="name" placeholder="your name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? "contact-name-error" : undefined}/>
+          <input id="contact-name" name="name" type="text" autoComplete="name" placeholder="Your full name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? "contact-name-error" : undefined}/>
           {errors.name ? <small className="form-error" id="contact-name-error">{errors.name}</small> : null}
         </label>
         <label htmlFor="contact-email">
           Email<span aria-hidden="true">*</span>
-          <input id="contact-email" name="email" type="email" autoComplete="email" placeholder="your email" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "contact-email-error" : undefined}/>
+          <input id="contact-email" name="email" type="email" autoComplete="email" placeholder="you@example.com" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "contact-email-error" : undefined}/>
           {errors.email ? <small className="form-error" id="contact-email-error">{errors.email}</small> : null}
         </label>
       </div>
@@ -67,13 +67,13 @@ export function ContactForm() {
         </label>
         <label htmlFor="contact-subject">
           Subject<span aria-hidden="true">*</span>
-          <input id="contact-subject" name="subject" type="text" placeholder="subject" aria-invalid={Boolean(errors.subject)} aria-describedby={errors.subject ? "contact-subject-error" : undefined}/>
+          <input id="contact-subject" name="subject" type="text" placeholder="What is this about?" aria-invalid={Boolean(errors.subject)} aria-describedby={errors.subject ? "contact-subject-error" : undefined}/>
           {errors.subject ? <small className="form-error" id="contact-subject-error">{errors.subject}</small> : null}
         </label>
       </div>
       <label htmlFor="contact-message">
         Message<span aria-hidden="true">*</span>
-        <textarea id="contact-message" name="message" rows={5} placeholder="message" aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? "contact-message-error" : undefined}/>
+        <textarea id="contact-message" name="message" rows={5} placeholder="Tell us a little about your request, timing and preferences." aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? "contact-message-error" : undefined}/>
         {errors.message ? <small className="form-error" id="contact-message-error">{errors.message}</small> : null}
       </label>
       <button className="btn contact-submit" type="submit">Send message</button>

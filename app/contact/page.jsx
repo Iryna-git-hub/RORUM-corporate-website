@@ -68,7 +68,6 @@ export default function ContactPage() {
             </div>
             <div
               className="contact-page-map-wrap"
-              id="map"
               aria-label="RORUM location map"
             >
               <div className="contact-page-form-wrap">
@@ -79,7 +78,7 @@ export default function ContactPage() {
         </Container>
       </section>
       <section className="contact-map-section" aria-label="RORUM location map">
-        <div className="contact-map-full" id="map">
+        <div className="contact-map-full" id="contact-map">
           <iframe
             title="RORUM location on Google Maps"
             src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}

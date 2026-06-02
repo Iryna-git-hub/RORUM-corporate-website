@@ -20,8 +20,9 @@ import {
   Users,
 } from "lucide-react";
 import { CateringInquiryForm } from "@/components/CateringInquiryForm";
+import { CateringMenuButton } from "@/components/CateringMenuOverlay";
 import { HorizontalGallery } from "@/components/HorizontalGallery";
-import { Button, Container, Section, SectionLabel } from "@/components/ui";
+import { Button, Container, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/catering");
@@ -137,16 +138,9 @@ export default function CateringPage() {
                 atmosphere where taste, aesthetics, and service work together.
               </p>
               <div className="hero-actions catering-hero-actions">
+                <CateringMenuButton requestTargetId="catering-inquiry" />
                 <Button href="#catering-inquiry">
                   Request Catering
-                  <ArrowRight
-                    className="button-arrow"
-                    aria-hidden="true"
-                    strokeWidth={1.9}
-                  />
-                </Button>
-                <Button href="#catering-gallery" variant="secondary">
-                  Menu examples
                   <ArrowRight
                     className="button-arrow"
                     aria-hidden="true"
@@ -228,30 +222,12 @@ export default function CateringPage() {
               </p>
             </div>
             <div className="catering-offer-actions">
+              <CateringMenuButton requestTargetId="catering-inquiry" />
               <Button href="#catering-inquiry">Request Catering</Button>
-              <Button href="#catering-gallery" variant="secondary">
-                Menu examples
-              </Button>
             </div>
           </div>
         </Container>
       </section>
-
-      <Section tight>
-        <Container>
-          <div className="catering-menu-preview">
-            <SectionLabel>Menu examples</SectionLabel>
-            <h2 className="heading section-title">
-              Menu examples will be added soon
-            </h2>
-            <p>
-              Later, this section can show sample menus for finger food, buffet
-              solutions, family celebrations, corporate events, official
-              occasions, and grill parties.
-            </p>
-          </div>
-        </Container>
-      </Section>
 
       <section className="section catering-inquiry-section">
         <Container>
