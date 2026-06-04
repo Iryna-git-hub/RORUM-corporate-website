@@ -116,7 +116,7 @@ export default function Home() {
         <Container>
           <div className="event-section-head">
             <SectionHeader
-              label="Future events"
+              label="What's on"
               title="Upcoming events at RORUM."
             />
             <Button href="/events" variant="event-all">

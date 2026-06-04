@@ -173,34 +173,40 @@ const menuCategories = [
         name: "Baked pumpkin with feta and honey",
         description:
           "A warm seasonal dish with sweet, salty, and creamy notes.",
-        image: "/images/catering/catering-gallery-added-04.png",
-        alt: "Seasonal vegetarian dish with warm colors",
+        image: "/images/catering/vegetarian-baked-pumpkin-feta-honey.png",
+        alt: "Baked pumpkin with feta, honey and herbs",
       },
       {
         name: "Deruny with mushroom sauce",
         description:
           "Crispy potato pancakes served with a rich mushroom sauce.",
-        image: "/images/catering/catering-gallery-added-05.png",
-        alt: "Vegetarian savory dish prepared for catering",
+        image: "/images/catering/vegetarian-deruny-mushroom-sauce.png",
+        alt: "Ukrainian deruny with creamy mushroom sauce",
       },
       {
         name: "Varenyky with potatoes and caramelized onions",
         description:
           "Traditional dumplings with a comforting vegetarian filling.",
-        image: "/images/catering/catering-dumplings.png",
-        alt: "Varenyky dumplings with vegetarian filling",
+        image: "/images/catering/vegetarian-varenyky-potatoes-onion.png",
+        alt: "Varenyky with potatoes and caramelized onion",
       },
       {
         name: "Arugula salad with beetroot, feta and nuts",
         description:
           "Fresh, colorful, and balanced with earthy and creamy flavors.",
-        image: "/images/catering/catering-gallery-added-06.png",
-        alt: "Fresh vegetarian salad on an event table",
+        image: "/images/catering/vegetarian-arugula-beetroot-feta-walnuts.png",
+        alt: "Arugula salad with beetroot, feta and walnuts",
+      },
+      {
+        name: "Hummus with seasonal vegetables",
+        description:
+          "Creamy hummus served with crisp seasonal vegetables.",
+        image: "/images/catering/vegetarian-hummus-seasonal-vegetables.png",
+        alt: "Hummus with seasonal vegetables",
       },
     ],
     alsoAvailable: [
       "Bruschetta with tomatoes and basil",
-      "Hummus with seasonal vegetables",
       "Vegetable tartlets",
     ],
   },
@@ -216,28 +222,28 @@ const menuCategories = [
         name: "Mini appetizers with salmon and cream cheese",
         description:
           "Light, elegant bites suitable for receptions and welcome drinks.",
-        image: "/images/catering/catering-gallery-added-07.png",
-        alt: "Small salmon appetizers arranged for a reception",
+        image: "/images/catering/finger-food-salmon-cream-cheese.png",
+        alt: "Mini appetizers with salmon and cream cheese",
       },
       {
         name: "Mini appetizers with avocado and shrimp",
         description:
           "Fresh and delicate finger food for a modern event table.",
-        image: "/images/catering/catering-gallery-added-08.png",
-        alt: "Fresh mini appetizers served on a catering table",
+        image: "/images/catering/finger-food-avocado-shrimp.png",
+        alt: "Mini appetizers with avocado and shrimps",
       },
       {
         name: "Cheese platter",
         description:
           "Assorted cheeses served with nuts, honey, and seasonal additions.",
-        image: "/images/catering/catering-charcuterie.png",
-        alt: "Cheese and charcuterie platter with seasonal additions",
+        image: "/images/catering/finger-food-cheese-platter.png",
+        alt: "Cheese platter with assorted cheeses, nuts and honey",
       },
       {
         name: "Vegetable platter",
         description: "Fresh vegetables, pickles, and light seasonal snacks.",
-        image: "/images/catering/catering-board.png",
-        alt: "Fresh platter with light vegetables and snacks",
+        image: "/images/catering/finger-food-vegetable-platter.png",
+        alt: "Vegetable platter with fresh vegetables and pickles",
       },
     ],
     alsoAvailable: ["Canapés", "Bruschetta", "Mini burgers", "Seasonal snacks"],
@@ -253,28 +259,28 @@ const menuCategories = [
       {
         name: "Shashlyk",
         description: "Grilled marinated meat, served hot with sides and sauces.",
-        image: "/images/catering/catering-gallery-added-09.png",
-        alt: "Grilled marinated meat served with sides",
+        image: "/images/catering/grill-shashlyk.png",
+        alt: "Shashlik with flatbread and pickled vegetables",
       },
       {
         name: "Grilled salmon",
         description:
           "Tender salmon prepared on the grill with seasonal accompaniments.",
-        image: "/images/catering/catering-gallery-added-10.png",
-        alt: "Grilled salmon prepared for a private event",
+        image: "/images/catering/grill-grilled-salmon.png",
+        alt: "Grilled salmon with lemon and herbs",
       },
       {
         name: "Grilled vegetables",
         description: "Colorful seasonal vegetables with smoky grill flavor.",
-        image: "/images/catering/catering-gallery-added-11.png",
-        alt: "Colorful grilled vegetables with seasonal sides",
+        image: "/images/catering/grill-grilled-vegetables.png",
+        alt: "Grilled vegetables with herbs",
       },
       {
         name: "Homemade sauces",
         description:
           "Sauces prepared in-house to complement the grill menu.",
-        image: "/images/catering/catering-gallery-added-12.png",
-        alt: "Homemade sauces served with a grill menu",
+        image: "/images/catering/grill-homemade-sauces.png",
+        alt: "Homemade sauces in ceramic bowls",
       },
     ],
     alsoAvailable: ["Steaks", "Grilled sausages", "Seasonal sides"],
@@ -288,37 +294,53 @@ const menuCategories = [
     featuredLabel: "Featured dishes",
     featuredItems: [
       {
-        name: "Medivnyk",
+        name: "Fruit sets",
         description:
-          "Traditional honey cake with soft layers and delicate cream.",
-        image: "/images/catering/catering-cake.png",
-        alt: "Layered honey cake served on a dessert table",
+          "Fresh seasonal fruit platters for receptions, brunches, and shared tables.",
+        image: "/images/catering/desserts-fruit-sets.png",
+        alt: "Fresh fruit sets with seasonal fruit",
       },
       {
         name: "Napoleon cake",
         description: "Layered pastry cake with creamy filling.",
-        image: "/images/catering/catering-dessert-flowers.png",
-        alt: "Layered cake with cream and floral dessert styling",
+        image: "/images/catering/desserts-napoleon-cake.png",
+        alt: "Napoleon cake with layered pastry and cream",
       },
       {
-        name: "Pani Walewska",
-        description:
-          "A festive layered cake with meringue, cream, and jam.",
-        image: "/images/catering/catering-dessert-table.png",
-        alt: "Festive dessert table with layered cakes",
+        name: "Profiteroles",
+        description: "Small choux pastry desserts with cream filling.",
+        image: "/images/catering/desserts-profiteroles.png",
+        alt: "Profiteroles with cream and chocolate",
       },
       {
         name: "Mini desserts",
         description: "Small elegant desserts for receptions and sweet tables.",
-        image: "/images/catering/catering-gallery-added-13.png",
-        alt: "Small elegant desserts arranged for a reception",
+        image: "/images/catering/desserts-mini-desserts.png",
+        alt: "Assorted mini desserts on a sweet table",
+      },
+      {
+        name: "Chocolate fountain",
+        description:
+          "A festive chocolate fountain served with fruit and sweet dipping snacks.",
+        image: "/images/catering/desserts-chocolate-fountain.png",
+        alt: "Chocolate fountain with fruit and sweets",
+      },
+      {
+        name: "Ice cream with toppings",
+        description: "Ice cream served with berries, chocolate, and toppings.",
+        image: "/images/catering/desserts-ice-cream-toppings.png",
+        alt: "Ice cream with berries, chocolate and toppings",
+      },
+      {
+        name: "Medivnyk",
+        description:
+          "Traditional honey cake with soft layers and delicate cream.",
+        image: "/images/catering/desserts-medivnyk.png",
+        alt: "Medivnyk Ukrainian honey cake",
       },
     ],
     alsoAvailable: [
-      "Chocolate fountain",
-      "Ice cream with toppings",
-      "Profiteroles",
-      "Fruit sets",
+      "Pani Walewska",
       "Festive sweets",
     ],
   },
@@ -333,6 +355,50 @@ const orderedMenuCategories = [
   { ...menuCategories.find((category) => category.id === "grill"), icon: Flame },
   { ...menuCategories.find((category) => category.id === "desserts"), navLabel: "Desserts", icon: Dessert },
 ].filter(Boolean);
+
+// Shared scroll-offset constants used by both scrollToCategory and
+// updateActiveCategory. OVERLAY_ACTIVE_THRESHOLD must be >= OVERLAY_SCROLL_GAP
+// so that after a tab click the scrolled-to section is immediately detected
+// as active.
+const OVERLAY_SCROLL_GAP = 8;
+const OVERLAY_ACTIVE_THRESHOLD = 10;
+
+// Polls with requestAnimationFrame until getMeasurement() returns the same
+// integer-rounded value for 2 consecutive frames (layout has settled), or
+// until maxWaitMs has elapsed. Calls onStable() in either case.
+// Returns a cancel function — call it to prevent onStable() from firing.
+function waitForStableLayout(getMeasurement, onStable, maxWaitMs) {
+  let cancelled = false;
+  const start = performance.now();
+  let lastRounded = null;
+  let stableFrames = 0;
+
+  const tick = () => {
+    if (cancelled) return;
+    const raw = getMeasurement();
+    if (raw !== null) {
+      const rounded = Math.round(raw);
+      if (rounded === lastRounded) {
+        stableFrames += 1;
+        if (stableFrames >= 2) {
+          onStable();
+          return;
+        }
+      } else {
+        stableFrames = 0;
+        lastRounded = rounded;
+      }
+    }
+    if (performance.now() - start >= maxWaitMs) {
+      onStable();
+      return;
+    }
+    requestAnimationFrame(tick);
+  };
+
+  requestAnimationFrame(tick);
+  return () => { cancelled = true; };
+}
 
 function FeaturedCard({ item }) {
   return (
@@ -354,8 +420,53 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
   const closeButtonRef = useRef(null);
   const pageScrollRef = useRef(0);
   const restorePageScrollRef = useRef(true);
+  // Ref used to suppress scroll-spy while a programmatic tab scroll is running.
+  const isProgrammaticScrollRef = useRef(false);
+  const programmaticScrollTimerRef = useRef(null);
+  // Cancels any in-flight waitForStableLayout poll when a new tab click arrives
+  // or the overlay closes.
+  const cancelStableLayoutRef = useRef(null);
+  // Stable ref so the scroll-spy handler stays registered for the full overlay
+  // lifetime without being torn down every time activeCategory changes.
+  const updateActiveCategoryRef = useRef(null);
   const [expandedCategories, setExpandedCategories] = useState(["ukrainian"]);
   const [activeCategory, setActiveCategory] = useState("ukrainian");
+
+  // ---------------------------------------------------------------------------
+  // Helper: return the actual scroll container for the overlay.
+  // On desktop the shell element is overflow-y: auto (it scrolls).
+  // On small screens CSS sets the shell to overflow: visible and the overlay
+  // itself becomes the scroll container. We detect this at runtime.
+  // ---------------------------------------------------------------------------
+  const getScrollContainer = () => {
+    const shell = shellRef.current;
+    if (!shell) return null;
+    const style = window.getComputedStyle(shell);
+    if (style.overflowY === "auto" || style.overflowY === "scroll") {
+      return shell;
+    }
+    return overlayRef.current;
+  };
+
+  // ---------------------------------------------------------------------------
+  // Shared scroll-target calculation helper (used both for the initial scroll
+  // and for the correction pass).
+  // ---------------------------------------------------------------------------
+  const calcTargetScrollTop = (container, target) => {
+    const containerRect = container.getBoundingClientRect();
+    // Nav may be inside the shell or inside the overlay depending on layout;
+    // always search from the shell so we find the sticky nav reliably.
+    const shell = shellRef.current ?? container;
+    const nav = shell.querySelector(".catering-menu-nav");
+    const navHeight = nav?.getBoundingClientRect().height ?? 0;
+    return (
+      container.scrollTop +
+      target.getBoundingClientRect().top -
+      containerRect.top -
+      navHeight -
+      OVERLAY_SCROLL_GAP
+    );
+  };
 
   useEffect(() => {
     if (!open) return undefined;
@@ -383,6 +494,15 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
   useEffect(() => {
     if (!open) return;
 
+    // Clear any in-flight programmatic scroll or layout poll from a previous
+    // overlay session.
+    clearTimeout(programmaticScrollTimerRef.current);
+    if (cancelStableLayoutRef.current) {
+      cancelStableLayoutRef.current();
+      cancelStableLayoutRef.current = null;
+    }
+    isProgrammaticScrollRef.current = false;
+
     pageScrollRef.current = window.scrollY;
     restorePageScrollRef.current = true;
     requestAnimationFrame(() => {
@@ -392,44 +512,80 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
     });
 
     return () => {
+      clearTimeout(programmaticScrollTimerRef.current);
+      if (cancelStableLayoutRef.current) {
+        cancelStableLayoutRef.current();
+        cancelStableLayoutRef.current = null;
+      }
+      isProgrammaticScrollRef.current = false;
       if (restorePageScrollRef.current) {
         window.scrollTo(0, pageScrollRef.current);
       }
     };
   }, [open]);
 
+  // ---------------------------------------------------------------------------
+  // Scroll-spy: registered ONCE per overlay open, never re-registered on
+  // activeCategory changes. updateActiveCategory is kept fresh via a ref so
+  // the handler always uses the latest state without being a new closure.
+  // ---------------------------------------------------------------------------
   useEffect(() => {
     if (!open) return undefined;
 
-    const shell = shellRef.current;
-    if (!shell) return undefined;
+    const container = getScrollContainer();
+    if (!container) return undefined;
 
-    const updateActiveCategory = () => {
-      const shellRect = shell.getBoundingClientRect();
-      const nav = shell.querySelector(".catering-menu-nav");
-      const navHeight = nav?.getBoundingClientRect().height ?? 0;
-      const threshold = shellRect.top + navHeight + 4;
-      let currentId = activeCategory;
-
-      orderedMenuCategories.forEach((category) => {
-        const section = shell.querySelector(`#catering-menu-${category.id}`);
-        if (!section) return;
-
-        const sectionRect = section.getBoundingClientRect();
-        if (sectionRect.top <= threshold && sectionRect.bottom > threshold) {
-          currentId = category.id;
-        }
-      });
-
-      setActiveCategory((current) => (current === currentId ? current : currentId));
+    const handler = () => {
+      // While a programmatic tab scroll is in progress, don't let the spy
+      // override the category we just set.
+      if (isProgrammaticScrollRef.current) return;
+      updateActiveCategoryRef.current?.();
     };
 
-    updateActiveCategory();
-    shell.addEventListener("scroll", updateActiveCategory, { passive: true });
-    return () => shell.removeEventListener("scroll", updateActiveCategory);
-  }, [activeCategory, open]);
+    container.addEventListener("scroll", handler, { passive: true });
+    // Run once immediately to set initial state.
+    handler();
+
+    return () => container.removeEventListener("scroll", handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // Keep the ref pointing at the latest version of updateActiveCategory.
+  // This is assigned below (after the function definition) before any render.
 
   if (!open) return null;
+
+  // ---------------------------------------------------------------------------
+  // updateActiveCategory — defined here so it can close over current state.
+  // updateActiveCategoryRef is updated synchronously every render so the
+  // scroll-spy handler always calls the freshest version.
+  // ---------------------------------------------------------------------------
+  const updateActiveCategory = () => {
+    const container = getScrollContainer();
+    if (!container) return;
+    const shell = shellRef.current ?? container;
+    const nav = shell.querySelector(".catering-menu-nav");
+    const navHeight = nav?.getBoundingClientRect().height ?? 0;
+    const containerRect = container.getBoundingClientRect();
+    const activationLine = containerRect.top + navHeight + OVERLAY_ACTIVE_THRESHOLD;
+    let currentId = orderedMenuCategories[0]?.id ?? activeCategory;
+
+    orderedMenuCategories.forEach((category) => {
+      const section = shell.querySelector(`#catering-menu-${category.id}`);
+      if (!section) return;
+      const sectionRect = section.getBoundingClientRect();
+      // Last section whose top is at or above the activation line.
+      if (sectionRect.top <= activationLine) {
+        currentId = category.id;
+      }
+    });
+
+    setActiveCategory((current) => (current === currentId ? current : currentId));
+  };
+
+  // Sync the ref every render so the stable scroll listener always calls the
+  // freshest closure (with current expandedCategories, etc.).
+  updateActiveCategoryRef.current = updateActiveCategory;
 
   const handleRequestMenu = () => {
     restorePageScrollRef.current = false;
@@ -438,13 +594,75 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
 
   const scrollToCategory = (event, id) => {
     event.preventDefault();
+
+    // 1. Immediate visual feedback — active tab updates at click time.
     setActiveCategory(id);
+
+    // 2. Expand the target category if needed.
+    //    This does not change the target section's own top position.
     setExpandedCategories((current) =>
       current.includes(id) ? current : [...current, id],
     );
-    document
-      .getElementById(`catering-menu-${id}`)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    // 3. Suppress scroll-spy and cancel any previous in-flight layout poll.
+    clearTimeout(programmaticScrollTimerRef.current);
+    if (cancelStableLayoutRef.current) {
+      cancelStableLayoutRef.current();
+      cancelStableLayoutRef.current = null;
+    }
+    isProgrammaticScrollRef.current = true;
+
+    const container = getScrollContainer();
+    const shell = shellRef.current;
+    if (!container || !shell) {
+      isProgrammaticScrollRef.current = false;
+      return;
+    }
+
+    // 4. Wait until the target section's viewport position has stopped changing
+    //    for 2 consecutive animation frames before measuring and scrolling.
+    //    If sections above the target are mid-transition (accordion: 0.62s),
+    //    the poll waits up to 700ms for them to settle. In the common case
+    //    (no active transition above the target) this resolves in ~33ms.
+    //    This ensures the single scrollTo always uses the final, stable target
+    //    position — no visible second scroll is needed afterwards.
+    cancelStableLayoutRef.current = waitForStableLayout(
+      () => {
+        const el = shell.querySelector(`#catering-menu-${id}`);
+        return el ? el.getBoundingClientRect().top : null;
+      },
+      () => {
+        cancelStableLayoutRef.current = null;
+        const targetEl = shell.querySelector(`#catering-menu-${id}`);
+        if (!targetEl || !container) {
+          isProgrammaticScrollRef.current = false;
+          return;
+        }
+
+        // 5. Single smooth scroll to the now-stable target position.
+        const targetY = calcTargetScrollTop(container, targetEl);
+        container.scrollTo({ top: targetY, behavior: "smooth" });
+
+        // 6. After the smooth scroll settles, clear the flag and apply a
+        //    tiny instant snap if there is residual drift. No second smooth
+        //    scroll — the correction is invisible or skipped entirely.
+        programmaticScrollTimerRef.current = setTimeout(() => {
+          isProgrammaticScrollRef.current = false;
+          const el = shell.querySelector(`#catering-menu-${id}`);
+          if (el && container) {
+            const finalY = calcTargetScrollTop(container, el);
+            const drift = Math.abs(container.scrollTop - finalY);
+            // Instant snap only for small residual drift. Large drift means a
+            // subsequent user interaction occurred; scroll-spy handles it.
+            if (drift > 2 && drift <= 40) {
+              container.scrollTo({ top: finalY, behavior: "auto" });
+            }
+          }
+          updateActiveCategoryRef.current?.();
+        }, 700);
+      },
+      700,
+    );
   };
 
   const toggleCategory = (id) => {
@@ -661,9 +879,17 @@ export function CateringMenuButton({
   const requestMenu = useCallback(() => {
     setOpen(false);
     requestAnimationFrame(() => {
-      document
-        .getElementById(requestTargetId)
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const target = document.getElementById(requestTargetId);
+      if (!target) return;
+      const headerHeight =
+        document.querySelector(".header")?.getBoundingClientRect().height ?? 0;
+      const gap = 16;
+      const targetY =
+        window.scrollY +
+        target.getBoundingClientRect().top -
+        headerHeight -
+        gap;
+      window.scrollTo({ top: targetY, behavior: "smooth" });
     });
   }, [requestTargetId]);
 

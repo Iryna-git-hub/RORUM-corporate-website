@@ -938,7 +938,7 @@ button.btn,
 .hero-actions .btn,
 .cta .btn {
   min-height: 40px;
-  padding-inline: 18px;
+  padding-inline: 26px;
   font-size: 12.5px;
 }
 @media (min-width: 981px) {
@@ -3658,7 +3658,7 @@ button.btn,
 }
 .catering-menu-section-title .heading {
   font-size: 2.5rem;
-  line-height: 0.98;
+  line-height: 1.2;
   font-weight: 500;
 }
 .catering-menu-plus {
@@ -6707,11 +6707,13 @@ button.btn,
   margin: 0;
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   color: var(--color-cream);
-  font-size: clamp(14px, 1.15vw, 16px);
+  font-size: clamp(14px, 2.15vw, 18px);
   line-height: 1.2;
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  border-bottom: 1px solid rgba(var(--rgb-white), 0.3);
+  padding-bottom: 15px;
 }
 .private-meeting-packages-section .package ul {
   color: var(--color-white);
