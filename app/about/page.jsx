@@ -111,7 +111,7 @@ const heroLinks = [
 ];
 
 const communityLinks = [
-  { href: "/membership", label: "Membership", icon: Users },
+  { href: "/membership", label: "WECODA Membership", icon: Users },
   { href: "/work-with-us", label: "Work with us", icon: Handshake },
   { href: "/volunteer-with-us", label: "Volunteer with us", icon: HandHeart },
 ];

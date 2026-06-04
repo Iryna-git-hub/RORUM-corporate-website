@@ -1,0 +1,970 @@
+⚠ Blocked cross-origin request to Next.js dev resource /_next/webpack-hmr from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /__nextjs_font/geist-latin.woff2 from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+      <LoadingBoundary name="catering/" loading={null}>
+        <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+          <RedirectBoundary>
+            <RedirectErrorBoundary router={{...}}>
+              <InnerLayoutRouter url="/catering" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} ...>
+                <SegmentViewNode type="page" pagePath="catering/p...">
+                  <SegmentTrieNode>
+                  <CateringPage>
+                    <section>
+                    <section id="catering-g..." className="catering-g...">
+                      <Container>
+                        <div className="container">
+                          <HorizontalGallery images={[...]}>
+                            <div className="horizontal...">
+                              <div className="horizontal...">
+                                <button>
+                                <button
+                                  className="horizontal-gallery-nav horizontal-gallery-nav-next"
+                                  type="button"
+                                  onClick={function onClick}
+                                  aria-label="Next slide"
+                                  disabled={false}
+-                                 fdprocessedid="srm10b"
+                                >
+                                ...
+                                <div className="horizontal..." ref={{current:null}}>
+                                  <button
+                                    className="horizontal-gallery-item"
+                                    type="button"
+                                    onClick={function onClick}
+                                    aria-label="Open gallery image 1"
+-                                   fdprocessedid="ywlowu"
+                                  >
+                                  <button
+                                    className="horizontal-gallery-item"
+                                    type="button"
+                                    onClick={function onClick}
+                                    aria-label="Open gallery image 2"
+-                                   fdprocessedid="nphuq"
+                                  >
+                                  <button
+                                    className="horizontal-gallery-item"
+                                    type="button"
+                                    onClick={function onClick}
+                                    aria-label="Open gallery image 3"
+-                                   fdprocessedid="j5b2k2o"
+                                  >
+                                  <button>
+                                  <button
+                                    className="horizontal-gallery-item"
+                                    type="button"
+                                    onClick={function onClick}
+                                    aria-label="Open gallery image 5"
+-                                   fdprocessedid="k9qeip"
+                                  >
+                                  <button
+                                    className="horizontal-gallery-item"
+                                    type="button"
+                                    onClick={function onClick}
+                                    aria-label="Open gallery image 6"
+-                                   fdprocessedid="tjam8n"
+                                  >
+                                  <button
+                                    className="horizontal-gallery-item"
+                                    type="button"
+                                    onClick={function onClick}
+                                    aria-label="Open gallery image 7"
+-                                   fdprocessedid="nat40f"
+                                  >
+                                  ...
+                          ...
+                    <section className="section ca...">
+                      <Container>
+                        <div className="container">
+                          <div>
+                          <div className="decoration...">
+                            <div>
+                            <div className="catering-o...">
+                              <CateringMenuButton requestTargetId="catering-i..." variant="secondary">
+                                <button
+                                  ref={{current:null}}
+                                  className="btn secondary catering-menu-trigger"
+                                  type="button"
+                                  onClick={function onClick}
+                                  aria-haspopup="dialog"
+-                                 fdprocessedid="f7zmm7"
+                                >
+                                ...
+                              ...
+                    <section className="section ca...">
+                      <Container>
+                        <div className="container">
+                          <div id="catering-i..." className="catering-f...">
+                            <div>
+                            <CateringInquiryForm>
+                              <form className="form cater..." onSubmit={function onSubmit} noValidate={true}>
+                                <div>
+                                <label htmlFor="catering-name">
+                                  <span>
+                                  <input
+                                    id="catering-name"
+                                    name="name"
+                                    type="text"
+                                    autoComplete="name"
+                                    placeholder="Your full name"
+                                    aria-invalid={false}
+                                    aria-describedby={undefined}
+-                                   fdprocessedid="r897cq"
+                                  >
+                                  ...
+                                <div className="form-grid">
+                                  <label htmlFor="catering-p...">
+                                    <span>
+                                    <input
+                                      id="catering-phone"
+                                      name="phone"
+                                      type="tel"
+                                      autoComplete="tel"
+                                      placeholder="+45 12 34 56 78"
+                                      aria-invalid={false}
+                                      aria-describedby={undefined}
+-                                     fdprocessedid="0v38a"
+                                    >
+                                    ...
+                                  <label htmlFor="catering-e...">
+                                    <span>
+                                    <input
+                                      id="catering-email"
+                                      name="email"
+                                      type="email"
+                                      autoComplete="email"
+                                      placeholder="you@example.com"
+                                      aria-invalid={false}
+                                      aria-describedby={undefined}
+-                                     fdprocessedid="r9jft"
+                                    >
+                                    ...
+                                <div>
+                                <label>
+                                <PrivacyConsent>
+                                <button
+                                  className="btn"
+                                  type="submit"
+-                                 fdprocessedid="apwafc"
+                                >
++                                 Request Catering
+                                ...
+                ...
+              ...
+ 
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/catering" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.jsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en">
+                          <body
+                            className="merriweather_dc372ebf-module__gTvgwq__variable quicksand_30239470-module__0fA9P..."
+-                           data-new-gr-c-s-check-loaded="14.1299.0"
+-                           data-gr-ext-installed=""
+                          >
+                            ...
+                              <CateringPage>
+                                <section>
+                                ...
+                                  <div className="horizontal...">
+                                    <div className="horizontal...">
+                                      <button>
+                                      <button
+                                        className="horizontal-gallery-nav horizontal-gallery-nav-next"
+                                        type="button"
+                                        onClick={function onClick}
+                                        aria-label="Next slide"
+                                        disabled={false}
+-                                       fdprocessedid="baqyzd"
+                                      >
+                                      ...
+                                      <div className="horizontal..." ref={{current:null}}>
+                                        <button
+                                          className="horizontal-gallery-item"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-label="Open gallery image 1"
+-                                         fdprocessedid="h8njs2"
+                                        >
+                                        <button
+                                          className="horizontal-gallery-item"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-label="Open gallery image 2"
+-                                         fdprocessedid="c1k1vo"
+                                        >
+                                        <button
+                                          className="horizontal-gallery-item"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-label="Open gallery image 3"
+-                                         fdprocessedid="9suzdy"
+                                        >
+                                        <button>
+                                        <button
+                                          className="horizontal-gallery-item"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-label="Open gallery image 5"
+-                                         fdprocessedid="64qcu"
+                                        >
+                                        <button
+                                          className="horizontal-gallery-item"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-label="Open gallery image 6"
+-                                         fdprocessedid="0eqy2a"
+                                        >
+                                        <button
+                                          className="horizontal-gallery-item"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-label="Open gallery image 7"
+-                                         fdprocessedid="dggdk"
+                                        >
+                                        ...
+                                ...
+                                  <div className="decoration...">
+                                    <div>
+                                    <div className="catering-o...">
+                                      <CateringMenuButton requestTargetId="catering-i..." variant="secondary">
+                                        <button
+                                          ref={{current:null}}
+                                          className="btn secondary catering-menu-trigger"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-haspopup="dialog"
+-                                         fdprocessedid="vnpp9j"
+                                        >
+                                        ...
+                                      ...
+                                ...
+                                  <div id="catering-i..." className="catering-f...">
+                                    <div>
+                                    <CateringInquiryForm>
+                                      <form className="form cater..." onSubmit={function onSubmit} noValidate={true}>
+                                        <div>
+                                        <label htmlFor="catering-name">
+                                          <span>
+                                          <input
+                                            id="catering-name"
+                                            name="name"
+                                            type="text"
+                                            autoComplete="name"
+                                            placeholder="Your full name"
+                                            aria-invalid={false}
+                                            aria-describedby={undefined}
+-                                           fdprocessedid="q76jwa"
+                                          >
+                                          ...
+                                        <div className="form-grid">
+                                          <label htmlFor="catering-p...">
+                                            <span>
+                                            <input
+                                              id="catering-phone"
+                                              name="phone"
+                                              type="tel"
+                                              autoComplete="tel"
+                                              placeholder="+45 12 34 56 78"
+                                              aria-invalid={false}
+                                              aria-describedby={undefined}
+-                                             fdprocessedid="riguvj"
+                                            >
+                                            ...
+                                          <label htmlFor="catering-e...">
+                                            <span>
+                                            <input
+                                              id="catering-email"
+                                              name="email"
+                                              type="email"
+                                              autoComplete="email"
+                                              placeholder="you@example.com"
+                                              aria-invalid={false}
+                                              aria-describedby={undefined}
+-                                             fdprocessedid="gum3w7"
+                                            >
+                                            ...
+                                        <div>
+                                        <label>
+                                        <PrivacyConsent>
+                                        <button
+                                          className="btn"
+                                          type="submit"
+-                                         fdprocessedid="11chcr"
+                                        >
++                                         Request Catering
+                                        ...
+                  ...
+ 
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/catering" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.jsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en">
+                          <body
+                            className="merriweather_dc372ebf-module__gTvgwq__variable quicksand_30239470-module__0fA9P..."
+-                           data-new-gr-c-s-check-loaded="14.1299.0"
+-                           data-gr-ext-installed=""
+                          >
+                            ...
+                              <CateringPage>
+                                ...
+                                  <div className="service-he...">
+                                    <span>
+                                    <h1>
+                                    <p>
+                                    <div className="hero-actio...">
+                                      <CateringMenuButton requestTargetId="catering-i..." variant="secondary">
+                                        <button
+                                          ref={{current:null}}
+                                          className="btn secondary catering-menu-trigger"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-haspopup="dialog"
+-                                         fdprocessedid="hhg0eg"
+                                        >
+                                        ...
+                                      ...
+                                ...
+                                  <div className="horizontal...">
+                                    <div className="horizontal...">
+                                      <button>
+                                      <button
+                                        className="horizontal-gallery-nav horizontal-gallery-nav-next"
+                                        type="button"
+                                        onClick={function onClick}
+                                        aria-label="Next slide"
+                                        disabled={false}
+-                                       fdprocessedid="0e5dl"
+                                      >
+                                      ...
+                                      <div className="horizontal..." ref={{current:null}}>
+                                        <button
+                                          className="horizontal-gallery-item"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-label="Open gallery image 1"
+-                                         fdprocessedid="dsf3wq"
+                                        >
+                                        <button
+                                          className="horizontal-gallery-item"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-label="Open gallery image 2"
+-                                         fdprocessedid="8dbfem"
+                                        >
+                                        <button
+                                          className="horizontal-gallery-item"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-label="Open gallery image 3"
+-                                         fdprocessedid="fhsso"
+                                        >
+                                        <button>
+                                        <button
+                                          className="horizontal-gallery-item"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-label="Open gallery image 5"
+-                                         fdprocessedid="g4g79g"
+                                        >
+                                        <button
+                                          className="horizontal-gallery-item"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-label="Open gallery image 6"
+-                                         fdprocessedid="mgj97o"
+                                        >
+                                        ...
+                                ...
+                                  <div className="decoration...">
+                                    <div>
+                                    <div className="catering-o...">
+                                      <CateringMenuButton requestTargetId="catering-i..." variant="secondary">
+                                        <button
+                                          ref={{current:null}}
+                                          className="btn secondary catering-menu-trigger"
+                                          type="button"
+                                          onClick={function onClick}
+                                          aria-haspopup="dialog"
+-                                         fdprocessedid="ic72r"
+                                        >
+                                        ...
+                                      ...
+                                ...
+                                  <div id="catering-i..." className="catering-f...">
+                                    <div>
+                                    <CateringInquiryForm>
+                                      <form className="form cater..." onSubmit={function onSubmit} noValidate={true}>
+                                        <div>
+                                        <label htmlFor="catering-name">
+                                          <span>
+                                          <input
+                                            id="catering-name"
+                                            name="name"
+                                            type="text"
+                                            autoComplete="name"
+                                            placeholder="Your full name"
+                                            aria-invalid={false}
+                                            aria-describedby={undefined}
+-                                           fdprocessedid="obamj"
+                                          >
+                                          ...
+                                        <div className="form-grid">
+                                          <label htmlFor="catering-p...">
+                                            <span>
+                                            <input
+                                              id="catering-phone"
+                                              name="phone"
+                                              type="tel"
+                                              autoComplete="tel"
+                                              placeholder="+45 12 34 56 78"
+                                              aria-invalid={false}
+                                              aria-describedby={undefined}
+-                                             fdprocessedid="19vh2"
+                                            >
+                                            ...
+                                          <label htmlFor="catering-e...">
+                                            <span>
+                                            <input
+                                              id="catering-email"
+                                              name="email"
+                                              type="email"
+                                              autoComplete="email"
+                                              placeholder="you@example.com"
+                                              aria-invalid={false}
+                                              aria-describedby={undefined}
+-                                             fdprocessedid="unq55"
+                                            >
+                                            ...
+                                        <div>
+                                        <label>
+                                        <PrivacyConsent>
+                                        <button
+                                          className="btn"
+                                          type="submit"
+-                                         fdprocessedid="r0562"
+                                        >
++                                         Request Catering
+                                        ...
+                  ...
+ 
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/catering" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.jsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en">
+                          <body
+                            className="merriweather_dc372ebf-module__gTvgwq__variable quicksand_30239470-module__0fA9P..."
+-                           data-new-gr-c-s-check-loaded="14.1299.0"
+-                           data-gr-ext-installed=""
+                          >
+                            <SiteShell>
+                              <div className="site-shell...">
+                                ...
+                                  <div className="header-inner">
+                                    <LinkComponent>
+                                    <nav className="nav" aria-label="Main navig...">
+                                      <LinkComponent>
+                                      <LinkComponent>
+                                      <LinkComponent>
+                                      <div className="nav-dropdo..." onMouseEnter={function onMouseEnter} ...>
+                                        <button
+                                          className="nav-trigger"
+                                          type="button"
+                                          aria-haspopup="true"
+                                          aria-expanded={false}
+                                          aria-current="page"
+                                          onClick={function onClick}
+-                                         fdprocessedid="8ywuw"
+                                        >
+                                        ...
+                                      <div className={"nav-drop..."} onMouseEnter={function onMouseEnter} ...>
+                                        <button
+                                          className="nav-trigger"
+                                          type="button"
+                                          aria-haspopup="true"
+                                          aria-expanded={false}
+                                          aria-current={undefined}
+                                          onClick={function onClick}
+-                                         fdprocessedid="96m6kqm"
+                                        >
+                                        ...
+                                      ...
+                                    ...
+                                ...
+                                  <CateringPage>
+                                    ...
+                                      <div className="service-he...">
+                                        <span>
+                                        <h1>
+                                        <p>
+                                        <div className="hero-actio...">
+                                          <CateringMenuButton requestTargetId="catering-i..." variant="secondary">
+                                            <button
+                                              ref={{current:null}}
+                                              className="btn secondary catering-menu-trigger"
+                                              type="button"
+                                              onClick={function onClick}
+                                              aria-haspopup="dialog"
+-                                             fdprocessedid="2x07z"
+                                            >
+                                            ...
+                                          ...
+                                    ...
+                                      <div className="horizontal...">
+                                        <div className="horizontal...">
+                                          <button>
+                                          <button
+                                            className="horizontal-gallery-nav horizontal-gallery-nav-next"
+                                            type="button"
+                                            onClick={function onClick}
+                                            aria-label="Next slide"
+                                            disabled={false}
+-                                           fdprocessedid="vny56k"
+                                          >
+                                          ...
+                                          <div className="horizontal..." ref={{current:null}}>
+                                            <button
+                                              className="horizontal-gallery-item"
+                                              type="button"
+                                              onClick={function onClick}
+                                              aria-label="Open gallery image 1"
+-                                             fdprocessedid="8g8gal"
+                                            >
+                                            <button
+                                              className="horizontal-gallery-item"
+                                              type="button"
+                                              onClick={function onClick}
+                                              aria-label="Open gallery image 2"
+-                                             fdprocessedid="dsdqw"
+                                            >
+                                            <button
+                                              className="horizontal-gallery-item"
+                                              type="button"
+                                              onClick={function onClick}
+                                              aria-label="Open gallery image 3"
+-                                             fdprocessedid="y69isb"
+                                            >
+                                            <button>
+                                            <button
+                                              className="horizontal-gallery-item"
+                                              type="button"
+                                              onClick={function onClick}
+                                              aria-label="Open gallery image 5"
+-                                             fdprocessedid="ocgpqa"
+                                            >
+                                            <button
+                                              className="horizontal-gallery-item"
+                                              type="button"
+                                              onClick={function onClick}
+                                              aria-label="Open gallery image 6"
+-                                             fdprocessedid="dr71kc"
+                                            >
+                                            ...
+                                    ...
+                                      <div className="decoration...">
+                                        <div>
+                                        <div className="catering-o...">
+                                          <CateringMenuButton requestTargetId="catering-i..." variant="secondary">
+                                            <button
+                                              ref={{current:null}}
+                                              className="btn secondary catering-menu-trigger"
+                                              type="button"
+                                              onClick={function onClick}
+                                              aria-haspopup="dialog"
+-                                             fdprocessedid="1iqiwa"
+                                            >
+                                            ...
+                                          ...
+                                    ...
+                                      <div id="catering-i..." className="catering-f...">
+                                        <div>
+                                        <CateringInquiryForm>
+                                          <form className="form cater..." onSubmit={function onSubmit} noValidate={true}>
+                                            <div>
+                                            <label htmlFor="catering-name">
+                                              <span>
+                                              <input
+                                                id="catering-name"
+                                                name="name"
+                                                type="text"
+                                                autoComplete="name"
+                                                placeholder="Your full name"
+                                                aria-invalid={false}
+                                                aria-describedby={undefined}
+-                                               fdprocessedid="nt9y4c"
+                                              >
+                                              ...
+                                            <div className="form-grid">
+                                              <label htmlFor="catering-p...">
+                                                <span>
+                                                <input
+                                                  id="catering-phone"
+                                                  name="phone"
+                                                  type="tel"
+                                                  autoComplete="tel"
+                                                  placeholder="+45 12 34 56 78"
+                                                  aria-invalid={false}
+                                                  aria-describedby={undefined}
+-                                                 fdprocessedid="qin45r"
+                                                >
+                                                ...
+                                              <label htmlFor="catering-e...">
+                                                <span>
+                                                <input
+                                                  id="catering-email"
+                                                  name="email"
+                                                  type="email"
+                                                  autoComplete="email"
+                                                  placeholder="you@example.com"
+                                                  aria-invalid={false}
+                                                  aria-describedby={undefined}
+-                                                 fdprocessedid="nb2q5"
+                                                >
+                                                ...
+                                            <div>
+                                            <label>
+                                            <PrivacyConsent>
+                                            <button
+                                              className="btn"
+                                              type="submit"
+-                                             fdprocessedid="buto8q"
+                                            >
++                                             Request Catering
+                                            ...
+                                ...
+                  ...
+ 
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+      <LoadingBoundary name="catering/" loading={null}>
+        <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+          <RedirectBoundary>
+            <RedirectErrorBoundary router={{...}}>
+              <InnerLayoutRouter url="/catering" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} ...>
+                <SegmentViewNode type="page" pagePath="catering/p...">
+                  <SegmentTrieNode>
+                  <CateringPage>
+                    <section>
+                    <section>
+                    <section>
+                    <section className="section ca...">
+                      <Container>
+                        <div className="container">
+                          <div id="catering-i..." className="catering-f...">
+                            <div>
+                            <CateringInquiryForm>
+                              <form className="form cater..." onSubmit={function onSubmit} noValidate={true}>
+                                <div>
+                                <label>
+                                <div>
+                                <div>
+                                <label>
+                                <PrivacyConsent>
+                                <button
+                                  className="btn"
+                                  type="submit"
+-                                 fdprocessedid="yx1js1"
+                                >
++                                 Request Catering
+                                ...
+                ...
+              ...
+ 
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+      <LoadingBoundary name="catering/" loading={null}>
+        <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+          <RedirectBoundary>
+            <RedirectErrorBoundary router={{...}}>
+              <InnerLayoutRouter url="/catering" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} ...>
+                <SegmentViewNode type="page" pagePath="catering/p...">
+                  <SegmentTrieNode>
+                  <CateringPage>
+                    <section className="service-he...">
+                      <Container>
+                        <div className="container">
+                          <div className="catering-h...">
+                            <div className="service-he...">
+                              <span>
+                              <h1>
+                              <p>
+                              <div className="hero-actio...">
+                                <CateringMenuButton requestTargetId="catering-i..." variant="secondary">
+                                  <button
+                                    ref={{current:null}}
+                                    className="btn secondary catering-menu-trigger"
+                                    type="button"
+                                    onClick={function onClick}
+                                    aria-haspopup="dialog"
+-                                   fdprocessedid="7bxfjf"
+                                  >
+                                  ...
+                                ...
+                    <section id="catering-g..." className="catering-g...">
+                      <Container>
+                        <div className="container">
+                          <HorizontalGallery images={[...]}>
+                            <div className="horizontal...">
+                              <div className="horizontal...">
+                                <button>
+                                <button
+                                  className="horizontal-gallery-nav horizontal-gallery-nav-next"
+                                  type="button"
+                                  onClick={function onClick}
+                                  aria-label="Next slide"
+                                  disabled={false}
+-                                 fdprocessedid="w1bk5"
+                                >
+                                ...
+                                <div className="horizontal..." ref={{current:null}}>
+                                  <button
+                                    className="horizontal-gallery-item"
+                                    type="button"
+                                    onClick={function onClick}
+                                    aria-label="Open gallery image 1"
+-                                   fdprocessedid="xhqoh8"
+                                  >
+                                  <button
+                                    className="horizontal-gallery-item"
+                                    type="button"
+                                    onClick={function onClick}
+                                    aria-label="Open gallery image 2"
+-                                   fdprocessedid="yhj10t"
+                                  >
+                                  <button
+                                    className="horizontal-gallery-item"
+                                    type="button"
+                                    onClick={function onClick}
+                                    aria-label="Open gallery image 3"
+-                                   fdprocessedid="dch9f"
+                                  >
+                                  <button>
+                                  <button
+                                    className="horizontal-gallery-item"
+                                    type="button"
+                                    onClick={function onClick}
+                                    aria-label="Open gallery image 5"
+-                                   fdprocessedid="i7he13"
+                                  >
+                                  ...
+                          ...
+                    <section className="section ca...">
+                      <Container>
+                        <div className="container">
+                          <div>
+                          <div className="decoration...">
+                            <div>
+                            <div className="catering-o...">
+                              <CateringMenuButton requestTargetId="catering-i..." variant="secondary">
+                                <button
+                                  ref={{current:null}}
+                                  className="btn secondary catering-menu-trigger"
+                                  type="button"
+                                  onClick={function onClick}
+                                  aria-haspopup="dialog"
+-                                 fdprocessedid="jvwu1m"
+                                >
+                                ...
+                              ...
+                    <section className="section ca...">
+                      <Container>
+                        <div className="container">
+                          <div id="catering-i..." className="catering-f...">
+                            <div>
+                            <CateringInquiryForm>
+                              <form className="form cater..." onSubmit={function onSubmit} noValidate={true}>
+                                <div>
+                                <label htmlFor="catering-name">
+                                  <span>
+                                  <input
+                                    id="catering-name"
+                                    name="name"
+                                    type="text"
+                                    autoComplete="name"
+                                    placeholder="Your full name"
+                                    aria-invalid={false}
+                                    aria-describedby={undefined}
+-                                   fdprocessedid="tu1frb"
+                                  >
+                                  ...
+                                <div className="form-grid">
+                                  <label htmlFor="catering-p...">
+                                    <span>
+                                    <input
+                                      id="catering-phone"
+                                      name="phone"
+                                      type="tel"
+                                      autoComplete="tel"
+                                      placeholder="+45 12 34 56 78"
+                                      aria-invalid={false}
+                                      aria-describedby={undefined}
+-                                     fdprocessedid="8ftmym"
+                                    >
+                                    ...
+                                  <label htmlFor="catering-e...">
+                                    <span>
+                                    <input
+                                      id="catering-email"
+                                      name="email"
+                                      type="email"
+                                      autoComplete="email"
+                                      placeholder="you@example.com"
+                                      aria-invalid={false}
+                                      aria-describedby={undefined}
+-                                     fdprocessedid="47eytb"
+                                    >
+                                    ...
+                                <div>
+                                <label>
+                                <PrivacyConsent>
+                                <button
+                                  className="btn"
+                                  type="submit"
+-                                 fdprocessedid="0g7wp"
+                                >
++                                 Request Catering
+                                ...
+                ...
+              ...
+ 
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior

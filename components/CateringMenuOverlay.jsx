@@ -1,7 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRight, X } from "lucide-react";
+import {
+  ArrowRight,
+  Dessert,
+  Flame,
+  HandPlatter,
+  Leaf,
+  Minus,
+  Plus,
+  Sandwich,
+  Soup,
+  Utensils,
+  X,
+} from "lucide-react";
 
 const menuCategories = [
   {
@@ -13,47 +25,60 @@ const menuCategories = [
     featuredLabel: "Featured dishes",
     featuredItems: [
       {
+        name: "Country-style potatoes",
+        description:
+          "Golden roasted potato wedges with herbs, dill, and dipping sauces. A simple, comforting Ukrainian-style side for shared tables.",
+        image: "/images/catering/ukrainian-country-potatoes.png",
+        alt: "Country-style roasted potatoes with dill and sauces",
+      },
+      {
+        name: "Pork neck baked with garlic and herbs",
+        description:
+          "Tender roasted pork neck seasoned with garlic, rosemary, and herbs, served sliced as a warm, generous main dish.",
+        image: "/images/catering/ukrainian-pork-neck.png",
+        alt: "Baked pork neck sliced with garlic and herbs",
+      },
+      {
+        name: "Vereshchaka",
+        description:
+          "A traditional Ukrainian pork dish slowly cooked in a rich, tangy sauce and often served with creamy potatoes.",
+        image: "/images/catering/ukrainian-vereshchaka.png",
+        alt: "Traditional Ukrainian vereshchaka with sauce and potatoes",
+      },
+      {
+        name: "Chicken Kyiv",
+        description:
+          "A classic Ukrainian chicken cutlet filled with garlic-herb butter, breaded until crisp, and served golden on the outside with a melting center.",
+        image: "/images/catering/ukrainian-chicken-kyiv.png",
+        alt: "Chicken Kyiv cutlet with garlic herb butter filling",
+      },
+      {
+        name: "Dolmas",
+        description:
+          "Tender stuffed rolls filled with seasoned rice and meat, slowly cooked in tomato sauce and served with sour cream.",
+        image: "/images/catering/ukrainian-dolmas.png",
+        alt: "Dolmas served in tomato sauce with sour cream",
+      },
+      {
         name: "Borscht",
         description:
-          "Traditional beetroot soup served with sour cream and herbs.",
-        image: "/images/catering/catering-borsch.png",
+          "Traditional Ukrainian beetroot soup with vegetables, herbs, and sour cream, served with dark bread.",
+        image: "/images/catering/ukrainian-borscht-traditional.png",
         alt: "A bowl of traditional Ukrainian borscht with herbs",
       },
       {
         name: "Varenyky",
         description:
-          "Ukrainian dumplings with savory fillings, served with sour cream or fried onions.",
-        image: "/images/catering/catering-dumplings.png",
+          "Traditional Ukrainian dumplings with savory filling, served with sour cream, dill, and caramelized onions.",
+        image: "/images/catering/ukrainian-varenyky.png",
         alt: "Ukrainian varenyky dumplings served on a plate",
-      },
-      {
-        name: "Holubtsi",
-        description:
-          "Cabbage rolls filled with rice and meat, slowly cooked in a rich sauce.",
-        image: "/images/catering/catering-2.png",
-        alt: "A generous Ukrainian table with homemade dishes",
-      },
-      {
-        name: "Deruny",
-        description:
-          "Crispy potato pancakes, traditionally served with sour cream or mushroom sauce.",
-        image: "/images/catering/catering-gallery-added-01.png",
-        alt: "Crispy savory pancakes served as part of a catering table",
-      },
-      {
-        name: "Chicken Kyiv",
-        description:
-          "A classic chicken dish with a buttery herb filling and golden crispy coating.",
-        image: "/images/catering/catering-modern-plates.png",
-        alt: "Elegant plated warm dish prepared for a private event",
       },
     ],
     alsoAvailable: [
       "Green borscht",
       "Homemade sausage",
-      "Pork neck baked with garlic and herbs",
-      "Vereshchaka",
-      "Country-style potatoes",
+      "Holubtsi",
+      "Deruny",
       "Pickles",
       "Traditional salads",
       "Appetizers with salo",
@@ -71,29 +96,29 @@ const menuCategories = [
         name: "Smørrebrød",
         description:
           "Traditional Danish open-faced sandwiches with seasonal toppings.",
-        image: "/images/catering/catering-board.png",
-        alt: "A composed catering board with seasonal toppings",
+        image: "/images/catering/danish-smorrebrod.png",
+        alt: "Traditional Danish smorrebrod open-faced sandwiches",
       },
       {
         name: "Frikadeller",
         description:
           "Classic Danish meatballs, served warm with traditional sides.",
-        image: "/images/catering/catering-gallery-added-02.png",
-        alt: "Warm savory bites arranged for a Danish-inspired gathering",
+        image: "/images/catering/danish-frikadeller.png",
+        alt: "Danish frikadeller served with potatoes, sauce, and pickles",
       },
       {
         name: "Marinated herring",
         description:
           "A Danish favorite, often served with bread, onions, and herbs.",
-        image: "/images/catering/catering-charcuterie.png",
-        alt: "Nordic-style savory platter with bread and garnishes",
+        image: "/images/catering/danish-marinated-herring.png",
+        alt: "Marinated herring with onion, dill, capers, and rye bread",
       },
       {
         name: "Flæskesteg",
         description:
           "Roast pork with crispy crackling, served with classic Danish sides.",
-        image: "/images/catering/catering-gallery-added-03.png",
-        alt: "Warm Danish-style catering dish served for an event",
+        image: "/images/catering/danish-flaeskesteg.png",
+        alt: "Flaeskesteg roast pork with crispy crackling and Danish sides",
       },
     ],
     alsoAvailable: [
@@ -116,21 +141,21 @@ const menuCategories = [
         name: "Private dinner menu",
         description:
           "A seated dinner with seasonal starters, main courses, sides, and desserts.",
-        image: "/images/catering/catering-long-buffet.png",
-        alt: "A long elegant table set for a private dinner",
+        image: "/images/catering/european-private-dinner-menu.png",
+        alt: "Private dinner table with modern European dishes and wine",
       },
       {
         name: "Reception-style menu",
         description: "Elegant light dishes, small bites, and shareable plates.",
-        image: "/images/catering/catering-welcome-drinks.png",
-        alt: "Welcome drinks and light reception dishes",
+        image: "/images/catering/european-reception-style-menu.png",
+        alt: "Reception-style buffet with small bites and shared plates",
       },
       {
         name: "Business meeting menu",
         description:
           "Balanced, easy-to-serve dishes suitable for workshops, presentations, and longer meetings.",
-        image: "/images/catering/catering-service-team.png",
-        alt: "Catering service arranged for a professional meeting",
+        image: "/images/catering/european-business-meeting-menu.png",
+        alt: "Business meeting catering buffet with wraps, salad, fruit, water and coffee",
       },
     ],
     additionalText:
@@ -300,13 +325,13 @@ const menuCategories = [
 ];
 
 const orderedMenuCategories = [
-  menuCategories.find((category) => category.id === "ukrainian"),
-  menuCategories.find((category) => category.id === "european"),
-  menuCategories.find((category) => category.id === "danish"),
-  menuCategories.find((category) => category.id === "vegetarian"),
-  menuCategories.find((category) => category.id === "finger-food"),
-  menuCategories.find((category) => category.id === "grill"),
-  menuCategories.find((category) => category.id === "desserts"),
+  { ...menuCategories.find((category) => category.id === "ukrainian"), icon: Soup },
+  { ...menuCategories.find((category) => category.id === "european"), navLabel: "European", icon: Utensils },
+  { ...menuCategories.find((category) => category.id === "danish"), icon: Sandwich },
+  { ...menuCategories.find((category) => category.id === "vegetarian"), navLabel: "Vegetarian", icon: Leaf },
+  { ...menuCategories.find((category) => category.id === "finger-food"), icon: HandPlatter },
+  { ...menuCategories.find((category) => category.id === "grill"), icon: Flame },
+  { ...menuCategories.find((category) => category.id === "desserts"), navLabel: "Desserts", icon: Dessert },
 ].filter(Boolean);
 
 function FeaturedCard({ item }) {
@@ -325,9 +350,12 @@ function FeaturedCard({ item }) {
 
 function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
   const overlayRef = useRef(null);
+  const shellRef = useRef(null);
   const closeButtonRef = useRef(null);
   const pageScrollRef = useRef(0);
   const restorePageScrollRef = useRef(true);
+  const [expandedCategories, setExpandedCategories] = useState(["ukrainian"]);
+  const [activeCategory, setActiveCategory] = useState("ukrainian");
 
   useEffect(() => {
     if (!open) return undefined;
@@ -359,7 +387,7 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
     restorePageScrollRef.current = true;
     requestAnimationFrame(() => {
       window.scrollTo(0, 0);
-      overlayRef.current?.scrollTo({ top: 0, left: 0 });
+      shellRef.current?.scrollTo({ top: 0, left: 0 });
       closeButtonRef.current?.focus();
     });
 
@@ -370,6 +398,37 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const shell = shellRef.current;
+    if (!shell) return undefined;
+
+    const updateActiveCategory = () => {
+      const shellRect = shell.getBoundingClientRect();
+      const nav = shell.querySelector(".catering-menu-nav");
+      const navHeight = nav?.getBoundingClientRect().height ?? 0;
+      const threshold = shellRect.top + navHeight + 4;
+      let currentId = activeCategory;
+
+      orderedMenuCategories.forEach((category) => {
+        const section = shell.querySelector(`#catering-menu-${category.id}`);
+        if (!section) return;
+
+        const sectionRect = section.getBoundingClientRect();
+        if (sectionRect.top <= threshold && sectionRect.bottom > threshold) {
+          currentId = category.id;
+        }
+      });
+
+      setActiveCategory((current) => (current === currentId ? current : currentId));
+    };
+
+    updateActiveCategory();
+    shell.addEventListener("scroll", updateActiveCategory, { passive: true });
+    return () => shell.removeEventListener("scroll", updateActiveCategory);
+  }, [activeCategory, open]);
+
   if (!open) return null;
 
   const handleRequestMenu = () => {
@@ -379,9 +438,22 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
 
   const scrollToCategory = (event, id) => {
     event.preventDefault();
+    setActiveCategory(id);
+    setExpandedCategories((current) =>
+      current.includes(id) ? current : [...current, id],
+    );
     document
       .getElementById(`catering-menu-${id}`)
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const toggleCategory = (id) => {
+    setActiveCategory(id);
+    setExpandedCategories((current) =>
+      current.includes(id)
+        ? current.filter((categoryId) => categoryId !== id)
+        : [...current, id],
+    );
   };
 
   return (
@@ -392,7 +464,7 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
       aria-modal="true"
       aria-labelledby="catering-menu-title"
     >
-      <div className="catering-menu-overlay-shell">
+      <div className="catering-menu-overlay-shell" ref={shellRef}>
         <header className="catering-menu-overlay-header">
           <p>Rorum / Catering Menu</p>
           <button
@@ -407,21 +479,29 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
           </button>
         </header>
 
+        <div
+          className="catering-menu-photo-strip"
+          role="img"
+          aria-label="Catering menu example from RORUM catering gallery"
+        />
+
         <main className="catering-menu-overlay-main">
           <section className="catering-menu-hero">
             <div className="catering-menu-hero-copy">
-              <h2 id="catering-menu-title" className="heading">
-                Catering menu
-              </h2>
-              <p>
-                Traditional Ukrainian hospitality, Danish classics, and
-                European-style service for private meetings, celebrations, and
-                special gatherings.
-              </p>
-              <p>
-                Each menu is created individually based on your event format,
-                number of guests, season, and dietary preferences.
-              </p>
+              <div className="catering-menu-hero-text">
+                <h2 id="catering-menu-title" className="heading">
+                  Catering menu
+                </h2>
+                <p>
+                  Traditional Ukrainian hospitality, Danish classics, and
+                  European-style service for private meetings, celebrations, and
+                  special gatherings.
+                </p>
+                <p>
+                  Each menu is created individually based on your event format,
+                  number of guests, season, and dietary preferences.
+                </p>
+              </div>
               <button
                 className="btn catering-menu-request"
                 type="button"
@@ -439,59 +519,97 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
 
           <nav className="catering-menu-nav" aria-label="Catering categories">
             <div className="catering-menu-nav-inner">
-              {orderedMenuCategories.map((category) => (
+              {orderedMenuCategories.map((category) => {
+                const Icon = category.icon;
+                return (
                 <a
                   key={category.id}
                   href={`#catering-menu-${category.id}`}
+                  className={activeCategory === category.id ? "is-active" : ""}
                   onClick={(event) => scrollToCategory(event, category.id)}
                 >
-                  {category.navLabel}
+                  <Icon aria-hidden="true" strokeWidth={1.8} />
+                  <span>{category.navLabel}</span>
                 </a>
-              ))}
+              );
+              })}
             </div>
           </nav>
 
           <div className="catering-menu-sections">
-            {orderedMenuCategories.map((category) => (
-              <section
-                className="catering-menu-section"
-                id={`catering-menu-${category.id}`}
-                key={category.id}
-              >
-                <div className="catering-menu-section-head">
-                  <h2 className="heading">{category.title}</h2>
-                  <p>{category.description}</p>
-                </div>
+            {orderedMenuCategories.map((category) => {
+              const isExpanded = expandedCategories.includes(category.id);
 
-                {category.featuredItems?.length ? (
-                  <div className="catering-menu-featured">
-                    <h3>{category.featuredLabel}</h3>
-                    <div className="catering-menu-card-grid">
-                      {category.featuredItems.map((item) => (
-                        <FeaturedCard item={item} key={item.name} />
-                      ))}
+              return (
+                <section
+                  className={`catering-menu-section ${isExpanded ? "is-expanded" : ""}`}
+                  id={`catering-menu-${category.id}`}
+                  key={category.id}
+                >
+                  <button
+                    className="catering-menu-section-toggle"
+                    type="button"
+                    aria-expanded={isExpanded}
+                    aria-controls={`catering-menu-panel-${category.id}`}
+                    onClick={() => toggleCategory(category.id)}
+                  >
+                    <span className="catering-menu-section-title">
+                      <span className="catering-menu-section-kicker">
+                        {category.navLabel}
+                      </span>
+                      <span className="heading">{category.title}</span>
+                    </span>
+                    <span className="catering-menu-plus" aria-hidden="true">
+                      {isExpanded ? (
+                        <Minus strokeWidth={1.6} />
+                      ) : (
+                        <Plus strokeWidth={1.6} />
+                      )}
+                    </span>
+                  </button>
+
+                  <div
+                    className="catering-menu-section-panel"
+                    id={`catering-menu-panel-${category.id}`}
+                    aria-hidden={!isExpanded}
+                  >
+                    <div className="catering-menu-section-panel-inner">
+                      <div className="catering-menu-section-head">
+                        <p>{category.description}</p>
+                      </div>
+
+                      {category.featuredItems?.length ? (
+                        <div className="catering-menu-featured">
+                          <h3>{category.featuredLabel}</h3>
+                          <div className="catering-menu-card-grid">
+                            {category.featuredItems.map((item) => (
+                              <FeaturedCard item={item} key={item.name} />
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {category.additionalText ? (
+                        <p className="catering-menu-additional">
+                          {category.additionalText}
+                        </p>
+                      ) : null}
+
+                      {category.alsoAvailable?.length ? (
+                        <div className="catering-menu-also">
+                          <h3>Also available</h3>
+                          <ul>
+                            {category.alsoAvailable.map((item) => (
+                              <li key={item}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
-                ) : null}
-
-                {category.additionalText ? (
-                  <p className="catering-menu-additional">
-                    {category.additionalText}
-                  </p>
-                ) : null}
-
-                {category.alsoAvailable?.length ? (
-                  <div className="catering-menu-also">
-                    <h3>Also available</h3>
-                    <ul>
-                      {category.alsoAvailable.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-              </section>
-            ))}
+                </section>
+              );
+            })}
           </div>
 
           <section className="catering-menu-final">
@@ -506,11 +624,6 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
             <div className="catering-menu-final-actions">
               <button className="btn" type="button" onClick={handleRequestMenu}>
                 Request custom menu
-                <ArrowRight
-                  className="button-arrow"
-                  aria-hidden="true"
-                  strokeWidth={1.9}
-                />
               </button>
               <button
                 className="btn secondary"
@@ -518,6 +631,11 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
                 onClick={onClose}
               >
                 Back to Catering
+                <ArrowRight
+                  className="button-arrow"
+                  aria-hidden="true"
+                  strokeWidth={1.9}
+                />
               </button>
             </div>
           </section>

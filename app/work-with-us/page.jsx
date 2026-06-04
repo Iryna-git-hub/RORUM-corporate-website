@@ -1,12 +1,119 @@
-import { InquiryForm } from "@/components/InquiryForm";
-import { EditorialCard } from "@/components/Cards";
-import { Container, PageHero, Section, SectionHeader } from "@/components/ui";
+import Image from "next/image";
+import { FileText, Handshake, Lightbulb, MessageCircle } from "lucide-react";
+import { CvUploadButton } from "@/components/CvUploadModal";
+import { Container, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
+
 export const metadata = pageMetadata("/work-with-us");
+
+const alignmentLabels = ["CV", "Story", "Connection"];
+
+const possibilityCards = [
+  "Maybe it leads to a collaboration.",
+  "Maybe to a role.",
+  "Or maybe to a connection that brings something unexpected.",
+];
+
 export default function WorkWithUsPage() {
-    return (<>
-      <PageHero label="Work with us" title="Collaborate with the RORUM ecosystem." text="For facilitators, chefs, photographers, stylists, producers and community partners interested in paid work or creative collaborations." image="/images/space/space-2.png"/>
-      <Section><Container><SectionHeader label="Collaboration types" title="Bring a useful craft to the room."/><div className="grid-3">{["Facilitation", "Food and hospitality", "Creative production"].map((item) => <EditorialCard key={item} title={item} text="Share your experience, links and the kind of collaboration you imagine."/>)}</div></Container></Section>
-      <section className="section-tight form-section"><Container><InquiryForm type="work" title="Work with us application"/></Container></section>
-    </>);
+  return (
+    <>
+      <section className="work-hero">
+        <Container>
+          <div className="work-hero-grid">
+            <div className="work-hero-copy">
+              <SectionLabel>Community</SectionLabel>
+              <h1 className="heading">Work with us</h1>
+              <div className="work-hero-text">
+                <p>At RORUM, work often begins with a connection.</p>
+                <p>
+                  A conversation at an event.
+                  <br />
+                  A shared idea.
+                  <br />
+                  A person you meet at the right moment.
+                </p>
+              </div>
+              <CvUploadButton>Send your CV</CvUploadButton>
+            </div>
+            <div className="work-hero-media">
+              <Image
+                src="/images/space/space-2.png"
+                alt="Warm RORUM space for conversation and creative collaboration"
+                fill
+                priority
+                sizes="(max-width: 980px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      <section className="section-tight work-statement-section">
+        <Container>
+          <div className="work-statement">
+            <p>
+              We believe that opportunities grow through people — and sometimes
+              the right environment can open doors you didn’t even know existed.
+            </p>
+          </div>
+        </Container>
+      </section>
+
+      <section className="section work-alignment-section">
+        <Container>
+          <div className="work-alignment-grid">
+            <div className="work-alignment-copy">
+              <p>
+                If you feel aligned with what we create, you can send us your
+                CV and tell us a bit about yourself.
+              </p>
+            </div>
+            <aside
+              className="work-alignment-card"
+              aria-label="CV story connection"
+            >
+              {alignmentLabels.map((label) => (
+                <span key={label}>{label}</span>
+              ))}
+            </aside>
+          </div>
+        </Container>
+      </section>
+
+      <section className="section work-possibility-section">
+        <Container>
+          <div className="work-possibility-grid">
+            {possibilityCards.map((text, index) => {
+              const icons = [Handshake, FileText, Lightbulb];
+              const Icon = icons[index];
+              return (
+                <article className="work-possibility-card" key={text}>
+                  <Icon aria-hidden="true" strokeWidth={1.7} />
+                  <p>{text}</p>
+                </article>
+              );
+            })}
+          </div>
+        </Container>
+      </section>
+
+      <section className="section-tight work-start-section">
+        <Container>
+          <p>Either way — it starts here.</p>
+        </Container>
+      </section>
+
+      <section className="section work-final-section">
+        <Container>
+          <div className="work-final-panel">
+            <div>
+              <p>👉 Send us your CV and let’s stay connected</p>
+              <CvUploadButton>Send your CV</CvUploadButton>
+            </div>
+            <MessageCircle aria-hidden="true" strokeWidth={1.2} />
+          </div>
+        </Container>
+      </section>
+    </>
+  );
 }

@@ -1,155 +1,351 @@
 "use client";
+
 import { useEffect, useState } from "react";
+import { PrivacyConsent, validatePrivacyConsent } from "@/components/PrivacyConsent";
 
-const formConfig = {
-    membership: {
-        focusLabel: "Interest",
-        focusOptions: ["Events", "Hosting", "Collaboration", "Community support"]
-    },
-    work: {
-        focusLabel: "Area of interest",
-        focusOptions: ["Facilitation", "Food and hospitality", "Event production", "Styling", "Creative collaboration"]
-    },
-    volunteer: {
-        focusLabel: "Availability",
-        focusOptions: ["Weekday mornings", "Weekday evenings", "Weekends", "Flexible"]
-    },
-    contact: {
-        focusLabel: "Inquiry type",
-        focusOptions: ["Host an event", "Private meeting", "Catering", "Event decoration", "Community", "General question"]
-    },
-    host: {
-        focusLabel: "Event format",
-        focusOptions: ["Workshop", "Class", "Circle", "Talk or salon", "Community gathering"]
-    },
-    booking: {
-        packageLabel: "Package",
-        packageOptions: ["Morning Session", "Afternoon Session", "Full Day Session", "Not sure yet"]
-    },
-    catering: {
-        focusLabel: "Catering need",
-        focusOptions: ["Breakfast", "Lunch", "Coffee and cake", "Evening bites", "Custom request"]
-    },
-    decoration: {
-        focusLabel: "Styling need",
-        focusOptions: ["Table styling", "Flowers", "Candles and atmosphere", "Full event styling", "Custom request"]
-    },
-    default: {
-        focusLabel: "Inquiry type",
-        focusOptions: ["Event hosting", "Private meeting", "Catering", "Event decoration", "Community"]
-    }
-};
+const bookingPackageOptions = [
+  "Morning Session",
+  "Afternoon Session",
+  "Full Day Session",
+  "Not sure yet",
+];
 
-function getErrorMessage(name, value, label) {
-    if (!value.trim()) return `${label} is required.`;
-    if (name === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Please enter a valid email address.";
-    return "";
+const bookingServiceOptions = [
+  "Breakfast",
+  "Snacks",
+  "Lunch",
+  "Coffee setup",
+];
+
+function validateField(name, value, label) {
+  const stringValue = String(value ?? "");
+  if (!stringValue.trim()) return `${label} is required.`;
+  if (name === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
+    return "Please enter a valid email address.";
+  }
+  return "";
 }
 
 function getInitialPackage(options = []) {
-    if (typeof window === "undefined") return "";
-    const packageName = new URLSearchParams(window.location.search).get("package") ?? "";
-    return options.includes(packageName) ? packageName : "";
+  if (typeof window === "undefined") return "";
+  const packageName = new URLSearchParams(window.location.search).get("package") ?? "";
+  return options.includes(packageName) ? packageName : "";
 }
 
-export function InquiryForm({ type = "default", title, intro, submitLabel = "Send inquiry" }) {
-    const config = formConfig[type] ?? formConfig.default;
-    const hasPackageSelect = Boolean(config.packageOptions?.length);
-    const hasFocusSelect = Boolean(config.focusOptions?.length);
-    const [sent, setSent] = useState(false);
-    const [errors, setErrors] = useState({});
-    const [selectedPackage, setSelectedPackage] = useState("");
-    const fields = [
-        { name: "name", label: "Full name", type: "text", autoComplete: "name", placeholder: "Your full name" },
-        { name: "email", label: "Email", type: "email", autoComplete: "email", placeholder: "you@example.com" },
-        { name: "phone", label: "Phone number", type: "tel", autoComplete: "tel", placeholder: "+45 12 34 56 78" }
-    ];
+function FieldError({ id, message }) {
+  return message ? (
+    <small className="form-error" id={id}>
+      {message}
+    </small>
+  ) : null;
+}
 
-    useEffect(() => {
-        if (!hasPackageSelect || typeof window === "undefined") return undefined;
-        const packageName = getInitialPackage(config.packageOptions);
-        if (!packageName) return undefined;
-        const timeoutId = window.setTimeout(() => setSelectedPackage(packageName), 0);
-        return () => window.clearTimeout(timeoutId);
-    }, [config.packageOptions, hasPackageSelect]);
+export function InquiryForm({
+  type = "default",
+  title,
+  intro,
+  submitLabel = "Send inquiry",
+}) {
+  const [sent, setSent] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [selectedPackage, setSelectedPackage] = useState("");
+  const isBooking = type === "booking";
+  const isDecoration = type === "decoration";
 
-    function onSubmit(event) {
-        event.preventDefault();
-        const form = event.currentTarget;
-        const formData = new FormData(form);
-        const nextErrors = {};
+  useEffect(() => {
+    if (!isBooking || typeof window === "undefined") return undefined;
+    const packageName = getInitialPackage(bookingPackageOptions);
+    if (!packageName) return undefined;
+    const timeoutId = window.setTimeout(() => setSelectedPackage(packageName), 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [isBooking]);
 
-        fields.forEach((field) => {
-            const message = getErrorMessage(field.name, String(formData.get(field.name) ?? ""), field.label);
-            if (message) nextErrors[field.name] = message;
-        });
-        if (hasFocusSelect) {
-            const focusMessage = getErrorMessage("focus", String(formData.get("focus") ?? ""), config.focusLabel);
-            if (focusMessage) nextErrors.focus = focusMessage;
-        }
-        if (hasPackageSelect) {
-            const packageMessage = getErrorMessage("package", String(formData.get("package") ?? ""), config.packageLabel);
-            if (packageMessage) nextErrors.package = packageMessage;
-        }
-        const messageError = getErrorMessage("message", String(formData.get("message") ?? ""), "Message");
-        if (messageError) nextErrors.message = messageError;
+  function validateRequired(formData, requiredFields) {
+    const nextErrors = {};
 
-        setErrors(nextErrors);
-        if (Object.keys(nextErrors).length) {
-            setSent(false);
-            return;
-        }
+    requiredFields.forEach(([name, label]) => {
+      const error = validateField(name, formData.get(name), label);
+      if (error) nextErrors[name] = error;
+    });
 
-        setSent(true);
-        setSelectedPackage("");
-        form.reset();
+    return nextErrors;
+  }
+
+  function onSubmit(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const requiredFields = isBooking
+      ? [
+          ["package", "Package"],
+          ["eventDate", "Event date"],
+          ["eventTime", "Event time"],
+          ["guests", "Number of people"],
+          ["phone", "Phone number"],
+          ["email", "Email"],
+          ["name", "Full name"],
+          ["message", "Comment"],
+        ]
+      : [
+          ["name", "Full name"],
+          ["phone", "Phone number"],
+          ["email", "Email"],
+          ["eventDate", "Event date"],
+          ["message", "Message"],
+        ];
+    const nextErrors = validateRequired(formData, requiredFields);
+    const privacyError = validatePrivacyConsent(formData);
+    if (privacyError) nextErrors.privacyConsent = privacyError;
+
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) {
+      setSent(false);
+      return;
     }
 
-    return (<form className="form card card-pad" onSubmit={onSubmit} noValidate>
+    setSent(true);
+    setSelectedPackage("");
+    form.reset();
+  }
+
+  if (isBooking) {
+    return (
+      <form className="form card card-pad" onSubmit={onSubmit} noValidate>
+        <div className="form-heading">
+          <h2 className="heading form-title">{title}</h2>
+          {intro ? <p>{intro}</p> : null}
+        </div>
+        {sent ? (
+          <div className="success" role="status">
+            Thank you. Your private meeting request is ready for the RORUM team.
+          </div>
+        ) : null}
+
+        <label htmlFor="booking-name">
+          Full name<span aria-hidden="true">*</span>
+          <input
+            id="booking-name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            placeholder="Your full name"
+            aria-invalid={Boolean(errors.name)}
+            aria-describedby={errors.name ? "booking-name-error" : undefined}
+          />
+          <FieldError id="booking-name-error" message={errors.name} />
+        </label>
+        <div className="form-grid">
+          <label htmlFor="booking-phone">
+            Phone number<span aria-hidden="true">*</span>
+            <input
+              id="booking-phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              placeholder="+45 12 34 56 78"
+              aria-invalid={Boolean(errors.phone)}
+              aria-describedby={errors.phone ? "booking-phone-error" : undefined}
+            />
+            <FieldError id="booking-phone-error" message={errors.phone} />
+          </label>
+          <label htmlFor="booking-email">
+            Email<span aria-hidden="true">*</span>
+            <input
+              id="booking-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "booking-email-error" : undefined}
+            />
+            <FieldError id="booking-email-error" message={errors.email} />
+          </label>
+        </div>
+
+        <div className="form-grid">
+          <label htmlFor="booking-package">
+            Package<span aria-hidden="true">*</span>
+            <select
+              id="booking-package"
+              name="package"
+              value={selectedPackage}
+              onChange={(event) => setSelectedPackage(event.target.value)}
+              aria-invalid={Boolean(errors.package)}
+              aria-describedby={errors.package ? "booking-package-error" : undefined}
+            >
+              <option value="" disabled>
+                Select Package
+              </option>
+              {bookingPackageOptions.map((option) => (
+                <option key={option}>{option}</option>
+              ))}
+            </select>
+            <FieldError id="booking-package-error" message={errors.package} />
+          </label>
+          <label htmlFor="booking-date">
+            Event date<span aria-hidden="true">*</span>
+            <input
+              id="booking-date"
+              name="eventDate"
+              type="date"
+              aria-invalid={Boolean(errors.eventDate)}
+              aria-describedby={errors.eventDate ? "booking-date-error" : undefined}
+            />
+            <FieldError id="booking-date-error" message={errors.eventDate} />
+          </label>
+        </div>
+
+        <div className="form-grid">
+          <label htmlFor="booking-time">
+            Event time<span aria-hidden="true">*</span>
+            <input
+              id="booking-time"
+              name="eventTime"
+              type="time"
+              aria-invalid={Boolean(errors.eventTime)}
+              aria-describedby={errors.eventTime ? "booking-time-error" : undefined}
+            />
+            <FieldError id="booking-time-error" message={errors.eventTime} />
+          </label>
+          <label htmlFor="booking-guests">
+            Number of people<span aria-hidden="true">*</span>
+            <input
+              id="booking-guests"
+              name="guests"
+              type="number"
+              min="1"
+              max="30"
+              inputMode="numeric"
+              placeholder="Approx. number"
+              aria-invalid={Boolean(errors.guests)}
+              aria-describedby={errors.guests ? "booking-guests-error" : undefined}
+            />
+            <FieldError id="booking-guests-error" message={errors.guests} />
+          </label>
+        </div>
+
+        <fieldset className="checkbox-group">
+          <legend>Additional services</legend>
+          {bookingServiceOptions.map((service) => (
+            <label key={service}>
+              <input name="additionalServices" type="checkbox" value={service} />
+              <span>{service}</span>
+            </label>
+          ))}
+        </fieldset>
+
+        <label htmlFor="booking-message">
+          Comment<span aria-hidden="true">*</span>
+          <textarea
+            id="booking-message"
+            name="message"
+            rows={5}
+            placeholder="Tell us about your meeting format, timing and preferences."
+            aria-invalid={Boolean(errors.message)}
+            aria-describedby={errors.message ? "booking-message-error" : undefined}
+          />
+          <FieldError id="booking-message-error" message={errors.message} />
+        </label>
+
+        <PrivacyConsent id="booking-privacy" error={errors.privacyConsent} />
+
+        <button className="btn" type="submit">
+          {submitLabel}
+        </button>
+      </form>
+    );
+  }
+
+  return (
+    <form className="form card card-pad" onSubmit={onSubmit} noValidate>
       <div className="form-heading">
         <h2 className="heading form-title">{title}</h2>
         {intro ? <p>{intro}</p> : null}
       </div>
-      {sent ? <div className="success" role="status">Thank you. Your message is ready for the RORUM team.</div> : null}
-      <div className="form-grid">
-        {fields.slice(0, 2).map((field) => <label key={field.name} htmlFor={`${type}-${field.name}`}>
-          {field.label}<span aria-hidden="true">*</span>
-          <input id={`${type}-${field.name}`} name={field.name} type={field.type} autoComplete={field.autoComplete} placeholder={field.placeholder} aria-invalid={Boolean(errors[field.name])} aria-describedby={errors[field.name] ? `${type}-${field.name}-error` : undefined}/>
-          {errors[field.name] ? <small className="form-error" id={`${type}-${field.name}-error`}>{errors[field.name]}</small> : null}
-        </label>)}
-      </div>
+      {sent ? (
+        <div className="success" role="status">
+          Thank you. Your request is ready for the RORUM team.
+        </div>
+      ) : null}
+
+      <label htmlFor={`${type}-name`}>
+        Full name<span aria-hidden="true">*</span>
+        <input
+          id={`${type}-name`}
+          name="name"
+          type="text"
+          autoComplete="name"
+          placeholder="Your full name"
+          aria-invalid={Boolean(errors.name)}
+          aria-describedby={errors.name ? `${type}-name-error` : undefined}
+        />
+        <FieldError id={`${type}-name-error`} message={errors.name} />
+      </label>
       <div className="form-grid">
         <label htmlFor={`${type}-phone`}>
           Phone number<span aria-hidden="true">*</span>
-          <input id={`${type}-phone`} name="phone" type="tel" autoComplete="tel" placeholder="+45 12 34 56 78" aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? `${type}-phone-error` : undefined}/>
-          {errors.phone ? <small className="form-error" id={`${type}-phone-error`}>{errors.phone}</small> : null}
+          <input
+            id={`${type}-phone`}
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            placeholder="+45 12 34 56 78"
+            aria-invalid={Boolean(errors.phone)}
+            aria-describedby={errors.phone ? `${type}-phone-error` : undefined}
+          />
+          <FieldError id={`${type}-phone-error`} message={errors.phone} />
         </label>
-        {hasPackageSelect ? (
-          <label htmlFor={`${type}-package`}>
-            {config.packageLabel}<span aria-hidden="true">*</span>
-            <select id={`${type}-package`} name="package" value={selectedPackage} onChange={(event) => setSelectedPackage(event.target.value)} aria-invalid={Boolean(errors.package)} aria-describedby={errors.package ? `${type}-package-error` : undefined}>
-              <option value="" disabled>Select Package</option>
-              {config.packageOptions.map((option) => <option key={option}>{option}</option>)}
-            </select>
-            {errors.package ? <small className="form-error" id={`${type}-package-error`}>{errors.package}</small> : null}
-          </label>
-        ) : null}
-        {hasFocusSelect ? (
-          <label htmlFor={`${type}-focus`}>
-          {config.focusLabel}<span aria-hidden="true">*</span>
-          <select id={`${type}-focus`} name="focus" defaultValue="" aria-invalid={Boolean(errors.focus)} aria-describedby={errors.focus ? `${type}-focus-error` : undefined}>
-            <option value="" disabled>Select one</option>
-            {config.focusOptions.map((option) => <option key={option}>{option}</option>)}
-          </select>
-          {errors.focus ? <small className="form-error" id={`${type}-focus-error`}>{errors.focus}</small> : null}
-          </label>
-        ) : null}
+        <label htmlFor={`${type}-email`}>
+          Email<span aria-hidden="true">*</span>
+          <input
+            id={`${type}-email`}
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            aria-invalid={Boolean(errors.email)}
+            aria-describedby={errors.email ? `${type}-email-error` : undefined}
+          />
+          <FieldError id={`${type}-email-error`} message={errors.email} />
+        </label>
       </div>
+      <div className="form-grid">
+        <label htmlFor={`${type}-date`}>
+          Event date<span aria-hidden="true">*</span>
+          <input
+            id={`${type}-date`}
+            name="eventDate"
+            type="date"
+            aria-invalid={Boolean(errors.eventDate)}
+            aria-describedby={errors.eventDate ? `${type}-date-error` : undefined}
+          />
+          <FieldError id={`${type}-date-error`} message={errors.eventDate} />
+        </label>
+      </div>
+
       <label htmlFor={`${type}-message`}>
         Message<span aria-hidden="true">*</span>
-        <textarea id={`${type}-message`} name="message" rows={5} placeholder="Tell us a little about your request, timing and preferences." aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? `${type}-message-error` : undefined}/>
-        {errors.message ? <small className="form-error" id={`${type}-message-error`}>{errors.message}</small> : null}
+        <textarea
+          id={`${type}-message`}
+          name="message"
+          rows={5}
+          placeholder={
+            isDecoration
+              ? "Describe your event, location and desired visual setup."
+              : "Tell us a little about your request."
+          }
+          aria-invalid={Boolean(errors.message)}
+          aria-describedby={errors.message ? `${type}-message-error` : undefined}
+        />
+        <FieldError id={`${type}-message-error`} message={errors.message} />
       </label>
-      <button className="btn" type="submit">{submitLabel}</button>
-    </form>);
+
+      <PrivacyConsent id={`${type}-privacy`} error={errors.privacyConsent} />
+
+      <button className="btn" type="submit">
+        {submitLabel}
+      </button>
+    </form>
+  );
 }

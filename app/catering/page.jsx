@@ -11,12 +11,12 @@ import {
   CookingPot,
   Flame,
   Gem,
+  HandPlatter,
   Handshake,
   Landmark,
   Lightbulb,
   PartyPopper,
   Presentation,
-  Utensils,
   Users,
 } from "lucide-react";
 import { CateringInquiryForm } from "@/components/CateringInquiryForm";
@@ -29,6 +29,7 @@ export const metadata = pageMetadata("/catering");
 
 const galleryImages = [
   "/images/catering/catering-long-buffet.png",
+  "/images/catering/catering-membership-table.png",
   "/images/catering/catering-gallery-added-03.png",
   "/images/catering/catering-buffet-table.png",
   "/images/catering/catering-gallery-added-17.png",
@@ -69,7 +70,7 @@ const formats = [
   {
     title: "Finger Food & Buffet",
     text: "Elegant small bites, light buffet solutions and beautifully served dishes for receptions, celebrations and business events.",
-    icon: Utensils,
+    icon: HandPlatter,
   },
   {
     title: "Individual Menu",
@@ -138,7 +139,12 @@ export default function CateringPage() {
                 atmosphere where taste, aesthetics, and service work together.
               </p>
               <div className="hero-actions catering-hero-actions">
-                <CateringMenuButton requestTargetId="catering-inquiry" />
+                <CateringMenuButton
+                  requestTargetId="catering-inquiry"
+                  variant="secondary"
+                >
+                  Menu Examples
+                </CateringMenuButton>
                 <Button href="#catering-inquiry">
                   Request Catering
                   <ArrowRight
@@ -222,7 +228,12 @@ export default function CateringPage() {
               </p>
             </div>
             <div className="catering-offer-actions">
-              <CateringMenuButton requestTargetId="catering-inquiry" />
+              <CateringMenuButton
+                requestTargetId="catering-inquiry"
+                variant="secondary"
+              >
+                Menu Examples
+              </CateringMenuButton>
               <Button href="#catering-inquiry">Request Catering</Button>
             </div>
           </div>

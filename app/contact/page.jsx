@@ -31,17 +31,23 @@ export default function ContactPage() {
                 </div>
                 <div className="contact-detail-list">
                   <p>
-                    <MapPin aria-hidden="true" strokeWidth={1.8} />
+                    <span className="contact-detail-icon" aria-hidden="true">
+                      <MapPin aria-hidden="true" strokeWidth={1.8} />
+                    </span>
                     <span>{contactDetails.address}</span>
                   </p>
                   <p>
-                    <Phone aria-hidden="true" strokeWidth={1.8} />
+                    <span className="contact-detail-icon" aria-hidden="true">
+                      <Phone aria-hidden="true" strokeWidth={1.8} />
+                    </span>
                     <a href={contactDetails.phoneHref}>
                       {contactDetails.phone}
                     </a>
                   </p>
                   <p>
-                    <Mail aria-hidden="true" strokeWidth={1.8} />
+                    <span className="contact-detail-icon" aria-hidden="true">
+                      <Mail aria-hidden="true" strokeWidth={1.8} />
+                    </span>
                     <a href={`mailto:${contactDetails.email}`}>
                       {contactDetails.email}
                     </a>

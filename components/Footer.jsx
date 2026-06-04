@@ -17,7 +17,7 @@ const serviceLinks = [
 ];
 
 const communityLinks = [
-  { href: "/membership", label: "Membership" },
+  { href: "/membership", label: "WECODA Membership" },
   { href: "/work-with-us", label: "Work With Us" },
   { href: "/volunteer-with-us", label: "Volunteer With Us" },
 ];
@@ -29,7 +29,7 @@ const companyLinks = [
 ];
 
 const legalLinks = [
-  { href: "/terms", label: "Terms" },
+  { href: "/terms", label: "Terms and Conditions" },
   { href: "/privacy-policy", label: "Privacy Policy" },
   { href: "/cookie-policy", label: "Cookie Policy" },
 ];
