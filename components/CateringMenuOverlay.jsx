@@ -199,16 +199,12 @@ const menuCategories = [
       },
       {
         name: "Hummus with seasonal vegetables",
-        description:
-          "Creamy hummus served with crisp seasonal vegetables.",
+        description: "Creamy hummus served with crisp seasonal vegetables.",
         image: "/images/catering/vegetarian-hummus-seasonal-vegetables.png",
         alt: "Hummus with seasonal vegetables",
       },
     ],
-    alsoAvailable: [
-      "Bruschetta with tomatoes and basil",
-      "Vegetable tartlets",
-    ],
+    alsoAvailable: ["Bruschetta with tomatoes and basil", "Vegetable tartlets"],
   },
   {
     id: "finger-food",
@@ -227,8 +223,7 @@ const menuCategories = [
       },
       {
         name: "Mini appetizers with avocado and shrimp",
-        description:
-          "Fresh and delicate finger food for a modern event table.",
+        description: "Fresh and delicate finger food for a modern event table.",
         image: "/images/catering/finger-food-avocado-shrimp.png",
         alt: "Mini appetizers with avocado and shrimps",
       },
@@ -258,7 +253,8 @@ const menuCategories = [
     featuredItems: [
       {
         name: "Shashlyk",
-        description: "Grilled marinated meat, served hot with sides and sauces.",
+        description:
+          "Grilled marinated meat, served hot with sides and sauces.",
         image: "/images/catering/grill-shashlyk.png",
         alt: "Shashlik with flatbread and pickled vegetables",
       },
@@ -277,8 +273,7 @@ const menuCategories = [
       },
       {
         name: "Homemade sauces",
-        description:
-          "Sauces prepared in-house to complement the grill menu.",
+        description: "Sauces prepared in-house to complement the grill menu.",
         image: "/images/catering/grill-homemade-sauces.png",
         alt: "Homemade sauces in ceramic bowls",
       },
@@ -339,21 +334,42 @@ const menuCategories = [
         alt: "Medivnyk Ukrainian honey cake",
       },
     ],
-    alsoAvailable: [
-      "Pani Walewska",
-      "Festive sweets",
-    ],
+    alsoAvailable: ["Pani Walewska", "Festive sweets"],
   },
 ];
 
 const orderedMenuCategories = [
-  { ...menuCategories.find((category) => category.id === "ukrainian"), icon: Soup },
-  { ...menuCategories.find((category) => category.id === "european"), navLabel: "European", icon: Utensils },
-  { ...menuCategories.find((category) => category.id === "danish"), icon: Sandwich },
-  { ...menuCategories.find((category) => category.id === "vegetarian"), navLabel: "Vegetarian", icon: Leaf },
-  { ...menuCategories.find((category) => category.id === "finger-food"), icon: HandPlatter },
-  { ...menuCategories.find((category) => category.id === "grill"), icon: Flame },
-  { ...menuCategories.find((category) => category.id === "desserts"), navLabel: "Desserts", icon: Dessert },
+  {
+    ...menuCategories.find((category) => category.id === "ukrainian"),
+    icon: Soup,
+  },
+  {
+    ...menuCategories.find((category) => category.id === "european"),
+    navLabel: "European",
+    icon: Utensils,
+  },
+  {
+    ...menuCategories.find((category) => category.id === "danish"),
+    icon: Sandwich,
+  },
+  {
+    ...menuCategories.find((category) => category.id === "vegetarian"),
+    navLabel: "Vegetarian",
+    icon: Leaf,
+  },
+  {
+    ...menuCategories.find((category) => category.id === "finger-food"),
+    icon: HandPlatter,
+  },
+  {
+    ...menuCategories.find((category) => category.id === "grill"),
+    icon: Flame,
+  },
+  {
+    ...menuCategories.find((category) => category.id === "desserts"),
+    navLabel: "Desserts",
+    icon: Dessert,
+  },
 ].filter(Boolean);
 
 // Shared scroll-offset constants used by both scrollToCategory and
@@ -397,7 +413,9 @@ function waitForStableLayout(getMeasurement, onStable, maxWaitMs) {
   };
 
   requestAnimationFrame(tick);
-  return () => { cancelled = true; };
+  return () => {
+    cancelled = true;
+  };
 }
 
 function FeaturedCard({ item }) {
@@ -547,7 +565,7 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
     handler();
 
     return () => container.removeEventListener("scroll", handler);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   // Keep the ref pointing at the latest version of updateActiveCategory.
@@ -567,7 +585,8 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
     const nav = shell.querySelector(".catering-menu-nav");
     const navHeight = nav?.getBoundingClientRect().height ?? 0;
     const containerRect = container.getBoundingClientRect();
-    const activationLine = containerRect.top + navHeight + OVERLAY_ACTIVE_THRESHOLD;
+    const activationLine =
+      containerRect.top + navHeight + OVERLAY_ACTIVE_THRESHOLD;
     let currentId = orderedMenuCategories[0]?.id ?? activeCategory;
 
     orderedMenuCategories.forEach((category) => {
@@ -580,7 +599,9 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
       }
     });
 
-    setActiveCategory((current) => (current === currentId ? current : currentId));
+    setActiveCategory((current) =>
+      current === currentId ? current : currentId,
+    );
   };
 
   // Sync the ref every render so the stable scroll listener always calls the
@@ -740,16 +761,18 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
               {orderedMenuCategories.map((category) => {
                 const Icon = category.icon;
                 return (
-                <a
-                  key={category.id}
-                  href={`#catering-menu-${category.id}`}
-                  className={activeCategory === category.id ? "is-active" : ""}
-                  onClick={(event) => scrollToCategory(event, category.id)}
-                >
-                  <Icon aria-hidden="true" strokeWidth={1.8} />
-                  <span>{category.navLabel}</span>
-                </a>
-              );
+                  <a
+                    key={category.id}
+                    href={`#catering-menu-${category.id}`}
+                    className={
+                      activeCategory === category.id ? "is-active" : ""
+                    }
+                    onClick={(event) => scrollToCategory(event, category.id)}
+                  >
+                    <Icon aria-hidden="true" strokeWidth={1.8} />
+                    <span>{category.navLabel}</span>
+                  </a>
+                );
               })}
             </div>
           </nav>
@@ -843,11 +866,7 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
               <button className="btn" type="button" onClick={handleRequestMenu}>
                 Request custom menu
               </button>
-              <button
-                className="btn secondary"
-                type="button"
-                onClick={onClose}
-              >
+              <button className="btn secondary" type="button" onClick={onClose}>
                 Back to Catering
                 <ArrowRight
                   className="button-arrow"
