@@ -447,7 +447,7 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
   // Stable ref so the scroll-spy handler stays registered for the full overlay
   // lifetime without being torn down every time activeCategory changes.
   const updateActiveCategoryRef = useRef(null);
-  const [expandedCategories, setExpandedCategories] = useState(["ukrainian"]);
+  const [expandedCategories, setExpandedCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState("ukrainian");
 
   // ---------------------------------------------------------------------------
