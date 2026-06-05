@@ -9,6 +9,7 @@ import {
   Button,
   Container,
   CTASection,
+  FAQHelpStrip,
   HomeHero,
   Section,
   SectionHeader,
@@ -164,6 +165,10 @@ export default function Home() {
       />
       <ServicesTeaserSection services={services} />
       <CommunityTeaserSection />
+      <FAQHelpStrip
+        title="Questions before you choose a format?"
+        text="Find quick answers about events, private meetings, catering, decoration and hosting before you decide where to start."
+      />
       <CTASection
         variant="final"
         className="next-step-section-not-sure"

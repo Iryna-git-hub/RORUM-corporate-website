@@ -4,6 +4,7 @@ import { HorizontalGallery } from "@/components/HorizontalGallery";
 import {
   Button,
   Container,
+  FAQHelpStrip,
   SectionHeader,
   SectionLabel,
 } from "@/components/ui";
@@ -186,6 +187,10 @@ export default function PrivateMeetingsPage() {
           </div>
         </Container>
       </section>
+      <FAQHelpStrip
+        title="Questions before booking a meeting?"
+        text="Check practical answers about capacity, included setup, cancellation and optional catering before you request a private meeting."
+      />
       <section className="section form-section">
         <Container>
           <div

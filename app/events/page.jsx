@@ -1,7 +1,12 @@
 import { Suspense } from "react";
 import { EventList } from "@/components/EventCard";
 import { EventFilters } from "@/components/EventFilters";
-import { Container, CTASection, SectionHeader } from "@/components/ui";
+import {
+  Container,
+  CTASection,
+  FAQHelpStrip,
+  SectionHeader,
+} from "@/components/ui";
 import { events } from "@/lib/data";
 import { pageMetadata } from "@/lib/seo";
 
@@ -68,8 +73,8 @@ function eventMatchesAvailability(event, selected) {
   return selected === "sold-out" ? soldOut : !soldOut;
 }
 
-export default function EventsPage({ searchParams }) {
-  const query = searchParams ?? {};
+export default async function EventsPage({ searchParams }) {
+  const query = (await searchParams) ?? {};
   const selectedDate =
     query.date === "soonest" || query.date === "week" || query.date === "month"
       ? query.date
@@ -163,10 +168,7 @@ export default function EventsPage({ searchParams }) {
     <>
       <section className="section events-page-section">
         <Container>
-          <SectionHeader
-            title="Upcoming events at RORUM."
-            level={1}
-          />
+          <SectionHeader title="Upcoming events at RORUM." level={1} />
           <Suspense fallback={null}>
             <EventFilters
               selectedDate={selectedDate}
@@ -206,7 +208,9 @@ export default function EventsPage({ searchParams }) {
                           }
                           href={getPageHref(page)}
                           key={page}
-                          aria-current={page === currentPage ? "page" : undefined}
+                          aria-current={
+                            page === currentPage ? "page" : undefined
+                          }
                         >
                           {page}
                         </a>
@@ -240,6 +244,10 @@ export default function EventsPage({ searchParams }) {
           )}
         </Container>
       </section>
+      <FAQHelpStrip
+        title="Questions before joining an event?"
+        text="Find answers about tickets, language, arrival, waitlists and hosted event formats."
+      />
       <CTASection
         variant="host"
         className="events-next-step-section"

@@ -338,7 +338,7 @@ main {
   color: var(--color-primary);
 }
 .header-home.header-home-scrolled {
-  background: transparent;
+  background: #ffffffc9;
   color: var(--color-primary-dark);
   border-bottom-color: transparent;
   box-shadow: none;
@@ -4240,7 +4240,7 @@ button.btn,
   inset: 0;
   background: linear-gradient(
     90deg,
-    rgba(var(--rgb-light-green), 1) 0%,
+    rgb(121 129 101 / 87%) 0%,
     rgba(var(--rgb-light-green), 0.77) 46%,
     rgba(var(--rgb-light-green), 0.12) 100%
   );
@@ -7270,6 +7270,59 @@ form.card {
   line-height: 1.65;
 }
 
+.faq-help-strip-section {
+  background: var(--color-beige);
+}
+.faq-help-strip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: clamp(18px, 3vw, 34px);
+  align-items: center;
+  padding: clamp(26px, 4vw, 42px) 0;
+  border-top: 1px solid rgba(var(--rgb-beige), 0.72);
+  border-bottom: 1px solid rgba(var(--rgb-beige), 0.72);
+}
+.faq-help-icon {
+  width: 54px;
+  height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(var(--rgb-light-green), 0.78);
+  border-radius: 50%;
+  color: var(--color-dark-green);
+  background: rgba(var(--rgb-light-green), 0.18);
+}
+.faq-help-icon svg {
+  width: 24px;
+  height: 24px;
+}
+.faq-help-copy {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.faq-help-copy .label {
+  color: var(--color-red);
+  border-bottom-color: var(--color-red);
+}
+.faq-help-copy .heading {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.35rem);
+  line-height: 1.08;
+  font-weight: 500;
+}
+.faq-help-copy p {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--color-text-primary);
+  line-height: 1.62;
+}
+.faq-help-action {
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* Footer */
 .cta {
   display: flex;
@@ -8410,6 +8463,16 @@ form.card {
   .catering-steps,
   .checkbox-group {
     grid-template-columns: 1fr;
+  }
+  .faq-help-strip {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+  .faq-help-action {
+    justify-content: flex-start;
+  }
+  .faq-help-action .btn {
+    width: 100%;
   }
   .meeting-session-layout {
     min-height: auto;

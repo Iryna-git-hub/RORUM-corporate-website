@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { HorizontalGallery } from "@/components/HorizontalGallery";
 import { InquiryForm } from "@/components/InquiryForm";
-import { Button, Container, Section, SectionLabel } from "@/components/ui";
+import { Button, Container, FAQHelpStrip, Section, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/space-decoration-event-styling");
@@ -198,6 +198,11 @@ export default function DecorationPage() {
           </div>
         </Container>
       </Section>
+
+      <FAQHelpStrip
+        title="Questions before requesting decoration?"
+        text="Find answers about styling scope, event formats, setup flow and how decoration can work with catering or room booking."
+      />
 
       <section className="section catering-inquiry-section">
         <Container>

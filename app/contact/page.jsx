@@ -1,6 +1,6 @@
 import { ContactForm } from "@/components/ContactForm";
 import { SocialIcon } from "@/components/SocialIcon";
-import { Container, SectionLabel } from "@/components/ui";
+import { Container, FAQHelpStrip, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 import { contactDetails, socialLinks } from "@/lib/siteConfig";
 import { Mail, MapPin, Phone } from "lucide-react";
@@ -83,6 +83,10 @@ export default function ContactPage() {
           </div>
         </Container>
       </section>
+      <FAQHelpStrip
+        title="Looking for a quick answer first?"
+        text="Before sending a message, you can check answers about bookings, events, catering, decoration and volunteering."
+      />
       <section className="contact-map-section" aria-label="RORUM location map">
         <div className="contact-map-full" id="contact-map">
           <iframe

@@ -17,24 +17,29 @@ const icons = {
     </>
   ),
   whatsapp: (
-    <path d="M12.04 3.05a8.77 8.77 0 0 0-7.5 13.33L3.5 21l4.74-1.02a8.76 8.76 0 1 0 3.8-16.93Zm0 15.06a7.08 7.08 0 0 1-3.62-.99l-.28-.17-2.17.47.48-2.09-.18-.3a7.08 7.08 0 1 1 5.77 3.08Zm3.95-4.99c-.22-.11-1.28-.63-1.48-.7-.2-.08-.34-.11-.48.11-.14.22-.55.7-.68.84-.13.15-.25.16-.47.06-.22-.11-.91-.34-1.74-1.07-.64-.57-1.08-1.28-1.2-1.5-.13-.22-.01-.34.1-.45.1-.1.22-.25.33-.37.11-.13.14-.22.22-.36.07-.15.04-.27-.02-.38-.05-.11-.48-1.16-.66-1.59-.17-.42-.35-.36-.48-.37h-.41c-.14 0-.38.05-.58.27-.2.22-.76.74-.76 1.8s.78 2.09.89 2.23c.11.15 1.53 2.34 3.7 3.28.52.22.92.35 1.24.45.52.17.99.14 1.36.08.41-.06 1.28-.52 1.46-1.03.18-.5.18-.93.13-1.03-.05-.09-.2-.14-.42-.25Z" />
+    <>
+      <path d="M12.04 4.1a7.85 7.85 0 0 0-6.76 11.83l-.78 3.02 3.1-.82a7.85 7.85 0 1 0 4.44-14.03Z" />
+      <path d="M9.06 8.28c-.18-.4-.37-.41-.52-.42h-.45c-.16 0-.41.06-.63.3-.21.24-.82.8-.82 1.94 0 1.15.84 2.26.96 2.42.12.16 1.62 2.58 3.98 3.52.55.22.98.35 1.32.45.55.17 1.05.15 1.45.09.44-.07 1.36-.56 1.55-1.11.19-.55.19-1.02.13-1.12-.06-.1-.22-.16-.45-.28l-1.58-.76c-.23-.11-.4-.16-.57.16-.17.24-.66.84-.81 1-.15.16-.3.18-.55.06a6.3 6.3 0 0 1-1.86-1.15 6.9 6.9 0 0 1-1.29-1.6c-.13-.23-.01-.36.1-.48.1-.1.23-.27.34-.4.11-.14.15-.23.23-.39.08-.16.04-.3-.02-.42l-.71-1.81Z" />
+    </>
   ),
 };
 
 export function SocialIcon({ icon, className = "" }) {
   const normalizedIcon = icon?.toLowerCase();
   const isInstagram = normalizedIcon === "instagram";
+  const isWhatsapp = normalizedIcon === "whatsapp";
+  const isStrokeIcon = isInstagram || isWhatsapp;
 
   return (
     <svg
       className={`social-icon ${className}`.trim()}
       aria-hidden="true"
       viewBox="0 0 24 24"
-      fill={isInstagram ? "none" : "currentColor"}
-      stroke={isInstagram ? "currentColor" : "none"}
-      strokeWidth={isInstagram ? 1.9 : undefined}
-      strokeLinecap={isInstagram ? "round" : undefined}
-      strokeLinejoin={isInstagram ? "round" : undefined}
+      fill={isStrokeIcon ? "none" : "currentColor"}
+      stroke={isStrokeIcon ? "currentColor" : "none"}
+      strokeWidth={isWhatsapp ? 1.65 : isInstagram ? 1.9 : undefined}
+      strokeLinecap={isStrokeIcon ? "round" : undefined}
+      strokeLinejoin={isStrokeIcon ? "round" : undefined}
       focusable="false"
     >
       {icons[normalizedIcon] ?? null}

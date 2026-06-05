@@ -1,5 +1,7 @@
 import Link from "next/link";
 import {
+  ArrowRight,
+  CircleHelp,
   MapPin,
   MessageCircle,
   MessagesSquare,
@@ -209,6 +211,41 @@ export function CTASection({
             </Button>
           </div>
         </Card>
+      </Container>
+    </section>
+  );
+}
+
+export function FAQHelpStrip({
+  title = "Questions before booking?",
+  text = "Find answers about hosting, private meetings, catering, events and practical details before you send a request.",
+  href = "/faq",
+  label = "Read FAQ",
+  className = "",
+}) {
+  return (
+    <section className={`section-tight faq-help-strip-section ${className}`.trim()}>
+      <Container>
+        <div className="faq-help-strip">
+          <div className="faq-help-icon" aria-hidden="true">
+            <CircleHelp strokeWidth={1.7} />
+          </div>
+          <div className="faq-help-copy">
+            <SectionLabel>FAQ</SectionLabel>
+            <h2 className="heading">{title}</h2>
+            <p>{text}</p>
+          </div>
+          <div className="faq-help-action">
+            <Button href={href} variant="secondary">
+              <span>{label}</span>
+              <ArrowRight
+                className="button-arrow"
+                aria-hidden="true"
+                strokeWidth={1.9}
+              />
+            </Button>
+          </div>
+        </div>
       </Container>
     </section>
   );

@@ -22,7 +22,7 @@ import {
 import { CateringInquiryForm } from "@/components/CateringInquiryForm";
 import { CateringMenuButton } from "@/components/CateringMenuOverlay";
 import { HorizontalGallery } from "@/components/HorizontalGallery";
-import { Button, Container, SectionLabel } from "@/components/ui";
+import { Button, Container, FAQHelpStrip, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/catering");
@@ -239,6 +239,11 @@ export default function CateringPage() {
           </div>
         </Container>
       </section>
+
+      <FAQHelpStrip
+        title="Questions before requesting catering?"
+        text="Read practical answers about menu planning, guest count, dietary needs and how catering can fit your event."
+      />
 
       <section className="section catering-inquiry-section">
         <Container>

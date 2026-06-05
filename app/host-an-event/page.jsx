@@ -11,6 +11,7 @@ import { HostEventInquiryForm } from "@/components/HostEventInquiryForm";
 import {
   Button,
   Container,
+  FAQHelpStrip,
   Section,
   SectionHeader,
   SectionLabel,
@@ -194,6 +195,11 @@ export default function HostPage() {
           </p>
         </Container>
       </Section>
+
+      <FAQHelpStrip
+        title="Questions before hosting?"
+        text="Read answers about formats, setup, support, promotion and what to include before you send an event inquiry."
+      />
 
       <section className="section form-section">
         <Container>
