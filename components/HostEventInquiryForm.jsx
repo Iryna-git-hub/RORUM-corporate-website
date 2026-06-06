@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PrivacyConsent, validatePrivacyConsent } from "@/components/PrivacyConsent";
+import {
+  PrivacyConsent,
+  validatePrivacyConsent,
+} from "@/components/PrivacyConsent";
 
 const requiredFields = [
   ["package", "Package"],
@@ -20,7 +23,8 @@ const packageOptions = [
 
 function getInitialPackage() {
   if (typeof window === "undefined") return "";
-  const packageName = new URLSearchParams(window.location.search).get("package") ?? "";
+  const packageName =
+    new URLSearchParams(window.location.search).get("package") ?? "";
   return packageOptions.includes(packageName) ? packageName : "";
 }
 
@@ -50,7 +54,10 @@ export function HostEventInquiryForm() {
     if (typeof window === "undefined") return undefined;
     const packageName = getInitialPackage();
     if (!packageName) return undefined;
-    const timeoutId = window.setTimeout(() => setSelectedPackage(packageName), 0);
+    const timeoutId = window.setTimeout(
+      () => setSelectedPackage(packageName),
+      0,
+    );
     return () => window.clearTimeout(timeoutId);
   }, []);
 
@@ -79,10 +86,17 @@ export function HostEventInquiryForm() {
   }
 
   return (
-    <form className="form host-event-form card card-pad" onSubmit={onSubmit} noValidate>
+    <form
+      className="form host-event-form card card-pad"
+      onSubmit={onSubmit}
+      noValidate
+    >
       <div className="form-heading">
         <h2 className="heading form-title">Tell us about your event</h2>
-        <p>Choose a package and share your contact details. We&apos;ll get back to you soon.</p>
+        <p>
+          Choose a package and share your contact details. We&apos;ll get back
+          to you soon.
+        </p>
       </div>
       {sent ? (
         <div className="success" role="status">
@@ -170,7 +184,9 @@ export function HostEventInquiryForm() {
       <button className="btn host-form-submit" type="submit">
         Send event inquiry
       </button>
-      <p className="form-microcopy">We&apos;ll only use your details to respond to your request.</p>
+      <p className="form-microcopy">
+        We&apos;ll only use your details to respond to your request.
+      </p>
     </form>
   );
 }

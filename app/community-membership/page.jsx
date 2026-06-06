@@ -188,7 +188,7 @@ export default function CommunityMembershipPage() {
       <section className="section wecoda-membership-week-section">
         <Container>
           <div className="wecoda-section-head wecoda-membership-week-head">
-              <SectionLabel>Membership week</SectionLabel>
+            <SectionLabel>Membership week</SectionLabel>
             <h2 className="heading section-title">
               Moments from our members gathering
             </h2>
