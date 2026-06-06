@@ -1,30 +1,24 @@
 import Image from "next/image";
-import { Coffee, HandHeart, Sparkles, Users, Wand2 } from "lucide-react";
-import { Container, FAQInlinePrompt, SectionLabel } from "@/components/ui";
+import { ArrowRight, HandHeart, Sparkles, Users } from "lucide-react";
+import { Container, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/volunteer");
 
-const participationCards = [
-  { label: "Welcoming guests", icon: Users },
-  { label: "Supporting a workshop", icon: HandHeart },
-  { label: "Shaping the atmosphere", icon: Sparkles },
-];
-
-const gainCards = [
-  { label: "Gain experience", icon: Wand2 },
-  { label: "Meet inspiring people", icon: Coffee },
-  { label: "Join an international creative community", icon: HandHeart },
+const highlightStatements = [
+  { text: "A place where people know each other.", icon: Users },
+  { text: "Support each other.", icon: HandHeart },
+  { text: "Build something together.", icon: Sparkles },
 ];
 
 export default function VolunteerPage() {
   return (
-    <>
+    <div className="volunteer-page-main">
       <section className="volunteer-hero">
         <Container>
           <div className="volunteer-hero-grid">
             <div className="volunteer-hero-copy">
-              <SectionLabel>Community</SectionLabel>
+              <SectionLabel>Volunteer with us</SectionLabel>
               <h1 className="heading">Volunteer at RORUM</h1>
               <div className="volunteer-hero-text">
                 <p>
@@ -36,15 +30,51 @@ export default function VolunteerPage() {
                   <br />
                   And experiences turn into community.
                 </p>
+                <p>
+                  Volunteering here is more than helping at events.
+                  <br />
+                  It’s becoming part of a space where people create, connect,
+                  and grow side by side.
+                </p>
+                <p>
+                  You might be welcoming guests, supporting a workshop, or
+                  simply helping shape the atmosphere — but along the way, you
+                  become part of something real.
+                </p>
               </div>
-              <a className="btn" href="#volunteer-apply">
-                Apply to volunteer
+              <div className="volunteer-highlight-block">
+                {highlightStatements.map(({ text, icon: Icon }) => (
+                  <div className="volunteer-highlight-item" key={text}>
+                    <Icon aria-hidden="true" strokeWidth={1.7} />
+                    <p>{text}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="volunteer-closing-copy">
+                <p>
+                  In return, you gain experience, meet inspiring people, and
+                  become part of an international creative community in the
+                  heart of Copenhagen.
+                </p>
+                <p>
+                  If you feel a spark reading this — it probably means you
+                  belong here.
+                </p>
+                <p>Apply to volunteer and join RORUM.</p>
+              </div>
+              <a id="volunteer-apply" className="btn" href="#volunteer-apply">
+                <span>Apply to volunteer</span>
+                <ArrowRight
+                  className="button-arrow"
+                  aria-hidden="true"
+                  strokeWidth={1.9}
+                />
               </a>
             </div>
             <div className="volunteer-hero-media">
               <Image
-                src="/images/events/meeting.png"
-                alt="Warm community gathering at RORUM"
+                src="/images/events/volunteer-with-us.png"
+                alt="RORUM volunteers welcoming guests and preparing a gathering"
                 fill
                 priority
                 sizes="(max-width: 980px) 100vw, 50vw"
@@ -53,92 +83,6 @@ export default function VolunteerPage() {
           </div>
         </Container>
       </section>
-
-      <section className="section-tight volunteer-story-section">
-        <Container>
-          <div className="volunteer-story">
-            <p>Volunteering here is more than helping at events.</p>
-            <p>
-              It’s becoming part of a space where people create, connect, and
-              grow side by side.
-            </p>
-          </div>
-        </Container>
-      </section>
-
-      <section className="section volunteer-participation-section">
-        <Container>
-          <div className="volunteer-section-intro">
-            <p>
-              You might be welcoming guests, supporting a workshop, or simply
-              helping shape the atmosphere — but along the way, you become part
-              of something real.
-            </p>
-          </div>
-          <div className="volunteer-card-grid">
-            {participationCards.map(({ label, icon: Icon }) => (
-              <article className="volunteer-card" key={label}>
-                <Icon aria-hidden="true" strokeWidth={1.7} />
-                <h2>{label}</h2>
-              </article>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      <section className="section volunteer-atmosphere-section">
-        <Container>
-          <div className="volunteer-atmosphere">
-            <p>A place where people know each other.</p>
-            <p>Support each other.</p>
-            <p>Build something together.</p>
-          </div>
-        </Container>
-      </section>
-
-      <section className="section volunteer-gain-section">
-        <Container>
-          <div className="volunteer-section-intro">
-            <p>
-              In return, you gain experience, meet inspiring people, and become
-              part of an international creative community in the heart of
-              Copenhagen.
-            </p>
-          </div>
-          <div className="volunteer-card-grid">
-            {gainCards.map(({ label, icon: Icon }) => (
-              <article
-                className="volunteer-card volunteer-card-light"
-                key={label}
-              >
-                <Icon aria-hidden="true" strokeWidth={1.7} />
-                <h2>{label}</h2>
-              </article>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      <section className="section-tight volunteer-belonging-section">
-        <Container>
-          <p>
-            If you feel a spark reading this — it probably means you belong
-            here.
-          </p>
-        </Container>
-      </section>
-
-      <section id="volunteer-apply" className="section volunteer-final-section">
-        <Container>
-          <div className="volunteer-final-panel">
-            <p>👉 Apply to volunteer and join RORUM</p>
-            <a className="btn" href="#volunteer-apply">
-              Apply to volunteer
-            </a>
-            <FAQInlinePrompt />
-          </div>
-        </Container>
-      </section>
-    </>
+    </div>
   );
 }

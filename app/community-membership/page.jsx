@@ -9,22 +9,13 @@ import {
   Scale,
 } from "lucide-react";
 import Image from "next/image";
-import { Container, FAQInlinePrompt, SectionLabel } from "@/components/ui";
+import { Container, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/community-membership");
 
 const wecodaFormUrl =
   "https://docs.google.com/forms/d/e/1FAIpQLSeYRUem8RxNrDUDCvaCl2pMJ3fPWCkIJDNVlZ0G4574vrUDpA/viewform?usp=header";
-
-const partnershipTags = [
-  "Women entrepreneurs",
-  "Growth",
-  "Support",
-  "Community",
-];
-
-const ecosystemLabels = ["Business", "Creativity", "Community"];
 
 const membershipWeekMedia = [
   {
@@ -52,11 +43,6 @@ const membershipWeekMedia = [
     type: "video",
     src: "/videos/membership-week/members-week-02.mp4",
     label: "Muted video of members gathering outdoors",
-  },
-  {
-    type: "video",
-    src: "/videos/membership-week/members-week-03.mp4",
-    label: "Muted video from Membership Week",
   },
   {
     type: "image",
@@ -131,31 +117,12 @@ export default function CommunityMembershipPage() {
           <div className="wecoda-hero-grid">
             <div className="wecoda-hero-copy">
               <SectionLabel>Membership and community</SectionLabel>
-              <h1 className="heading">WECODA community</h1>
+              <h1 className="heading">Membership &amp; Community</h1>
               <p>
                 At RORUM, we believe that growth happens in the right
                 environment — through people, shared ideas, and meaningful
                 connections.
               </p>
-              <WecodaCtaLink>Join the WECODA community</WecodaCtaLink>
-            </div>
-            <div className="wecoda-hero-media wecoda-hero-logo-media">
-              <Image
-                src="/images/membership-week/wecoda-logo.jpg"
-                alt="WECODA Women Entrepreneurs Commerce and Development Association logo"
-                fill
-                priority
-                sizes="(max-width: 980px) 100vw, 50vw"
-              />
-            </div>
-          </div>
-        </Container>
-      </section>
-
-      <section className="section wecoda-partnership-section">
-        <Container>
-          <div className="wecoda-partnership-grid">
-            <div className="wecoda-partnership-copy">
               <p>
                 That’s why we collaborate with WECODA (Women Entrepreneurs
                 Commerce &amp; Development Association) — a community for women
@@ -163,24 +130,22 @@ export default function CommunityMembershipPage() {
                 results, and strong support systems.
               </p>
             </div>
-            <aside
-              className="wecoda-partnership-card"
-              aria-label="RORUM and WECODA partnership"
-            >
-              <h2>RORUM × WECODA</h2>
-              <ul>
-                {partnershipTags.map((tag) => (
-                  <li key={tag}>{tag}</li>
-                ))}
-              </ul>
-            </aside>
+            <div className="wecoda-hero-media wecoda-hero-logo-media">
+              <Image
+                src="/images/membership-week/wecoda-logo.jpg"
+                alt="WECODA Women Entrepreneurs Commerce and Development Association logo"
+                width={220}
+                height={191}
+                priority
+              />
+            </div>
           </div>
         </Container>
       </section>
 
-      <section className="section-tight wecoda-statement-section">
+      <section className="section-tight wecoda-network-section">
         <Container>
-          <div className="wecoda-statement">
+          <div className="wecoda-network-block">
             <p>WECODA is more than a network.</p>
             <p>
               It is a space where ideas evolve into partnerships, and
@@ -190,14 +155,17 @@ export default function CommunityMembershipPage() {
         </Container>
       </section>
 
+      <section className="section-tight wecoda-ecosystem-section">
+        <Container>
+          <p>
+            Together, RORUM and WECODA create an ecosystem where business,
+            creativity, and community come together.
+          </p>
+        </Container>
+      </section>
+
       <section className="section wecoda-membership-week-section">
         <Container>
-          <div className="wecoda-section-head wecoda-membership-week-head">
-            <SectionLabel>Membership week</SectionLabel>
-            <h2 className="heading section-title">
-              Moments from our members gathering
-            </h2>
-          </div>
           <div className="wecoda-membership-week-grid">
             {membershipWeekMedia.map((item) => (
               <figure
@@ -225,70 +193,41 @@ export default function CommunityMembershipPage() {
         </Container>
       </section>
 
-      <section className="section wecoda-ecosystem-section">
-        <Container>
-          <div className="wecoda-ecosystem-copy">
-            <p>
-              Together, RORUM and WECODA create an ecosystem where business,
-              creativity, and community come together.
-            </p>
-          </div>
-          <div
-            className="wecoda-ecosystem-graphic"
-            aria-label="RORUM and WECODA ecosystem"
-          >
-            <div className="wecoda-ecosystem-center">RORUM × WECODA</div>
-            {ecosystemLabels.map((label) => (
-              <div className="wecoda-ecosystem-node" key={label}>
-                {label}
-              </div>
-            ))}
-          </div>
-        </Container>
-      </section>
-
       <section className="section wecoda-benefits-section">
         <Container>
-          <div className="wecoda-section-head">
-            <h2 className="heading section-title">
-              What you gain through WECODA:
-            </h2>
-          </div>
+          <h2 className="heading section-title">
+            What you gain through WECODA:
+          </h2>
           <div className="wecoda-benefits-grid">
             {benefits.map(({ text, icon: Icon }) => (
               <article className="wecoda-benefit-card" key={text}>
                 <Icon aria-hidden="true" strokeWidth={1.7} />
-                <p>{text}</p>
+                <p>— {text}</p>
               </article>
             ))}
           </div>
         </Container>
       </section>
 
-      <section className="section-tight wecoda-closing-section">
-        <Container>
-          <p>
-            Most importantly — a sense of clarity, direction, and support on
-            your journey.
-          </p>
-        </Container>
-      </section>
-
       <section className="section wecoda-final-section">
         <Container>
           <div className="wecoda-final-panel">
-            <div>
-              <p className="wecoda-final-label">
-                👉 Join the WECODA community:
-              </p>
+            <p className="wecoda-closing-statement">
+              Most importantly — a sense of clarity, direction, and support on
+              your journey.
+            </p>
+            <div className="wecoda-final-row">
+              <div className="wecoda-final-copy">
+                <p className="wecoda-final-label">
+                  Join the WECODA community:
+                </p>
+                <p className="wecoda-final-note">
+                  Membership is currently free. Terms may be subject to change
+                  in the future.
+                </p>
+              </div>
               <WecodaCtaLink>Join the WECODA community</WecodaCtaLink>
-              <FAQInlinePrompt />
-              <p className="wecoda-final-note">
-                Membership is currently free. Terms may be subject to change in
-                the future.
-              </p>
             </div>
-            <HeartHandshake aria-hidden="true" strokeWidth={1.2} />
           </div>
         </Container>
       </section>

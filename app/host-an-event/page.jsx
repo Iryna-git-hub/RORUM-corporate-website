@@ -106,16 +106,16 @@ export default function HostPage() {
               </p>
             </div>
             <div className="host-hero-actions">
-              <Button href="#event-inquiry">
-                Send event inquiry
+              <Button href="#packages" variant="secondary">
+                See packages
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"
                   strokeWidth={1.9}
                 />
               </Button>
-              <Button href="#packages" variant="secondary">
-                See packages
+              <Button href="#event-inquiry">
+                Send event inquiry
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"

@@ -90,16 +90,16 @@ export default function PrivateMeetingsPage() {
               and during your event.
             </p>
             <div className="hero-actions private-meetings-hero-actions">
-              <Button href="#request-private-meeting">
-                Request private meeting
+              <Button href="#meeting-packages" variant="secondary">
+                Meeting packages
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"
                   strokeWidth={1.9}
                 />
               </Button>
-              <Button href="#meeting-packages" variant="secondary">
-                View meeting packages
+              <Button href="#request-private-meeting">
+                Request private meetings
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"
@@ -168,7 +168,7 @@ export default function PrivateMeetingsPage() {
                   />
                 </Button>
                 <Button href="#meeting-packages" variant="secondary">
-                  View meeting packages
+                  Meeting packages
                   <ArrowRight
                     className="button-arrow"
                     aria-hidden="true"
