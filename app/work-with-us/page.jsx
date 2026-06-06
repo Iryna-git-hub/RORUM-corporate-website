@@ -108,10 +108,7 @@ export default function WorkWithUsPage() {
             <div>
               <p>👉 Send us your CV and let’s stay connected</p>
               <CvUploadButton>Send your CV</CvUploadButton>{" "}
-              <FAQInlinePrompt
-                question="Questions before reaching out?"
-                label="Read FAQ"
-              />{" "}
+              <FAQInlinePrompt />{" "}
             </div>
             <MessageCircle aria-hidden="true" strokeWidth={1.2} />
           </div>

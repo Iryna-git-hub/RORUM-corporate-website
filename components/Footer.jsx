@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Container } from "@/components/ui";
@@ -18,8 +17,8 @@ const serviceLinks = [
 
 const communityLinks = [
   { href: "/membership", label: "WECODA membership" },
-  { href: "/work-with-us", label: "Work with us" },
   { href: "/volunteer-with-us", label: "Volunteer with us" },
+  { href: "/work-with-us", label: "Work with us" },
 ];
 
 const companyLinks = [
@@ -53,13 +52,7 @@ export function Footer() {
       <Container>
         <div className="footer-main">
           <div className="footer-brand">
-            <Image
-              className="footer-logo"
-              src="/logos/rorum-creative-event-space.png"
-              alt="RORUM Creative & Event Space"
-              width={264}
-              height={58}
-            />
+            <span className="footer-brand-heading">Contact details</span>
             <div className="footer-contact-stack">
               <p>
                 <span className="footer-contact-icon" aria-hidden="true">

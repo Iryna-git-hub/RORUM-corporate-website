@@ -54,6 +54,11 @@ const membershipWeekMedia = [
     label: "Muted video of members gathering outdoors",
   },
   {
+    type: "video",
+    src: "/videos/membership-week/members-week-03.mp4",
+    label: "Muted video from Membership Week",
+  },
+  {
     type: "image",
     src: "/images/membership-week/members-long-table.jpg",
     alt: "WECODA members seated at a long outdoor table",
@@ -277,10 +282,7 @@ export default function CommunityMembershipPage() {
                 👉 Join the WECODA community:
               </p>
               <WecodaCtaLink>Join the WECODA community</WecodaCtaLink>
-              <FAQInlinePrompt
-                question="Questions about membership or participation?"
-                label="Read FAQ"
-              />
+              <FAQInlinePrompt />
               <p className="wecoda-final-note">
                 Membership is currently free. Terms may be subject to change in
                 the future.

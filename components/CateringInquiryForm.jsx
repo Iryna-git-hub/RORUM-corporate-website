@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { PrivacyConsent, validatePrivacyConsent } from "@/components/PrivacyConsent";
+import {
+  PrivacyConsent,
+  validatePrivacyConsent,
+} from "@/components/PrivacyConsent";
 
 const requiredFields = [
   ["name", "Full name"],
@@ -56,14 +59,18 @@ export function CateringInquiryForm() {
   }
 
   return (
-    <form className="form catering-form card card-pad" onSubmit={onSubmit} noValidate>
+    <form
+      className="form catering-form card card-pad"
+      onSubmit={onSubmit}
+      noValidate
+    >
       <div className="form-heading">
         <h2 className="heading form-title">Request catering</h2>
-        <p>Tell us a little about your event and we&apos;ll get back to you with a suitable catering option.</p>
       </div>
       {sent ? (
         <div className="success" role="status">
-          Thank you. We&apos;ve received your catering request and will contact you soon.
+          Thank you. We&apos;ve received your catering request and will contact
+          you soon.
         </div>
       ) : null}
 
@@ -116,7 +123,9 @@ export function CateringInquiryForm() {
             name="eventDate"
             type="date"
             aria-invalid={Boolean(errors.eventDate)}
-            aria-describedby={errors.eventDate ? "catering-date-error" : undefined}
+            aria-describedby={
+              errors.eventDate ? "catering-date-error" : undefined
+            }
           />
           <FieldError id="catering-date-error" message={errors.eventDate} />
         </label>
@@ -130,7 +139,9 @@ export function CateringInquiryForm() {
           rows={5}
           placeholder="Describe your event, timing and catering wishes."
           aria-invalid={Boolean(errors.message)}
-          aria-describedby={errors.message ? "catering-message-error" : undefined}
+          aria-describedby={
+            errors.message ? "catering-message-error" : undefined
+          }
         />
         <FieldError id="catering-message-error" message={errors.message} />
       </label>
@@ -140,7 +151,9 @@ export function CateringInquiryForm() {
       <button className="btn" type="submit">
         Request Catering
       </button>
-      <p className="form-microcopy">We&apos;ll only use your details to respond to your catering request.</p>
+      <p className="form-microcopy">
+        We&apos;ll only use your details to respond to your catering request.
+      </p>
     </form>
   );
 }

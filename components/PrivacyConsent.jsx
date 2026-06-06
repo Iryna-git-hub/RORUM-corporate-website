@@ -1,7 +1,7 @@
 export function validatePrivacyConsent(formData) {
   return formData.get("privacyConsent") === "on"
     ? ""
-    : "Please agree to the Privacy Policy before submitting.";
+    : "Please agree to the Privacy policy before submitting.";
 }
 
 export function PrivacyConsent({ error, id = "privacy-consent" }) {
@@ -19,7 +19,7 @@ export function PrivacyConsent({ error, id = "privacy-consent" }) {
         <span>
           I agree to the{" "}
           <a href="/privacy-policy" target="_blank" rel="noreferrer">
-            Privacy Policy
+            Privacy policy
           </a>
           .
         </span>

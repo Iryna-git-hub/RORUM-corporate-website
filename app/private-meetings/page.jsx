@@ -209,7 +209,7 @@ export default function PrivateMeetingsPage() {
           >
             <div className="private-meeting-request-copy">
               <SectionLabel>How it works</SectionLabel>
-              <h2 className="heading section-title">3 steps setup</h2>
+              <h2 className="heading section-title">3-step setup</h2>
               <div
                 className="catering-steps"
                 aria-label="Private meeting request process"
@@ -224,15 +224,11 @@ export default function PrivateMeetingsPage() {
                   </article>
                 ))}
               </div>
-              <FAQInlinePrompt
-                question="Frequently asked questions"
-                label="Read frequently asked questions"
-              />
+              <FAQInlinePrompt />
             </div>
             <InquiryForm
               type="booking"
               title="Private meeting request"
-              intro="If you would like to plan a session with us, feel free to get in touch. We will help you find the right format for your needs."
               submitLabel="Send request"
             />
           </div>

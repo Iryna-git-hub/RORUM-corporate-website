@@ -11,13 +11,10 @@ import { Button, Container } from "@/components/ui";
 
 export function Header() {
     const pathname = usePathname();
-    const isHome = pathname === "/";
-    const usesDarkHeroHeader = isHome;
     const [hidden, setHidden] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [openDropdown, setOpenDropdown] = useState(null);
     const [openMobileDropdown, setOpenMobileDropdown] = useState(null);
-    const [overDarkSection, setOverDarkSection] = useState(false);
     useEffect(() => {
         let lastY = window.scrollY;
         const onScroll = () => {
@@ -29,33 +26,11 @@ export function Header() {
         return () => window.removeEventListener("scroll", onScroll);
     }, [menuOpen]);
     useEffect(() => {
-        if (!usesDarkHeroHeader) {
-            return;
-        }
-        const onScroll = () => {
-            const darkSections = document.querySelectorAll(".home-hero-full, .community-section, .next-step-section-final");
-            const headerHeight = document.querySelector(".header")?.offsetHeight ?? 0;
-            const sampleY = Math.max(1, Math.round(headerHeight / 2));
-            setOverDarkSection(Array.from(darkSections).some((section) => {
-                const rect = section.getBoundingClientRect();
-                return rect.top <= sampleY && rect.bottom >= sampleY;
-            }));
-        };
-        onScroll();
-        window.addEventListener("scroll", onScroll, { passive: true });
-        window.addEventListener("resize", onScroll);
-        return () => {
-            window.removeEventListener("scroll", onScroll);
-            window.removeEventListener("resize", onScroll);
-        };
-    }, [isHome, usesDarkHeroHeader]);
-    useEffect(() => {
         document.body.style.overflow = menuOpen ? "hidden" : "";
         return () => {
             document.body.style.overflow = "";
         };
     }, [menuOpen]);
-    const darkHeroScrolled = usesDarkHeroHeader && !overDarkSection;
     const logoSrc = "/logos/rorum-creative-event-space.png";
     function closeMenus() {
         setMenuOpen(false);
@@ -68,7 +43,7 @@ export function Header() {
         if (item.href === "/") return pathname === "/";
         return pathname === item.href || pathname.startsWith(`${item.href}/`) || Boolean(item.children?.some((child) => pathname === child.href || pathname.startsWith(`${child.href}/`)));
     }
-    return (<header className={`header ${usesDarkHeroHeader ? "header-home" : ""} ${darkHeroScrolled ? "header-home-scrolled" : ""} ${hidden ? "header-hidden" : ""} ${menuOpen ? "mobile-menu-open" : ""}`}>
+    return (<header className={`header ${hidden ? "header-hidden" : ""} ${menuOpen ? "mobile-menu-open" : ""}`}>
       <Container>
         <div className="header-inner">
           <Link className="brand" href="/" onClick={closeMenus}>
@@ -122,9 +97,11 @@ export function Header() {
           </button>
         </div>
         <nav className="mobile-panel-nav">
-          <Link className={pathname === "/" ? "mobile-nav-parent mobile-nav-home mobile-nav-child-active" : "mobile-nav-parent mobile-nav-home"} href="/" aria-current={pathname === "/" ? "page" : undefined} onClick={closeMenus}>
-            <span>Home</span>
-          </Link>
+          <div className="mobile-nav-group">
+            <Link className="mobile-nav-parent mobile-nav-home" href="/" aria-current={pathname === "/" ? "page" : undefined} onClick={closeMenus}>
+              <span>Home</span>
+            </Link>
+          </div>
           {navItems.map((item) => {
             const active = isActiveItem(item);
             const isOpen = openMobileDropdown === item.label;

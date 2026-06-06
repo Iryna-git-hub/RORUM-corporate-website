@@ -143,11 +143,7 @@ export default function HostPage() {
       <Section tight>
         <Container>
           <div id="packages" className="host-section-anchor">
-            <SectionHeader
-              label="Packages"
-              title="Choose your event package"
-              text="Simple packages for one-time workshops, recurring sessions and deeper weekend gathering."
-            />
+            <SectionHeader label="Packages" title="Choose your event package" />
           </div>
           <div className="host-package-grid">
             {eventPackages.map((item) => (
@@ -201,7 +197,7 @@ export default function HostPage() {
           <div id="event-inquiry" className="host-form-wrap">
             <div className="host-form-aside">
               <SectionLabel>How it works</SectionLabel>
-              <h2 className="heading section-title">Three-step setup</h2>
+              <h2 className="heading section-title">3-step setup</h2>
               <div
                 className="catering-steps"
                 aria-label="Event request process"
@@ -216,10 +212,7 @@ export default function HostPage() {
                   </article>
                 ))}
               </div>
-              <FAQInlinePrompt
-                question="Questions about packages, timing or setup?"
-                label="Read FAQ"
-              />
+              <FAQInlinePrompt />
             </div>
             <HostEventInquiryForm />
           </div>

@@ -1,21 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PrivacyConsent, validatePrivacyConsent } from "@/components/PrivacyConsent";
+import {
+  PrivacyConsent,
+  validatePrivacyConsent,
+} from "@/components/PrivacyConsent";
 
 const bookingPackageOptions = [
-  "Morning Session",
-  "Afternoon Session",
-  "Full Day Session",
+  "Morning session",
+  "Afternoon session",
+  "Full day session",
   "Not sure yet",
 ];
 
-const bookingServiceOptions = [
-  "Breakfast",
-  "Snacks",
-  "Lunch",
-  "Coffee setup",
-];
+const bookingServiceOptions = ["Breakfast", "Snacks", "Lunch", "Coffee setup"];
 
 function validateField(name, value, label) {
   const stringValue = String(value ?? "");
@@ -28,7 +26,8 @@ function validateField(name, value, label) {
 
 function getInitialPackage(options = []) {
   if (typeof window === "undefined") return "";
-  const packageName = new URLSearchParams(window.location.search).get("package") ?? "";
+  const packageName =
+    new URLSearchParams(window.location.search).get("package") ?? "";
   return options.includes(packageName) ? packageName : "";
 }
 
@@ -56,7 +55,10 @@ export function InquiryForm({
     if (!isBooking || typeof window === "undefined") return undefined;
     const packageName = getInitialPackage(bookingPackageOptions);
     if (!packageName) return undefined;
-    const timeoutId = window.setTimeout(() => setSelectedPackage(packageName), 0);
+    const timeoutId = window.setTimeout(
+      () => setSelectedPackage(packageName),
+      0,
+    );
     return () => window.clearTimeout(timeoutId);
   }, [isBooking]);
 
@@ -144,7 +146,9 @@ export function InquiryForm({
               autoComplete="tel"
               placeholder="+45 12 34 56 78"
               aria-invalid={Boolean(errors.phone)}
-              aria-describedby={errors.phone ? "booking-phone-error" : undefined}
+              aria-describedby={
+                errors.phone ? "booking-phone-error" : undefined
+              }
             />
             <FieldError id="booking-phone-error" message={errors.phone} />
           </label>
@@ -157,7 +161,9 @@ export function InquiryForm({
               autoComplete="email"
               placeholder="you@example.com"
               aria-invalid={Boolean(errors.email)}
-              aria-describedby={errors.email ? "booking-email-error" : undefined}
+              aria-describedby={
+                errors.email ? "booking-email-error" : undefined
+              }
             />
             <FieldError id="booking-email-error" message={errors.email} />
           </label>
@@ -172,10 +178,12 @@ export function InquiryForm({
               value={selectedPackage}
               onChange={(event) => setSelectedPackage(event.target.value)}
               aria-invalid={Boolean(errors.package)}
-              aria-describedby={errors.package ? "booking-package-error" : undefined}
+              aria-describedby={
+                errors.package ? "booking-package-error" : undefined
+              }
             >
               <option value="" disabled>
-                Select Package
+                Select package
               </option>
               {bookingPackageOptions.map((option) => (
                 <option key={option}>{option}</option>
@@ -190,7 +198,9 @@ export function InquiryForm({
               name="eventDate"
               type="date"
               aria-invalid={Boolean(errors.eventDate)}
-              aria-describedby={errors.eventDate ? "booking-date-error" : undefined}
+              aria-describedby={
+                errors.eventDate ? "booking-date-error" : undefined
+              }
             />
             <FieldError id="booking-date-error" message={errors.eventDate} />
           </label>
@@ -204,7 +214,9 @@ export function InquiryForm({
               name="eventTime"
               type="time"
               aria-invalid={Boolean(errors.eventTime)}
-              aria-describedby={errors.eventTime ? "booking-time-error" : undefined}
+              aria-describedby={
+                errors.eventTime ? "booking-time-error" : undefined
+              }
             />
             <FieldError id="booking-time-error" message={errors.eventTime} />
           </label>
@@ -219,7 +231,9 @@ export function InquiryForm({
               inputMode="numeric"
               placeholder="Approx. number"
               aria-invalid={Boolean(errors.guests)}
-              aria-describedby={errors.guests ? "booking-guests-error" : undefined}
+              aria-describedby={
+                errors.guests ? "booking-guests-error" : undefined
+              }
             />
             <FieldError id="booking-guests-error" message={errors.guests} />
           </label>
@@ -229,7 +243,11 @@ export function InquiryForm({
           <legend>Additional services</legend>
           {bookingServiceOptions.map((service) => (
             <label key={service}>
-              <input name="additionalServices" type="checkbox" value={service} />
+              <input
+                name="additionalServices"
+                type="checkbox"
+                value={service}
+              />
               <span>{service}</span>
             </label>
           ))}
@@ -243,7 +261,9 @@ export function InquiryForm({
             rows={5}
             placeholder="Tell us about your meeting format, timing and preferences."
             aria-invalid={Boolean(errors.message)}
-            aria-describedby={errors.message ? "booking-message-error" : undefined}
+            aria-describedby={
+              errors.message ? "booking-message-error" : undefined
+            }
           />
           <FieldError id="booking-message-error" message={errors.message} />
         </label>
@@ -318,7 +338,9 @@ export function InquiryForm({
             name="eventDate"
             type="date"
             aria-invalid={Boolean(errors.eventDate)}
-            aria-describedby={errors.eventDate ? `${type}-date-error` : undefined}
+            aria-describedby={
+              errors.eventDate ? `${type}-date-error` : undefined
+            }
           />
           <FieldError id={`${type}-date-error`} message={errors.eventDate} />
         </label>
@@ -336,7 +358,9 @@ export function InquiryForm({
               : "Tell us a little about your request."
           }
           aria-invalid={Boolean(errors.message)}
-          aria-describedby={errors.message ? `${type}-message-error` : undefined}
+          aria-describedby={
+            errors.message ? `${type}-message-error` : undefined
+          }
         />
         <FieldError id={`${type}-message-error`} message={errors.message} />
       </label>

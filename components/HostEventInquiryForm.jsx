@@ -93,10 +93,6 @@ export function HostEventInquiryForm() {
     >
       <div className="form-heading">
         <h2 className="heading form-title">Tell us about your event</h2>
-        <p>
-          Choose a package and share your contact details. We&apos;ll get back
-          to you soon.
-        </p>
       </div>
       {sent ? (
         <div className="success" role="status">

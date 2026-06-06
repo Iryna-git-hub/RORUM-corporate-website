@@ -164,16 +164,12 @@ export function HomeHero({
   );
 }
 
-export function FAQInlinePrompt({
-  question = "Have questions?",
-  label = "Read FAQ",
-  href = "/faq",
-}) {
+export function FAQInlinePrompt({ href = "/faq" }) {
   return (
     <p className="faq-inline-prompt">
-      <span>{question}</span>
+      <span>Questions?</span>
       <Link className="faq-inline-prompt-link" href={href}>
-        {label}
+        <span>Read our FAQs</span>
         <ArrowRight
           className="button-arrow"
           aria-hidden="true"

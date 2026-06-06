@@ -201,6 +201,7 @@ export default function DecorationPage() {
                 strokeWidth={1.9}
               />
             </Button>
+            <FAQInlinePrompt />
           </div>
         </Container>
       </Section>
@@ -222,10 +223,6 @@ export default function DecorationPage() {
                   </article>
                 ))}
               </div>
-              <FAQInlinePrompt
-                question="Questions about styling, flowers or setup?"
-                label="Read FAQ"
-              />
             </div>
             <InquiryForm
               type="decoration"

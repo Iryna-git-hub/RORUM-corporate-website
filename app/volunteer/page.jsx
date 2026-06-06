@@ -135,10 +135,7 @@ export default function VolunteerPage() {
             <a className="btn" href="#volunteer-apply">
               Apply to volunteer
             </a>
-            <FAQInlinePrompt
-              question="Questions about volunteering at RORUM?"
-              label="Read FAQ"
-            />
+            <FAQInlinePrompt />
           </div>
         </Container>
       </section>
