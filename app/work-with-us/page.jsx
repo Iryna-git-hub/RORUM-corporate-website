@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { FileText, Handshake, Lightbulb, MessageCircle } from "lucide-react";
 import { CvUploadButton } from "@/components/CvUploadModal";
-import { Container, SectionLabel } from "@/components/ui";
+import { Container, FAQInlinePrompt, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/work-with-us");
@@ -29,8 +29,7 @@ export default function WorkWithUsPage() {
                   A conversation at an event.
                   <br />
                   A shared idea.
-                  <br />
-                  A person you meet at the right moment.
+                  <br />A person you meet at the right moment.
                 </p>
               </div>
               <CvUploadButton>Send your CV</CvUploadButton>
@@ -64,8 +63,8 @@ export default function WorkWithUsPage() {
           <div className="work-alignment-grid">
             <div className="work-alignment-copy">
               <p>
-                If you feel aligned with what we create, you can send us your
-                CV and tell us a bit about yourself.
+                If you feel aligned with what we create, you can send us your CV
+                and tell us a bit about yourself.
               </p>
             </div>
             <aside
@@ -108,7 +107,11 @@ export default function WorkWithUsPage() {
           <div className="work-final-panel">
             <div>
               <p>👉 Send us your CV and let’s stay connected</p>
-              <CvUploadButton>Send your CV</CvUploadButton>
+              <CvUploadButton>Send your CV</CvUploadButton>{" "}
+              <FAQInlinePrompt
+                question="Questions before reaching out?"
+                label="Read FAQ"
+              />{" "}
             </div>
             <MessageCircle aria-hidden="true" strokeWidth={1.2} />
           </div>

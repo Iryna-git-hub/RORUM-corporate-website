@@ -7,19 +7,19 @@ import { contactDetails, socialLinks } from "@/lib/siteConfig";
 
 const visitHostLinks = [
   { href: "/events", label: "Events" },
-  { href: "/host-an-event", label: "Host an Event" },
-  { href: "/private-meetings", label: "Private Meetings" },
+  { href: "/host-an-event", label: "Host an event" },
+  { href: "/private-meetings", label: "Private meetings" },
 ];
 
 const serviceLinks = [
   { href: "/catering", label: "Catering" },
-  { href: "/event-decoration", label: "Event Decoration" },
+  { href: "/event-decoration", label: "Event decoration" },
 ];
 
 const communityLinks = [
-  { href: "/membership", label: "WECODA Membership" },
-  { href: "/work-with-us", label: "Work With Us" },
-  { href: "/volunteer-with-us", label: "Volunteer With Us" },
+  { href: "/membership", label: "WECODA membership" },
+  { href: "/work-with-us", label: "Work with us" },
+  { href: "/volunteer-with-us", label: "Volunteer with us" },
 ];
 
 const companyLinks = [
@@ -29,9 +29,9 @@ const companyLinks = [
 ];
 
 const legalLinks = [
-  { href: "/terms", label: "Terms and Conditions" },
-  { href: "/privacy-policy", label: "Privacy Policy" },
-  { href: "/cookie-policy", label: "Cookie Policy" },
+  { href: "/terms", label: "Terms and conditions" },
+  { href: "/privacy-policy", label: "Privacy policy" },
+  { href: "/cookie-policy", label: "Cookie policy" },
 ];
 
 function FooterLinkColumn({ title, links }) {
@@ -100,7 +100,7 @@ export function Footer() {
           </div>
 
           <div className="footer-columns">
-            <FooterLinkColumn title="Visit & Host" links={visitHostLinks} />
+            <FooterLinkColumn title="Visit & host" links={visitHostLinks} />
             <FooterLinkColumn title="Services" links={serviceLinks} />
             <FooterLinkColumn title="Community" links={communityLinks} />
             <FooterLinkColumn title="Company" links={companyLinks} />
@@ -108,7 +108,7 @@ export function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <span>© 2026 RORUM. All Rights Reserved.</span>
+          <span>© 2026 RORUM. All rights reserved.</span>
           <nav className="footer-legal" aria-label="Legal links">
             {legalLinks.map((link) => (
               <Link key={link.href} href={link.href}>

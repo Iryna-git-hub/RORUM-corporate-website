@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function CookiePolicyPage() {
     return (
-      <LegalPage title="Cookie Policy" subtitle="How RORUM may use cookies and similar technologies.">
+      <LegalPage title="Cookie policy" subtitle="How RORUM may use cookies and similar technologies.">
             <h2>1. Company details</h2>
             <p><strong>{companyDetails.name}</strong><br/>Address: {contactDetails.shortAddress}<br/>CVR: {companyDetails.cvr}<br/>Contact: <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a><br/>Website: {companyDetails.website}</p>
 

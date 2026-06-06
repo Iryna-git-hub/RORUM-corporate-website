@@ -111,7 +111,7 @@ const heroLinks = [
 ];
 
 const communityLinks = [
-  { href: "/membership", label: "WECODA Membership", icon: Users },
+  { href: "/membership", label: "WECODA membership", icon: Users },
   { href: "/work-with-us", label: "Work with us", icon: Handshake },
   { href: "/volunteer-with-us", label: "Volunteer with us", icon: HandHeart },
 ];
@@ -334,14 +334,16 @@ export default function AboutPage() {
         title="Let's shape your idea together"
         text="Whether you are planning a workshop, private session, community gathering, catering request or event styling idea — tell us what you have in mind, and we'll help you find the right format."
         href="/contact"
-        label="Let's Talk"
+        label="Let's talk"
+        faqQuestion="Still have practical questions?"
+        faqLabel="Read FAQ"
         links={[
-          { href: "/host-an-event", label: "Host an Event" },
-          { href: "/private-meetings", label: "Private Meetings" },
+          { href: "/host-an-event", label: "Host an event" },
+          { href: "/private-meetings", label: "Private meetings" },
           { href: "/catering", label: "Catering" },
           {
             href: "/space-decoration-event-styling",
-            label: "Event Decoration",
+            label: "Event decoration",
           },
         ]}
       />

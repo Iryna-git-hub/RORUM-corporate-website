@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function PrivacyPage() {
     return (
-      <LegalPage title="Privacy Policy" subtitle="How RORUM handles personal information submitted through this website.">
+      <LegalPage title="Privacy policy" subtitle="How RORUM handles personal information submitted through this website.">
             <h2>1. Company details</h2>
             <p>RORUM is a Copenhagen-based business connected to events, private meetings, catering, event decoration and community experiences.</p>
             <p><strong>{companyDetails.name}</strong><br/>Address: {contactDetails.shortAddress}<br/>CVR: {companyDetails.cvr}<br/>Contact: <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a><br/>Website: {companyDetails.website}</p>

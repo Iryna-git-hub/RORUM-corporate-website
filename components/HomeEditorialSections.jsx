@@ -71,7 +71,7 @@ export function ServicesTeaserSection({ services }) {
 
 export function CommunityTeaserSection() {
     const links = [
-        { href: "/community-membership", label: "WECODA Membership" },
+        { href: "/community-membership", label: "WECODA membership" },
         { href: "/work-with-us", label: "Work with us" },
         { href: "/volunteer", label: "Volunteer with us" }
     ];

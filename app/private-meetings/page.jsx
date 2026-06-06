@@ -4,7 +4,7 @@ import { HorizontalGallery } from "@/components/HorizontalGallery";
 import {
   Button,
   Container,
-  FAQHelpStrip,
+  FAQInlinePrompt,
   SectionHeader,
   SectionLabel,
 } from "@/components/ui";
@@ -59,13 +59,27 @@ export default function PrivateMeetingsPage() {
     ["Catering", ChefHat],
     ["Customized food options", SlidersHorizontal],
   ];
+  const meetingSetupSteps = [
+    [
+      "Share your meeting plan",
+      "Tell us the format, guest count, timing and what kind of atmosphere you need.",
+    ],
+    [
+      "We prepare the room",
+      "We align tables, chairs, screen, Wi-Fi and simple hosting details before you arrive.",
+    ],
+    [
+      "Arrive and focus",
+      "The space is ready for your meeting, workshop or private session with on-site support.",
+    ],
+  ];
   return (
     <>
       <section className="book-space-hero private-meetings-hero">
         <Container>
           <div className="book-space-hero-copy">
             <SectionLabel>Private meetings</SectionLabel>
-            <h1 className="heading">Meetings &amp; Private Events</h1>
+            <h1 className="heading">Meetings &amp; private events</h1>
             <p>
               RORUM is a small, curated space in central Copenhagen, designed
               for meetings, workshops, and private events for up to 12 guests.
@@ -77,7 +91,7 @@ export default function PrivateMeetingsPage() {
             </p>
             <div className="hero-actions private-meetings-hero-actions">
               <Button href="#request-private-meeting">
-                Request Private Meeting
+                Request private meeting
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"
@@ -85,7 +99,7 @@ export default function PrivateMeetingsPage() {
                 />
               </Button>
               <Button href="#meeting-packages" variant="secondary">
-                View Meeting Packages
+                View meeting packages
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"
@@ -131,7 +145,7 @@ export default function PrivateMeetingsPage() {
                 </div>
               </div>
               <div className="meeting-session-optional-group">
-                <h3 className="meeting-session-optional-title">OPTIONAL</h3>
+                <h3 className="meeting-session-optional-title">Optional</h3>
                 <div className="meeting-session-optional-list">
                   {optionalItems.map(([item, Icon]) => (
                     <div
@@ -146,7 +160,7 @@ export default function PrivateMeetingsPage() {
               </div>
               <div className="meeting-session-cta">
                 <Button href="#request-private-meeting">
-                  Request Private Meeting
+                  Request private meeting
                   <ArrowRight
                     className="button-arrow"
                     aria-hidden="true"
@@ -154,7 +168,7 @@ export default function PrivateMeetingsPage() {
                   />
                 </Button>
                 <Button href="#meeting-packages" variant="secondary">
-                  View Meeting Packages
+                  View meeting packages
                   <ArrowRight
                     className="button-arrow"
                     aria-hidden="true"
@@ -171,14 +185,14 @@ export default function PrivateMeetingsPage() {
         className="section-tight private-meeting-packages-section"
       >
         <Container>
-          <SectionHeader label="Packages" title="Meeting Packages" level={3} />
+          <SectionHeader label="Packages" title="Meeting packages" level={3} />
           <PackageGrid
             items={packages.booking}
             ctaHref="#request-private-meeting"
-            ctaLabel="Select Package"
+            ctaLabel="Select package"
           />
           <div className="meeting-cancellation-policy">
-            <p className="meeting-cancellation-title">Cancellation Policy:</p>
+            <p className="meeting-cancellation-title">Cancellation policy:</p>
             <ul>
               <li>Free cancellation up to 5 working days before</li>
               <li>50% charge if cancelled within 24 hours before the event</li>
@@ -187,10 +201,6 @@ export default function PrivateMeetingsPage() {
           </div>
         </Container>
       </section>
-      <FAQHelpStrip
-        title="Questions before booking a meeting?"
-        text="Check practical answers about capacity, included setup, cancellation and optional catering before you request a private meeting."
-      />
       <section className="section form-section">
         <Container>
           <div
@@ -198,21 +208,32 @@ export default function PrivateMeetingsPage() {
             className="split private-meeting-request"
           >
             <div className="private-meeting-request-copy">
-              <SectionLabel>Formal private meeting request</SectionLabel>
-              <h2 className="heading section-title">
-                Plan your session with us
-              </h2>
-              <p>
-                If you would like to plan a session with us, feel free to get in
-                touch.
-              </p>
-              <p>We will help you find the right format for your needs.</p>
+              <SectionLabel>How it works</SectionLabel>
+              <h2 className="heading section-title">3 steps setup</h2>
+              <div
+                className="catering-steps"
+                aria-label="Private meeting request process"
+              >
+                {meetingSetupSteps.map(([title, text], index) => (
+                  <article className="catering-step" key={title}>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <div>
+                      <h3>{title}</h3>
+                      <p>{text}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <FAQInlinePrompt
+                question="Frequently asked questions"
+                label="Read frequently asked questions"
+              />
             </div>
             <InquiryForm
               type="booking"
-              title="Private Meeting Request"
+              title="Private meeting request"
               intro="If you would like to plan a session with us, feel free to get in touch. We will help you find the right format for your needs."
-              submitLabel="Send Request"
+              submitLabel="Send request"
             />
           </div>
         </Container>

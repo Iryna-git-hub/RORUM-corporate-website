@@ -22,7 +22,12 @@ import {
 import { CateringInquiryForm } from "@/components/CateringInquiryForm";
 import { CateringMenuButton } from "@/components/CateringMenuOverlay";
 import { HorizontalGallery } from "@/components/HorizontalGallery";
-import { Button, Container, FAQHelpStrip, SectionLabel } from "@/components/ui";
+import {
+  Button,
+  Container,
+  FAQInlinePrompt,
+  SectionLabel,
+} from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/catering");
@@ -63,32 +68,32 @@ const galleryImages = [
 
 const formats = [
   {
-    title: "Ukrainian Cuisine",
+    title: "Ukrainian cuisine",
     text: "Traditional Ukrainian cuisine in harmony with modern European gastronomy, created with attention to taste, presentation and detail.",
     icon: ChefHat,
   },
   {
-    title: "Finger Food & Buffet",
+    title: "Finger food & buffet",
     text: "Elegant small bites, light buffet solutions and beautifully served dishes for receptions, celebrations and business events.",
     icon: HandPlatter,
   },
   {
-    title: "Individual Menu",
+    title: "Individual menu",
     text: "Each menu is tailored to your event format, number of guests, preferences and desired atmosphere.",
     icon: ClipboardList,
   },
   {
-    title: "On-site Cooking",
+    title: "On-site cooking",
     text: "If needed, we can organize cooking directly at your location for a fresh, seamless and memorable experience.",
     icon: CookingPot,
   },
   {
-    title: "Full Event Support",
+    title: "Full event support",
     text: "Our professional team can support the event with preparation, serving and attentive service throughout the occasion.",
     icon: ConciergeBell,
   },
   {
-    title: "Grill Parties",
+    title: "Grill parties",
     text: "Lively grill experiences for warm, informal gatherings where food, conversation and atmosphere come together.",
     icon: Flame,
   },
@@ -143,10 +148,10 @@ export default function CateringPage() {
                   requestTargetId="catering-inquiry"
                   variant="secondary"
                 >
-                  Menu Examples
+                  Menu examples
                 </CateringMenuButton>
                 <Button href="#catering-inquiry">
-                  Request Catering
+                  Request catering
                   <ArrowRight
                     className="button-arrow"
                     aria-hidden="true"
@@ -191,7 +196,7 @@ export default function CateringPage() {
             </div>
             <div className="catering-intro catering-offer-intro-copy">
               <SectionLabel>Catering</SectionLabel>
-              <h2 className="heading section-title">What We Offer</h2>
+              <h2 className="heading section-title">What we offer</h2>
               <p className="catering-philosophy-lead">
                 Catering shaped around your event, your guests and your
                 atmosphere.
@@ -232,25 +237,24 @@ export default function CateringPage() {
                 requestTargetId="catering-inquiry"
                 variant="secondary"
               >
-                Menu Examples
+                Menu examples
               </CateringMenuButton>
-              <Button href="#catering-inquiry">Request Catering</Button>
+              <Button href="#catering-inquiry">Request catering</Button>
             </div>
+            <FAQInlinePrompt
+              question="Questions about portions, dietary needs or custom menus?"
+              label="Read FAQ"
+            />
           </div>
         </Container>
       </section>
-
-      <FAQHelpStrip
-        title="Questions before requesting catering?"
-        text="Read practical answers about menu planning, guest count, dietary needs and how catering can fit your event."
-      />
 
       <section className="section catering-inquiry-section">
         <Container>
           <div id="catering-inquiry" className="catering-form-wrap">
             <div className="catering-form-aside">
               <SectionLabel>How it works</SectionLabel>
-              <h2 className="heading section-title">3-Step Setup</h2>
+              <h2 className="heading section-title">3-step setup</h2>
               <div className="catering-steps">
                 {steps.map(([title, text], index) => (
                   <article className="catering-step" key={title}>

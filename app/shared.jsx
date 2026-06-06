@@ -4,7 +4,7 @@ import { ArrowRight, CalendarDays, ConciergeBell, Megaphone, Presentation } from
 const quickPathMeta = {
     "/events": {
         icon: CalendarDays,
-        cta: "Explore Events",
+        cta: "Explore events",
         tone: "red"
     },
     "/host-an-event": {
@@ -14,7 +14,7 @@ const quickPathMeta = {
     },
     "/private-meetings": {
         icon: Presentation,
-        cta: "View Formats",
+        cta: "View formats",
         tone: "red"
     },
     "/services": {
@@ -22,7 +22,7 @@ const quickPathMeta = {
         tone: "green",
         links: [
             { href: "/catering", label: "Catering" },
-            { href: "/space-decoration-event-styling", label: "Event Decoration" }
+            { href: "/space-decoration-event-styling", label: "Event decoration" }
         ]
     }
 };

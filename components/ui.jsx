@@ -164,6 +164,26 @@ export function HomeHero({
   );
 }
 
+export function FAQInlinePrompt({
+  question = "Have questions?",
+  label = "Read FAQ",
+  href = "/faq",
+}) {
+  return (
+    <p className="faq-inline-prompt">
+      <span>{question}</span>
+      <Link className="faq-inline-prompt-link" href={href}>
+        {label}
+        <ArrowRight
+          className="button-arrow"
+          aria-hidden="true"
+          strokeWidth={1.9}
+        />
+      </Link>
+    </p>
+  );
+}
+
 export function CTASection({
   title,
   text,
@@ -174,6 +194,8 @@ export function CTASection({
   variant = "",
   className = "",
   cardClassName = "",
+  faqQuestion = "",
+  faqLabel = "Read FAQ",
 }) {
   const sectionClass =
     `section-tight next-step-section ${variant ? `next-step-section-${variant}` : ""} ${className}`.trim();
@@ -209,6 +231,9 @@ export function CTASection({
               ) : null}
               {label}
             </Button>
+            {faqQuestion ? (
+              <FAQInlinePrompt question={faqQuestion} label={faqLabel} />
+            ) : null}
           </div>
         </Card>
       </Container>
@@ -224,7 +249,9 @@ export function FAQHelpStrip({
   className = "",
 }) {
   return (
-    <section className={`section-tight faq-help-strip-section ${className}`.trim()}>
+    <section
+      className={`section-tight faq-help-strip-section ${className}`.trim()}
+    >
       <Container>
         <div className="faq-help-strip">
           <div className="faq-help-icon" aria-hidden="true">

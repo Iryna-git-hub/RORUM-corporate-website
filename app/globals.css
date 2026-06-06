@@ -743,7 +743,7 @@ main {
   justify-content: center;
   min-height: 42px;
   width: fit-content;
-  padding: 0 18px;
+  padding: 0 24px;
   border: 1px solid var(--color-primary);
   border-radius: var(--radius-pill);
   background: var(--color-primary);
@@ -1162,16 +1162,18 @@ button.btn,
   margin: 0;
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   color: var(--color-red);
-  font-size: clamp(14px, 1.15vw, 16px);
+  font-size: clamp(1.125rem, 1rem + 1vw, 1.5rem);
   line-height: 1.2;
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  padding-bottom: 0.9375rem;
+  border-bottom: 1px solid var(--color-beige);
 }
 .host-package-price {
   margin: 0;
   color: var(--color-text-heading);
-  font-size: clamp(18px, 1.6vw, 24px);
+  font-size: 1.125rem;
   line-height: 1.2;
   font-weight: 900;
 }
@@ -1181,7 +1183,7 @@ button.btn,
 .host-package-tax {
   margin-left: 5px;
   color: var(--color-text-primary);
-  font-size: 0.72em;
+  font-size: 0.8125rem;
   font-weight: 500;
   line-height: 1;
 }
@@ -3870,6 +3872,40 @@ button.btn,
 }
 .catering-menu-final-actions .btn {
   gap: 8px;
+}
+.catering-menu-faq-prompt {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 10px 0 0;
+  font-size: 13px;
+  /* catering-menu-final has a cream background → muted dark tone */
+  color: rgba(var(--rgb-dark-brown), 0.62);
+  line-height: 1.4;
+}
+.catering-menu-faq-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-red);
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.16s ease;
+}
+.catering-menu-faq-link:hover {
+  opacity: 0.75;
+}
+.catering-menu-faq-link .button-arrow {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  transition: transform 180ms ease;
+}
+.catering-menu-faq-link:hover .button-arrow {
+  transform: translateX(4px);
 }
 
 /* Gallery / lightbox */
@@ -6682,7 +6718,7 @@ button.btn,
   flex: 0 0 auto;
   white-space: nowrap;
   color: var(--color-white);
-  font-size: clamp(18px, 1.6vw, 24px);
+  font-size: 1.125rem;
   line-height: 1.2;
   font-weight: 900;
 }
@@ -6697,7 +6733,7 @@ button.btn,
   white-space: nowrap;
   margin-left: 5px;
   color: rgba(var(--rgb-cream), 0.9);
-  font-size: 0.72em;
+  font-size: 0.8125rem;
   line-height: 1;
   font-weight: 500;
   text-transform: none;
@@ -6707,13 +6743,13 @@ button.btn,
   margin: 0;
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   color: var(--color-cream);
-  font-size: clamp(14px, 2.15vw, 18px);
+  font-size: clamp(1.125rem, 1rem + 1vw, 1.5rem);
   line-height: 1.2;
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   border-bottom: 1px solid rgba(var(--rgb-white), 0.3);
-  padding-bottom: 15px;
+  padding-bottom: 0.9375rem;
 }
 .private-meeting-packages-section .package ul {
   color: var(--color-white);
@@ -6904,7 +6940,7 @@ button.btn,
   transform: translateX(4px);
 }
 .private-meeting-request {
-  align-items: center;
+  align-items: start;
 }
 .private-meeting-request-copy {
   display: grid;
@@ -7321,6 +7357,71 @@ form.card {
 .faq-help-action {
   display: flex;
   justify-content: flex-end;
+}
+
+/* Compact inline FAQ prompt used inside CTA/action blocks */
+.faq-inline-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 0;
+  font-size: 13px;
+  /* default context: light/cream background — text muted dark brown */
+  color: rgba(var(--rgb-dark-brown), 0.62);
+  line-height: 1.4;
+}
+/* Stacked two-line layout when placed inside a CTA action area */
+.next-step-action .faq-inline-prompt {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  justify-self: center;
+}
+.faq-inline-prompt-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  /* default context: light bg — red */
+  color: var(--color-red);
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.16s ease;
+}
+.faq-inline-prompt-link:hover {
+  opacity: 0.75;
+}
+.faq-inline-prompt-link .button-arrow {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  transition: transform 180ms ease;
+}
+.faq-inline-prompt-link:hover .button-arrow {
+  transform: translateX(4px);
+}
+/* Dark-green background contexts: final CTA, wecoda, work panels — gold */
+.next-step-card-final .faq-inline-prompt {
+  color: rgba(var(--rgb-cream), 0.72);
+}
+.next-step-card-final .faq-inline-prompt-link {
+  color: var(--color-gold);
+}
+.wecoda-final-panel .faq-inline-prompt,
+.work-final-panel .faq-inline-prompt {
+  color: rgba(var(--rgb-cream), 0.72);
+}
+.wecoda-final-panel .faq-inline-prompt-link,
+.work-final-panel .faq-inline-prompt-link {
+  color: var(--color-gold);
+}
+/* Neutral standalone variant (alias) — same as default light bg */
+.faq-inline-prompt-neutral {
+  color: rgba(var(--rgb-dark-brown), 0.62);
+}
+.faq-inline-prompt-neutral .faq-inline-prompt-link {
+  color: var(--color-red);
 }
 
 /* Footer */
@@ -9016,7 +9117,7 @@ form.card {
     display: grid;
   }
 
-  /* ── Mobile CTA alignment ─────────────────────────────────────────────── */
+  /* Mobile CTA alignment ─────────────────────────────────────────────── */
 
   /* Catering hero — center buttons */
   .catering-hero-actions {
@@ -9076,6 +9177,16 @@ form.card {
   /* "View Meeting Packages" is the secondary btn — move it before "Request" */
   .meeting-session-cta .secondary {
     order: -1;
+  }
+
+  /* Center inline FAQ prompts on mobile */
+  .faq-inline-prompt {
+    justify-content: center;
+    text-align: center;
+  }
+  .catering-menu-faq-prompt {
+    justify-content: center;
+    text-align: center;
   }
 }
 

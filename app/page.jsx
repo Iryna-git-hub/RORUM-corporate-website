@@ -9,7 +9,6 @@ import {
   Button,
   Container,
   CTASection,
-  FAQHelpStrip,
   HomeHero,
   Section,
   SectionHeader,
@@ -33,13 +32,13 @@ export default function Home() {
       "/images/events/mosaic-variants/events-mosaic-3x4-border.jpg",
     ],
     [
-      "Host an Event",
+      "Host an event",
       "Bring a thoughtful format to the RORUM community.",
       "/host-an-event",
       "/images/events/host-event-workshop-quickpath.png",
     ],
     [
-      "Private Meetings",
+      "Private meetings",
       "Plan a hosted meeting, workshop or private gathering.",
       "/private-meetings",
       "/images/space/space-1.png",
@@ -78,7 +77,7 @@ export default function Home() {
         actions={
           <>
             <Button href="/host-an-event">
-              Host an Event
+              Host an event
               <ArrowRight
                 className="button-arrow"
                 aria-hidden="true"
@@ -86,7 +85,7 @@ export default function Home() {
               />
             </Button>
             <Button href="/events" variant="secondary">
-              Explore Events
+              Explore events
               <ArrowRight
                 className="button-arrow"
                 aria-hidden="true"
@@ -94,7 +93,7 @@ export default function Home() {
               />
             </Button>
             <Button href="/private-meetings" variant="secondary">
-              Private Meetings
+              Private meetings
               <ArrowRight
                 className="button-arrow"
                 aria-hidden="true"
@@ -133,7 +132,7 @@ export default function Home() {
         </Container>
       </Section>
       <EditorialFeatureSection
-        eyebrow="FOR HOSTS & FACILITATORS"
+        eyebrow="For hosts & facilitators"
         title="Host an event at RORUM"
         description="A calm, intimate space in central Copenhagen for workshops, classes, circles, networking events and community gatherings. Designed for facilitators, teachers, creatives and hosts who want to bring people together in a thoughtful setting."
         features={[
@@ -148,7 +147,7 @@ export default function Home() {
         imageAlt="Workshop gathering around a table at RORUM"
       />
       <EditorialFeatureSection
-        eyebrow="PRIVATE & CORPORATE GATHERINGS"
+        eyebrow="Private & corporate gatherings"
         title="Private meetings"
         description="Plan a focused meeting, workshop or private gathering in a hosted space with a warm atmosphere, simple setup and thoughtful support throughout your session. Ideal for teams, founders and intimate groups of up to 12 guests."
         features={[
@@ -157,7 +156,7 @@ export default function Home() {
           "Coffee, tea & water",
           "Optional catering",
         ]}
-        ctaLabel="Plan a Private Meeting"
+        ctaLabel="Plan a private meeting"
         ctaHref="/private-meetings"
         image="/images/events/private-meetings.png"
         imageAlt="Small private meeting in the RORUM room"
@@ -165,25 +164,23 @@ export default function Home() {
       />
       <ServicesTeaserSection services={services} />
       <CommunityTeaserSection />
-      <FAQHelpStrip
-        title="Questions before you choose a format?"
-        text="Find quick answers about events, private meetings, catering, decoration and hosting before you decide where to start."
-      />
       <CTASection
         variant="final"
         className="next-step-section-not-sure"
-        eyebrow="NOT SURE WHERE TO START?"
+        eyebrow="Not sure where to start?"
         title="Let's shape your idea together"
         text="Whether you are planning a workshop, private session, community gathering, catering request or event styling idea — tell us what you have in mind, and we'll help you find the right format."
         href="/contact"
-        label="Let's Talk"
+        label="Let's talk"
+        faqQuestion="Have questions before you choose a format?"
+        faqLabel="Read FAQ"
         links={[
-          { href: "/host-an-event", label: "Host an Event" },
-          { href: "/private-meetings", label: "Private Meetings" },
+          { href: "/host-an-event", label: "Host an event" },
+          { href: "/private-meetings", label: "Private meetings" },
           { href: "/catering", label: "Catering" },
           {
             href: "/space-decoration-event-styling",
-            label: "Event Decoration",
+            label: "Event decoration",
           },
         ]}
       />

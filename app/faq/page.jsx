@@ -7,7 +7,7 @@ export default function FAQPage() {
       <section className="faq-hero">
         <Container>
           <SectionLabel>FAQ</SectionLabel>
-          <h1 className="heading faq-title">Frequently Asked Questions</h1>
+          <h1 className="heading faq-title">Frequently asked questions</h1>
         </Container>
       </section>
       <Section><Container><FAQAccordion /></Container></Section>

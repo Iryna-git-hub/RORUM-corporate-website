@@ -875,6 +875,17 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
                 />
               </button>
             </div>
+            <p className="catering-menu-faq-prompt">
+              <span>Need help choosing a menu?</span>
+              <a href="/faq" className="catering-menu-faq-link">
+                Read FAQ
+                <ArrowRight
+                  className="button-arrow"
+                  aria-hidden="true"
+                  strokeWidth={1.9}
+                />
+              </a>
+            </p>
           </section>
         </main>
       </div>

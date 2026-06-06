@@ -1,11 +1,6 @@
 import { Suspense } from "react";
 import { EventsClientPage } from "@/components/EventsClientPage";
-import {
-  Container,
-  CTASection,
-  FAQHelpStrip,
-  SectionHeader,
-} from "@/components/ui";
+import { Container, CTASection, SectionHeader } from "@/components/ui";
 import { events } from "@/lib/data";
 import { pageMetadata } from "@/lib/seo";
 
@@ -34,10 +29,6 @@ export default function EventsPage() {
           </Suspense>
         </Container>
       </section>
-      <FAQHelpStrip
-        title="Questions before joining an event?"
-        text="Find answers about tickets, language, arrival, waitlists and hosted event formats."
-      />
       <CTASection
         variant="host"
         className="events-next-step-section"
@@ -46,6 +37,8 @@ export default function EventsPage() {
         text="Send a hosting inquiry and we will explore audience, timing and setup together."
         href="/host-an-event"
         label="Host an event"
+        faqQuestion="Questions before joining or hosting an event?"
+        faqLabel="Read FAQ"
       />
     </>
   );

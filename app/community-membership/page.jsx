@@ -9,7 +9,7 @@ import {
   Scale,
 } from "lucide-react";
 import Image from "next/image";
-import { Container, SectionLabel } from "@/components/ui";
+import { Container, FAQInlinePrompt, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/community-membership");
@@ -188,7 +188,7 @@ export default function CommunityMembershipPage() {
       <section className="section wecoda-membership-week-section">
         <Container>
           <div className="wecoda-section-head wecoda-membership-week-head">
-            <SectionLabel>Membership Week</SectionLabel>
+              <SectionLabel>Membership week</SectionLabel>
             <h2 className="heading section-title">
               Moments from our members gathering
             </h2>
@@ -228,7 +228,10 @@ export default function CommunityMembershipPage() {
               creativity, and community come together.
             </p>
           </div>
-          <div className="wecoda-ecosystem-graphic" aria-label="RORUM and WECODA ecosystem">
+          <div
+            className="wecoda-ecosystem-graphic"
+            aria-label="RORUM and WECODA ecosystem"
+          >
             <div className="wecoda-ecosystem-center">RORUM × WECODA</div>
             {ecosystemLabels.map((label) => (
               <div className="wecoda-ecosystem-node" key={label}>
@@ -274,6 +277,10 @@ export default function CommunityMembershipPage() {
                 👉 Join the WECODA community:
               </p>
               <WecodaCtaLink>Join the WECODA community</WecodaCtaLink>
+              <FAQInlinePrompt
+                question="Questions about membership or participation?"
+                label="Read FAQ"
+              />
               <p className="wecoda-final-note">
                 Membership is currently free. Terms may be subject to change in
                 the future.

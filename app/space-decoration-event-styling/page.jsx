@@ -15,7 +15,13 @@ import {
 } from "lucide-react";
 import { HorizontalGallery } from "@/components/HorizontalGallery";
 import { InquiryForm } from "@/components/InquiryForm";
-import { Button, Container, FAQHelpStrip, Section, SectionLabel } from "@/components/ui";
+import {
+  Button,
+  Container,
+  FAQInlinePrompt,
+  Section,
+  SectionLabel,
+} from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/space-decoration-event-styling");
@@ -39,7 +45,7 @@ const galleryImages = [
 
 const decorationFormats = [
   {
-    title: "Table Styling",
+    title: "Table styling",
     text: "Elegant table setups with flowers, candles, place details and carefully selected visual accents.",
     icon: UtensilsCrossed,
   },
@@ -49,17 +55,17 @@ const decorationFormats = [
     icon: Flower,
   },
   {
-    title: "Balloon Accents",
+    title: "Balloon accents",
     text: "Soft and elegant balloon decor for entrances, celebration corners, photo zones and backdrops.",
     icon: Balloon,
   },
   {
-    title: "Atmosphere Details",
+    title: "Atmosphere details",
     text: "Candles, textures, fabrics, signs and decorative objects that make the space feel warm and complete.",
     icon: Flame,
   },
   {
-    title: "Personal Touches",
+    title: "Personal touches",
     text: "Custom details for birthdays, weddings, dinners, workshops, private celebrations and meaningful moments.",
     icon: BadgeCheck,
   },
@@ -98,8 +104,8 @@ export default function DecorationPage() {
         <Container>
           <div className="catering-hero-layout">
             <div className="service-hero-copy">
-              <SectionLabel>Event Decoration</SectionLabel>
-              <h1 className="heading">Event Decoration</h1>
+              <SectionLabel>Event decoration</SectionLabel>
+              <h1 className="heading">Event decoration</h1>
               <p>
                 Flowers, table styling, candles, balloon decor and visual
                 details for warm, memorable events at RORUM or selected external
@@ -107,7 +113,7 @@ export default function DecorationPage() {
               </p>
               <div className="hero-actions catering-hero-actions">
                 <Button href="#decoration-inquiry">
-                  Request Decoration
+                  Request decoration
                   <ArrowRight
                     className="button-arrow"
                     aria-hidden="true"
@@ -148,7 +154,7 @@ export default function DecorationPage() {
           <div className="catering-philosophy-grid decoration-philosophy-grid">
             <div className="catering-intro">
               <SectionLabel>Decoration</SectionLabel>
-              <h2 className="heading section-title">What We Style</h2>
+              <h2 className="heading section-title">What we style</h2>
               <p className="catering-philosophy-lead">
                 We create decoration concepts that bring warmth, beauty and
                 personality to your event.
@@ -188,7 +194,7 @@ export default function DecorationPage() {
               </p>
             </div>
             <Button href="#decoration-inquiry">
-              Request Decoration
+              Request decoration
               <ArrowRight
                 className="button-arrow"
                 aria-hidden="true"
@@ -199,17 +205,12 @@ export default function DecorationPage() {
         </Container>
       </Section>
 
-      <FAQHelpStrip
-        title="Questions before requesting decoration?"
-        text="Find answers about styling scope, event formats, setup flow and how decoration can work with catering or room booking."
-      />
-
       <section className="section catering-inquiry-section">
         <Container>
           <div id="decoration-inquiry" className="catering-form-wrap">
             <div className="catering-form-aside">
               <SectionLabel>How it works</SectionLabel>
-              <h2 className="heading section-title">3-Step Setup</h2>
+              <h2 className="heading section-title">3-step setup</h2>
               <div className="catering-steps">
                 {steps.map(([title, text], index) => (
                   <article className="catering-step" key={title}>
@@ -221,12 +222,16 @@ export default function DecorationPage() {
                   </article>
                 ))}
               </div>
+              <FAQInlinePrompt
+                question="Questions about styling, flowers or setup?"
+                label="Read FAQ"
+              />
             </div>
             <InquiryForm
               type="decoration"
-              title="Decoration Request"
+              title="Decoration request"
               intro="Tell us what you are planning and we will suggest the right visual setup for your event."
-              submitLabel="Send Request"
+              submitLabel="Send request"
             />
           </div>
         </Container>

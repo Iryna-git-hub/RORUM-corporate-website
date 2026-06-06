@@ -11,7 +11,7 @@ import { HostEventInquiryForm } from "@/components/HostEventInquiryForm";
 import {
   Button,
   Container,
-  FAQHelpStrip,
+  FAQInlinePrompt,
   Section,
   SectionHeader,
   SectionLabel,
@@ -29,7 +29,7 @@ const quickFacts = [
 
 const eventPackages = [
   {
-    title: "Single Session",
+    title: "Single session",
     price: "700 kr. ex VAT",
     description:
       "A compact hosted format for one workshop, class or community session.",
@@ -37,7 +37,7 @@ const eventPackages = [
     items: ["Space setup", "Wi-Fi", "Tea & water", "Light on-site support"],
   },
   {
-    title: "Evening Series",
+    title: "Evening series",
     price: "1250 kr. ex VAT / 4 sessions",
     secondPrice: "2000 kr. ex VAT / 8 sessions",
     description:
@@ -51,7 +51,7 @@ const eventPackages = [
     ],
   },
   {
-    title: "Weekend Event",
+    title: "Weekend event",
     price: "1200 kr. ex VAT",
     description:
       "A longer format for deeper workshops, gatherings or facilitated sessions.",
@@ -97,7 +97,7 @@ export default function HostPage() {
         <Container>
           <div className="host-page-hero-layout">
             <div className="host-page-hero-copy">
-              <SectionLabel>Host Event</SectionLabel>
+              <SectionLabel>Host an event</SectionLabel>
               <h1 className="heading">Host your event at RORUM</h1>
               <p>
                 Create a workshop, talk, wellness session, creative class or
@@ -107,7 +107,7 @@ export default function HostPage() {
             </div>
             <div className="host-hero-actions">
               <Button href="#event-inquiry">
-                Send Event Inquiry
+                Send event inquiry
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"
@@ -115,7 +115,7 @@ export default function HostPage() {
                 />
               </Button>
               <Button href="#packages" variant="secondary">
-                See Packages
+                See packages
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"
@@ -165,7 +165,7 @@ export default function HostPage() {
                     className="btn host-package-cta"
                     href={`?package=${encodeURIComponent(item.title)}#event-inquiry`}
                   >
-                    <span>Select Package</span>
+                    <span>Select package</span>
                     <ArrowRight aria-hidden="true" strokeWidth={1.9} />
                   </a>
                   <p className="host-package-description">{item.description}</p>
@@ -196,23 +196,12 @@ export default function HostPage() {
         </Container>
       </Section>
 
-      <FAQHelpStrip
-        title="Questions before hosting?"
-        text="Read answers about formats, setup, support, promotion and what to include before you send an event inquiry."
-      />
-
       <section className="section form-section">
         <Container>
           <div id="event-inquiry" className="host-form-wrap">
             <div className="host-form-aside">
               <SectionLabel>How it works</SectionLabel>
-              <h2 className="heading section-title">
-                Share your event idea, and we&apos;ll help shape the flow
-              </h2>
-              <p>
-                Tell us what you are planning, and we will help shape the space,
-                setup and practical details around your event.
-              </p>
+              <h2 className="heading section-title">Three-step setup</h2>
               <div
                 className="catering-steps"
                 aria-label="Event request process"
@@ -227,6 +216,10 @@ export default function HostPage() {
                   </article>
                 ))}
               </div>
+              <FAQInlinePrompt
+                question="Questions about packages, timing or setup?"
+                label="Read FAQ"
+              />
             </div>
             <HostEventInquiryForm />
           </div>

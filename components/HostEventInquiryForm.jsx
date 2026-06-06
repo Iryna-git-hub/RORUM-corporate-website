@@ -12,9 +12,9 @@ const requiredFields = [
 ];
 
 const packageOptions = [
-  "Single Session",
-  "Evening Series",
-  "Weekend Event",
+  "Single session",
+  "Evening series",
+  "Weekend event",
   "Not sure yet",
 ];
 
@@ -143,7 +143,7 @@ export function HostEventInquiryForm() {
           aria-describedby={errors.package ? "host-package-error" : undefined}
         >
           <option value="" disabled>
-            Select Package
+            Select package
           </option>
           {packageOptions.map((option) => (
             <option key={option}>{option}</option>
@@ -168,7 +168,7 @@ export function HostEventInquiryForm() {
       <PrivacyConsent id="host-privacy" error={errors.privacyConsent} />
 
       <button className="btn host-form-submit" type="submit">
-        Send Event Inquiry
+        Send event inquiry
       </button>
       <p className="form-microcopy">We&apos;ll only use your details to respond to your request.</p>
     </form>

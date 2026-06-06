@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Coffee, HandHeart, Sparkles, Users, Wand2 } from "lucide-react";
-import { Container, SectionLabel } from "@/components/ui";
+import { Container, FAQInlinePrompt, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/volunteer");
@@ -107,7 +107,10 @@ export default function VolunteerPage() {
           </div>
           <div className="volunteer-card-grid">
             {gainCards.map(({ label, icon: Icon }) => (
-              <article className="volunteer-card volunteer-card-light" key={label}>
+              <article
+                className="volunteer-card volunteer-card-light"
+                key={label}
+              >
                 <Icon aria-hidden="true" strokeWidth={1.7} />
                 <h2>{label}</h2>
               </article>
@@ -132,6 +135,10 @@ export default function VolunteerPage() {
             <a className="btn" href="#volunteer-apply">
               Apply to volunteer
             </a>
+            <FAQInlinePrompt
+              question="Questions about volunteering at RORUM?"
+              label="Read FAQ"
+            />
           </div>
         </Container>
       </section>

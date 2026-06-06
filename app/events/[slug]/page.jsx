@@ -199,7 +199,7 @@ export default async function EventDetailPage({ params }) {
             <div className="event-detail-template-grid">
               <article className="event-detail-content">
                 <section className="event-detail-content-section">
-                  <h2 className="heading event-detail-section-title">Event Overview</h2>
+                  <h2 className="heading event-detail-section-title">Event overview</h2>
                   <p>{description}</p>
                   <EventShare title={event.title} text={event.shortDescription ?? "Join this event at RORUM"} url={`${siteUrl}/events/${event.slug}`} />
                 </section>
@@ -217,8 +217,8 @@ export default async function EventDetailPage({ params }) {
                 </section>
               </article>
 
-              <aside className="event-detail-summary-card" aria-label="Practical Details">
-                <h2 className="event-detail-practical-title">Practical Details</h2>
+              <aside className="event-detail-summary-card" aria-label="Practical details">
+                <h2 className="event-detail-practical-title">Practical details</h2>
                 <dl className="event-detail-summary-list">
                   <DetailRow label="Event language" value={language} />
                   <DetailRow label="Duration" value={duration} />
