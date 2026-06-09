@@ -2206,16 +2206,9 @@ button.btn,
   background: var(--color-cream);
   padding: clamp(54px, 8vw, 112px) 0 clamp(42px, 6vw, 84px);
 }
-.wecoda-hero-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.34fr);
-  gap: clamp(36px, 6vw, 84px);
-  align-items: start;
-}
 .wecoda-hero-copy {
   display: grid;
   gap: 18px;
-  max-width: 820px;
 }
 .wecoda-hero .label {
   color: var(--color-red);
@@ -2230,7 +2223,19 @@ button.btn,
   font-weight: 500;
   letter-spacing: 0;
 }
-.wecoda-hero-copy p {
+.wecoda-hero-intro-grid {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.28fr) minmax(0, 1fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: start;
+  max-width: 980px;
+  margin-top: clamp(8px, 2vw, 18px);
+}
+.wecoda-hero-text {
+  display: grid;
+  gap: 18px;
+}
+.wecoda-hero-text p {
   margin: 0;
   max-width: 76ch;
   color: var(--color-text-primary);
@@ -2242,14 +2247,14 @@ button.btn,
   display: flex;
   min-height: 0;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
   overflow: visible;
   background: transparent;
   box-shadow: none;
-  padding-top: clamp(10px, 1.5vw, 22px);
+  padding-top: 4px;
 }
 .wecoda-hero-logo-media img {
-  width: min(210px, 100%) !important;
+  width: min(190px, 100%) !important;
   height: auto !important;
   min-height: 0;
   object-fit: contain;
@@ -2416,6 +2421,12 @@ button.btn,
   font-size: 14px;
   line-height: 1.6;
   font-weight: 600;
+}
+.wecoda-final-panel .faq-inline-prompt {
+  color: rgba(var(--rgb-cream), 0.86);
+}
+.wecoda-final-panel .faq-inline-prompt-link {
+  color: var(--color-gold);
 }
 .wecoda-final-panel .btn {
   gap: 0;
@@ -7866,13 +7877,15 @@ p.faq-inline-prompt,
     grid-template-columns: 1fr;
     min-height: auto;
   }
-  .wecoda-hero-grid,
   .volunteer-hero-grid,
   .work-hero-grid {
     grid-template-columns: 1fr;
   }
   .wecoda-hero-copy {
     max-width: 760px;
+  }
+  .wecoda-hero-intro-grid {
+    grid-template-columns: minmax(130px, 0.32fr) minmax(0, 1fr);
   }
   .volunteer-hero-copy {
     max-width: 760px;
@@ -8226,6 +8239,10 @@ p.faq-inline-prompt,
   .wecoda-hero h1 {
     font-size: clamp(2.25rem, 10vw, 3rem);
     line-height: 1.02;
+  }
+  .wecoda-hero-intro-grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
   }
   .volunteer-hero h1 {
     font-size: clamp(2rem, 10vw, 3rem);

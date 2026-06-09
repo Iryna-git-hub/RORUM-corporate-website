@@ -9,7 +9,7 @@ import {
   Scale,
 } from "lucide-react";
 import Image from "next/image";
-import { Container, SectionLabel } from "@/components/ui";
+import { Container, FAQInlinePrompt, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/community-membership");
@@ -114,30 +114,32 @@ export default function CommunityMembershipPage() {
     <>
       <section className="wecoda-hero">
         <Container>
-          <div className="wecoda-hero-grid">
-            <div className="wecoda-hero-copy">
-              <SectionLabel>Membership and community</SectionLabel>
-              <h1 className="heading">Membership &amp; Community</h1>
-              <p>
-                At RORUM, we believe that growth happens in the right
-                environment — through people, shared ideas, and meaningful
-                connections.
-              </p>
-              <p>
-                That’s why we collaborate with WECODA (Women Entrepreneurs
-                Commerce &amp; Development Association) — a community for women
-                entrepreneurs and ambitious individuals who seek growth, real
-                results, and strong support systems.
-              </p>
-            </div>
-            <div className="wecoda-hero-media wecoda-hero-logo-media">
-              <Image
-                src="/images/membership-week/wecoda-logo.jpg"
-                alt="WECODA Women Entrepreneurs Commerce and Development Association logo"
-                width={220}
-                height={191}
-                priority
-              />
+          <div className="wecoda-hero-copy">
+            <SectionLabel>Membership and community</SectionLabel>
+            <h1 className="heading">Membership &amp; Community</h1>
+            <div className="wecoda-hero-intro-grid">
+              <div className="wecoda-hero-media wecoda-hero-logo-media">
+                <Image
+                  src="/images/membership-week/wecoda-logo.jpg"
+                  alt="WECODA Women Entrepreneurs Commerce and Development Association logo"
+                  width={220}
+                  height={191}
+                  priority
+                />
+              </div>
+              <div className="wecoda-hero-text">
+                <p>
+                  At RORUM, we believe that growth happens in the right
+                  environment — through people, shared ideas, and meaningful
+                  connections.
+                </p>
+                <p>
+                  That’s why we collaborate with WECODA (Women Entrepreneurs
+                  Commerce &amp; Development Association) — a community for
+                  women entrepreneurs and ambitious individuals who seek growth,
+                  real results, and strong support systems.
+                </p>
+              </div>
             </div>
           </div>
         </Container>
@@ -225,8 +227,9 @@ export default function CommunityMembershipPage() {
                   Membership is currently free. Terms may be subject to change
                   in the future.
                 </p>
+                <FAQInlinePrompt />
               </div>
-              <WecodaCtaLink>Join the WECODA community</WecodaCtaLink>
+              <WecodaCtaLink>Join WECODA</WecodaCtaLink>
             </div>
           </div>
         </Container>
