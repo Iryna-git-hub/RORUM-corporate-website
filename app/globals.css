@@ -46,8 +46,7 @@
   --color-secondary-soft: var(--color-beige);
   --color-surface-light: var(--color-cream);
   --color-accent: var(--color-red);
-  --color-text-primary: var(--color-brown);
-  --color-text-heading: var(--color-dark-brown);
+  --color-text-primary: var(--color-dark-brown);
   --color-text-muted: var(--color-light-green);
   --color-text-on-dark: var(--color-cream);
   --color-text-on-image: var(--color-cream);
@@ -97,7 +96,7 @@ h3,
 h4,
 h5,
 h6 {
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
 }
 .page-hero-title {
   font-size: 3rem;
@@ -163,7 +162,7 @@ main {
   font-weight: 300;
   line-height: 0.95;
   letter-spacing: -0.03em;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
 }
 .section-title,
 .cta-title,
@@ -250,7 +249,7 @@ main {
   display: flex;
   align-items: center;
   gap: 16px;
-  color: var(--color-primary-dark);
+  color: var(--color-dark-brown);
   font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
@@ -292,8 +291,7 @@ main {
 .nav-active .nav-trigger {
   text-decoration: none;
 }
-.header .language-switcher {
-  background: rgba(var(--rgb-brown), 0.08);
+.header .language-switcher {  
   color: var(--color-primary-dark);
 }
 .header .language-switcher span:first-child {
@@ -372,8 +370,7 @@ main {
   color: currentColor;
   backdrop-filter: blur(10px);
 }
-.language-switcher {
-  background: rgba(var(--rgb-cream), 0.14);
+.language-switcher {  
   margin-left: auto;
   margin-right: -8px;
 }
@@ -550,6 +547,7 @@ main {
 }
 .mobile-menu-panel .mobile-language-switcher i {
   color: var(--color-dark-brown);
+  opacity: 0.42;
   opacity: 0.2;
 }
 .mobile-menu-panel-head {
@@ -585,9 +583,13 @@ main {
   gap: 12px;
   padding: 15px 0;
   width: 100%;
-  border: 0;  
+  border: 0;
+  border-bottom: 1px solid var(--color-beige);
+  border: 0;
   background: transparent;
-  text-align: left;  
+  text-align: left;
+  color: var(--color-text-primary);
+  text-align: left;
   color: var(--color-dark-brown);
   font-size: 16px;
   font-weight: 700;
@@ -955,7 +957,7 @@ button.btn,
 .host-page-hero-copy h1 {
   margin: 0;
   max-width: 100%;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 3rem;
   line-height: 1.05;
   font-weight: 500;
@@ -1056,7 +1058,7 @@ button.btn,
   justify-content: center;
   gap: 10px;
   min-height: 46px;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 800;
 }
@@ -1107,13 +1109,13 @@ button.btn,
 }
 .host-package-price {
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 1.125rem;
   line-height: 1.2;
   font-weight: 900;
 }
 .host-package-price-secondary {
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
 }
 .host-package-tax {
   margin-left: 5px;
@@ -1204,7 +1206,7 @@ button.btn,
   align-items: center;
   gap: 8px 14px;
   margin: 18px 0 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-weight: 700;
 }
 .host-package-note a {
@@ -1249,7 +1251,7 @@ button.btn,
   gap: 2px;
 }
 .host-addon-card strong {
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 15px;
 }
 .host-addon-card small {
@@ -1297,7 +1299,7 @@ button.btn,
 .host-step h3 {
   margin: 0;
   font-family: var(--font-heading), Georgia, serif;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 22px;
   line-height: 1.12;
 }
@@ -1445,7 +1447,7 @@ button.btn,
 }
 .service-hero-copy h1 {
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 3rem;
   line-height: 1.02;
   font-weight: 500;
@@ -1720,7 +1722,7 @@ button.btn,
 }
 .catering-philosophy-item h3 {
   margin: 0 0 4px;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(16px, 1.2vw, 18px);
   line-height: 1.25;
@@ -1842,7 +1844,7 @@ button.btn,
 .catering-offer-lead {
   max-width: 32ch;
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-family: var(--font-heading), Georgia, serif;
   font-size: clamp(22px, 2.2vw, 34px);
   line-height: 1.12;
@@ -1879,7 +1881,7 @@ button.btn,
 }
 .catering-offer-card h3 {
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-family: var(--font-heading), Georgia, serif;
   font-size: clamp(20px, 1.7vw, 27px);
   line-height: 1.08;
@@ -1917,7 +1919,7 @@ button.btn,
   line-height: 1.55;
 }
 .catering-offer-note strong {
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-weight: 800;
 }
 .catering-offer-actions {
@@ -2098,7 +2100,7 @@ button.btn,
 }
 .catering-suitable-tags > p {
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 15px;
   font-weight: 900;
 }
@@ -2232,7 +2234,7 @@ button.btn,
 .wecoda-hero h1 {
   margin: 0;
   max-width: none;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 3rem;
   line-height: 1.05;
   font-weight: 500;
@@ -2298,7 +2300,7 @@ button.btn,
 .wecoda-ecosystem-section p {
   max-width: 900px;
   margin: 0 auto;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-family: var(--font-heading), Georgia, serif;
   font-size: clamp(1.55rem, 2.8vw, 2.6rem);
   line-height: 1.2;
@@ -2359,7 +2361,7 @@ button.btn,
 .wecoda-benefits-section .section-title {
   max-width: none;
   margin: 0 auto clamp(26px, 4vw, 44px);
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: clamp(1.7rem, 3vw, 2.35rem);
   text-align: center;
 }
@@ -2484,7 +2486,7 @@ button.btn,
 .volunteer-hero h1 {
   margin: 0;
   max-width: none;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 3rem;
   line-height: 1.05;
   font-weight: 500;
@@ -2550,7 +2552,7 @@ button.btn,
 }
 .volunteer-highlight-item p {
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 14px;
   line-height: 1.4;
   font-weight: 700;
@@ -2603,7 +2605,7 @@ button.btn,
 .work-hero h1 {
   margin: 0;
   max-width: 11ch;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 3rem;
   line-height: 1.05;
   font-weight: 500;
@@ -2679,23 +2681,23 @@ button.btn,
 .work-feature-item {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
+  gap: 20px;
   min-height: 0;
   padding: clamp(16px, 2.4vw, 24px) 0;
-  border-top: 1px solid rgba(var(--rgb-brown), 0.14);
 }
 .work-feature-item svg {
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
   color: var(--color-red);
 }
 .work-feature-item p {
   margin: 0;
-  color: var(--color-text-heading);
-  font-size: clamp(16px, 1.35vw, 20px);
+  color: var(--color-text-primary);
+  font-size: clamp(15px, 1.1vw, 17px);
   line-height: 1.35;
   font-weight: 800;
+  max-width: 18ch;
 }
 
 .cv-modal-backdrop {
@@ -2757,7 +2759,7 @@ button.btn,
 .cv-modal-heading h2,
 .cv-modal-success h2 {
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: clamp(2.2rem, 5vw, 4.4rem);
   line-height: 0.98;
   font-weight: 300;
@@ -2818,7 +2820,7 @@ button.btn,
   border: 1px solid rgba(var(--rgb-brown), 0.18);
   border-radius: 0;
   background: var(--color-white);
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 1rem;
   font-weight: 500;
   outline: none;
@@ -2853,7 +2855,7 @@ button.btn,
   padding: 16px;
   border: 1px dashed rgba(var(--rgb-brown), 0.32);
   background: var(--color-cream);
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 15px;
   font-weight: 700;
 }
@@ -2915,7 +2917,7 @@ button.btn,
   border-bottom-color: var(--color-gold);
 }
 .book-space-hero .heading {
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
 }
 .book-space-hero-copy {
   display: grid;
@@ -3248,7 +3250,7 @@ button.btn,
   border: 0;
   border-bottom: 2px solid transparent;
   border-radius: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   background: transparent;
   font-size: 15px;
   font-weight: 850;
@@ -3313,7 +3315,7 @@ button.btn,
   padding: clamp(18px, 2.6vw, 30px) 0;
   border: 0;
   background: transparent;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   text-align: left;
   cursor: pointer;
 }
@@ -3451,7 +3453,7 @@ button.btn,
 }
 .catering-menu-card-copy h3 {
   margin: 0;
-  color: var(--color-dark-brown);
+  color: var(--color-text-primary);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.25;
@@ -4089,7 +4091,7 @@ button.btn,
   border-bottom-color: var(--color-red);
 }
 .quick-paths-section .heading {
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
 }
 .quick-paths-grid {
   align-items: stretch;
@@ -5372,7 +5374,7 @@ button.btn,
 .event-detail-info-grid dd,
 .event-detail-summary-list dd {
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: 15.5px;
   line-height: 1.35;
   font-weight: 500;
@@ -5844,7 +5846,7 @@ button.btn,
 .services-teaser-copy h3 {
   margin: 0;
   font-family: var(--font-heading), Georgia, serif;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: clamp(20px, 2vw, 26px);
   line-height: 1.08;
   font-weight: 700;
@@ -5988,7 +5990,7 @@ button.btn,
 }
 .about-hero .service-hero-copy h1 {
   max-width: 12ch;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
 }
 .about-hero .service-hero-copy p {
   max-width: 68ch;
@@ -6074,7 +6076,7 @@ button.btn,
 }
 .about-community-block h2 {
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.25;
@@ -6159,7 +6161,7 @@ button.btn,
 }
 .about-pillar h3 {
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-family: var(--font-heading), Georgia, serif;
   font-size: clamp(22px, 1.8vw, 30px);
   line-height: 1.05;
@@ -6201,7 +6203,7 @@ button.btn,
 }
 .about-principle h3 {
   margin: 0 0 5px;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(16px, 1.2vw, 18px);
   line-height: 1.25;
@@ -6271,7 +6273,7 @@ button.btn,
 }
 .about-location-card h3 {
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-size: clamp(24px, 2vw, 34px);
 }
 .about-location-card ul {
@@ -6912,7 +6914,7 @@ form.card {
   padding: 15px 0;
   border: 0;
   background: transparent;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-weight: 900;
   text-align: left;
 }
@@ -7141,7 +7143,7 @@ p.faq-inline-prompt,
   font-weight: 600;
 }
 .next-step-card .cta-title {
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
 }
 .next-step-card p {
   margin: 0;
@@ -7641,7 +7643,7 @@ p.faq-inline-prompt,
 .contact-page-copy h2,
 .contact-follow h2 {
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(17px, 1.35vw, 20px);
   line-height: 1.25;
@@ -7660,7 +7662,7 @@ p.faq-inline-prompt,
 }
 .form .form-title {
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(17px, 1.35vw, 20px);
   line-height: 1.25;
@@ -7668,7 +7670,7 @@ p.faq-inline-prompt,
 }
 .contact-form .form-title {
   margin: 0;
-  color: var(--color-text-heading);
+  color: var(--color-text-primary);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(17px, 1.35vw, 20px);
   line-height: 1.25;
@@ -7916,14 +7918,13 @@ p.faq-inline-prompt,
     min-height: clamp(300px, 48vw, 440px);
   }
   .work-hero-media {
-    min-height: clamp(300px, 48vw, 440px);
-    margin-left: clamp(22px, 5vw, 44px);
-    margin-bottom: clamp(22px, 5vw, 44px);
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+    margin-left: 0;
+    margin-bottom: 0;
   }
   .work-hero-image-overlay {
-    left: clamp(-34px, -4vw, -18px);
-    bottom: clamp(-34px, -4vw, -18px);
-    width: clamp(108px, 22%, 148px);
+    width: 55%;
   }
   .wecoda-benefits-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -8282,15 +8283,14 @@ p.faq-inline-prompt,
     min-height: 280px;
   }
   .work-hero-media {
-    min-height: 300px;
-    margin-left: 18px;
-    margin-bottom: 18px;
-    max-width: calc(100% - 18px);
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+    margin-left: 0;
+    margin-bottom: 0;
+    max-width: 100%;
   }
   .work-hero-image-overlay {
-    left: -18px;
-    bottom: -18px;
-    width: min(34%, 118px);
+    width: 55%;
   }
   .wecoda-benefits-grid {
     grid-template-columns: 1fr;
