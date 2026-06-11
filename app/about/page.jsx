@@ -189,6 +189,12 @@ export default function AboutPage() {
                   ))}
                 </div>
               </div>
+              <div className="about-community-block">
+                <h2>Services </h2>
+                <p>
+                  Our catering and decoration services are available off-site and can be brought to your chosen location.
+                </p>
+                </div>
             </div>
             <div className="about-visual-grid" aria-label="RORUM atmosphere">
               <img
@@ -209,7 +215,7 @@ export default function AboutPage() {
         </Container>
       </section>
 
-      <Section>
+      {/* <Section>
         <Container>
           <div className="about-statement">
             <div>
@@ -234,8 +240,8 @@ export default function AboutPage() {
             </div>
           </div>
         </Container>
-      </Section>
-
+      </Section> */}
+{/* 
       <section className="section-tight about-pillars-section">
         <Container>
           <SectionHeader
@@ -252,7 +258,7 @@ export default function AboutPage() {
             ))}
           </div>
         </Container>
-      </section>
+      </section> */}
 
       <Section tight>
         <Container>
@@ -282,7 +288,7 @@ export default function AboutPage() {
         </Container>
       </Section>
 
-      <section className="section about-location-section">
+      {/* <section className="section about-location-section">
         <Container>
           <div className="about-location-grid">
             <div className="about-location-copy">
@@ -325,7 +331,7 @@ export default function AboutPage() {
             </div>
           </div>
         </Container>
-      </section>
+      </section> */}
 
       <CTASection
         variant="final"

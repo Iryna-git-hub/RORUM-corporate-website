@@ -291,7 +291,7 @@ main {
 .nav-active .nav-trigger {
   text-decoration: none;
 }
-.header .language-switcher {  
+.header .language-switcher {
   color: var(--color-primary-dark);
 }
 .header .language-switcher span:first-child {
@@ -370,7 +370,7 @@ main {
   color: currentColor;
   backdrop-filter: blur(10px);
 }
-.language-switcher {  
+.language-switcher {
   margin-left: auto;
   margin-right: -8px;
 }
@@ -3954,9 +3954,9 @@ button.btn,
   inset: 0;
   background: linear-gradient(
     90deg,
-    #000000a3 0%,
-    rgb(0 0 0 / 58%) 46%,
-    rgb(76 81 64 / 12%) 100%
+    #4e6657ba 0%,
+    #627a6bb5 46%,
+    #76836d00 100%
   );
   z-index: 1;
 }
