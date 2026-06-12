@@ -3,52 +3,18 @@ import {
   CalendarCheck,
   CalendarPlus,
   ChefHat,
-  CircleCheckBig,
   Coffee,
   HandHeart,
   Handshake,
   HeartHandshake,
-  MapPin,
-  MessagesSquare,
-  Sparkles,
-  Table2,
   Users,
   UsersRound,
   WandSparkles,
 } from "lucide-react";
-import {
-  Container,
-  CTASection,
-  Section,
-  SectionHeader,
-  SectionLabel,
-} from "@/components/ui";
+import { Container, CTASection, Section, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/about");
-
-const pillars = [
-  {
-    title: "A hosted room",
-    text: "RORUM is not only a rental space. The room is prepared, reset and supported so hosts can focus on the people in front of them.",
-    icon: HeartHandshake,
-  },
-  {
-    title: "Small by design",
-    text: "The scale is intentional: intimate meetings, workshops, dinners and gatherings where people can actually hear each other.",
-    icon: Users,
-  },
-  {
-    title: "Food and atmosphere",
-    text: "Catering, table styling and decoration can be added when the gathering needs more warmth, rhythm or visual care.",
-    icon: Coffee,
-  },
-  {
-    title: "Community with structure",
-    text: "Events, membership, volunteering and collaborations give the room a life beyond bookings.",
-    icon: Handshake,
-  },
-];
 
 const principles = [
   [
@@ -69,44 +35,22 @@ const principles = [
   [
     "04",
     "Personal without noise",
-    "The room has character, but leaves enough space for each format to feel like its own.",
+    "The space has character, but leaves enough space for each format to feel like its own.",
   ],
 ];
 
-const formats = [
-  ["Public events", CalendarCheck],
-  ["Private meetings", Table2],
-  ["Workshops", MessagesSquare],
-  ["Catering", Coffee],
-  ["Event decoration", Sparkles],
-  ["Community projects", Handshake],
+const introLinks = [
+  { href: "/host-an-event", label: "Host an Event", icon: CalendarPlus },
+  { href: "/private-meetings", label: "Private Meetings", icon: UsersRound },
+  { href: "/events", label: "Attend Events", icon: CalendarCheck },
 ];
 
-const heroLinks = [
-  { href: "/catering", label: "Catering", icon: ChefHat, tone: "red" },
+const serviceLinks = [
+  { href: "/catering", label: "Catering", icon: ChefHat },
   {
     href: "/event-decoration",
-    label: "Event decoration",
+    label: "Event Decoration",
     icon: WandSparkles,
-    tone: "red",
-  },
-  {
-    href: "/host-an-event",
-    label: "Host an event",
-    icon: CalendarPlus,
-    tone: "green",
-  },
-  {
-    href: "/private-meetings",
-    label: "Private meetings",
-    icon: UsersRound,
-    tone: "green",
-  },
-  {
-    href: "/events",
-    label: "Attend events",
-    icon: CalendarCheck,
-    tone: "green",
   },
 ];
 
@@ -136,29 +80,12 @@ export default function AboutPage() {
                 warm, clear and easy to be present in.
               </p>
               <div
-                className="about-hero-actions about-services-actions"
-                aria-label="RORUM service paths"
-              >
-                {heroLinks
-                  .slice(0, 2)
-                  .map(({ href, label, icon: Icon, tone }) => (
-                    <Link
-                      className={`about-inline-link about-inline-link-${tone}`}
-                      href={href}
-                      key={href}
-                    >
-                      <Icon aria-hidden="true" strokeWidth={1.8} />
-                      {label}
-                    </Link>
-                  ))}
-              </div>
-              <div
                 className="about-hero-actions"
                 aria-label="RORUM event paths"
               >
-                {heroLinks.slice(2).map(({ href, label, icon: Icon, tone }) => (
+                {introLinks.map(({ href, label, icon: Icon }) => (
                   <Link
-                    className={`about-inline-link about-inline-link-${tone}`}
+                    className="about-inline-link about-inline-link-white"
                     href={href}
                     key={href}
                   >
@@ -166,6 +93,28 @@ export default function AboutPage() {
                     {label}
                   </Link>
                 ))}
+              </div>
+              <div className="about-community-block">
+                <h2>Services</h2>
+                <p>
+                  Our catering and decoration services are available off-site
+                  and can be brought to your chosen location.
+                </p>
+                <div
+                  className="about-hero-actions about-services-actions"
+                  aria-label="RORUM service paths"
+                >
+                  {serviceLinks.map(({ href, label, icon: Icon }) => (
+                    <Link
+                      className="about-inline-link about-inline-link-white"
+                      href={href}
+                      key={href}
+                    >
+                      <Icon aria-hidden="true" strokeWidth={1.8} />
+                      {label}
+                    </Link>
+                  ))}
+                </div>
               </div>
               <div className="about-community-block">
                 <h2>Community</h2>
@@ -189,18 +138,12 @@ export default function AboutPage() {
                   ))}
                 </div>
               </div>
-              <div className="about-community-block">
-                <h2>Services </h2>
-                <p>
-                  Our catering and decoration services are available off-site and can be brought to your chosen location.
-                </p>
-                </div>
             </div>
             <div className="about-visual-grid" aria-label="RORUM atmosphere">
               <img
                 className="about-visual-main"
-                src="/images/catering/catering-modern-plates.png"
-                alt="Modern catering plates prepared for an event"
+                src="/images/catering/borscht-with-pampushky.png"
+                alt="Borscht with pampushky prepared for a RORUM gathering"
               />
               <img
                 src="/images/space/space-about-room.png"
@@ -215,58 +158,13 @@ export default function AboutPage() {
         </Container>
       </section>
 
-      {/* <Section>
-        <Container>
-          <div className="about-statement">
-            <div>
-              <SectionLabel>What RORUM is</SectionLabel>
-              <h2 className="heading section-title">
-                A room with enough structure to feel simple, and enough warmth
-                to feel personal.
-              </h2>
-            </div>
-            <div className="about-statement-copy">
-              <p>
-                RORUM supports formats where the setting matters: focused
-                meetings, workshops, talks, private dinners, community events,
-                catering moments and decorated celebrations.
-              </p>
-              <p>
-                The goal is not to make every event look the same. The goal is
-                to give each gathering a calm foundation: a room that is ready,
-                a layout that makes sense, and practical support before and
-                during the event.
-              </p>
-            </div>
-          </div>
-        </Container>
-      </Section> */}
-{/* 
-      <section className="section-tight about-pillars-section">
-        <Container>
-          <SectionHeader
-            label="How it works"
-            title="The room, the support and the details work together."
-          />
-          <div className="about-pillars-grid">
-            {pillars.map(({ title, text, icon: Icon }) => (
-              <article className="about-pillar" key={title}>
-                <Icon aria-hidden="true" strokeWidth={1.8} />
-                <h3>{title}</h3>
-                <p>{text}</p>
-              </article>
-            ))}
-          </div>
-        </Container>
-      </section> */}
-
       <Section tight>
         <Container>
           <div className="about-principles">
             <div className="about-principles-intro">
               <SectionLabel>Experience principles</SectionLabel>
               <h2 className="heading section-title">
-                Thoughtful, practical and quietly generous.
+                Thoughtful and practical
               </h2>
               <p>
                 These principles shape the way RORUM approaches meetings, hosted
@@ -287,51 +185,6 @@ export default function AboutPage() {
           </div>
         </Container>
       </Section>
-
-      {/* <section className="section about-location-section">
-        <Container>
-          <div className="about-location-grid">
-            <div className="about-location-copy">
-              <SectionLabel>Copenhagen context</SectionLabel>
-              <h2 className="heading section-title">
-                Central, grounded and made for real use.
-              </h2>
-              <p>
-                The space is located at Buermistersgade 26, 1 th, Copenhagen. It
-                is designed as a practical setting for people who need a warm
-                room, clear communication and a setup that can adapt without
-                becoming complicated.
-              </p>
-              <div className="about-format-tags">
-                {formats.map(([format, Icon]) => (
-                  <span key={format}>
-                    <Icon aria-hidden="true" strokeWidth={1.8} />
-                    {format}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="about-location-card">
-              <MapPin aria-hidden="true" strokeWidth={1.8} />
-              <h3 className="heading">What the space is suited for</h3>
-              <ul>
-                <li>
-                  <CircleCheckBig aria-hidden="true" strokeWidth={1.9} />
-                  Meetings and workshops for up to 12 guests
-                </li>
-                <li>
-                  <CircleCheckBig aria-hidden="true" strokeWidth={1.9} />
-                  Small public events and hosted formats
-                </li>
-                <li>
-                  <CircleCheckBig aria-hidden="true" strokeWidth={1.9} />
-                  Food, styling and decoration add-ons when needed
-                </li>
-              </ul>
-            </div>
-          </div>
-        </Container>
-      </section> */}
 
       <CTASection
         variant="final"

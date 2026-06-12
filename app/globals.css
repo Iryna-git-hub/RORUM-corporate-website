@@ -931,7 +931,7 @@ button.btn,
 /* Host an event */
 .host-page-hero {
   position: relative;
-  padding: clamp(40px, 6vw, 76px) 0 clamp(24px, 4vw, 44px);
+  padding: 65px 0 clamp(24px, 4vw, 44px);
   overflow: hidden;
   background: var(--color-cream);
   color: var(--color-text-primary);
@@ -1424,7 +1424,7 @@ button.btn,
 
 /* Catering */
 .service-hero {
-  padding: clamp(46px, 7vw, 86px) 0 clamp(34px, 5vw, 58px);
+  padding: 65px 0 clamp(34px, 5vw, 58px);
   background: var(--color-secondary);
 }
 .service-hero-grid {
@@ -1540,7 +1540,7 @@ button.btn,
     display: grid;
     align-items: center;
     min-height: auto;
-    padding-top: clamp(42px, 6vh, 72px);
+    padding-top: 65px;
     padding-bottom: 0;
   }
   .catering-hero .catering-hero-layout,
@@ -1559,7 +1559,7 @@ button.btn,
 @media (min-width: 981px) and (max-height: 820px) {
   .service-hero.catering-hero,
   .service-hero.decoration-hero {
-    padding-top: clamp(28px, 4vh, 42px);
+    padding-top: 65px;
     padding-bottom: 0;
   }
   .catering-hero .service-hero-copy,
@@ -1789,7 +1789,7 @@ button.btn,
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: clamp(16px, 3vw, 34px);
+  gap: 24px;
   align-items: center;
   margin-top: clamp(28px, 5vw, 68px);
   padding: clamp(18px, 2.5vw, 26px);
@@ -2221,7 +2221,7 @@ button.btn,
 
 .wecoda-hero {
   background: var(--color-cream);
-  padding: clamp(54px, 8vw, 112px) 0 clamp(42px, 6vw, 84px);
+  padding: 65px 0 clamp(42px, 6vw, 84px);
 }
 .wecoda-hero-copy {
   display: grid;
@@ -2466,7 +2466,7 @@ button.btn,
 
 .volunteer-hero {
   background: var(--color-cream);
-  padding: clamp(46px, 7vw, 92px) 0;
+  padding: 65px 0 clamp(46px, 7vw, 92px);
 }
 .volunteer-hero-grid {
   display: grid;
@@ -2585,7 +2585,7 @@ button.btn,
 
 .work-hero {
   background: var(--color-white);
-  padding: clamp(46px, 7vw, 96px) 0 clamp(38px, 6vw, 78px);
+  padding: 65px 0 clamp(38px, 6vw, 78px);
 }
 .work-hero-grid {
   display: grid;
@@ -2638,7 +2638,9 @@ button.btn,
 }
 .work-hero-media {
   position: relative;
-  min-height: clamp(380px, 42vw, 580px);
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  min-height: 0;
   overflow: visible;
   isolation: isolate;
 }
@@ -2651,14 +2653,17 @@ button.btn,
   box-shadow: 0 18px 42px rgba(var(--rgb-brown), 0.1);
 }
 .work-hero-image-main {
-  inset: 0;
+  top: 0;
+  right: 0;
+  width: 66.666%;
+  aspect-ratio: 1 / 1;
 }
 .work-hero-image-overlay {
-  left: clamp(-42px, -4vw, -22px);
-  bottom: clamp(-42px, -4vw, -22px);
+  left: 0;
+  bottom: 0;
   z-index: 2;
-  width: clamp(120px, 24%, 170px);
-  aspect-ratio: 1;
+  width: 33.333%;
+  aspect-ratio: 1 / 1;
 }
 .work-hero-image-main img,
 .work-hero-image-overlay img {
@@ -2908,7 +2913,7 @@ button.btn,
 }
 
 .book-space-hero {
-  padding: clamp(34px, 5vw, 54px) 0 clamp(30px, 4vw, 46px);
+  padding: 65px 0 clamp(30px, 4vw, 46px);
   background: var(--color-primary);
   color: var(--color-secondary);
 }
@@ -2941,8 +2946,8 @@ button.btn,
 .private-meetings-hero {
   background: var(--color-cream);
   color: var(--color-text-primary);
-  padding-top: clamp(40px, 6vw, 76px);
-  padding-bottom: clamp(42px, 6vw, 72px);
+  padding-top: 65px;
+  padding-bottom: 65px;
 }
 .private-meetings-hero .book-space-hero-copy {
   margin-bottom: clamp(28px, 4vw, 48px);
@@ -2950,6 +2955,14 @@ button.btn,
 .private-meetings-hero .label {
   color: var(--color-red);
   border-bottom-color: var(--color-red);
+}
+.private-meetings-hero-text {
+  display: grid;
+  gap: 8px;
+  max-width: 880px;
+}
+.private-meetings-hero-text p {
+  margin: 0;
 }
 .private-meetings-hero-actions .btn {
   gap: 8px;
@@ -2977,7 +2990,7 @@ button.btn,
   .private-meetings-hero .book-space-hero-copy h1 {
     grid-column: 1 / -1;
   }
-  .private-meetings-hero .book-space-hero-copy p {
+  .private-meetings-hero .private-meetings-hero-text {
     grid-column: 1;
   }
   .private-meetings-hero .hero-actions {
@@ -2992,11 +3005,8 @@ button.btn,
 }
 @media (min-width: 981px) {
   .private-meetings-hero {
-    min-height: calc(100svh - 78px);
-    display: grid;
-    align-items: center;
-    padding-top: clamp(28px, 4.4vw, 64px);
-    padding-bottom: clamp(28px, 4.4vw, 64px);
+    padding-top: 65px;
+    padding-bottom: 65px;
   }
   .private-meetings-hero .book-space-hero-copy {
     margin-bottom: clamp(34px, 5vh, 58px);
@@ -3004,8 +3014,8 @@ button.btn,
 }
 @media (min-width: 981px) and (max-height: 820px) {
   .private-meetings-hero {
-    padding-top: clamp(18px, 2.5vh, 30px);
-    padding-bottom: clamp(14px, 2.2vh, 26px);
+    padding-top: 65px;
+    padding-bottom: 65px;
   }
   .private-meetings-hero .book-space-hero-copy {
     column-gap: clamp(24px, 4vw, 56px);
@@ -3015,7 +3025,7 @@ button.btn,
   .private-meetings-hero .book-space-hero-copy h1 {
     font-size: clamp(2.5rem, 4.1vw, 3rem);
   }
-  .private-meetings-hero .book-space-hero-copy p {
+  .private-meetings-hero .private-meetings-hero-text {
     max-width: 96ch;
     line-height: 1.55;
   }
@@ -4083,7 +4093,7 @@ button.btn,
 
 /* Quick paths */
 .quick-paths-section {
-  background: var(--color-beige);
+  background: var(--color-white);
 }
 .quick-paths-section .label {
   color: var(--color-red);
@@ -4208,7 +4218,7 @@ button.btn,
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: rgba(var(--rgb-cream), 0.5);
+  background: rgba(var(--rgb-quick-card-tone), 0.1);
   transition:
     opacity 0.26s ease,
     transform 0.42s ease;
@@ -4532,14 +4542,6 @@ button.btn,
   background: var(--color-cream);
   color: var(--color-text-primary);
   outline: none;
-}
-.events-controls-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 10px;
-  flex: 0 1 auto;
 }
 .events-clear-filters {
   min-height: 34px;
@@ -5736,7 +5738,7 @@ button.btn,
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px 16px;
-  margin: 4px 0 2px;
+  margin: 16px 0 24px;
   padding: 0;
   list-style: none;
 }
@@ -6033,7 +6035,7 @@ button.btn,
 .about-inline-link svg {
   width: 16px;
   height: 16px;
-  color: currentColor;
+  color: var(--color-light-green);
 }
 .about-inline-link-green {
   color: var(--color-light-green);
@@ -6059,6 +6061,9 @@ button.btn,
   color: var(--color-dark-green);
   background: var(--color-white);
   border-color: var(--color-white);
+}
+.about-inline-link-white svg {
+  color: var(--color-red);
 }
 .about-inline-link-white:hover,
 .about-inline-link-white:focus-visible {
@@ -6197,8 +6202,8 @@ button.btn,
 }
 .about-principle > span {
   color: var(--color-gold);
-  font-size: 13px;
-  font-weight: 900;
+  font-size: 20px;
+  font-weight: 600;
   line-height: 1.2;
 }
 .about-principle h3 {
@@ -7058,6 +7063,9 @@ form.card {
   gap: 4px 8px;
   justify-self: center;
 }
+.next-step-section-not-sure .next-step-action .faq-inline-prompt {
+  padding-top: 20px;
+}
 .faq-inline-prompt-link {
   display: inline-flex;
   align-items: center;
@@ -7597,7 +7605,7 @@ p.faq-inline-prompt,
 }
 .contact-page-hero {
   background: var(--color-cream);
-  padding: clamp(42px, 7vw, 88px) 0;
+  padding: 65px 0 clamp(42px, 7vw, 88px);
 }
 .contact-page-hero .label,
 .host-quick-facts .label {
@@ -7608,17 +7616,17 @@ p.faq-inline-prompt,
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1fr);
   gap: clamp(26px, 5vw, 64px);
-  align-items: stretch;
+  align-items: start;
 }
 .contact-page-info {
   display: grid;
-  align-items: center;
+  align-items: start;
   min-height: 100%;
 }
 .contact-page-info-inner {
   display: grid;
   gap: 20px;
-  align-content: center;
+  align-content: start;
   max-width: 650px;
 }
 .contact-page-title {
@@ -7753,7 +7761,7 @@ p.faq-inline-prompt,
   display: grid;
   align-items: start;
   min-height: 100%;
-  margin-top: clamp(34px, 3.2vw, 52px);
+  margin-top: 0;
 }
 .contact-page-form-wrap {
   width: 100%;
@@ -7781,7 +7789,7 @@ p.faq-inline-prompt,
 }
 .legal-hero {
   background: var(--color-secondary);
-  padding: clamp(56px, 8vw, 96px) 0 clamp(28px, 5vw, 52px);
+  padding: 65px 0 clamp(28px, 5vw, 52px);
 }
 .legal-hero-content {
   max-width: 860px;
@@ -7866,10 +7874,6 @@ p.faq-inline-prompt,
   .events-filters {
     flex-basis: 100%;
   }
-  .events-controls-actions {
-    width: 100%;
-    justify-content: flex-start;
-  }
   .footer-main {
     grid-template-columns: 1fr;
     gap: 28px;
@@ -7924,7 +7928,7 @@ p.faq-inline-prompt,
     margin-bottom: 0;
   }
   .work-hero-image-overlay {
-    width: 55%;
+    width: 33.333%;
   }
   .wecoda-benefits-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -8503,6 +8507,10 @@ p.faq-inline-prompt,
     margin-left: 50%;
     transform: translateX(-50%);
   }
+  .private-meetings-hero {
+    padding-top: 38px;
+    padding-bottom: 38px;
+  }
   .private-meetings-hero .horizontal-gallery-item {
     width: calc(100vw - 32px);
     height: clamp(250px, 68vw, 390px);
@@ -8738,7 +8746,7 @@ p.faq-inline-prompt,
     grid-template-columns: 1fr;
   }
   .contact-page-hero {
-    padding: 34px 0 42px;
+    padding: 38px 0 42px;
   }
   .contact-page-title {
     font-size: clamp(2rem, 10vw, 3.2rem);
@@ -8791,10 +8799,6 @@ p.faq-inline-prompt,
   .private-meetings-hero-actions .btn {
     flex: 1 1 auto;
   }
-  /* "View Meeting Packages" is the secondary btn — move it before "Request" */
-  .private-meetings-hero-actions .secondary {
-    order: -1;
-  }
 
   /* "Each session includes" CTA — center and reorder: "View Meeting Packages" first */
   .meeting-session-cta {
@@ -8804,11 +8808,6 @@ p.faq-inline-prompt,
   .meeting-session-cta .btn {
     flex: 1 1 auto;
   }
-  /* "View Meeting Packages" is the secondary btn — move it before "Request" */
-  .meeting-session-cta .secondary {
-    order: -1;
-  }
-
   /* Center inline FAQ prompts on mobile */
   .faq-inline-prompt {
     justify-content: center;

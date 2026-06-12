@@ -118,8 +118,6 @@ export function EventFilters({
           options={availabilityOptions}
           onSelect={selectFilter}
         />
-      </div>
-      <div className="events-controls-actions">
         {hasActiveFilters ? (
           <Link className="events-clear-filters" href="/events">
             Clear filters

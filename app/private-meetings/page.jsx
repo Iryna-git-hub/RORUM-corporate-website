@@ -80,15 +80,17 @@ export default function PrivateMeetingsPage() {
           <div className="book-space-hero-copy">
             <SectionLabel>Private meetings</SectionLabel>
             <h1 className="heading">Meetings &amp; private events</h1>
-            <p>
-              RORUM is a small, curated space in central Copenhagen, designed
-              for meetings, workshops, and private events for up to 12 guests.
-              Ideal for small teams, founders, and curated gatherings.
-            </p>
-            <p>
-              We offer a calm and well-organized setting, with support before
-              and during your event.
-            </p>
+            <div className="private-meetings-hero-text">
+              <p>
+                RORUM is a small, curated space in central Copenhagen, designed
+                for meetings, workshops, and private events for up to 12 guests.
+                Ideal for small teams, founders, and curated gatherings.
+              </p>
+              <p>
+                We offer a calm and well-organized setting, with support before
+                and during your event.
+              </p>
+            </div>
             <div className="hero-actions private-meetings-hero-actions">
               <Button href="#meeting-packages" variant="secondary">
                 Meeting packages
@@ -159,16 +161,16 @@ export default function PrivateMeetingsPage() {
                 </div>
               </div>
               <div className="meeting-session-cta">
-                <Button href="#request-private-meeting">
-                  Request private meeting
+                <Button href="#meeting-packages" variant="secondary">
+                  Meeting packages
                   <ArrowRight
                     className="button-arrow"
                     aria-hidden="true"
                     strokeWidth={1.9}
                   />
                 </Button>
-                <Button href="#meeting-packages" variant="secondary">
-                  Meeting packages
+                <Button href="#request-private-meeting">
+                  Request private meeting
                   <ArrowRight
                     className="button-arrow"
                     aria-hidden="true"

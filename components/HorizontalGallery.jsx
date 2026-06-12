@@ -11,7 +11,10 @@ export function HorizontalGallery({ images }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const availableImages = useMemo(
-    () => images.filter((image) => !brokenImages.has(image)),
+    () =>
+      images.filter(
+        (image) => typeof image === "string" && image.trim() && !brokenImages.has(image),
+      ),
     [brokenImages, images],
   );
   const safeCurrentIndex = Math.min(
