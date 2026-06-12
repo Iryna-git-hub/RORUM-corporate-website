@@ -70,10 +70,6 @@ export default function AboutPage() {
               <SectionLabel>About</SectionLabel>
               <h1 className="heading">About RORUM</h1>
               <p>
-                A small Copenhagen space for meetings, events and carefully
-                hosted moments.
-              </p>
-              <p>
                 RORUM is a curated creative and event space in central
                 Copenhagen, designed for small teams, founders, facilitators,
                 hosts and community-minded guests who want gatherings to feel
@@ -142,8 +138,8 @@ export default function AboutPage() {
             <div className="about-visual-grid" aria-label="RORUM atmosphere">
               <img
                 className="about-visual-main"
-                src="/images/catering/borscht-with-pampushky.png"
-                alt="Borscht with pampushky prepared for a RORUM gathering"
+                src="/images/about/about-room-borscht.png"
+                alt="Ukrainian borscht with pampushky prepared for a RORUM gathering"
               />
               <img
                 src="/images/space/space-about-room.png"

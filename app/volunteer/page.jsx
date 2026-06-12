@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ArrowRight, HandHeart, Sparkles, Users } from "lucide-react";
+import { ArrowRight, HandHeart, Rocket, Users } from "lucide-react";
 import { Container, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
@@ -8,7 +8,7 @@ export const metadata = pageMetadata("/volunteer");
 const highlightStatements = [
   { text: "A place where people know each other.", icon: Users },
   { text: "Support each other.", icon: HandHeart },
-  { text: "Build something together.", icon: Sparkles },
+  { text: "Build something together.", icon: Rocket },
 ];
 
 export default function VolunteerPage() {

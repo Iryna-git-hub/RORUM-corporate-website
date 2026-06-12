@@ -226,12 +226,10 @@ function CvUploadDialog({ open, onClose }) {
             </div>
 
             <div className="cv-modal-instructions">
-              <p>You can upload:</p>
-              <ul>
-                <li>your CV or resume</li>
-                <li>a short portfolio, if relevant</li>
-                <li>a PDF introduction about yourself</li>
-              </ul>
+              <p className="cv-upload-intro">
+                You can upload your CV, resume, short portfolio, or a PDF
+                introduction about yourself.
+              </p>
               <p>
                 <strong>Accepted formats:</strong>
                 <br />
@@ -246,7 +244,9 @@ function CvUploadDialog({ open, onClose }) {
 
             <div className="cv-modal-grid">
               <label htmlFor="cv-name">
-                Name<span aria-hidden="true">*</span>
+                <span className="cv-field-label">
+                  Name<span aria-hidden="true">*</span>
+                </span>
                 <input
                   id="cv-name"
                   name="name"
@@ -263,7 +263,9 @@ function CvUploadDialog({ open, onClose }) {
               </label>
 
               <label htmlFor="cv-email">
-                Email<span aria-hidden="true">*</span>
+                <span className="cv-field-label">
+                  Email<span aria-hidden="true">*</span>
+                </span>
                 <input
                   id="cv-email"
                   name="email"
@@ -281,7 +283,9 @@ function CvUploadDialog({ open, onClose }) {
             </div>
 
             <label className="cv-upload-label" htmlFor="cv-upload">
-              Upload your CV<span aria-hidden="true">*</span>
+              <span className="cv-field-label">
+                Upload your CV<span aria-hidden="true">*</span>
+              </span>
               <span className="cv-upload-dropzone">
                 <Upload aria-hidden="true" strokeWidth={1.7} />
                 <span>

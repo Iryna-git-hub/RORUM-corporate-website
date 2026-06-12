@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ArrowRight, DoorOpen, Handshake, Users } from "lucide-react";
+import { ArrowRight, DoorOpen, HeartHandshake, Sprout } from "lucide-react";
 import { CvUploadButton } from "@/components/CvUploadModal";
 import { Container, SectionLabel } from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
@@ -9,7 +9,7 @@ export const metadata = pageMetadata("/work-with-us");
 const featureItems = [
   {
     text: "Opportunities grow through people",
-    icon: Users,
+    icon: Sprout,
   },
   {
     text: "The right environment opens new doors",
@@ -17,7 +17,7 @@ const featureItems = [
   },
   {
     text: "Let’s create something meaningful together",
-    icon: Handshake,
+    icon: HeartHandshake,
   },
 ];
 
@@ -31,22 +31,16 @@ export default function WorkWithUsPage() {
               <SectionLabel>Work with us</SectionLabel>
               <h1 className="heading">Work with us</h1>
               <div className="work-hero-text">
-                <p>At RORUM, work often begins with a connection.</p>
+                <p>If our work resonates with you, we would be happy to get to know you.</p>
                 <p>
-                  A conversation at an event.
-                  <br />
-                  A shared idea.
-                  <br />A person you meet at the right moment.
+                  Please feel free to send us your CV, and if any opportunities arise within our projects or activities that match your experience and interests, we will be sure to get in touch.
                 </p>
                 <p>
                   We believe that opportunities grow through people — and
                   sometimes the right environment can open doors you didn’t even
                   know existed.
                 </p>
-                <p>
-                  If you feel aligned with what we create, you can send us your
-                  CV and tell us a bit about yourself.
-                </p>
+                
                 <p>
                   Maybe it leads to a collaboration.
                   <br />
@@ -68,8 +62,8 @@ export default function WorkWithUsPage() {
             <div className="work-hero-media">
               <div className="work-hero-image-main">
                 <Image
-                  src="/images/space/space-2.png"
-                  alt="Warm RORUM space for conversation and creative collaboration"
+                  src="/images/work-with-us/kitchen-collaboration.png"
+                  alt="RORUM collaborators cooking together in the kitchen"
                   fill
                   priority
                   sizes="(max-width: 980px) 100vw, 50vw"
@@ -77,8 +71,8 @@ export default function WorkWithUsPage() {
               </div>
               <div className="work-hero-image-overlay">
                 <Image
-                  src="/images/space/space-about-room.png"
-                  alt="Quiet RORUM room detail"
+                  src="/images/work-with-us/light-collaboration.png"
+                  alt="Light RORUM collaboration scene with planning materials"
                   fill
                   sizes="(max-width: 640px) 34vw, 14vw"
                 />
