@@ -225,23 +225,6 @@ function CvUploadDialog({ open, onClose }) {
               </p>
             </div>
 
-            <div className="cv-modal-instructions">
-              <p className="cv-upload-intro">
-                You can upload your CV, resume, short portfolio, or a PDF
-                introduction about yourself.
-              </p>
-              <p>
-                <strong>Accepted formats:</strong>
-                <br />
-                PDF, DOC, DOCX
-              </p>
-              <p>
-                <strong>Recommended:</strong>
-                <br />
-                Please keep your file under 10 MB.
-              </p>
-            </div>
-
             <div className="cv-modal-grid">
               <label htmlFor="cv-name">
                 <span className="cv-field-label">
@@ -325,7 +308,7 @@ function CvUploadDialog({ open, onClose }) {
                 id="cv-message"
                 name="message"
                 rows={4}
-                placeholder="Tell us briefly why you feel connected to RORUM or what kind of collaboration you are interested in."
+                placeholder="Tell us briefly what kind of collaboration you are interested in."
               />
             </label>
 
