@@ -2955,6 +2955,7 @@ button.btn,
   line-height: 1.05;
   letter-spacing: 0;
   text-transform: none;
+  font-weight: 500;
 }
 .book-space-hero-copy p {
   max-width: 880px;
@@ -6698,7 +6699,7 @@ form.card {
   display: block;
   width: 100%;
   margin-top: 7px;
-  border: 1px solid rgba(var(--rgb-beige), 0.7);
+  border: 1px solid rgba(var(--rgb-beige), 1);
   border-radius: 0;
   background: var(--color-white);
   padding: 12px 13px;
@@ -8678,7 +8679,7 @@ p.faq-inline-prompt,
     min-height: 310px;
   }
   .book-space-hero-copy h1 {
-    font-size: clamp(2rem, 10vw, 2.9rem);
+    font-size: clamp(2rem, 10vw, 2.5rem);
   }
   .horizontal-gallery-item {
     height: 210px;
