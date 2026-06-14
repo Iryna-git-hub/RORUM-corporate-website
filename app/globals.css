@@ -3981,12 +3981,7 @@ button.btn,
 .home-hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    #4e6657ba 0%,
-    #627a6bb5 46%,
-    #76836d00 100%
-  );
+  background: #00000094;
   z-index: 1;
 }
 .home-hero-full .container {
