@@ -39,7 +39,7 @@ const principles = [
 ];
 
 const introLinks = [
-  { href: "/private-meetings", label: "Host at RORUM", icon: CalendarPlus },
+  { href: "/host-at-rorum", label: "Host at RORUM", icon: CalendarPlus },
   { href: "/events", label: "Attend Events", icon: CalendarCheck },
 ];
 
@@ -192,7 +192,7 @@ export default function AboutPage() {
         faqLabel="Read FAQ"
         links={[
           { href: "/events", label: "Attend Events" },
-          { href: "/private-meetings", label: "Host at RORUM" },
+          { href: "/host-at-rorum", label: "Host at RORUM" },
           { href: "/catering", label: "Catering" },
           {
             href: "/space-decoration-event-styling",

@@ -7,7 +7,7 @@ const quickPathMeta = {
         cta: "Explore events",
         tone: "red"
     },
-    "/private-meetings": {
+    "/host-at-rorum": {
         icon: Presentation,
         cta: "Host with us",
         tone: "red"

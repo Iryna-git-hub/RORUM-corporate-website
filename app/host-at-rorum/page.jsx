@@ -23,7 +23,7 @@ import {
   Wifi,
 } from "lucide-react";
 
-export const metadata = pageMetadata("/private-meetings");
+export const metadata = pageMetadata("/host-at-rorum");
 
 export default function HostAtRorumPage() {
   const sessionDetailsImage =
@@ -45,9 +45,9 @@ export default function HostAtRorumPage() {
     "/images/private-meetings/private-meeting-room-4.png",
   ];
   const includedItems = [
-    ["Private use of the space", DoorOpen],
+    ["Use of the space", DoorOpen],
     ["Coffee, tea and water", Coffee],
-    ["On-site support and hosting", HandHeart],
+    ["On-site support", HandHeart],
     ["Simple and thoughtful interior setup", LampFloor],
   ];
   const basicsSetupItems = [
@@ -61,7 +61,7 @@ export default function HostAtRorumPage() {
   ];
   const meetingSetupSteps = [
     [
-      "Share your meeting plan",
+      "Tell us about your gathering",
       "Tell us the format, guest count, timing and what kind of atmosphere you need.",
     ],
     [
@@ -70,7 +70,7 @@ export default function HostAtRorumPage() {
     ],
     [
       "Arrive and focus",
-      "The space is ready for your meeting, workshop or private session with on-site support.",
+      "The space is ready for your workshop, gathering, or private session, with on-site support.",
     ],
   ];
   return (
@@ -84,16 +84,16 @@ export default function HostAtRorumPage() {
               <p>
                 RORUM is a small, curated space in central Copenhagen, designed
                 for meetings, workshops, and private events for up to 12 guests.
-                Ideal for small teams, founders, and curated gatherings.
               </p>
               <p>
-                We offer a calm and well-organized setting, with support before
-                and during your event.
+                Ideal for small teams, founders, and curated gatherings. We
+                offer a calm and well-organized setting, with support before and
+                during your event.
               </p>
             </div>
             <div className="hero-actions private-meetings-hero-actions">
               <Button href="#meeting-packages" variant="secondary">
-                Meeting packages
+                View Packages &amp; Pricing
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"
@@ -162,7 +162,7 @@ export default function HostAtRorumPage() {
               </div>
               <div className="meeting-session-cta">
                 <Button href="#meeting-packages" variant="secondary">
-                  Meeting packages
+                  View Packages &amp; Pricing
                   <ArrowRight
                     className="button-arrow"
                     aria-hidden="true"
@@ -187,7 +187,7 @@ export default function HostAtRorumPage() {
         className="section-tight private-meeting-packages-section"
       >
         <Container>
-          <SectionHeader label="Packages" title="Meeting packages" level={3} />
+          <SectionHeader label="Packages" title="Hosting Packages" level={3} />
           <PackageGrid
             items={packages.booking}
             ctaHref="#request-private-meeting"

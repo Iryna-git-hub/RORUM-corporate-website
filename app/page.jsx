@@ -43,7 +43,7 @@ export default function Home() {
     [
       "Host at RORUM",
       "A warm and flexible Copenhagen venue for workshops, meetings, and community gatherings of up to 12 guests.",
-      "/private-meetings",
+      "/host-at-rorum",
       "/images/space/space-1.png",
     ],
   ];
@@ -79,7 +79,7 @@ export default function Home() {
         video="/videos/home-hero.mp4"
         actions={
           <>
-            <Button href="/private-meetings">
+            <Button href="/host-at-rorum">
               Host at RORUM
               <ArrowRight
                 className="button-arrow"
@@ -156,7 +156,7 @@ export default function Home() {
         ]}
         featureIcons={[Users, SlidersHorizontal, MapPin, HandHeart]}
         ctaLabel="Host at RORUM"
-        ctaHref="/private-meetings"
+        ctaHref="/host-at-rorum"
         image="/images/events/private-meetings.png"
         imageAlt="Small hosted meeting in the RORUM room"
         reversed
@@ -175,7 +175,7 @@ export default function Home() {
         faqLabel="Read FAQ"
         links={[
           { href: "/events", label: "Attend Events" },
-          { href: "/private-meetings", label: "Host at RORUM" },
+          { href: "/host-at-rorum", label: "Host at RORUM" },
           { href: "/catering", label: "Catering" },
           {
             href: "/space-decoration-event-styling",

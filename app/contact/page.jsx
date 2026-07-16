@@ -24,9 +24,9 @@ export default function ContactPage() {
                 <div className="contact-page-copy">
                   <h2>We are here for you</h2>
                   <p className="contact-page-intro">
-                    More info about events, requesting a meeting room,
-                    collaboration, catering, event decoration, and practical
-                    details, please feel free to get in touch with us.
+                    For more information about events, hosting a gathering at
+                    RORUM, collaborations, catering, event decoration, or
+                    practical details, please feel free to get in touch with us.
                   </p>
                 </div>
                 <div className="contact-detail-list">

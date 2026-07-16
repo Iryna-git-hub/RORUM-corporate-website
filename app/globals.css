@@ -8810,7 +8810,7 @@ p.faq-inline-prompt,
     order: -1;
   }
 
-  /* Host at RORUM hero — center and reorder: "View Meeting Packages" first */
+  /* Host at RORUM hero — center and reorder: "View Packages & Pricing" first */
   .private-meetings-hero-actions {
     justify-content: center;
     width: 100%;
@@ -8819,7 +8819,7 @@ p.faq-inline-prompt,
     flex: 1 1 auto;
   }
 
-  /* "Each session includes" CTA — center and reorder: "View Meeting Packages" first */
+  /* "Each session includes" CTA — center and reorder: "View Packages & Pricing" first */
   .meeting-session-cta {
     justify-content: center;
     width: 100%;

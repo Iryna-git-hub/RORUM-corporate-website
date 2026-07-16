@@ -35,7 +35,7 @@ export default function EventsPage() {
         eyebrow="Host at RORUM"
         title="Would you like to host at RORUM?"
         text="Explore our space for workshops, meetings, and community gatherings of up to 12 guests."
-        href="/private-meetings"
+        href="/host-at-rorum"
         label="Host at RORUM"
         faqQuestion="Questions before joining or hosting an event?"
         faqLabel="Read FAQ"
