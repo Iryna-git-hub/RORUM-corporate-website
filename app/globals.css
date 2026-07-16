@@ -248,9 +248,9 @@ main {
 .nav {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: .9rem;
   color: var(--color-dark-brown);
-  font-size: 15px;
+  font-size: .87rem;
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -266,7 +266,7 @@ main {
   color: inherit;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   font: inherit;
   text-transform: inherit;
 }
@@ -306,7 +306,7 @@ main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 2px;
   line-height: 1;
 }
 .nav-caret {
@@ -2161,6 +2161,13 @@ button.btn,
   font-size: 1rem;
   line-height: 1.7;
 }
+.volunteer-application-section {
+  scroll-margin-top: 96px;
+}
+.volunteer-application-wrap {
+  width: min(100%, 760px);
+  margin-inline: auto;
+}
 
 @media (min-width: 981px) {
   .volunteer-hero-media {
@@ -2411,16 +2418,18 @@ button.btn,
 .cv-modal-form label {
   display: grid;
   gap: 7px;
-  color: rgba(var(--rgb-brown), 0.5);
-  font-size: 12px;
-  font-weight: 650;
-  line-height: 1.2;
+  color: rgba(var(--rgb-dark-brown), 0.5);
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 .cv-field-label {
   display: inline-flex;
   align-items: baseline;
-  gap: 2px;
   width: fit-content;
+}
+.cv-modal-form .required-marker {
+  margin-left: 2px;
+  color: var(--color-cta-red);
 }
 .cv-modal-form input,
 .cv-modal-form textarea {
@@ -6361,15 +6370,26 @@ form.card {
   display: grid;
   gap: 6px;
 }
-.privacy-consent-field label {
+.privacy-consent-control {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
   align-items: center;
   gap: 10px;
+}
+.privacy-consent-copy {
   color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 600;
   line-height: 1.45;
+}
+.privacy-consent-copy label,
+.form .privacy-consent-copy label,
+.cv-modal-form .privacy-consent-copy label {
+  display: inline;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
   cursor: pointer;
 }
 .privacy-consent-field input {
@@ -6407,15 +6427,108 @@ form.card {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 2px rgba(var(--rgb-red), 0.16);
 }
-.privacy-consent-field a {
+.privacy-policy-trigger {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--color-red);
+  font: inherit;
   font-weight: 800;
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
   transition: color 0.18s ease;
 }
-.privacy-consent-field a:hover,
-.privacy-consent-field a:focus-visible {
+.privacy-policy-trigger:hover,
+.privacy-policy-trigger:focus-visible {
   color: rgba(var(--rgb-red), 0.68);
+}
+.privacy-policy-trigger:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.privacy-policy-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 170;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 3vw, 36px);
+  background: rgba(var(--rgb-dark-brown), 0.58);
+  backdrop-filter: blur(12px);
+}
+.privacy-policy-modal {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(780px, 100%);
+  max-height: min(900px, calc(100dvh - 32px));
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--color-white);
+  color: var(--color-text-primary);
+  box-shadow: 0 32px 90px rgba(var(--rgb-dark-brown), 0.34);
+}
+.privacy-policy-modal-header {
+  position: relative;
+  padding: clamp(24px, 4vw, 36px) clamp(68px, 9vw, 84px) 20px
+    clamp(22px, 4vw, 36px);
+  border-bottom: 1px solid var(--color-border);
+}
+.privacy-policy-modal-header h2 {
+  margin: 0 0 10px;
+  font-size: clamp(2rem, 5vw, 2.6rem);
+  font-weight: 300;
+  line-height: 1;
+}
+.privacy-policy-modal-header p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.privacy-policy-modal-header .privacy-policy-modal-updated {
+  margin-top: 7px;
+  color: var(--color-light-green);
+  font-size: 12px;
+  font-weight: 700;
+}
+.privacy-policy-modal-close {
+  top: 18px;
+  right: 18px;
+}
+.privacy-policy-modal-content {
+  width: 100%;
+  max-width: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px clamp(22px, 4vw, 36px) 28px;
+  outline: none;
+  scrollbar-gutter: stable;
+}
+.privacy-policy-modal-content:focus-visible {
+  box-shadow: inset 0 0 0 2px rgba(var(--rgb-light-green), 0.32);
+}
+.privacy-policy-modal-content h2:first-child {
+  margin-top: 22px;
+}
+.privacy-policy-modal-footer {
+  padding: 18px clamp(22px, 4vw, 36px);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-cream);
+}
+.privacy-policy-modal-footer .btn {
+  width: 100%;
+  border-color: var(--color-cta-red);
+  background: var(--color-cta-red);
+  color: var(--color-white);
+}
+.privacy-policy-modal-footer .btn:hover,
+.privacy-policy-modal-footer .btn:focus-visible {
+  border-color: var(--color-cta-red-hover);
+  background: var(--color-cta-red-hover);
 }
 .form button[type="submit"].btn {
   justify-self: stretch;
@@ -6463,6 +6576,20 @@ form.card {
   color: var(--color-accent);
   font-size: 12px;
   font-weight: 700;
+}
+.form-submit-error {
+  border: 1px solid rgba(var(--rgb-red), 0.24);
+  background: rgba(var(--rgb-red), 0.08);
+  padding: 14px;
+  color: var(--color-accent);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+.form button[type="submit"].btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  transform: none;
 }
 .success {
   border: 1px solid rgba(var(--rgb-light-green), 0.28);
@@ -7921,6 +8048,25 @@ p.faq-inline-prompt,
     grid-template-columns: 28px minmax(0, 1fr);
     min-height: 66px;
     padding: 14px;
+  }
+  .privacy-policy-modal-backdrop {
+    align-items: stretch;
+    padding: 0;
+  }
+  .privacy-policy-modal {
+    width: 100%;
+    max-height: 100dvh;
+    min-height: 100dvh;
+    border-radius: 0;
+  }
+  .privacy-policy-modal-header {
+    padding: 24px 68px 18px 18px;
+  }
+  .privacy-policy-modal-content {
+    padding: 4px 18px 24px;
+  }
+  .privacy-policy-modal-footer {
+    padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
   }
   .catering-menu-overlay-header {
     top: 24px;

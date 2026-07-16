@@ -5,7 +5,7 @@ import { SocialIcon } from "@/components/SocialIcon";
 import { contactDetails, socialLinks } from "@/lib/siteConfig";
 
 const visitHostLinks = [
-  { href: "/events", label: "Events" },
+  { href: "/events", label: "Attend Events" },
   { href: "/host-at-rorum", label: "Host at RORUM" },
 ];
 

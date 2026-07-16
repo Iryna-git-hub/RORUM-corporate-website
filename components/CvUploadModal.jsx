@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Upload, X } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { Upload } from "lucide-react";
+import { ApplicationModal } from "@/components/ApplicationModal";
 import { PrivacyConsent, validatePrivacyConsent } from "@/components/PrivacyConsent";
 
 const acceptedExtensions = [".pdf", ".doc", ".docx"];
@@ -20,78 +21,30 @@ function isAcceptedFile(file) {
   );
 }
 
-function getFocusableElements(container) {
-  if (!container) return [];
-  return Array.from(
-    container.querySelectorAll(
-      'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    ),
-  ).filter((element) => !element.hasAttribute("hidden"));
-}
-
-function CvUploadDialog({ open, onClose }) {
+function CvUploadDialog({ onClose }) {
   const dialogRef = useRef(null);
-  const closeButtonRef = useRef(null);
   const [errors, setErrors] = useState({});
   const [selectedFile, setSelectedFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [sent, setSent] = useState(false);
 
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    requestAnimationFrame(() => closeButtonRef.current?.focus());
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        onClose();
-        return;
-      }
-
-      if (event.key !== "Tab") return;
-
-      const focusableElements = getFocusableElements(dialogRef.current);
-      if (!focusableElements.length) return;
-
-      const firstElement = focusableElements[0];
-      const lastElement = focusableElements[focusableElements.length - 1];
-
-      if (event.shiftKey && document.activeElement === firstElement) {
-        event.preventDefault();
-        lastElement.focus();
-      } else if (!event.shiftKey && document.activeElement === lastElement) {
-        event.preventDefault();
-        firstElement.focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, open]);
-
-  if (!open) return null;
-
   function validateForm(formData) {
     const nextErrors = {};
     const name = String(formData.get("name") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").trim();
 
     if (!name) nextErrors.name = "Name is required.";
     if (!email) {
       nextErrors.email = "Email is required.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       nextErrors.email = "Please enter a valid email address.";
+    }
+    if (!phone) {
+      nextErrors.phone = "Phone number is required.";
+    } else if (!/^[+()\d\s.-]{7,20}$/.test(phone)) {
+      nextErrors.phone = "Please enter a valid phone number.";
     }
     if (!selectedFile) nextErrors.file = "Please upload your CV.";
     const privacyError = validatePrivacyConsent(formData);
@@ -174,30 +127,13 @@ function CvUploadDialog({ open, onClose }) {
   }
 
   return (
-    <div
-      className="cv-modal-backdrop"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
+    <ApplicationModal
+      titleId="cv-modal-title"
+      descriptionId={sent ? undefined : "cv-modal-description"}
+      closeLabel="Close CV application dialog"
+      onClose={onClose}
     >
-      <div
-        ref={dialogRef}
-        className="cv-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="cv-modal-title"
-      >
-        <button
-          ref={closeButtonRef}
-          className="cv-modal-close"
-          type="button"
-          aria-label="Close CV upload modal"
-          onClick={onClose}
-        >
-          <X aria-hidden="true" strokeWidth={1.8} />
-        </button>
-
+      <div ref={dialogRef}>
         {sent ? (
           <div className="cv-modal-success">
             <h2 id="cv-modal-title" className="heading">
@@ -218,42 +154,44 @@ function CvUploadDialog({ open, onClose }) {
               <h2 id="cv-modal-title" className="heading">
                 Send your CV
               </h2>
-              <p>
+              <p id="cv-modal-description">
                 We’d love to hear from you. Upload your CV and tell us a little
                 about yourself — we’ll keep your details in mind for future
                 collaborations, roles, or opportunities at RORUM.
               </p>
             </div>
 
-            <div className="cv-modal-grid">
-              <label htmlFor="cv-name">
-                <span className="cv-field-label">
-                  Name<span aria-hidden="true">*</span>
-                </span>
-                <input
-                  id="cv-name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  aria-invalid={Boolean(errors.name)}
-                  aria-describedby={errors.name ? "cv-name-error" : undefined}
-                />
-                {errors.name ? (
-                  <small className="form-error" id="cv-name-error">
-                    {errors.name}
-                  </small>
-                ) : null}
-              </label>
+            <label htmlFor="cv-name">
+              <span className="cv-field-label">
+                Name<span className="required-marker" aria-hidden="true">*</span>
+              </span>
+              <input
+                id="cv-name"
+                name="name"
+                type="text"
+                autoComplete="name"
+                required
+                aria-invalid={Boolean(errors.name)}
+                aria-describedby={errors.name ? "cv-name-error" : undefined}
+              />
+              {errors.name ? (
+                <small className="form-error" id="cv-name-error">
+                  {errors.name}
+                </small>
+              ) : null}
+            </label>
 
+            <div className="cv-modal-grid">
               <label htmlFor="cv-email">
                 <span className="cv-field-label">
-                  Email<span aria-hidden="true">*</span>
+                  Email<span className="required-marker" aria-hidden="true">*</span>
                 </span>
                 <input
                   id="cv-email"
                   name="email"
                   type="email"
                   autoComplete="email"
+                  required
                   aria-invalid={Boolean(errors.email)}
                   aria-describedby={errors.email ? "cv-email-error" : undefined}
                 />
@@ -263,11 +201,32 @@ function CvUploadDialog({ open, onClose }) {
                   </small>
                 ) : null}
               </label>
+
+              <label htmlFor="cv-phone">
+                <span className="cv-field-label">
+                  Phone number<span className="required-marker" aria-hidden="true">*</span>
+                </span>
+                <input
+                  id="cv-phone"
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  required
+                  aria-invalid={Boolean(errors.phone)}
+                  aria-describedby={errors.phone ? "cv-phone-error" : undefined}
+                />
+                {errors.phone ? (
+                  <small className="form-error" id="cv-phone-error">
+                    {errors.phone}
+                  </small>
+                ) : null}
+              </label>
             </div>
 
             <label className="cv-upload-label" htmlFor="cv-upload">
               <span className="cv-field-label">
-                Upload your CV<span aria-hidden="true">*</span>
+                Upload your CV<span className="required-marker" aria-hidden="true">*</span>
               </span>
               <span className="cv-upload-dropzone">
                 <Upload aria-hidden="true" strokeWidth={1.7} />
@@ -281,6 +240,7 @@ function CvUploadDialog({ open, onClose }) {
                 id="cv-upload"
                 name="cv"
                 type="file"
+                required
                 accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 aria-invalid={Boolean(errors.file)}
                 aria-describedby={errors.file ? "cv-file-error" : undefined}
@@ -328,7 +288,7 @@ function CvUploadDialog({ open, onClose }) {
           </form>
         )}
       </div>
-    </div>
+    </ApplicationModal>
   );
 }
 
@@ -356,7 +316,7 @@ export function CvUploadButton({ children = "Send your CV", className = "btn" })
       >
         {children}
       </button>
-      {open ? <CvUploadDialog open={open} onClose={closeModal} /> : null}
+      {open ? <CvUploadDialog onClose={closeModal} /> : null}
     </>
   );
 }

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { ArrowRight, HandHeart, Rocket, Users } from "lucide-react";
 import { Container, SectionLabel } from "@/components/ui";
+import { VolunteerApplicationButton } from "@/components/VolunteerApplicationForm";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/volunteer");
@@ -62,14 +63,14 @@ export default function VolunteerPage() {
                 </p>
                 <p>Apply to volunteer and join RORUM.</p>
               </div>
-              <a className="btn" href="/contact">
+              <VolunteerApplicationButton className="btn">
                 <span>Apply to volunteer</span>
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"
                   strokeWidth={1.9}
                 />
-              </a>
+              </VolunteerApplicationButton>
             </div>
             <div className="volunteer-hero-media">
               <Image
