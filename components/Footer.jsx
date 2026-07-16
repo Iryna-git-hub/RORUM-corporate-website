@@ -15,8 +15,8 @@ const serviceLinks = [
 ];
 
 const communityLinks = [
-  { href: "/membership", label: "WECODA membership" },
-  { href: "/volunteer-with-us", label: "Volunteer with us" },
+  { href: "/community-membership", label: "WECODA membership" },
+  { href: "/volunteer", label: "Volunteer with us" },
   { href: "/work-with-us", label: "Work with us" },
 ];
 

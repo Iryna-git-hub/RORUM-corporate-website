@@ -62,7 +62,7 @@ export default function VolunteerPage() {
                 </p>
                 <p>Apply to volunteer and join RORUM.</p>
               </div>
-              <a id="volunteer-apply" className="btn" href="#volunteer-apply">
+              <a className="btn" href="/contact">
                 <span>Apply to volunteer</span>
                 <ArrowRight
                   className="button-arrow"

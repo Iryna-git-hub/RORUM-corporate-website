@@ -12,20 +12,21 @@ const quickPathMeta = {
         cta: "Host with us",
         tone: "red"
     },
-    "/services": {
+    services: {
         icon: ConciergeBell,
         tone: "green",
         links: [
             { href: "/catering", label: "Catering" },
-            { href: "/space-decoration-event-styling", label: "Event decoration" }
+            { href: "/event-decoration", label: "Event decoration" }
         ]
     }
 };
 
 function QuickPathCard({ title, text, href, image }) {
-    const meta = quickPathMeta[href] ?? quickPathMeta["/services"];
+    const routeKey = href ?? "services";
+    const meta = quickPathMeta[routeKey] ?? quickPathMeta.services;
     const Icon = meta.icon;
-    const cardClassName = `quick-path-card quick-path-card-${meta.tone} quick-path-card-${href.replace("/", "").replaceAll("/", "-") || "home"}`;
+    const cardClassName = `quick-path-card quick-path-card-${meta.tone} quick-path-card-${routeKey.replace(/^\/+/, "").replaceAll("/", "-")}`;
     const inner = (<>
       <span className="quick-card-media" style={{ backgroundImage: `url(${image})` }} aria-hidden="true"/>
       <span className="quick-card-content">

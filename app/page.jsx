@@ -31,7 +31,7 @@ export default function Home() {
     [
       "Services",
       "Add catering, styling and hospitality details.",
-      "/services",
+      null,
       "/images/services/services-split.png",
     ],
     [
@@ -59,7 +59,7 @@ export default function Home() {
       title: "Event decoration",
       text: "Flowers, table styling, candles and visual details designed to create a warm and memorable atmosphere.",
       cta: "Explore decoration",
-      href: "/space-decoration-event-styling",
+      href: "/event-decoration",
       image: "/images/decoration/decoration-1.png",
     },
   ];
@@ -178,7 +178,7 @@ export default function Home() {
           { href: "/host-at-rorum", label: "Host at RORUM" },
           { href: "/catering", label: "Catering" },
           {
-            href: "/space-decoration-event-styling",
+            href: "/event-decoration",
             label: "Event decoration",
           },
         ]}

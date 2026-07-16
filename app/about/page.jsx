@@ -3,10 +3,8 @@ import {
   CalendarCheck,
   CalendarPlus,
   ChefHat,
-  Coffee,
   HandHeart,
   Handshake,
-  HeartHandshake,
   Users,
   WandSparkles,
 } from "lucide-react";
@@ -53,9 +51,9 @@ const serviceLinks = [
 ];
 
 const communityLinks = [
-  { href: "/membership", label: "WECODA membership", icon: Users },
+  { href: "/community-membership", label: "WECODA membership", icon: Users },
   { href: "/work-with-us", label: "Work with us", icon: Handshake },
-  { href: "/volunteer-with-us", label: "Volunteer with us", icon: HandHeart },
+  { href: "/volunteer", label: "Volunteer with us", icon: HandHeart },
 ];
 
 export default function AboutPage() {
@@ -195,7 +193,7 @@ export default function AboutPage() {
           { href: "/host-at-rorum", label: "Host at RORUM" },
           { href: "/catering", label: "Catering" },
           {
-            href: "/space-decoration-event-styling",
+            href: "/event-decoration",
             label: "Event decoration",
           },
         ]}
