@@ -15,7 +15,16 @@ import {
 } from "@/components/ui";
 import { homeEvents } from "@/lib/data";
 import { pageMetadata } from "@/lib/seo";
-import { ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  HandHeart,
+  HeartHandshake,
+  MapPin,
+  MessagesSquare,
+  SlidersHorizontal,
+  Users,
+} from "lucide-react";
+
 export const metadata = pageMetadata("/");
 export default function Home() {
   const paths = [
@@ -26,20 +35,14 @@ export default function Home() {
       "/images/services/services-split.png",
     ],
     [
-      "Events",
-      "Join dinners, salons and workshops at RORUM.",
+      "Attend Events",
+      "Discover workshops, conversations, and community experiences in the heart of Copenhagen.",
       "/events",
       "/images/events/mosaic-variants/events-mosaic-3x4-border.jpg",
     ],
     [
-      "Host an event",
-      "Bring a thoughtful format to the RORUM community.",
-      "/host-an-event",
-      "/images/events/host-event-workshop-quickpath.png",
-    ],
-    [
-      "Private meetings",
-      "Plan a hosted meeting, workshop or private gathering.",
+      "Host at RORUM",
+      "A warm and flexible Copenhagen venue for workshops, meetings, and community gatherings of up to 12 guests.",
       "/private-meetings",
       "/images/space/space-1.png",
     ],
@@ -65,9 +68,9 @@ export default function Home() {
       <HomeHero
         label="Copenhagen event space"
         title="A Copenhagen space for meaningful gatherings"
-        text="Host public events and private meetings in a calm, thoughtfully prepared space with support from the RORUM team."
+        text="Attend events or host your own gathering in a calm, thoughtfully prepared space with support from the RORUM team."
         trustItems={[
-          "4–15 guests",
+          "Up to 12 guests",
           "Central Copenhagen",
           "On-site support",
           "Catering & decoration available",
@@ -76,8 +79,8 @@ export default function Home() {
         video="/videos/home-hero.mp4"
         actions={
           <>
-            <Button href="/host-an-event">
-              Host an event
+            <Button href="/private-meetings">
+              Host at RORUM
               <ArrowRight
                 className="button-arrow"
                 aria-hidden="true"
@@ -85,15 +88,7 @@ export default function Home() {
               />
             </Button>
             <Button href="/events" variant="secondary">
-              Explore events
-              <ArrowRight
-                className="button-arrow"
-                aria-hidden="true"
-                strokeWidth={1.9}
-              />
-            </Button>
-            <Button href="/private-meetings" variant="secondary">
-              Private meetings
+              Attend Events
               <ArrowRight
                 className="button-arrow"
                 aria-hidden="true"
@@ -132,34 +127,38 @@ export default function Home() {
         </Container>
       </Section>
       <EditorialFeatureSection
-        eyebrow="For hosts & facilitators"
-        title="Host an event at RORUM"
-        description="A calm, intimate space in central Copenhagen for workshops, classes, circles, networking events and community gatherings. Designed for facilitators, teachers, creatives and hosts who want to bring people together in a thoughtful setting."
+        eyebrow="Meaningful Gatherings"
+        title="Attend Events"
+        intro="Join meaningful gatherings at RORUM."
+        description="Discover workshops, conversations, and community experiences in the heart of Copenhagen."
         features={[
-          "4-15 guests",
-          "Flexible setup",
-          "On-site support",
-          "Tea & water included",
+          "Small-group experiences",
+          "Up to 12 participants",
+          "Central Copenhagen",
+          "Community-focused",
         ]}
-        ctaLabel="Host an event"
-        ctaHref="/host-an-event"
+        featureIcons={[MessagesSquare, Users, MapPin, HeartHandshake]}
+        ctaLabel="Attend Events"
+        ctaHref="/events"
         image="/images/events/host-event-workshop-quickpath.png"
         imageAlt="Workshop gathering around a table at RORUM"
       />
       <EditorialFeatureSection
-        eyebrow="Private & corporate gatherings"
-        title="Private meetings"
-        description="Plan a focused meeting, workshop or private gathering in a hosted space with a warm atmosphere, simple setup and thoughtful support throughout your session. Ideal for teams, founders and intimate groups of up to 12 guests."
+        eyebrow="Your Gathering"
+        title="Host at RORUM"
+        intro="Host your gathering at RORUM."
+        description="A warm and flexible Copenhagen venue for workshops, meetings, and community gatherings of up to 12 guests."
         features={[
           "Up to 12 guests",
-          "Screen & Wi-Fi",
-          "Coffee, tea & water",
-          "Optional catering",
+          "Flexible room setup",
+          "Central Copenhagen",
+          "On-site support",
         ]}
-        ctaLabel="Plan a private meeting"
+        featureIcons={[Users, SlidersHorizontal, MapPin, HandHeart]}
+        ctaLabel="Host at RORUM"
         ctaHref="/private-meetings"
         image="/images/events/private-meetings.png"
-        imageAlt="Small private meeting in the RORUM room"
+        imageAlt="Small hosted meeting in the RORUM room"
         reversed
       />
       <ServicesTeaserSection services={services} />
@@ -175,8 +174,8 @@ export default function Home() {
         faqQuestion="Have questions before you choose a format?"
         faqLabel="Read FAQ"
         links={[
-          { href: "/host-an-event", label: "Host an event" },
-          { href: "/private-meetings", label: "Private meetings" },
+          { href: "/events", label: "Attend Events" },
+          { href: "/private-meetings", label: "Host at RORUM" },
           { href: "/catering", label: "Catering" },
           {
             href: "/space-decoration-event-styling",

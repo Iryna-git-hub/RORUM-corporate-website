@@ -25,7 +25,7 @@ import {
 
 export const metadata = pageMetadata("/private-meetings");
 
-export default function PrivateMeetingsPage() {
+export default function HostAtRorumPage() {
   const sessionDetailsImage =
     "/images/private-meetings/private-meeting-room-10.png";
   const galleryImages = [
@@ -78,8 +78,8 @@ export default function PrivateMeetingsPage() {
       <section className="book-space-hero private-meetings-hero">
         <Container>
           <div className="book-space-hero-copy">
-            <SectionLabel>Private meetings</SectionLabel>
-            <h1 className="heading">Meetings &amp; private events</h1>
+            <SectionLabel>Host at RORUM</SectionLabel>
+            <h1 className="heading">Host Your Gathering at RORUM</h1>
             <div className="private-meetings-hero-text">
               <p>
                 RORUM is a small, curated space in central Copenhagen, designed
@@ -101,7 +101,7 @@ export default function PrivateMeetingsPage() {
                 />
               </Button>
               <Button href="#request-private-meeting">
-                Request private meetings
+                Host at RORUM
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"
@@ -119,7 +119,7 @@ export default function PrivateMeetingsPage() {
             <div
               className="meeting-session-media"
               role="img"
-              aria-label="Private meeting room setup at RORUM"
+              aria-label="Hosted meeting room setup at RORUM"
               style={{ backgroundImage: `url(${sessionDetailsImage})` }}
             />
             <div className="meeting-session-content">
@@ -170,7 +170,7 @@ export default function PrivateMeetingsPage() {
                   />
                 </Button>
                 <Button href="#request-private-meeting">
-                  Request private meeting
+                  Host at RORUM
                   <ArrowRight
                     className="button-arrow"
                     aria-hidden="true"
@@ -214,7 +214,7 @@ export default function PrivateMeetingsPage() {
               <h2 className="heading section-title">3-step setup</h2>
               <div
                 className="catering-steps"
-                aria-label="Private meeting request process"
+                aria-label="Host at RORUM request process"
               >
                 {meetingSetupSteps.map(([title, text], index) => (
                   <article className="catering-step" key={title}>
@@ -230,7 +230,7 @@ export default function PrivateMeetingsPage() {
             </div>
             <InquiryForm
               type="booking"
-              title="Private meeting request"
+              title="Host at RORUM request"
               submitLabel="Send request"
             />
           </div>

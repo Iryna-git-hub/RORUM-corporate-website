@@ -146,7 +146,7 @@ main {
   gap: 10px;
   color: var(--color-red);
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   width: fit-content;
@@ -159,7 +159,7 @@ main {
 }
 .heading {
   font-family: var(--font-heading), Georgia, serif;
-  font-weight: 300;
+  font-weight: 500;
   line-height: 0.95;
   letter-spacing: -0.03em;
   color: var(--color-text-primary);
@@ -250,7 +250,7 @@ main {
   align-items: center;
   gap: 16px;
   color: var(--color-dark-brown);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -373,6 +373,7 @@ main {
 .language-switcher {
   margin-left: auto;
   margin-right: -8px;
+  font-size: 13px;
 }
 .mobile-language-switcher {
   background: rgba(var(--rgb-cream), 0.5);
@@ -385,9 +386,14 @@ main {
   min-width: auto;
   min-height: 26px;
   border-radius: 0;
-  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
+}
+.language-switcher span {
+  font-size: inherit;
+}
+.mobile-language-switcher span {
+  font-size: 11px;
 }
 .language-switcher i,
 .mobile-language-switcher i {
@@ -928,7 +934,7 @@ button.btn,
   background: rgba(var(--rgb-cream), 0.88);
 }
 
-/* Host an event */
+/* Hosting */
 .host-page-hero {
   position: relative;
   padding: 65px 0 clamp(24px, 4vw, 44px);
@@ -3981,7 +3987,7 @@ button.btn,
 .home-hero-overlay {
   position: absolute;
   inset: 0;
-  background: #00000094;
+  background: #00000080;
   z-index: 1;
 }
 .home-hero-full .container {
@@ -4011,7 +4017,7 @@ button.btn,
   max-width: 58ch;
   margin: 0;
   color: var(--color-text-on-image);
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.6;
 }
 .home-hero-copy .home-hero-microcopy {
@@ -4111,7 +4117,6 @@ button.btn,
 }
 .quick-paths-section .label {
   color: var(--color-red);
-  font-weight: 600;
   border-bottom-color: var(--color-red);
 }
 .quick-paths-section .heading {
@@ -8805,7 +8810,7 @@ p.faq-inline-prompt,
     order: -1;
   }
 
-  /* Private Meetings hero — center and reorder: "View Meeting Packages" first */
+  /* Host at RORUM hero — center and reorder: "View Meeting Packages" first */
   .private-meetings-hero-actions {
     justify-content: center;
     width: 100%;

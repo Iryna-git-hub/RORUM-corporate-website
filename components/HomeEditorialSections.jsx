@@ -1,12 +1,6 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  Coffee,
-  HandHeart,
-  SlidersHorizontal,
-  UtensilsCrossed,
-  Users,
-  Wifi,
   Wrench,
 } from "lucide-react";
 import {
@@ -19,18 +13,17 @@ import {
 export function EditorialFeatureSection({
   eyebrow,
   title,
+  intro,
   description,
   ctaLabel,
   ctaHref,
   image,
   imageAlt,
   features = [],
+  featureIcons = [],
   reversed = false,
   note,
 }) {
-  const hostFeatureIcons = [Users, SlidersHorizontal, HandHeart, Coffee];
-  const privateFeatureIcons = [Users, Wifi, Coffee, UtensilsCrossed];
-  const featureIcons = reversed ? privateFeatureIcons : hostFeatureIcons;
   return (
     <section
       className={`editorial-feature ${reversed ? "editorial-feature-reversed" : ""}`}
@@ -40,6 +33,7 @@ export function EditorialFeatureSection({
           <div className="editorial-feature-copy">
             <SectionLabel>{eyebrow}</SectionLabel>
             <h2 className="heading section-title">{title}</h2>
+            {intro ? <p className="editorial-feature-intro">{intro}</p> : null}
             <p>{description}</p>
             {features.length ? (
               <ul className="editorial-feature-list">

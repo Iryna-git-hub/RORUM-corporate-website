@@ -239,7 +239,7 @@ export function CTASection({
 
 export function FAQHelpStrip({
   title = "Questions before booking?",
-  text = "Find answers about hosting, private meetings, catering, events and practical details before you send a request.",
+  text = "Find answers about hosting at RORUM, catering, events and practical details before you send a request.",
   href = "/faq",
   label = "Read FAQ",
   className = "",

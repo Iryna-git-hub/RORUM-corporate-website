@@ -33,7 +33,7 @@ export default function TermsPage() {
 
       <h2>2. Use of this website</h2>
       <p>
-        This website provides information about RORUM, events, private meetings,
+        This website provides information about RORUM, events, hosted gatherings,
         catering, event decoration and related community experiences. The
         website is intended for general information and inquiries.
       </p>

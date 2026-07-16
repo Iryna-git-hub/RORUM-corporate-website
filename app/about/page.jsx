@@ -8,7 +8,6 @@ import {
   Handshake,
   HeartHandshake,
   Users,
-  UsersRound,
   WandSparkles,
 } from "lucide-react";
 import { Container, CTASection, Section, SectionLabel } from "@/components/ui";
@@ -40,8 +39,7 @@ const principles = [
 ];
 
 const introLinks = [
-  { href: "/host-an-event", label: "Host an Event", icon: CalendarPlus },
-  { href: "/private-meetings", label: "Private Meetings", icon: UsersRound },
+  { href: "/private-meetings", label: "Host at RORUM", icon: CalendarPlus },
   { href: "/events", label: "Attend Events", icon: CalendarCheck },
 ];
 
@@ -193,8 +191,8 @@ export default function AboutPage() {
         faqQuestion="Still have practical questions?"
         faqLabel="Read FAQ"
         links={[
-          { href: "/host-an-event", label: "Host an event" },
-          { href: "/private-meetings", label: "Private meetings" },
+          { href: "/events", label: "Attend Events" },
+          { href: "/private-meetings", label: "Host at RORUM" },
           { href: "/catering", label: "Catering" },
           {
             href: "/space-decoration-event-styling",

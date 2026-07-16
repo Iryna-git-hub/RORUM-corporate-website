@@ -119,7 +119,7 @@ export function InquiryForm({
         </div>
         {sent ? (
           <div className="success" role="status">
-            Thank you. Your private meeting request is ready for the RORUM team.
+            Thank you. Your Host at RORUM request is ready for the RORUM team.
           </div>
         ) : null}
 

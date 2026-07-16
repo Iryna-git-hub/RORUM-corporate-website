@@ -41,14 +41,14 @@ export default function PrivacyPage() {
       <h2>3. Why we use your information</h2>
       <p>
         RORUM uses the information you submit to respond to your request,
-        discuss event ideas, private meetings, catering, event decoration,
+        discuss event ideas, hosted gatherings, catering, event decoration,
         collaborations or general questions.
       </p>
 
       <h2>4. Legal basis</h2>
       <p>
         RORUM processes personal information to respond to inquiries, manage
-        requests, discuss events, private meetings, catering, event decoration,
+        requests, discuss events, hosted gatherings, catering, event decoration,
         collaborations and community-related communication.
       </p>
       <p>Depending on the request, the legal basis may be:</p>

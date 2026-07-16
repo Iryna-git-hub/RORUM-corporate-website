@@ -32,11 +32,11 @@ export default function EventsPage() {
       <CTASection
         variant="host"
         className="events-next-step-section"
-        eyebrow="Host an event"
-        title="Would like to host an event?"
-        text="Send a hosting inquiry and we will explore timing and setup together."
-        href="/host-an-event"
-        label="Host an event"
+        eyebrow="Host at RORUM"
+        title="Would you like to host at RORUM?"
+        text="Explore our space for workshops, meetings, and community gatherings of up to 12 guests."
+        href="/private-meetings"
+        label="Host at RORUM"
         faqQuestion="Questions before joining or hosting an event?"
         faqLabel="Read FAQ"
       />

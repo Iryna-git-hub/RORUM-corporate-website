@@ -705,7 +705,7 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
     >
       <div className="catering-menu-overlay-shell" ref={shellRef}>
         <header className="catering-menu-overlay-header">
-          <p>Rorum / Catering Menu</p>
+          <p>RORUM / Catering Menu</p>
           <button
             ref={closeButtonRef}
             className="catering-menu-close"
@@ -733,7 +733,7 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
                 </h2>
                 <p>
                   Traditional Ukrainian hospitality, Danish classics, and
-                  European-style service for private meetings, celebrations, and
+                  European-style service for hosted meetings, celebrations, and
                   special gatherings.
                 </p>
                 <p>

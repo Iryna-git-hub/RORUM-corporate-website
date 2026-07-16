@@ -6,8 +6,7 @@ import { contactDetails, socialLinks } from "@/lib/siteConfig";
 
 const visitHostLinks = [
   { href: "/events", label: "Events" },
-  { href: "/host-an-event", label: "Host an event" },
-  { href: "/private-meetings", label: "Private meetings" },
+  { href: "/private-meetings", label: "Host at RORUM" },
 ];
 
 const serviceLinks = [

@@ -135,7 +135,7 @@ const formats = [
 ];
 
 const suitableFor = [
-  ["Private meetings", CalendarCheck],
+  ["Host at RORUM", CalendarCheck],
   ["Workshops", Presentation],
   ["Community events", Handshake],
   ["Creative sessions", Lightbulb],
