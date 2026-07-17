@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, ConciergeBell, Presentation } from "lucide-react";
+import { ArrowRight, CalendarDays, ConciergeBell, Presentation, Sparkles } from "lucide-react";
 
 const quickPathMeta = {
     "/events": {
@@ -12,19 +12,21 @@ const quickPathMeta = {
         cta: "Host with us",
         tone: "red"
     },
-    services: {
+    "/catering": {
         icon: ConciergeBell,
         tone: "green",
-        links: [
-            { href: "/catering", label: "Catering" },
-            { href: "/event-decoration", label: "Event decoration" }
-        ]
+        cta: "Explore catering"
+    },
+    "/event-decoration": {
+        icon: Sparkles,
+        tone: "green",
+        cta: "Explore decoration"
     }
 };
 
 function QuickPathCard({ title, text, href, image }) {
-    const routeKey = href ?? "services";
-    const meta = quickPathMeta[routeKey] ?? quickPathMeta.services;
+    const routeKey = href;
+    const meta = quickPathMeta[routeKey];
     const Icon = meta.icon;
     const cardClassName = `quick-path-card quick-path-card-${meta.tone} quick-path-card-${routeKey.replace(/^\/+/, "").replaceAll("/", "-")}`;
     const inner = (<>
@@ -39,23 +41,12 @@ function QuickPathCard({ title, text, href, image }) {
         <span className="quick-card-text">{text}</span>
       </span>
       <span className="quick-card-actions">
-        {meta.links ? (<span className="quick-card-links" aria-label="Service links">
-            {meta.links.map((link) => <span className="quick-card-link-item" key={link.href}>
-              <Link className="quick-card-service-link" href={link.href}>
-              <span>{link.label}</span>
-              <ArrowRight aria-hidden="true" strokeWidth={1.9}/>
-              </Link>
-            </span>)}
-          </span>) : (<span className="quick-card-cta">
+        <span className="quick-card-cta">
             <span>{meta.cta}</span>
             <ArrowRight aria-hidden="true" strokeWidth={1.9}/>
-          </span>)}
+        </span>
       </span>
     </>);
-
-    if (meta.links) {
-        return <article className={`${cardClassName} quick-path-card-static`}>{inner}</article>;
-    }
 
     return <Link className={cardClassName} href={href}>{inner}</Link>;
 }

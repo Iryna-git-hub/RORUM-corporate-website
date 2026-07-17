@@ -29,12 +29,6 @@ export const metadata = pageMetadata("/");
 export default function Home() {
   const paths = [
     [
-      "Services",
-      "Add catering, styling and hospitality details.",
-      null,
-      "/images/services/services-split.png",
-    ],
-    [
       "Attend Events",
       "Discover workshops, conversations, and community experiences in the heart of Copenhagen.",
       "/events",
@@ -45,6 +39,18 @@ export default function Home() {
       "A warm and flexible Copenhagen venue for workshops, meetings, and community gatherings of up to 12 guests.",
       "/host-at-rorum",
       "/images/space/space-1.png",
+    ],
+    [
+      "Catering",
+      "Fresh, simple and elegant catering for meetings, private gatherings, workshops and special moments.",
+      "/catering",
+      "/images/catering/catering-1.png",
+    ],
+    [
+      "Event Decoration",
+      "Flowers, table styling, candles and visual details designed to create a warm and memorable atmosphere.",
+      "/event-decoration",
+      "/images/decoration/decoration-1.png",
     ],
   ];
   const services = [

@@ -3,11 +3,110 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ChevronDown, MessageCircle, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useId, useRef, useState } from "react";
 import { navItems } from "@/lib/data";
 import { socialLinks } from "@/lib/siteConfig";
 import { SocialIcon } from "@/components/SocialIcon";
 import { Button, Container } from "@/components/ui";
+
+const languages = ["EN", "DA", "UA"];
+
+function LanguageDropdown({ className = "", currentLanguage, onLanguageChange }) {
+    const [open, setOpen] = useState(false);
+    const triggerRef = useRef(null);
+    const menuRef = useRef(null);
+    const menuId = useId();
+
+    function focusOption(index) {
+        const options = menuRef.current?.querySelectorAll('[role="menuitemradio"]');
+        options?.[index]?.focus();
+    }
+
+    function openMenu(focusIndex = languages.indexOf(currentLanguage)) {
+        setOpen(true);
+        requestAnimationFrame(() => focusOption(focusIndex));
+    }
+
+    function handleTriggerKeyDown(event) {
+        if (event.key === "ArrowDown") {
+            event.preventDefault();
+            openMenu(0);
+        } else if (event.key === "ArrowUp") {
+            event.preventDefault();
+            openMenu(languages.length - 1);
+        }
+    }
+
+    function handleMenuKeyDown(event) {
+        const options = Array.from(menuRef.current?.querySelectorAll('[role="menuitemradio"]') ?? []);
+        const currentIndex = options.indexOf(document.activeElement);
+        let nextIndex = currentIndex;
+
+        if (event.key === "ArrowDown") nextIndex = (currentIndex + 1) % options.length;
+        else if (event.key === "ArrowUp") nextIndex = (currentIndex - 1 + options.length) % options.length;
+        else if (event.key === "Home") nextIndex = 0;
+        else if (event.key === "End") nextIndex = options.length - 1;
+        else if (event.key === "Escape") {
+            event.preventDefault();
+            setOpen(false);
+            triggerRef.current?.focus();
+            return;
+        } else return;
+
+        event.preventDefault();
+        options[nextIndex]?.focus();
+    }
+
+    return (
+      <div
+        className={`nav-dropdown language-dropdown ${open ? "nav-dropdown-open" : ""} ${className}`.trim()}
+        onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+        }}
+      >
+        <button
+          ref={triggerRef}
+          className="nav-trigger language-dropdown-trigger"
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-controls={menuId}
+          aria-label={`Language: ${currentLanguage}`}
+          onClick={() => setOpen((isOpen) => !isOpen)}
+          onKeyDown={handleTriggerKeyDown}
+        >
+          <span>{currentLanguage}</span>
+          <ChevronDown aria-hidden="true" className="nav-caret" strokeWidth={2.2}/>
+        </button>
+        <div
+          ref={menuRef}
+          id={menuId}
+          className="dropdown-menu language-dropdown-menu"
+          role="menu"
+          aria-label="Choose language"
+          onKeyDown={handleMenuKeyDown}
+        >
+          {languages.map((language) => (
+            <button
+              className={language === currentLanguage ? "language-option-active" : ""}
+              type="button"
+              role="menuitemradio"
+              aria-checked={language === currentLanguage}
+              tabIndex={open && language === currentLanguage ? 0 : -1}
+              key={language}
+              onClick={() => {
+                  onLanguageChange(language);
+                  setOpen(false);
+                  requestAnimationFrame(() => triggerRef.current?.focus());
+              }}
+            >
+              {language}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+}
 
 export function Header() {
     const pathname = usePathname();
@@ -15,6 +114,7 @@ export function Header() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [openDropdown, setOpenDropdown] = useState(null);
     const [openMobileDropdown, setOpenMobileDropdown] = useState(null);
+    const [currentLanguage, setCurrentLanguage] = useState("EN");
     useEffect(() => {
         let lastY = window.scrollY;
         const onScroll = () => {
@@ -68,18 +168,24 @@ export function Header() {
               </div>) : <Link className={active ? "nav-active-link" : ""} aria-current={active ? "page" : undefined} key={item.href} href={item.href} onClick={closeMenus}>{item.label}</Link>;
             })}
           </nav>
-          <div className="language-switcher" aria-label="Language selector">
-            <span>EN</span>
-            <i aria-hidden="true">|</i>
-            <span>DA</span>
-            <i aria-hidden="true">|</i>
-            <span>UA</span>
-          </div>
-          <div className="header-cta">
-            <Button href="/contact">
-              <MessageCircle className="talk-icon" aria-hidden="true" strokeWidth={2}/>
-              Let&apos;s Talk
-            </Button>
+          <div className="header-actions">
+            <div className="language-switcher" aria-label="Language selector">
+              {languages.map((language, index) => (
+                <Fragment key={language}>
+                  {index ? <i aria-hidden="true">|</i> : null}
+                  <span className={language === currentLanguage ? "language-option-active" : ""}>
+                    {language}
+                  </span>
+                </Fragment>
+              ))}
+            </div>
+            <LanguageDropdown className="desktop-language-dropdown" currentLanguage={currentLanguage} onLanguageChange={setCurrentLanguage} />
+            <div className="header-cta">
+              <Button href="/contact">
+                <MessageCircle className="talk-icon" aria-hidden="true" strokeWidth={2}/>
+                Let&apos;s Talk
+              </Button>
+            </div>
           </div>
           <button className="mobile-menu-toggle" type="button" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} tabIndex={menuOpen ? -1 : 0} onClick={() => setMenuOpen((open) => !open)}>
             <span />
@@ -91,7 +197,10 @@ export function Header() {
       <button className="mobile-menu-backdrop" type="button" aria-label="Close menu" onClick={closeMenus}/>
       <aside className="mobile-menu-panel" aria-label="Mobile menu">
         <div className="mobile-menu-topbar">
-          <div className="mobile-language-switcher" aria-label="Language selector"><span>EN</span><i aria-hidden="true">|</i><span>DA</span><i aria-hidden="true">|</i><span>UA</span></div>
+          <Link className="btn mobile-topbar-cta" href="/contact" onClick={closeMenus}>
+            Let&apos;s Talk
+          </Link>
+          <LanguageDropdown className="mobile-language-dropdown" currentLanguage={currentLanguage} onLanguageChange={setCurrentLanguage} />
           <button className="mobile-menu-close" type="button" aria-label="Close menu" onClick={closeMenus}>
             <X aria-hidden="true" strokeWidth={2}/>
           </button>
