@@ -101,6 +101,29 @@ const galleryImages = [
   "/images/catering/catering-gallery-new-35.png",
 ];
 
+const menuFormats = [
+  {
+    title: "Private dinner menu",
+    description:
+      "A seated dinner with seasonal starters, main courses, sides, and desserts.",
+    image: "/images/catering/european-private-dinner-menu.png",
+    alt: "Private dinner table with modern European dishes and wine",
+  },
+  {
+    title: "Reception-style menu",
+    description: "Elegant light dishes, small bites, and shareable plates.",
+    image: "/images/catering/european-reception-style-menu.png",
+    alt: "Reception-style buffet with small bites and shared plates",
+  },
+  {
+    title: "Business meeting menu",
+    description:
+      "Balanced, easy-to-serve dishes suitable for workshops, presentations, and longer meetings.",
+    image: "/images/catering/european-business-meeting-menu.png",
+    alt: "Business meeting catering buffet with wraps, salad, fruit, water and coffee",
+  },
+];
+
 const formats = [
   {
     title: "Ukrainian cuisine",
@@ -219,6 +242,25 @@ export default function CateringPage() {
         </Container>
       </section>
 
+      <section className="section catering-format-section">
+        <Container>
+          <div className="catering-format-intro">
+            <h2 className="heading section-title">Menu Formats</h2>
+          </div>
+          <div className="catering-format-grid">
+            {menuFormats.map(({ title, description, image, alt }) => (
+              <article className="catering-format-card" key={title}>
+                <img src={image} alt={alt} loading="lazy" />
+                <div className="catering-format-card-copy">
+                  <h3>{title}</h3>
+                  <p>{description}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </Container>
+      </section>
+
       <section className="section catering-offer-section">
         <Container>
           <div className="catering-offer-layout catering-philosophy-grid catering-offer-grid-mirror">
@@ -276,10 +318,6 @@ export default function CateringPage() {
               </CateringMenuButton>
               <Button href="#catering-inquiry">Request catering</Button>
             </div>
-            <FAQInlinePrompt
-              question="Questions about portions, dietary needs or custom menus?"
-              label="Read FAQ"
-            />
           </div>
         </Container>
       </section>
@@ -301,6 +339,7 @@ export default function CateringPage() {
                   </article>
                 ))}
               </div>
+              <FAQInlinePrompt />
             </div>
             <CateringInquiryForm />
           </div>

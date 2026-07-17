@@ -32,13 +32,13 @@ export default function Home() {
       "Attend Events",
       "Discover workshops, conversations, and community experiences in the heart of Copenhagen.",
       "/events",
-      "/images/events/mosaic-variants/events-mosaic-3x4-border.jpg",
+      "/images/events/attend-events-quickpath.png",
     ],
     [
       "Host at RORUM",
       "A warm and flexible Copenhagen venue for workshops, meetings, and community gatherings of up to 12 guests.",
       "/host-at-rorum",
-      "/images/space/space-1.png",
+      "/images/private-meetings/private-meeting-room-9.png",
     ],
     [
       "Catering",

@@ -11,7 +11,7 @@ const visitHostLinks = [
 
 const serviceLinks = [
   { href: "/catering", label: "Catering" },
-  { href: "/event-decoration", label: "Event decoration" },
+  { href: "/event-decoration", label: "Decoration" },
 ];
 
 const communityLinks = [

@@ -108,6 +108,26 @@ function LanguageDropdown({ className = "", currentLanguage, onLanguageChange })
     );
 }
 
+function MobileLanguageSwitcher({ currentLanguage, onLanguageChange }) {
+    return (
+      <div className="mobile-language-switcher" role="group" aria-label="Language selector">
+        {languages.map((language, index) => (
+          <Fragment key={language}>
+            {index ? <i aria-hidden="true">|</i> : null}
+            <button
+              className={language === currentLanguage ? "language-option-active" : ""}
+              type="button"
+              aria-pressed={language === currentLanguage}
+              onClick={() => onLanguageChange(language)}
+            >
+              {language}
+            </button>
+          </Fragment>
+        ))}
+      </div>
+    );
+}
+
 export function Header() {
     const pathname = usePathname();
     const [hidden, setHidden] = useState(false);
@@ -200,7 +220,7 @@ export function Header() {
           <Link className="btn mobile-topbar-cta" href="/contact" onClick={closeMenus}>
             Let&apos;s Talk
           </Link>
-          <LanguageDropdown className="mobile-language-dropdown" currentLanguage={currentLanguage} onLanguageChange={setCurrentLanguage} />
+          <MobileLanguageSwitcher currentLanguage={currentLanguage} onLanguageChange={setCurrentLanguage} />
           <button className="mobile-menu-close" type="button" aria-label="Close menu" onClick={closeMenus}>
             <X aria-hidden="true" strokeWidth={2}/>
           </button>
