@@ -11,7 +11,6 @@ import {
   Plus,
   Sandwich,
   Soup,
-  Utensils,
   X,
 } from "lucide-react";
 
@@ -22,8 +21,28 @@ const menuCategories = [
     navLabel: "Ukrainian cuisine",
     description:
       "Authentic homemade dishes that bring warmth, generosity, and a true Ukrainian table experience to your event.",
-    featuredLabel: "Featured dishes",
     featuredItems: [
+      {
+        name: "Borscht",
+        description:
+          "Traditional Ukrainian beetroot soup with vegetables, herbs, and sour cream, served with dark bread.",
+        image: "/images/catering/ukrainian-borscht-traditional.png",
+        alt: "A bowl of traditional Ukrainian borscht with herbs",
+      },
+      {
+        name: "Holubtsi",
+        description:
+          "Tender cabbage rolls filled with seasoned rice and meat and baked in sauce.",
+        image: "/images/catering/catering-gallery-new-07.png",
+        alt: "Holubtsi cabbage rolls arranged in a baking dish",
+      },
+      {
+        name: "Varenyky",
+        description:
+          "Traditional Ukrainian dumplings with savory filling, served with sour cream, dill, and caramelized onions.",
+        image: "/images/catering/ukrainian-varenyky.png",
+        alt: "Ukrainian varenyky dumplings served on a plate",
+      },
       {
         name: "Country-style potatoes",
         description:
@@ -53,35 +72,47 @@ const menuCategories = [
         alt: "Chicken Kyiv cutlet with garlic herb butter filling",
       },
       {
-        name: "Dolmas",
+        name: "Green borscht",
         description:
-          "Tender stuffed rolls filled with seasoned rice and meat, slowly cooked in tomato sauce and served with sour cream.",
-        image: "/images/catering/ukrainian-dolmas.png",
-        alt: "Dolmas served in tomato sauce with sour cream",
+          "A fresh sorrel-based soup with potatoes, herbs, egg, and sour cream.",
+        image: "/images/catering/ukrainian-green-borscht.png",
+        alt: "Ukrainian green borscht with potatoes, egg, herbs, and sour cream",
       },
       {
-        name: "Borscht",
+        name: "Homemade sausage",
         description:
-          "Traditional Ukrainian beetroot soup with vegetables, herbs, and sour cream, served with dark bread.",
-        image: "/images/catering/ukrainian-borscht-traditional.png",
-        alt: "A bowl of traditional Ukrainian borscht with herbs",
+          "Traditional seasoned sausage prepared for a generous shared table.",
+        image: "/images/catering/ukrainian-homemade-sausage.png",
+        alt: "Homemade Ukrainian sausages served with mustard and pickles",
       },
       {
-        name: "Varenyky",
+        name: "Deruny",
         description:
-          "Traditional Ukrainian dumplings with savory filling, served with sour cream, dill, and caramelized onions.",
-        image: "/images/catering/ukrainian-varenyky.png",
-        alt: "Ukrainian varenyky dumplings served on a plate",
+          "Crisp Ukrainian potato pancakes served warm with a creamy accompaniment.",
+        image: "/images/catering/vegetarian-deruny-mushroom-sauce.png",
+        alt: "Ukrainian deruny potato pancakes with mushroom sauce",
       },
-    ],
-    alsoAvailable: [
-      "Green borscht",
-      "Homemade sausage",
-      "Holubtsi",
-      "Deruny",
-      "Pickles",
-      "Traditional salads",
-      "Appetizers with salo",
+      {
+        name: "Pickles",
+        description:
+          "A bright selection of house-style pickled vegetables for the shared table.",
+        image: "/images/catering/ukrainian-pickles.png",
+        alt: "Assorted pickled vegetables served with dill",
+      },
+      {
+        name: "Traditional salads",
+        description:
+          "A changing selection of familiar Ukrainian salads made for sharing.",
+        image: "/images/catering/ukrainian-seasonal-salads.png",
+        alt: "A seasonal selection of traditional Ukrainian salads",
+      },
+      {
+        name: "Appetizers with salo",
+        description:
+          "Traditional salo served with bread, pickles, mustard, and savory accompaniments.",
+        image: "/images/catering/catering-board.png",
+        alt: "Salo appetizer board with bread and accompaniments",
+      },
     ],
   },
   {
@@ -90,7 +121,6 @@ const menuCategories = [
     navLabel: "Danish cuisine",
     description:
       "Familiar Danish dishes and seasonal classics for relaxed, elegant, and locally inspired gatherings.",
-    featuredLabel: "Featured dishes",
     featuredItems: [
       {
         name: "Smørrebrød",
@@ -120,46 +150,42 @@ const menuCategories = [
         image: "/images/catering/danish-flaeskesteg.png",
         alt: "Flaeskesteg roast pork with crispy crackling and Danish sides",
       },
-    ],
-    alsoAvailable: [
-      "Kalveculotte",
-      "Danish baked potatoes",
-      "Flødekartofler",
-      "Danish seasonal appetizers",
-      "Traditional Danish dishes",
-    ],
-  },
-  {
-    id: "european",
-    title: "Modern European cuisine",
-    navLabel: "Modern European cuisine",
-    description:
-      "A flexible menu created individually according to the style, timing, and atmosphere of your event.",
-    featuredLabel: "Menu formats",
-    featuredItems: [
       {
-        name: "Private dinner menu",
+        name: "Kalveculotte",
         description:
-          "A seated dinner with seasonal starters, main courses, sides, and desserts.",
-        image: "/images/catering/european-private-dinner-menu.png",
-        alt: "Private dinner table with modern European dishes and wine",
+          "Tender roasted veal served sliced with seasonal accompaniments.",
+        image: "/images/catering/danish-kalveculotte.png",
+        alt: "Sliced kalveculotte served with roasted seasonal vegetables",
       },
       {
-        name: "Reception-style menu",
-        description: "Elegant light dishes, small bites, and shareable plates.",
-        image: "/images/catering/european-reception-style-menu.png",
-        alt: "Reception-style buffet with small bites and shared plates",
-      },
-      {
-        name: "Business meeting menu",
+        name: "Danish baked potatoes",
         description:
-          "Balanced, easy-to-serve dishes suitable for workshops, presentations, and longer meetings.",
-        image: "/images/catering/european-business-meeting-menu.png",
-        alt: "Business meeting catering buffet with wraps, salad, fruit, water and coffee",
+          "Golden baked potatoes seasoned simply and served as a warm side.",
+        image: "/images/catering/danish-baked-potatoes.png",
+        alt: "Golden Danish baked potatoes with fresh herbs",
+      },
+      {
+        name: "Flødekartofler",
+        description:
+          "Classic Danish potatoes baked in cream until tender and golden.",
+        image: "/images/catering/danish-flodekartofler.png",
+        alt: "Danish flødekartofler baked in cream until golden",
+      },
+      {
+        name: "Danish seasonal appetizers",
+        description:
+          "Small seasonal starters selected to suit the occasion and time of year.",
+        image: "/images/catering/danish-seasonal-appetizers.png",
+        alt: "Assorted Danish seasonal appetizers on rye bread",
+      },
+      {
+        name: "Traditional Danish dishes",
+        description:
+          "A rotating selection of familiar Danish classics for a shared table.",
+        image: "/images/catering/danish-traditional-dishes.png",
+        alt: "A platter of traditional Danish dishes and accompaniments",
       },
     ],
-    additionalText:
-      "The final menu is created together with you based on the event format and guest preferences.",
   },
   {
     id: "vegetarian",
@@ -167,7 +193,6 @@ const menuCategories = [
     navLabel: "Vegetarian menu",
     description:
       "Seasonal vegetarian dishes with warm flavors, fresh ingredients, and thoughtful presentation.",
-    featuredLabel: "Featured dishes",
     featuredItems: [
       {
         name: "Baked pumpkin with feta and honey",
@@ -203,8 +228,21 @@ const menuCategories = [
         image: "/images/catering/vegetarian-hummus-seasonal-vegetables.png",
         alt: "Hummus with seasonal vegetables",
       },
+      {
+        name: "Bruschetta with tomatoes and basil",
+        description:
+          "Toasted bread topped with ripe tomatoes, basil, and a light seasoning.",
+        image: "/images/catering/vegetarian-bruschetta-tomatoes-basil.png",
+        alt: "Bruschetta topped with tomatoes and basil",
+      },
+      {
+        name: "Vegetable tartlets",
+        description:
+          "Small savory tartlets filled with colorful seasonal vegetables.",
+        image: "/images/catering/vegetarian-vegetable-tartlets.png",
+        alt: "Vegetable tartlets topped with colorful seasonal vegetables",
+      },
     ],
-    alsoAvailable: ["Bruschetta with tomatoes and basil", "Vegetable tartlets"],
   },
   {
     id: "finger-food",
@@ -212,7 +250,6 @@ const menuCategories = [
     navLabel: "Finger food",
     description:
       "Elegant small bites for mingling, networking, receptions, and informal private gatherings.",
-    featuredLabel: "Featured dishes",
     featuredItems: [
       {
         name: "Mini appetizers with salmon and cream cheese",
@@ -240,8 +277,35 @@ const menuCategories = [
         image: "/images/catering/finger-food-vegetable-platter.png",
         alt: "Vegetable platter with fresh vegetables and pickles",
       },
+      {
+        name: "Canapés",
+        description:
+          "Elegant bite-sized canapés with varied seasonal toppings.",
+        image: "/images/catering/finger-food-canapes.png",
+        alt: "Assorted canapés with salmon, roast meat, vegetables, and herbs",
+      },
+      {
+        name: "Bruschetta",
+        description:
+          "Crisp toasted bread with fresh, savory toppings for easy sharing.",
+        image: "/images/catering/finger-food-bruschetta.png",
+        alt: "Bruschetta with tomato, basil, mushroom, and pesto toppings",
+      },
+      {
+        name: "Mini burgers",
+        description:
+          "Small, satisfying burgers designed for receptions and informal gatherings.",
+        image: "/images/catering/finger-food-mini-burgers.png",
+        alt: "Mini burgers arranged on a serving platter",
+      },
+      {
+        name: "Seasonal snacks",
+        description:
+          "A flexible assortment of small savory bites selected for the season.",
+        image: "/images/catering/finger-food-seasonal-snacks.png",
+        alt: "A varied selection of seasonal finger food and canapés",
+      },
     ],
-    alsoAvailable: ["Canapés", "Bruschetta", "Mini burgers", "Seasonal snacks"],
   },
   {
     id: "grill",
@@ -249,7 +313,6 @@ const menuCategories = [
     navLabel: "Grill menu",
     description:
       "A generous grill selection for relaxed celebrations, summer events, and warm informal gatherings.",
-    featuredLabel: "Featured dishes",
     featuredItems: [
       {
         name: "Shashlyk",
@@ -277,8 +340,28 @@ const menuCategories = [
         image: "/images/catering/grill-homemade-sauces.png",
         alt: "Homemade sauces in ceramic bowls",
       },
+      {
+        name: "Steaks",
+        description:
+          "Grilled cuts of meat cooked for a flavorful centerpiece to the menu.",
+        image: "/images/catering/grill-steaks.png",
+        alt: "Sliced grilled steaks served with peppers and onions",
+      },
+      {
+        name: "Grilled sausages",
+        description:
+          "Seasoned sausages grilled until golden and served hot from the grill.",
+        image: "/images/catering/grill-sausages.png",
+        alt: "Grilled sausages served with mustard, pickles, and onions",
+      },
+      {
+        name: "Seasonal sides",
+        description:
+          "Fresh seasonal vegetables and warm accompaniments for the grill menu.",
+        image: "/images/catering/grill-seasonal-sides.png",
+        alt: "Seasonal grilled vegetables, potatoes, and herbs",
+      },
     ],
-    alsoAvailable: ["Steaks", "Grilled sausages", "Seasonal sides"],
   },
   {
     id: "desserts",
@@ -286,7 +369,6 @@ const menuCategories = [
     navLabel: "Desserts and sweet table",
     description:
       "A festive dessert selection for celebrations, receptions, family events, and special occasions.",
-    featuredLabel: "Featured dishes",
     featuredItems: [
       {
         name: "Fruit sets",
@@ -333,8 +415,21 @@ const menuCategories = [
         image: "/images/catering/desserts-medivnyk.png",
         alt: "Medivnyk Ukrainian honey cake",
       },
+      {
+        name: "Pani Walewska",
+        description:
+          "A celebratory layered cake with cream, fruit, and a delicate finish.",
+        image: "/images/catering/desserts-pani-walewska.png",
+        alt: "Pani Walewska layered cake with cream and fresh berries",
+      },
+      {
+        name: "Festive sweets",
+        description:
+          "An assorted selection of small sweets for celebrations and dessert tables.",
+        image: "/images/catering/desserts-festive-sweets.png",
+        alt: "Assorted festive sweets, pastries, and miniature cakes",
+      },
     ],
-    alsoAvailable: ["Pani Walewska", "Festive sweets"],
   },
 ];
 
@@ -342,11 +437,6 @@ const orderedMenuCategories = [
   {
     ...menuCategories.find((category) => category.id === "ukrainian"),
     icon: Soup,
-  },
-  {
-    ...menuCategories.find((category) => category.id === "european"),
-    navLabel: "European",
-    icon: Utensils,
   },
   {
     ...menuCategories.find((category) => category.id === "danish"),
@@ -821,7 +911,7 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
 
                       {category.featuredItems?.length ? (
                         <div className="catering-menu-featured">
-                          <h3>{category.featuredLabel}</h3>
+                          <h3>Featured Dishes</h3>
                           <div className="catering-menu-card-grid">
                             {category.featuredItems.map((item) => (
                               <FeaturedCard item={item} key={item.name} />
@@ -830,22 +920,11 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
                         </div>
                       ) : null}
 
-                      {category.additionalText ? (
-                        <p className="catering-menu-additional">
-                          {category.additionalText}
-                        </p>
-                      ) : null}
-
-                      {category.alsoAvailable?.length ? (
-                        <div className="catering-menu-also">
-                          <h3>Also available</h3>
-                          <ul>
-                            {category.alsoAvailable.map((item) => (
-                              <li key={item}>{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : null}
+                      <p className="catering-menu-additional">
+                        The dishes shown are <strong>examples</strong> of what we
+                        can offer. We’ll be happy to create a menu tailored to
+                        your event, preferences, and guests.
+                      </p>
                     </div>
                   </div>
                 </section>
