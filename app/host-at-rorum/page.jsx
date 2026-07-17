@@ -1,6 +1,7 @@
 import { InquiryForm } from "@/components/InquiryForm";
 import { PackageGrid } from "@/components/Cards";
 import { HorizontalGallery } from "@/components/HorizontalGallery";
+import Link from "next/link";
 import {
   Button,
   Container,
@@ -188,10 +189,35 @@ export default function HostAtRorumPage() {
       >
         <Container>
           <SectionHeader label="Packages" title="Hosting Packages" level={3} />
+          <div className="hosting-packages-intro">
+            <p>
+              <i>
+                Every event has its own atmosphere and unique requirements,
+                which is why the packages below are simply examples of our most
+                popular formats.
+              </i>
+            </p>
+
+            <p>
+              <strong>Looking for something different?</strong>
+            </p>
+            <p>
+              <i>
+                We would be happy to tailor the space and arrangements to your
+                needs. Whether you require a different duration, specific days,
+                recurring bookings, event support, or a fully customized
+                collaboration, we will help you find the best solution.
+              </i>
+            </p>
+            <p>
+              <Link href="/contact">Get in touch</Link> with us to discuss your
+              event and receive a personalized proposal.
+            </p>
+          </div>
           <PackageGrid
             items={packages.booking}
             ctaHref="#request-private-meeting"
-            ctaLabel="Apply to Host"
+            ctaLabel="Select Package"
           />
           <div className="meeting-cancellation-policy">
             <p className="meeting-cancellation-title">Cancellation policy:</p>

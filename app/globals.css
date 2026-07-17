@@ -6067,6 +6067,32 @@ button.btn,
 .private-meeting-packages-section .section-title {
   color: var(--color-white);
 }
+.hosting-packages-intro {
+  display: grid;
+  gap: 12px;
+  max-width: 920px;
+  margin-bottom: clamp(26px, 4vw, 40px);
+  color: rgba(var(--rgb-cream), 0.92);  
+  line-height: 1.7;
+}
+.hosting-packages-intro i {
+  font-size: 15px;
+  font-style: italic;
+}
+.hosting-packages-intro strong {
+  font-weight: 800;
+}
+.hosting-packages-intro a {
+  color: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.18s ease;
+}
+.hosting-packages-intro a:hover,
+.hosting-packages-intro a:focus-visible {
+  color: var(--color-white);
+}
 .private-meeting-packages-section .package {
   align-content: start;
   gap: 12px;
