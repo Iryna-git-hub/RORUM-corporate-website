@@ -7,7 +7,7 @@ import {
 } from "@/components/PrivacyConsent";
 
 const requiredFields = [
-  ["name", "Full name"],
+  ["name", "Full Name"],
   ["phone", "Phone number"],
   ["email", "Email"],
   ["eventDate", "Event date"],
@@ -75,13 +75,13 @@ export function CateringInquiryForm() {
       ) : null}
 
       <label htmlFor="catering-name">
-        Full name<span aria-hidden="true">*</span>
+        Full Name<span aria-hidden="true">*</span>
         <input
           id="catering-name"
           name="name"
           type="text"
           autoComplete="name"
-          placeholder="Your full name"
+          placeholder="Full Name"
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? "catering-name-error" : undefined}
         />

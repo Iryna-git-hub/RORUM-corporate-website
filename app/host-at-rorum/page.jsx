@@ -101,7 +101,7 @@ export default function HostAtRorumPage() {
                 />
               </Button>
               <Button href="#request-private-meeting">
-                Host at RORUM
+                Apply to Host
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"
@@ -170,7 +170,7 @@ export default function HostAtRorumPage() {
                   />
                 </Button>
                 <Button href="#request-private-meeting">
-                  Host at RORUM
+                  Apply to Host
                   <ArrowRight
                     className="button-arrow"
                     aria-hidden="true"
@@ -191,7 +191,7 @@ export default function HostAtRorumPage() {
           <PackageGrid
             items={packages.booking}
             ctaHref="#request-private-meeting"
-            ctaLabel="Select package"
+            ctaLabel="Apply to Host"
           />
           <div className="meeting-cancellation-policy">
             <p className="meeting-cancellation-title">Cancellation policy:</p>
@@ -230,8 +230,8 @@ export default function HostAtRorumPage() {
             </div>
             <InquiryForm
               type="booking"
-              title="Host at RORUM request"
-              submitLabel="Send request"
+              title="Apply to Host at RORUM"
+              submitLabel="Submit Hosting Request"
             />
           </div>
         </Container>

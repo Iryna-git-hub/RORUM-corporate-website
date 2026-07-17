@@ -80,24 +80,31 @@ export function InquiryForm({
     const requiredFields = isBooking
       ? [
           ["package", "Package"],
-          ["eventDate", "Event date"],
-          ["eventTime", "Event time"],
-          ["guests", "Number of people"],
           ["phone", "Phone number"],
           ["email", "Email"],
-          ["name", "Full name"],
+          ["name", "Full Name"],
           ["message", "Comment"],
         ]
       : [
-          ["name", "Full name"],
+          ["name", "Full Name"],
           ["phone", "Phone number"],
           ["email", "Email"],
           ["eventDate", "Event date"],
           ["message", "Message"],
         ];
     const nextErrors = validateRequired(formData, requiredFields);
-    const privacyError = validatePrivacyConsent(formData);
-    if (privacyError) nextErrors.privacyConsent = privacyError;
+    if (isBooking) {
+      const guests = String(formData.get("guests") ?? "").trim();
+      if (guests) {
+        const guestCount = Number(guests);
+        if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > 30) {
+          nextErrors.guests = "Please enter a whole number between 1 and 30.";
+        }
+      }
+    } else {
+      const privacyError = validatePrivacyConsent(formData);
+      if (privacyError) nextErrors.privacyConsent = privacyError;
+    }
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) {
@@ -124,13 +131,15 @@ export function InquiryForm({
         ) : null}
 
         <label htmlFor="booking-name">
-          Full name<span aria-hidden="true">*</span>
+          Full Name<span aria-hidden="true">*</span>
           <input
             id="booking-name"
             name="name"
             type="text"
             autoComplete="name"
-            placeholder="Your full name"
+            placeholder="Full Name"
+            required
+            aria-required="true"
             aria-invalid={Boolean(errors.name)}
             aria-describedby={errors.name ? "booking-name-error" : undefined}
           />
@@ -145,6 +154,8 @@ export function InquiryForm({
               type="tel"
               autoComplete="tel"
               placeholder="+45 12 34 56 78"
+              required
+              aria-required="true"
               aria-invalid={Boolean(errors.phone)}
               aria-describedby={
                 errors.phone ? "booking-phone-error" : undefined
@@ -160,6 +171,8 @@ export function InquiryForm({
               type="email"
               autoComplete="email"
               placeholder="you@example.com"
+              required
+              aria-required="true"
               aria-invalid={Boolean(errors.email)}
               aria-describedby={
                 errors.email ? "booking-email-error" : undefined
@@ -177,6 +190,8 @@ export function InquiryForm({
               name="package"
               value={selectedPackage}
               onChange={(event) => setSelectedPackage(event.target.value)}
+              required
+              aria-required="true"
               aria-invalid={Boolean(errors.package)}
               aria-describedby={
                 errors.package ? "booking-package-error" : undefined
@@ -192,36 +207,26 @@ export function InquiryForm({
             <FieldError id="booking-package-error" message={errors.package} />
           </label>
           <label htmlFor="booking-date">
-            Event date<span aria-hidden="true">*</span>
+            Event date
             <input
               id="booking-date"
               name="eventDate"
               type="date"
-              aria-invalid={Boolean(errors.eventDate)}
-              aria-describedby={
-                errors.eventDate ? "booking-date-error" : undefined
-              }
             />
-            <FieldError id="booking-date-error" message={errors.eventDate} />
           </label>
         </div>
 
         <div className="form-grid">
           <label htmlFor="booking-time">
-            Event time<span aria-hidden="true">*</span>
+            Event time
             <input
               id="booking-time"
               name="eventTime"
               type="time"
-              aria-invalid={Boolean(errors.eventTime)}
-              aria-describedby={
-                errors.eventTime ? "booking-time-error" : undefined
-              }
             />
-            <FieldError id="booking-time-error" message={errors.eventTime} />
           </label>
           <label htmlFor="booking-guests">
-            Number of people<span aria-hidden="true">*</span>
+            Number of people
             <input
               id="booking-guests"
               name="guests"
@@ -260,6 +265,8 @@ export function InquiryForm({
             name="message"
             rows={5}
             placeholder="Tell us about your meeting format, timing and preferences."
+            required
+            aria-required="true"
             aria-invalid={Boolean(errors.message)}
             aria-describedby={
               errors.message ? "booking-message-error" : undefined
@@ -268,7 +275,7 @@ export function InquiryForm({
           <FieldError id="booking-message-error" message={errors.message} />
         </label>
 
-        <PrivacyConsent id="booking-privacy" error={errors.privacyConsent} />
+        <PrivacyConsent id="booking-privacy" required={false} />
 
         <button className="btn" type="submit">
           {submitLabel}
@@ -290,13 +297,13 @@ export function InquiryForm({
       ) : null}
 
       <label htmlFor={`${type}-name`}>
-        Full name<span aria-hidden="true">*</span>
+        Full Name<span aria-hidden="true">*</span>
         <input
           id={`${type}-name`}
           name="name"
           type="text"
           autoComplete="name"
-          placeholder="Your full name"
+          placeholder="Full Name"
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? `${type}-name-error` : undefined}
         />

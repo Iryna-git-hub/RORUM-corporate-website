@@ -35,7 +35,7 @@ function CvUploadDialog({ onClose }) {
     const email = String(formData.get("email") ?? "").trim();
     const phone = String(formData.get("phone") ?? "").trim();
 
-    if (!name) nextErrors.name = "Name is required.";
+    if (!name) nextErrors.name = "Full Name is required.";
     if (!email) {
       nextErrors.email = "Email is required.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -163,13 +163,14 @@ function CvUploadDialog({ onClose }) {
 
             <label htmlFor="cv-name">
               <span className="cv-field-label">
-                Name<span className="required-marker" aria-hidden="true">*</span>
+                Full Name<span className="required-marker" aria-hidden="true">*</span>
               </span>
               <input
                 id="cv-name"
                 name="name"
                 type="text"
                 autoComplete="name"
+                placeholder="Full Name"
                 required
                 aria-invalid={Boolean(errors.name)}
                 aria-describedby={errors.name ? "cv-name-error" : undefined}

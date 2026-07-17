@@ -4,7 +4,7 @@ import { useState } from "react";
 import { PrivacyConsent, validatePrivacyConsent } from "@/components/PrivacyConsent";
 
 const requiredFields = [
-  ["name", "Full name"],
+  ["name", "Full Name"],
   ["phone", "Phone number"],
   ["email", "Email"],
   ["message", "Message"]
@@ -50,8 +50,8 @@ export function ContactForm() {
       </div>
       {sent ? <div className="success" role="status">Thank you. Your message is ready for the RORUM team.</div> : null}
       <label htmlFor="contact-name">
-        Full name<span aria-hidden="true">*</span>
-        <input id="contact-name" name="name" type="text" autoComplete="name" placeholder="Your full name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? "contact-name-error" : undefined}/>
+        Full Name<span aria-hidden="true">*</span>
+        <input id="contact-name" name="name" type="text" autoComplete="name" placeholder="Full Name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? "contact-name-error" : undefined}/>
         {errors.name ? <small className="form-error" id="contact-name-error">{errors.name}</small> : null}
       </label>
       <div className="form-grid">

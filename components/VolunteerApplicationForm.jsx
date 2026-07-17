@@ -9,7 +9,7 @@ import {
 import { formspreeConfig, submitToFormspree } from "@/lib/formspree";
 
 const requiredFields = [
-  ["name", "Name"],
+  ["name", "Full Name"],
   ["email", "Email"],
   ["phone", "Phone number"],
   ["message", "Message"],
@@ -123,13 +123,13 @@ function VolunteerApplicationDialog({ onClose }) {
       ) : null}
 
       <label htmlFor="volunteer-name">
-        Name<span className="required-marker" aria-hidden="true">*</span>
+        Full Name<span className="required-marker" aria-hidden="true">*</span>
         <input
           id="volunteer-name"
           name="name"
           type="text"
           autoComplete="name"
-          placeholder="Your name"
+          placeholder="Full Name"
           required
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? "volunteer-name-error" : undefined}

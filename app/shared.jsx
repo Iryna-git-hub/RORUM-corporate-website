@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, ConciergeBell, Presentation, Sparkles } from "lucide-react";
+import { ArrowRight, Balloon, CalendarDays, ConciergeBell, Presentation } from "lucide-react";
 
 const quickPathMeta = {
     "/events": {
@@ -18,7 +18,7 @@ const quickPathMeta = {
         cta: "Explore catering"
     },
     "/event-decoration": {
-        icon: Sparkles,
+        icon: Balloon,
         tone: "green",
         cta: "Explore decoration"
     }

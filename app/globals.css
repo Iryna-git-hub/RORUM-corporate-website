@@ -2667,6 +2667,12 @@ button.btn,
 .private-meetings-hero-actions {
   flex-wrap: wrap;
 }
+.private-meetings-hero-actions .btn,
+.meeting-session-cta .btn,
+.package-select-cta,
+.private-meeting-request button[type="submit"].btn {
+  white-space: nowrap;
+}
 .private-meetings-hero-actions .button-arrow {
   width: 15px;
   height: 15px;
@@ -6904,7 +6910,7 @@ form.card {
 }
 p.faq-inline-prompt,
 .next-step-card-final p.faq-inline-prompt {
-  font-size: 0.8125rem;
+  font-size: 0.95rem;
   font-weight: 500;
   line-height: 1.4;
 }
@@ -7568,6 +7574,7 @@ p.faq-inline-prompt,
 }
 .contact-page-form-wrap {
   width: 100%;
+  margin-bottom: 1rem;
 }
 .contact-page-form-wrap .contact-form {
   width: 100%;

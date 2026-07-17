@@ -9,7 +9,7 @@ export function validatePrivacyConsent(formData) {
     : "Please agree to the Privacy policy before submitting.";
 }
 
-export function PrivacyConsent({ error, id = "privacy-consent" }) {
+export function PrivacyConsent({ error, id = "privacy-consent", required = true }) {
   const [policyOpen, setPolicyOpen] = useState(false);
   const checkboxRef = useRef(null);
   const policyButtonRef = useRef(null);
@@ -32,7 +32,8 @@ export function PrivacyConsent({ error, id = "privacy-consent" }) {
           id={id}
           name="privacyConsent"
           type="checkbox"
-          required
+          required={required}
+          aria-required={required}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${id}-error` : undefined}
         />
