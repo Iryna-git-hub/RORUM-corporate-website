@@ -2065,7 +2065,7 @@ button.btn,
 .wecoda-donation-section {
   scroll-margin-top: 78px;
   background: var(--color-white);
-  padding-block: clamp(44px, 5vw, 5rem);
+  padding: clamp(44px, 6vw, 6rem) 0;
 }
 .wecoda-donation-layout {
   display: grid;

@@ -73,47 +73,47 @@ const membershipWeekMedia = [
 const benefits = [
   {
     title: "Event Access",
-    text: "Enjoy free or preferential access to selected WECODA events.",
+    text: "Free or discounted participation in WECODA events.",
     icon: CalendarDays,
   },
   {
     title: "Training and Learning",
-    text: "Access training sessions, educational programmes, workshops, and masterclasses.",
+    text: "Access to training sessions, educational programmes, and masterclasses.",
     icon: GraduationCap,
   },
   {
     title: "International Networking",
-    text: "Build meaningful business connections and discover new international partnerships.",
+    text: "International business networking and new partnerships.",
     icon: Handshake,
   },
   {
     title: "International Opportunities",
-    text: "Take part in international projects, forums, business missions, and professional exchanges.",
+    text: "Participation in international projects, forums, and business missions.",
     icon: Globe2,
   },
   {
     title: "Funding Information",
-    text: "Receive information about grants, accelerator programmes, and relevant funding opportunities.",
+    text: "Information about grants, accelerator programmes, and funding opportunities.",
     icon: Banknote,
   },
   {
     title: "Mentoring and Expert Advice",
-    text: "Access mentoring support and consultations with experienced professionals and invited experts.",
+    text: "Mentoring support and consultations with experts.",
     icon: UserRoundCheck,
   },
   {
     title: "Visibility for Your Work",
-    text: "Present your business, projects, expertise, and professional experience to the community.",
+    text: "Opportunities to present your business, projects, and professional experience.",
     icon: Presentation,
   },
   {
     title: "Diplomatic and Cultural Events",
-    text: "Join unique WECODA experiences focused on diplomatic gastronomy and cultural diplomacy.",
+    text: "Participation in unique WECODA events focused on diplomatic gastronomy and cultural diplomacy.",
     icon: Landmark,
   },
   {
     title: "A Supportive Community",
-    text: "Become part of an active community of women who support one another, exchange experience, and create new opportunities together.",
+    text: "A community of active women who support one another, exchange experience, and create new opportunities.",
     icon: HeartHandshake,
   },
 ];
@@ -209,7 +209,7 @@ export default function CommunityMembershipPage() {
         <Container>
           <SectionHeader
             label="Membership Benefits"
-            title="What You Gain as a Member"
+            title="What You Gain as WECODA Member"
           />
           <MembershipBenefitsGrid>
             {benefits.map(({ title, text, icon: Icon }, index) => (
