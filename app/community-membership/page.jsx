@@ -1,21 +1,29 @@
+import Image from "next/image";
 import {
-  BadgeCheck,
-  BriefcaseBusiness,
+  ArrowRight,
+  Banknote,
+  CalendarDays,
+  Globe2,
+  GraduationCap,
   Handshake,
   HeartHandshake,
-  Lightbulb,
-  Megaphone,
+  Landmark,
   Presentation,
-  Scale,
+  UserRoundCheck,
 } from "lucide-react";
-import Image from "next/image";
-import { Container, FAQInlinePrompt, SectionLabel } from "@/components/ui";
+import {
+  Button,
+  Container,
+  SectionHeader,
+  SectionLabel,
+} from "@/components/ui";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/community-membership");
 
-const wecodaFormUrl =
-  "https://docs.google.com/forms/d/e/1FAIpQLSeYRUem8RxNrDUDCvaCl2pMJ3fPWCkIJDNVlZ0G4574vrUDpA/viewform?usp=header";
+const wecodaFormUrl = "https://forms.gle/MpadaPTyL8YCHtAa9";
+const wecodaDonationQrSrc =
+  "/images/membership-week/wecoda-donation-qr.jpg";
 
 const membershipWeekMedia = [
   {
@@ -63,49 +71,58 @@ const membershipWeekMedia = [
 
 const benefits = [
   {
-    text: "meaningful networking and collaboration opportunities",
+    title: "Event Access",
+    text: "Enjoy free or preferential access to selected WECODA events.",
+    icon: CalendarDays,
+  },
+  {
+    title: "Training and Learning",
+    text: "Access training sessions, educational programmes, workshops, and masterclasses.",
+    icon: GraduationCap,
+  },
+  {
+    title: "International Networking",
+    text: "Build meaningful business connections and discover new international partnerships.",
     icon: Handshake,
   },
   {
-    text: "education and mentorship from practitioners",
+    title: "International Opportunities",
+    text: "Take part in international projects, forums, business missions, and professional exchanges.",
+    icon: Globe2,
+  },
+  {
+    title: "Funding Information",
+    text: "Receive information about grants, accelerator programmes, and relevant funding opportunities.",
+    icon: Banknote,
+  },
+  {
+    title: "Mentoring and Expert Advice",
+    text: "Access mentoring support and consultations with experienced professionals and invited experts.",
+    icon: UserRoundCheck,
+  },
+  {
+    title: "Visibility for Your Work",
+    text: "Present your business, projects, expertise, and professional experience to the community.",
     icon: Presentation,
   },
   {
-    text: "financial and legal consultations (accounting, taxes, business structure)",
-    icon: Scale,
+    title: "Diplomatic and Cultural Events",
+    text: "Join unique WECODA experiences focused on diplomatic gastronomy and cultural diplomacy.",
+    icon: Landmark,
   },
   {
-    text: "support and promotion of your brand",
-    icon: Megaphone,
-  },
-  {
-    text: "partnerships and a strong entrepreneurial environment",
-    icon: BriefcaseBusiness,
-  },
-  {
-    text: "participation in exhibitions and curated events",
-    icon: BadgeCheck,
-  },
-  {
-    text: "access to RORUM space in central Copenhagen",
-    icon: Lightbulb,
-  },
-  {
-    text: "focus on mental well-being, balance, and sustainable growth",
+    title: "A Supportive Community",
+    text: "Become part of an active community of women who support one another, exchange experience, and create new opportunities together.",
     icon: HeartHandshake,
   },
 ];
 
-function WecodaCtaLink({ children, className = "btn" }) {
+function MembershipButton({ children }) {
   return (
-    <a
-      className={className}
-      href={wecodaFormUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+    <Button href={wecodaFormUrl}>
       {children}
-    </a>
+      <ArrowRight className="button-arrow" aria-hidden="true" strokeWidth={1.9} />
+    </Button>
   );
 }
 
@@ -114,60 +131,116 @@ export default function CommunityMembershipPage() {
     <>
       <section className="wecoda-hero">
         <Container>
-          <div className="wecoda-hero-copy">
-            <SectionLabel>Membership and community</SectionLabel>
-            <h1 className="heading">Membership &amp; Community</h1>
-            <div className="wecoda-hero-intro-grid">
-              <div className="wecoda-hero-media wecoda-hero-logo-media">
-                <Image
-                  src="/images/membership-week/wecoda-logo.jpg"
-                  alt="WECODA Women Entrepreneurs Commerce and Development Association logo"
-                  width={220}
-                  height={191}
-                  priority
-                />
+          <div className="wecoda-hero-grid">
+            <div className="wecoda-hero-logo-panel">
+              <Image
+                className="wecoda-hero-logo"
+                src="/images/membership-week/wecoda-logo.jpg"
+                alt="WECODA Women Entrepreneurs Commerce and Development Association logo"
+                width={440}
+                height={382}
+                priority
+              />
+            </div>
+            <div className="wecoda-hero-copy">
+              <SectionLabel>WECODA Community</SectionLabel>
+              <h1 className="heading">
+                Join a Community That Helps Women Move Forward
+              </h1>
+              <p className="wecoda-hero-intro">
+                Connect with women entrepreneurs, professionals, and
+                changemakers. Exchange experience, discover new opportunities,
+                and grow with the support of an international community.
+              </p>
+              <div className="wecoda-hero-actions">
+                <MembershipButton>Become a Member</MembershipButton>
+                <Button href="#support-wecoda" variant="secondary">
+                  Support WECODA
+                  <ArrowRight
+                    className="button-arrow"
+                    aria-hidden="true"
+                    strokeWidth={1.9}
+                  />
+                </Button>
               </div>
-              <div className="wecoda-hero-text">
-                <p>
-                  At RORUM, we believe that growth happens in the right
-                  environment — through people, shared ideas, and meaningful
-                  connections.
-                </p>
-                <p>
-                  That’s why we collaborate with WECODA (Women Entrepreneurs
-                  Commerce &amp; Development Association) — a community for
-                  women entrepreneurs and ambitious individuals who seek growth,
-                  real results, and strong support systems.
-                </p>
-              </div>
+              <p className="wecoda-membership-note">
+                Annual membership: 250 DKK per year.
+              </p>
             </div>
           </div>
         </Container>
       </section>
 
-      <section className="section-tight wecoda-network-section">
+      <section
+        id="support-wecoda"
+        className="section wecoda-donation-section"
+      >
         <Container>
-          <div className="wecoda-network-block">
-            <p>WECODA is more than a network.</p>
-            <p>
-              It is a space where ideas evolve into partnerships, and
-              connections turn into real opportunities.
-            </p>
+          <div className="wecoda-donation-layout">
+            <div className="wecoda-donation-copy">
+              <h2 className="heading section-title">
+                Donate to the WECODA Community
+              </h2>
+              <p>
+                Your support helps WECODA organise educational programmes,
+                community events, international collaborations, and new
+                opportunities for women.
+              </p>
+              <hr className="wecoda-donation-divider" />
+              <p className="wecoda-support-statement">
+                RORUM proudly supports WECODA by providing a welcoming space
+                for community events, learning, and collaboration.
+              </p>
+            </div>
+            <div className="wecoda-donation-card">
+              <div className="wecoda-donation-qr-wrap">
+                <Image
+                  src={wecodaDonationQrSrc}
+                  alt="QR code for supporting WECODA"
+                  width={800}
+                  height={800}
+                />
+              </div>
+              <p>Scan the QR code to support WECODA.</p>
+            </div>
           </div>
         </Container>
       </section>
 
-      <section className="section-tight wecoda-ecosystem-section">
+      <section className="section wecoda-benefits-section">
         <Container>
-          <p>
-            Together, RORUM and WECODA create an ecosystem where business,
-            creativity, and community come together.
-          </p>
+          <SectionHeader title="What You Gain as a Member" />
+          <div className="wecoda-benefits-grid">
+            {benefits.map(({ title, text, icon: Icon }) => (
+              <article className="wecoda-benefit-item" key={title}>
+                <Icon aria-hidden="true" strokeWidth={1.7} />
+                <div>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="wecoda-membership-panel">
+            <h3>Annual membership: 250 DKK</h3>
+            <p>
+              After submitting your application and paying the annual
+              membership fee, the WECODA Board will review your application.
+              Once approved, you will receive an official membership
+              confirmation.
+            </p>
+            <p>
+              Together, we are building a strong international community of
+              women who inspire, collaborate, and create positive impact.
+            </p>
+            <MembershipButton>Become a WECODA Member</MembershipButton>
+          </div>
         </Container>
       </section>
 
       <section className="section wecoda-membership-week-section">
         <Container>
+          <SectionHeader title="WECODA Community Meetings" />
           <div className="wecoda-membership-week-grid">
             {membershipWeekMedia.map((item) => (
               <figure
@@ -195,45 +268,6 @@ export default function CommunityMembershipPage() {
         </Container>
       </section>
 
-      <section className="section wecoda-benefits-section">
-        <Container>
-          <h2 className="heading section-title">
-            What you gain through WECODA:
-          </h2>
-          <div className="wecoda-benefits-grid">
-            {benefits.map(({ text, icon: Icon }) => (
-              <article className="wecoda-benefit-card" key={text}>
-                <Icon aria-hidden="true" strokeWidth={1.7} />
-                <p>— {text}</p>
-              </article>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      <section className="section wecoda-final-section">
-        <Container>
-          <div className="wecoda-final-panel">
-            <p className="wecoda-closing-statement">
-              Most importantly — a sense of clarity, direction, and support on
-              your journey.
-            </p>
-            <div className="wecoda-final-row">
-              <div className="wecoda-final-copy">
-                <p className="wecoda-final-label">
-                  Join the WECODA community:
-                </p>
-                <p className="wecoda-final-note">
-                  Membership is currently free. Terms may be subject to change
-                  in the future.
-                </p>
-                <FAQInlinePrompt />
-              </div>
-              <WecodaCtaLink>Join WECODA</WecodaCtaLink>
-            </div>
-          </div>
-        </Container>
-      </section>
     </>
   );
 }

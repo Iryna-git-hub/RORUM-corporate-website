@@ -66,6 +66,11 @@
 html {
   scroll-behavior: smooth;
 }
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
 body {
   margin: 0;
   background: var(--color-secondary);
@@ -1874,18 +1879,26 @@ button.btn,
 
 .wecoda-hero {
   background: var(--color-cream);
-  padding: 65px 0 clamp(42px, 6vw, 84px);
+  padding: clamp(32px, 4.5vw, 56px) 0;
 }
-.wecoda-hero-copy {
+.wecoda-hero-grid {
   display: grid;
-  gap: 18px;
+  grid-template-columns: minmax(250px, 0.68fr) minmax(0, 1.32fr);
+  gap: clamp(28px, 4.5vw, 58px);
+  align-items: center;
 }
 .wecoda-hero .label {
   color: var(--color-red);
   border-bottom-color: var(--color-red);
 }
+.wecoda-hero-copy {
+  display: grid;
+  gap: clamp(10px, 1.3vw, 15px);
+  min-width: 0;
+}
 .wecoda-hero h1 {
   margin: 0;
+  width: 100%;
   max-width: none;
   color: var(--color-text-primary);
   font-size: 3rem;
@@ -1893,76 +1906,45 @@ button.btn,
   font-weight: 500;
   letter-spacing: 0;
 }
-.wecoda-hero-intro-grid {
-  display: grid;
-  grid-template-columns: minmax(150px, 0.28fr) minmax(0, 1fr);
-  gap: clamp(28px, 5vw, 72px);
-  align-items: start;
-  max-width: 980px;
-  margin-top: clamp(8px, 2vw, 18px);
-}
-.wecoda-hero-text {
-  display: grid;
-  gap: 18px;
-}
-.wecoda-hero-text p {
+.wecoda-hero-intro {
   margin: 0;
-  max-width: 76ch;
+  max-width: 64ch;
   color: var(--color-text-primary);
-  font-size: 1rem;
-  line-height: 1.7;
+  font-size: clamp(1rem, 1.4vw, 1.12rem);
+  line-height: 1.58;
 }
-.wecoda-hero-logo-media {
-  position: static;
-  display: flex;
-  min-height: 0;
-  align-items: flex-start;
-  justify-content: flex-start;
-  overflow: visible;
-  background: transparent;
-  box-shadow: none;
-  padding-top: 4px;
+.wecoda-hero-logo-panel {
+  display: grid;
+  place-items: center;
+  min-height: clamp(260px, 28vw, 340px);
+  padding: clamp(18px, 2.5vw, 30px);
+  background: var(--color-white);
+  border: 1px solid rgba(var(--rgb-brown), 0.12);
 }
-.wecoda-hero-logo-media img {
-  width: min(190px, 100%) !important;
-  height: auto !important;
-  min-height: 0;
+.wecoda-hero-logo {
+  width: min(280px, 100%);
+  height: auto;
   object-fit: contain;
 }
-.wecoda-network-section {
-  background: var(--color-white);
-  padding-block: clamp(34px, 5vw, 68px);
+.wecoda-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
 }
-.wecoda-network-block {
-  display: grid;
-  gap: 10px;
-  padding: clamp(22px, 3vw, 34px);
-  border: 1px solid rgba(var(--rgb-brown), 0.18);
-}
-.wecoda-network-block p {
+.wecoda-membership-note {
   margin: 0;
-  color: var(--color-text-primary);
-  font-size: clamp(16px, 1.4vw, 18px);
-  line-height: 1.65;
-  font-weight: 600;
-}
-.wecoda-ecosystem-section {
-  background: var(--color-white);
-  padding-block: clamp(34px, 5vw, 68px);
-}
-.wecoda-ecosystem-section p {
-  max-width: 900px;
-  margin: 0 auto;
-  color: var(--color-text-primary);
-  font-family: var(--font-heading), Georgia, serif;
-  font-size: clamp(1.55rem, 2.8vw, 2.6rem);
-  line-height: 1.2;
-  text-align: center;
-  font-weight: 300;
+  color: var(--color-red);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  font-weight: 500;
 }
 .wecoda-membership-week-section {
   background: var(--color-white);
   padding-top: clamp(34px, 5vw, 68px);
+}
+.wecoda-membership-week-section .section-head {
+  margin-bottom: clamp(22px, 3vw, 34px);
 }
 .wecoda-membership-week-grid {
   display: grid;
@@ -2011,110 +1993,185 @@ button.btn,
 .wecoda-benefits-section {
   background: var(--color-white);
 }
-.wecoda-benefits-section .section-title {
-  max-width: none;
-  margin: 0 auto clamp(26px, 4vw, 44px);
-  color: var(--color-text-primary);
-  font-size: clamp(1.7rem, 3vw, 2.35rem);
-  text-align: center;
+.wecoda-benefits-section .section-head {
+  margin-bottom: clamp(28px, 4vw, 42px);
 }
 .wecoda-benefits-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(14px, 2vw, 24px) clamp(22px, 4vw, 48px);
+  gap: 0 clamp(32px, 6vw, 84px);
 }
-.wecoda-benefit-card {
-  display: flex;
+.wecoda-benefit-item {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
   align-items: flex-start;
-  gap: 14px;
-  min-height: 0;
-  padding: 0 0 16px;
+  gap: 16px;
+  padding: 22px 0;
   border-bottom: 1px solid rgba(var(--rgb-brown), 0.14);
-  background: transparent;
 }
-.wecoda-benefit-card svg {
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
+.wecoda-benefit-item:nth-child(-n + 2) {
+  border-top: 1px solid rgba(var(--rgb-brown), 0.14);
+}
+.wecoda-benefit-item svg {
+  width: 30px;
+  height: 30px;
   color: var(--color-light-green);
 }
-.wecoda-benefit-card p {
+.wecoda-benefit-item h3,
+.wecoda-benefit-item p {
   margin: 0;
+}
+.wecoda-benefit-item h3 {
   color: var(--color-text-primary);
-  font-size: clamp(16px, 1.4vw, 18px);
+  font-family: var(--font-heading), Georgia, serif;
+  font-size: clamp(1.18rem, 1.8vw, 1.45rem);
+  line-height: 1.2;
+  font-weight: 500;
+}
+.wecoda-benefit-item p {
+  margin-top: 7px;
+  max-width: 54ch;
+  color: rgba(var(--rgb-dark-brown), 0.76);
+  font-size: 0.96rem;
+  line-height: 1.62;
+}
+.wecoda-membership-panel {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  max-width: 880px;
+  margin-top: clamp(34px, 5vw, 56px);
+  padding: clamp(24px, 4vw, 38px);
+  background: var(--color-cream);
+  border-left: 4px solid var(--color-red);
+}
+.wecoda-membership-panel h3,
+.wecoda-membership-panel p {
+  margin: 0;
+}
+.wecoda-membership-panel h3 {
+  color: var(--color-red);
+  font-family: var(--font-heading), Georgia, serif;
+  font-size: clamp(1.35rem, 2.2vw, 1.8rem);
+  line-height: 1.2;
+  font-weight: 500;
+}
+.wecoda-membership-panel p {
+  max-width: 72ch;
+  color: rgba(var(--rgb-dark-brown), 0.76);
+  font-size: 0.96rem;
+  line-height: 1.62;
+}
+.wecoda-membership-panel .btn {
+  margin-top: 6px;
+}
+.wecoda-donation-section {
+  scroll-margin-top: 78px;
+  background: #f1e9de;
+  padding-block: clamp(30px, 4vw, 48px);
+}
+.wecoda-donation-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.74fr);
+  gap: clamp(32px, 6vw, 76px);
+  align-items: center;
+}
+.wecoda-donation-copy {
+  display: grid;
+  gap: 12px;
+  max-width: 640px;
+}
+.wecoda-donation-copy h2,
+.wecoda-donation-copy p {
+  margin: 0;
+}
+.wecoda-donation-copy p {
+  max-width: 60ch;
+  line-height: 1.6;
+}
+.wecoda-donation-divider {
+  width: 100%;
+  height: 1px;
+  margin: 3px 0;
+  border: 0;
+  background: rgba(var(--rgb-brown), 0.18);
+}
+.wecoda-donation-copy .wecoda-support-statement {
+  color: rgba(var(--rgb-dark-brown), 0.68);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  font-style: italic;
+}
+.wecoda-donation-card {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 8px;
+  background: var(--color-white);
+  text-align: center;
+}
+.wecoda-donation-card p {
+  margin: 0;
+}
+.wecoda-donation-card > p {
+  max-width: 34ch;
+  color: rgba(var(--rgb-dark-brown), 0.75);
+  font-size: 0.93rem;
   line-height: 1.55;
   font-weight: 700;
 }
-.wecoda-final-section {
-  background: var(--color-light-green);
+.wecoda-donation-qr-wrap {
+  width: clamp(220px, 22vw, 280px);
 }
-.wecoda-final-panel {
-  display: grid;
-  gap: clamp(24px, 4vw, 42px);
-  padding-block: clamp(42px, 7vw, 78px);
-  color: var(--color-white);
-}
-.wecoda-closing-statement,
-.wecoda-final-label,
-.wecoda-final-note {
-  margin: 0;
-}
-.wecoda-closing-statement {
+.wecoda-donation-qr-wrap img {
   width: 100%;
-  padding: clamp(22px, 3vw, 34px);
-  border: 1px solid rgba(var(--rgb-cream), 0.38);
-  color: var(--color-white);
-  font-family: var(--font-heading), Georgia, serif;
-  font-size: clamp(1.55rem, 3vw, 2.7rem);
-  line-height: 1.18;
-  font-weight: 300;
+  height: auto;
+  object-fit: contain;
 }
-.wecoda-final-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: clamp(24px, 5vw, 72px);
-  align-items: center;
+@media (max-width: 980px) {
+  .wecoda-hero-grid,
+  .wecoda-donation-layout {
+    grid-template-columns: 1fr;
+  }
+  .wecoda-hero-logo-panel {
+    min-height: clamp(220px, 34vw, 280px);
+    padding: clamp(16px, 3vw, 24px);
+  }
+  .wecoda-hero-logo {
+    width: min(240px, 62%);
+  }
+  .wecoda-donation-layout {
+    gap: 28px;
+  }
 }
-.wecoda-final-copy {
-  display: grid;
-  gap: 8px;
-}
-.wecoda-final-label {
-  color: var(--color-white);
-  font-family: var(--font-heading), Georgia, serif;
-  font-size: clamp(1.35rem, 2.3vw, 2rem);
-  line-height: 1.2;
-  font-weight: 300;
-}
-.wecoda-final-note {
-  color: var(--color-cream);
-  font-size: 14px;
-  line-height: 1.6;
-  font-weight: 600;
-}
-.wecoda-final-panel .faq-inline-prompt {
-  color: rgba(var(--rgb-cream), 0.86);
-}
-.wecoda-final-panel .faq-inline-prompt-link {
-  color: var(--color-gold);
-}
-.wecoda-final-panel .btn {
-  gap: 0;
-  min-height: 56px;
-  padding: 18px 40px;
-  border-color: var(--color-cta-red);
-  outline: 5px solid rgba(var(--rgb-gold), 0.23);
-  outline-offset: 10px;
-  background: var(--color-cta-red);
-  color: var(--color-white);
-  font-size: 13px;
-  font-weight: 700;
-  animation: finalCtaPulse 2.8s ease-in-out infinite;
-}
-.wecoda-final-panel .btn:hover,
-.wecoda-final-panel .btn:focus-visible {
-  border-color: var(--color-cta-red-hover);
-  background: var(--color-cta-red-hover);
+@media (max-width: 640px) {
+  .wecoda-hero-grid {
+    gap: 22px;
+  }
+  .wecoda-hero-logo-panel {
+    min-height: 180px;
+    padding: 14px;
+  }
+  .wecoda-hero-logo {
+    width: min(190px, 68%);
+  }
+  .wecoda-hero-actions,
+  .wecoda-membership-panel {
+    width: 100%;
+  }
+  .wecoda-hero-actions .btn,
+  .wecoda-membership-panel .btn {
+    width: 100%;
+  }
+  .wecoda-benefit-item:nth-child(2) {
+    border-top: 0;
+  }
+  .wecoda-donation-card {
+    justify-self: center;
+  }
+  .wecoda-donation-qr-wrap {
+    width: min(240px, 100%);
+  }
 }
 
 .volunteer-hero {
@@ -7722,21 +7779,11 @@ p.faq-inline-prompt,
   .work-hero-grid {
     grid-template-columns: 1fr;
   }
-  .wecoda-hero-copy {
-    max-width: 760px;
-  }
-  .wecoda-hero-intro-grid {
-    grid-template-columns: minmax(130px, 0.32fr) minmax(0, 1fr);
-  }
   .volunteer-hero-copy {
     max-width: 760px;
   }
   .work-hero-copy {
     max-width: 760px;
-  }
-  .wecoda-hero-logo-media {
-    min-height: 0;
-    justify-content: flex-start;
   }
   .volunteer-hero-media {
     min-height: clamp(300px, 48vw, 440px);
@@ -8046,7 +8093,7 @@ p.faq-inline-prompt,
     min-height: auto;
   }
   .wecoda-hero {
-    padding: 38px 0 48px;
+    padding: 28px 0 36px;
   }
   .volunteer-hero {
     padding: 38px 0 48px;
@@ -8055,12 +8102,8 @@ p.faq-inline-prompt,
     padding: 38px 0 48px;
   }
   .wecoda-hero h1 {
-    font-size: clamp(2.25rem, 10vw, 3rem);
-    line-height: 1.02;
-  }
-  .wecoda-hero-intro-grid {
-    grid-template-columns: 1fr;
-    gap: 22px;
+    font-size: clamp(2rem, 10vw, 3rem);
+    line-height: 1.05;
   }
   .volunteer-hero h1 {
     font-size: clamp(2rem, 10vw, 3rem);
@@ -8070,16 +8113,9 @@ p.faq-inline-prompt,
     font-size: clamp(2rem, 10vw, 3rem);
     line-height: 1.05;
   }
-  .wecoda-final-panel .btn,
   .volunteer-hero-copy .btn,
   .work-hero-copy .btn {
     width: 100%;
-  }
-  .wecoda-hero-logo-media {
-    min-height: 0;
-  }
-  .wecoda-hero-logo-media img {
-    width: min(168px, 46vw) !important;
   }
   .volunteer-hero-media {
     min-height: 280px;
@@ -8099,16 +8135,6 @@ p.faq-inline-prompt,
   }
   .work-feature-grid {
     grid-template-columns: 1fr;
-  }
-  .wecoda-benefit-card {
-    min-height: auto;
-  }
-  .wecoda-final-panel {
-    padding: 28px 18px;
-  }
-  .wecoda-final-row {
-    grid-template-columns: 1fr;
-    align-items: start;
   }
   .work-feature-item {
     min-height: auto;
