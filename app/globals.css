@@ -178,7 +178,7 @@ main {
 .footer-title {
   margin: 0;
   font-size: clamp(1.85rem, 2.6vw, 2.3rem);
-  line-height: 1.05;
+  line-height: 1.25;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -1861,7 +1861,7 @@ button.btn,
 }
 .catering-form-aside {
   display: grid;
-  gap: 18px;
+  gap: 2rem;
   padding-top: 8px;
 }
 .catering-form-aside p {
@@ -1879,12 +1879,12 @@ button.btn,
 
 .wecoda-hero {
   background: var(--color-cream);
-  padding: clamp(32px, 4.5vw, 56px) 0;
+  padding: clamp(44px, 6vw, 6rem) 0;
 }
 .wecoda-hero-grid {
   display: grid;
-  grid-template-columns: minmax(250px, 0.68fr) minmax(0, 1.32fr);
-  gap: clamp(28px, 4.5vw, 58px);
+  grid-template-columns: minmax(0, 1.45fr) minmax(220px, 0.55fr);
+  gap: clamp(24px, 3.5vw, 42px);
   align-items: center;
 }
 .wecoda-hero .label {
@@ -1896,33 +1896,24 @@ button.btn,
   gap: clamp(10px, 1.3vw, 15px);
   min-width: 0;
 }
-.wecoda-hero h1 {
-  margin: 0;
-  width: 100%;
-  max-width: none;
-  color: var(--color-text-primary);
-  font-size: 3rem;
-  line-height: 1.05;
-  font-weight: 500;
-  letter-spacing: 0;
-}
 .wecoda-hero-intro {
-  margin: 0;
   max-width: 64ch;
   color: var(--color-text-primary);
-  font-size: clamp(1rem, 1.4vw, 1.12rem);
+  font-size: 1rem;
   line-height: 1.58;
 }
 .wecoda-hero-logo-panel {
   display: grid;
   place-items: center;
-  min-height: clamp(260px, 28vw, 340px);
-  padding: clamp(18px, 2.5vw, 30px);
+  width: clamp(220px, 23vw, 260px);
+  aspect-ratio: 1;
+  justify-self: end;
+  padding: clamp(12px, 1.5vw, 18px);
   background: var(--color-white);
   border: 1px solid rgba(var(--rgb-brown), 0.12);
 }
 .wecoda-hero-logo {
-  width: min(280px, 100%);
+  width: min(220px, 100%);
   height: auto;
   object-fit: contain;
 }
@@ -1931,13 +1922,7 @@ button.btn,
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
-}
-.wecoda-membership-note {
-  margin: 0;
-  color: var(--color-red);
-  font-size: 0.9rem;
-  line-height: 1.55;
-  font-weight: 500;
+  margin-top: 10px;
 }
 .wecoda-membership-week-section {
   background: var(--color-white);
@@ -2067,19 +2052,23 @@ button.btn,
 }
 .wecoda-donation-section {
   scroll-margin-top: 78px;
-  background: #f1e9de;
-  padding-block: clamp(30px, 4vw, 48px);
+  background: var(--color-white);
+  padding-block: clamp(44px, 5vw, 5rem);
 }
 .wecoda-donation-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.74fr);
-  gap: clamp(32px, 6vw, 76px);
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  gap: clamp(30px, 4.5vw, 54px);
   align-items: center;
 }
 .wecoda-donation-copy {
   display: grid;
-  gap: 12px;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  gap: 1.5rem;
   max-width: 640px;
+  padding-right: clamp(16px, 3vw, 36px);
 }
 .wecoda-donation-copy h2,
 .wecoda-donation-copy p {
@@ -2087,46 +2076,42 @@ button.btn,
 }
 .wecoda-donation-copy p {
   max-width: 60ch;
+  font-size: 1rem;
   line-height: 1.6;
 }
-.wecoda-donation-divider {
-  width: 100%;
-  height: 1px;
-  margin: 3px 0;
-  border: 0;
-  background: rgba(var(--rgb-brown), 0.18);
-}
+
 .wecoda-donation-copy .wecoda-support-statement {
   color: rgba(var(--rgb-dark-brown), 0.68);
-  font-size: 0.9rem;
-  line-height: 1.6;
-  font-style: italic;
-}
-.wecoda-donation-card {
-  display: grid;
-  justify-items: center;
-  gap: 5px;
-  padding: 8px;
-  background: var(--color-white);
-  text-align: center;
-}
-.wecoda-donation-card p {
-  margin: 0;
-}
-.wecoda-donation-card > p {
-  max-width: 34ch;
-  color: rgba(var(--rgb-dark-brown), 0.75);
-  font-size: 0.93rem;
+  padding-left: 14px;
+  border-left: 3px solid var(--color-red);
+  font-size: 0.8rem;
   line-height: 1.55;
-  font-weight: 700;
+}
+.wecoda-donation-qr {
+  display: grid;
+  grid-column: 1;
+  grid-row: 1;
+  justify-items: center;
+  gap: 8px;
+  justify-self: start;
 }
 .wecoda-donation-qr-wrap {
-  width: clamp(220px, 22vw, 280px);
+  display: grid;
+  place-items: center;
+  width: clamp(160px, 16vw, 190px);
+  aspect-ratio: 1 / 1;
 }
 .wecoda-donation-qr-wrap img {
   width: 100%;
-  height: auto;
+  height: 100%;
   object-fit: contain;
+}
+.wecoda-donation-qr > p {
+  margin: 0;
+  color: rgba(var(--rgb-dark-brown), 0.7);
+  font-size: 0.86rem;
+  line-height: 1.4;
+  text-align: center;
 }
 @media (max-width: 980px) {
   .wecoda-hero-grid,
@@ -2134,14 +2119,29 @@ button.btn,
     grid-template-columns: 1fr;
   }
   .wecoda-hero-logo-panel {
-    min-height: clamp(220px, 34vw, 280px);
-    padding: clamp(16px, 3vw, 24px);
+    width: clamp(200px, 30vw, 230px);
+    justify-self: center;
+    padding: clamp(12px, 2vw, 16px);
   }
   .wecoda-hero-logo {
-    width: min(240px, 62%);
+    width: min(195px, 100%);
   }
   .wecoda-donation-layout {
-    gap: 28px;
+    gap: 20px;
+  }
+  .wecoda-donation-copy,
+  .wecoda-donation-qr {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .wecoda-donation-copy {
+    padding-right: 0;
+  }
+  .wecoda-donation-qr {
+    justify-self: center;
+  }
+  .wecoda-donation-qr-wrap {
+    width: clamp(150px, 24vw, 175px);
   }
 }
 @media (max-width: 640px) {
@@ -2149,11 +2149,11 @@ button.btn,
     gap: 22px;
   }
   .wecoda-hero-logo-panel {
-    min-height: 180px;
-    padding: 14px;
+    width: min(190px, 58vw);
+    padding: 10px;
   }
   .wecoda-hero-logo {
-    width: min(190px, 68%);
+    width: 100%;
   }
   .wecoda-hero-actions,
   .wecoda-membership-panel {
@@ -2166,11 +2166,8 @@ button.btn,
   .wecoda-benefit-item:nth-child(2) {
     border-top: 0;
   }
-  .wecoda-donation-card {
-    justify-self: center;
-  }
   .wecoda-donation-qr-wrap {
-    width: min(240px, 100%);
+    width: min(160px, 52vw);
   }
 }
 
@@ -6350,7 +6347,7 @@ button.btn,
 }
 .private-meeting-request-copy {
   display: grid;
-  gap: 8px;
+  gap: 2rem;
   max-width: 48ch;
 }
 .private-meeting-request-copy p {
@@ -8093,17 +8090,19 @@ p.faq-inline-prompt,
     min-height: auto;
   }
   .wecoda-hero {
-    padding: 28px 0 36px;
+    padding: 24px 0 28px;
+  }
+  .wecoda-hero-intro {
+    margin: 2px 0 4px;
+  }
+  .wecoda-hero-actions {
+    margin-top: 4px;
   }
   .volunteer-hero {
     padding: 38px 0 48px;
   }
   .work-hero {
     padding: 38px 0 48px;
-  }
-  .wecoda-hero h1 {
-    font-size: clamp(2rem, 10vw, 3rem);
-    line-height: 1.05;
   }
   .volunteer-hero h1 {
     font-size: clamp(2rem, 10vw, 3rem);

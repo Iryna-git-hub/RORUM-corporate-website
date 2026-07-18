@@ -193,7 +193,7 @@ export default function HostAtRorumPage() {
             <p>
               <i>
                 Every event has its own atmosphere and unique requirements,
-                which is why the packages below are simply examples of our most
+                which is why the packages below are simply <strong><em>examples</em></strong> of our most
                 popular formats.
               </i>
             </p>

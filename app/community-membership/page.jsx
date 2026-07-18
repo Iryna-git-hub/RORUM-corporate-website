@@ -132,19 +132,9 @@ export default function CommunityMembershipPage() {
       <section className="wecoda-hero">
         <Container>
           <div className="wecoda-hero-grid">
-            <div className="wecoda-hero-logo-panel">
-              <Image
-                className="wecoda-hero-logo"
-                src="/images/membership-week/wecoda-logo.jpg"
-                alt="WECODA Women Entrepreneurs Commerce and Development Association logo"
-                width={440}
-                height={382}
-                priority
-              />
-            </div>
             <div className="wecoda-hero-copy">
               <SectionLabel>WECODA Community</SectionLabel>
-              <h1 className="heading">
+              <h1 className="heading section-title">
                 Join a Community That Helps Women Move Forward
               </h1>
               <p className="wecoda-hero-intro">
@@ -163,9 +153,16 @@ export default function CommunityMembershipPage() {
                   />
                 </Button>
               </div>
-              <p className="wecoda-membership-note">
-                Annual membership: 250 DKK per year.
-              </p>
+            </div>
+            <div className="wecoda-hero-logo-panel">
+              <Image
+                className="wecoda-hero-logo"
+                src="/images/membership-week/wecoda-logo.jpg"
+                alt="WECODA Women Entrepreneurs Commerce and Development Association logo"
+                width={440}
+                height={382}
+                priority
+              />
             </div>
           </div>
         </Container>
@@ -181,18 +178,17 @@ export default function CommunityMembershipPage() {
               <h2 className="heading section-title">
                 Donate to the WECODA Community
               </h2>
-              <p>
+              <p className="wecoda-donation-text">
                 Your support helps WECODA organise educational programmes,
                 community events, international collaborations, and new
                 opportunities for women.
               </p>
-              <hr className="wecoda-donation-divider" />
               <p className="wecoda-support-statement">
                 RORUM proudly supports WECODA by providing a welcoming space
                 for community events, learning, and collaboration.
               </p>
             </div>
-            <div className="wecoda-donation-card">
+            <div className="wecoda-donation-qr">
               <div className="wecoda-donation-qr-wrap">
                 <Image
                   src={wecodaDonationQrSrc}
@@ -201,7 +197,7 @@ export default function CommunityMembershipPage() {
                   height={800}
                 />
               </div>
-              <p>Scan the QR code to support WECODA.</p>
+              <p>Scan QR code to support WECODA.</p>
             </div>
           </div>
         </Container>
