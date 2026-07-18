@@ -93,16 +93,16 @@ export default function HostAtRorumPage() {
               </p>
             </div>
             <div className="hero-actions private-meetings-hero-actions">
-              <Button href="#meeting-packages" variant="secondary">
-                View Packages &amp; Pricing
+              <Button href="#request-private-meeting">
+                Apply to Host
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"
                   strokeWidth={1.9}
                 />
               </Button>
-              <Button href="#request-private-meeting">
-                Apply to Host
+              <Button href="#meeting-packages" variant="secondary">
+                View Packages &amp; Pricing
                 <ArrowRight
                   className="button-arrow"
                   aria-hidden="true"
@@ -162,16 +162,16 @@ export default function HostAtRorumPage() {
                 </div>
               </div>
               <div className="meeting-session-cta">
-                <Button href="#meeting-packages" variant="secondary">
-                  View Packages &amp; Pricing
+                <Button href="#request-private-meeting">
+                  Apply to Host
                   <ArrowRight
                     className="button-arrow"
                     aria-hidden="true"
                     strokeWidth={1.9}
                   />
                 </Button>
-                <Button href="#request-private-meeting">
-                  Apply to Host
+                <Button href="#meeting-packages" variant="secondary">
+                  View Packages &amp; Pricing
                   <ArrowRight
                     className="button-arrow"
                     aria-hidden="true"

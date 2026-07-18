@@ -202,12 +202,6 @@ export default function CateringPage() {
                 atmosphere where taste, aesthetics, and service work together.
               </p>
               <div className="hero-actions catering-hero-actions">
-                <CateringMenuButton
-                  requestTargetId="catering-inquiry"
-                  variant="secondary"
-                >
-                  Menu examples
-                </CateringMenuButton>
                 <Button href="#catering-inquiry">
                   Request catering
                   <ArrowRight
@@ -216,6 +210,12 @@ export default function CateringPage() {
                     strokeWidth={1.9}
                   />
                 </Button>
+                <CateringMenuButton
+                  requestTargetId="catering-inquiry"
+                  variant="secondary"
+                >
+                  Menu examples
+                </CateringMenuButton>
               </div>
             </div>
           </div>
@@ -311,13 +311,13 @@ export default function CateringPage() {
               </p>
             </div>
             <div className="catering-offer-actions">
+              <Button href="#catering-inquiry">Request catering</Button>
               <CateringMenuButton
                 requestTargetId="catering-inquiry"
                 variant="secondary"
               >
                 Menu examples
               </CateringMenuButton>
-              <Button href="#catering-inquiry">Request catering</Button>
             </div>
           </div>
         </Container>

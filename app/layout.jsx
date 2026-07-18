@@ -10,7 +10,7 @@ export const metadata = {
     robots: { index: true, follow: true }
 };
 export default function RootLayout({ children }) {
-    return (<html lang="en">
+    return (<html lang="en" data-scroll-behavior="smooth">
       <body className={`${merriweather.variable} ${quicksand.variable}`}>
         <SiteShell>{children}</SiteShell>
       </body>

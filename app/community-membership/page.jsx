@@ -17,6 +17,7 @@ import {
   SectionHeader,
   SectionLabel,
 } from "@/components/ui";
+import { MembershipBenefitsGrid } from "@/components/MembershipBenefitsGrid";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/community-membership");
@@ -117,9 +118,9 @@ const benefits = [
   },
 ];
 
-function MembershipButton({ children }) {
+function MembershipButton({ children, variant = "primary" }) {
   return (
-    <Button href={wecodaFormUrl}>
+    <Button href={wecodaFormUrl} variant={variant}>
       {children}
       <ArrowRight className="button-arrow" aria-hidden="true" strokeWidth={1.9} />
     </Button>
@@ -134,7 +135,7 @@ export default function CommunityMembershipPage() {
           <div className="wecoda-hero-grid">
             <div className="wecoda-hero-copy">
               <SectionLabel>WECODA Community</SectionLabel>
-              <h1 className="heading section-title">
+              <h1 className="heading wecoda-hero-title">
                 Join a Community That Helps Women Move Forward
               </h1>
               <p className="wecoda-hero-intro">
@@ -175,9 +176,10 @@ export default function CommunityMembershipPage() {
         <Container>
           <div className="wecoda-donation-layout">
             <div className="wecoda-donation-copy">
-              <h2 className="heading section-title">
-                Donate to the WECODA Community
-              </h2>
+              <SectionHeader
+                label="Donation"
+                title="Donate to the WECODA Community"
+              />
               <p className="wecoda-donation-text">
                 Your support helps WECODA organise educational programmes,
                 community events, international collaborations, and new
@@ -205,18 +207,27 @@ export default function CommunityMembershipPage() {
 
       <section className="section wecoda-benefits-section">
         <Container>
-          <SectionHeader title="What You Gain as a Member" />
-          <div className="wecoda-benefits-grid">
-            {benefits.map(({ title, text, icon: Icon }) => (
-              <article className="wecoda-benefit-item" key={title}>
-                <Icon aria-hidden="true" strokeWidth={1.7} />
+          <SectionHeader
+            label="Membership Benefits"
+            title="What You Gain as a Member"
+          />
+          <MembershipBenefitsGrid>
+            {benefits.map(({ title, text, icon: Icon }, index) => (
+              <article
+                className="wecoda-benefit-item"
+                key={title}
+                style={{ "--benefit-index": index }}
+              >
+                <span className="wecoda-benefit-icon" aria-hidden="true">
+                  <Icon strokeWidth={1.7} />
+                </span>
                 <div>
                   <h3>{title}</h3>
                   <p>{text}</p>
                 </div>
               </article>
             ))}
-          </div>
+          </MembershipBenefitsGrid>
           <div className="wecoda-membership-panel">
             <h3>Annual membership: 250 DKK</h3>
             <p>
@@ -229,14 +240,16 @@ export default function CommunityMembershipPage() {
               Together, we are building a strong international community of
               women who inspire, collaborate, and create positive impact.
             </p>
-            <MembershipButton>Become a WECODA Member</MembershipButton>
+            <MembershipButton variant="red">
+              Become a WECODA Member
+            </MembershipButton>
           </div>
         </Container>
       </section>
 
       <section className="section wecoda-membership-week-section">
         <Container>
-          <SectionHeader title="WECODA Community Meetings" />
+          <SectionHeader label="Gallery" title="WECODA Community Meetings" />
           <div className="wecoda-membership-week-grid">
             {membershipWeekMedia.map((item) => (
               <figure

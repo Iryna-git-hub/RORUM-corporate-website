@@ -106,7 +106,7 @@ h6 {
 .page-hero-title {
   font-size: 3rem;
   font-weight: 500;
-  line-height: 1.05;
+  line-height: 1.2;
 }
 .sr-only {
   position: absolute;
@@ -166,7 +166,7 @@ main {
 .heading {
   font-family: var(--font-heading), Georgia, serif;
   font-weight: 500;
-  line-height: 0.95;
+  line-height: 1.2;
   letter-spacing: -0.03em;
   color: var(--color-text-primary);
 }
@@ -820,6 +820,17 @@ button.btn,
   background: rgba(var(--rgb-light-green), 0.1);
   color: var(--color-primary-dark);
   border-color: var(--color-primary-dark);
+}
+.btn.red {
+  border-color: var(--color-cta-red);
+  background: var(--color-cta-red);
+  color: var(--color-white);
+}
+.btn.red:hover,
+.btn.red:focus-visible {
+  border-color: var(--color-cta-red-hover);
+  background: var(--color-cta-red-hover);
+  color: var(--color-white);
 }
 .btn.ghost {
   background: transparent;
@@ -1868,7 +1879,7 @@ button.btn,
   place-items: center;
   width: clamp(220px, 23vw, 260px);
   aspect-ratio: 1;
-  justify-self: end;
+  justify-self: start;
   padding: clamp(12px, 1.5vw, 18px);
   background: var(--color-white);
   border: 1px solid rgba(var(--rgb-brown), 0.12);
@@ -1937,45 +1948,84 @@ button.btn,
   }
 }
 .wecoda-benefits-section {
-  background: var(--color-white);
+  background: var(--color-cream);
+  color: var(--color-text-primary);
 }
 .wecoda-benefits-section .section-head {
+  justify-items: start;
+  margin-inline: 0;
   margin-bottom: clamp(28px, 4vw, 42px);
+  text-align: left;
+}
+.wecoda-benefits-section .label {
+  color: var(--color-red);
+  border-bottom-color: var(--color-red);
+}
+.wecoda-benefits-section .section-title {
+  color: var(--color-text-primary);
 }
 .wecoda-benefits-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 clamp(32px, 6vw, 84px);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(18px, 2.2vw, 26px);
+  align-items: stretch;
 }
 .wecoda-benefit-item {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
-  align-items: flex-start;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
   gap: 16px;
-  padding: 22px 0;
-  border-bottom: 1px solid rgba(var(--rgb-brown), 0.14);
+  padding: clamp(20px, 2.6vw, 28px);
+  border: 0;
+  border-radius: 0;
+  background: var(--color-white);
+  color: var(--color-text-primary);
+  box-shadow: 0 12px 30px rgba(var(--rgb-brown), 0.06);
 }
-.wecoda-benefit-item:nth-child(-n + 2) {
-  border-top: 1px solid rgba(var(--rgb-brown), 0.14);
+.wecoda-benefit-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--color-red);
+  color: var(--color-white);
+  justify-self: start;
 }
-.wecoda-benefit-item svg {
+.wecoda-benefit-icon svg {
   width: 30px;
   height: 30px;
-  color: var(--color-light-green);
+  color: currentColor;
+}
+.wecoda-benefits-grid.is-animation-ready .wecoda-benefit-item {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 560ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 560ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--benefit-index) * 100ms);
+}
+.wecoda-benefits-grid.is-animation-ready.is-visible .wecoda-benefit-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+.wecoda-benefit-item > div {
+  display: grid;
+  gap: 0;
 }
 .wecoda-benefit-item h3,
 .wecoda-benefit-item p {
   margin: 0;
 }
 .wecoda-benefit-item h3 {
+  margin-bottom: 1rem;
   color: var(--color-text-primary);
   font-family: var(--font-heading), Georgia, serif;
-  font-size: clamp(1.18rem, 1.8vw, 1.45rem);
+  font-size: 1.2rem;
   line-height: 1.2;
-  font-weight: 500;
+  font-weight: 600;
 }
 .wecoda-benefit-item p {
-  margin-top: 7px;
   max-width: 54ch;
   color: rgba(var(--rgb-dark-brown), 0.76);
   font-size: 0.96rem;
@@ -1989,6 +2039,7 @@ button.btn,
   margin-top: clamp(34px, 5vw, 56px);
   padding: clamp(24px, 4vw, 38px);
   background: var(--color-cream);
+  color: var(--color-text-primary);
   border-left: 4px solid var(--color-red);
 }
 .wecoda-membership-panel h3,
@@ -2018,9 +2069,12 @@ button.btn,
 }
 .wecoda-donation-layout {
   display: grid;
-  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  grid-template-columns: minmax(180px, 220px) minmax(0, 640px);
   gap: clamp(30px, 4.5vw, 54px);
   align-items: center;
+  width: 100%;
+  max-width: 914px;
+  margin-inline: auto;
 }
 .wecoda-donation-copy {
   display: grid;
@@ -2030,6 +2084,9 @@ button.btn,
   gap: 1.5rem;
   max-width: 640px;
   padding-right: clamp(16px, 3vw, 36px);
+}
+.wecoda-donation-copy .section-head {
+  margin-bottom: 0;
 }
 .wecoda-donation-copy h2,
 .wecoda-donation-copy p {
@@ -2090,6 +2147,9 @@ button.btn,
   .wecoda-donation-layout {
     gap: 20px;
   }
+  .wecoda-benefits-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .wecoda-donation-copy,
   .wecoda-donation-qr {
     grid-column: 1;
@@ -2124,11 +2184,17 @@ button.btn,
   .wecoda-membership-panel .btn {
     width: 100%;
   }
-  .wecoda-benefit-item:nth-child(2) {
-    border-top: 0;
-  }
   .wecoda-donation-qr-wrap {
     width: min(160px, 52vw);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wecoda-benefits-grid.is-animation-ready .wecoda-benefit-item,
+  .wecoda-benefits-grid.is-animation-ready.is-visible .wecoda-benefit-item {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    transition-delay: 0ms;
   }
 }
 
@@ -2156,7 +2222,7 @@ button.btn,
   max-width: none;
   color: var(--color-text-primary);
   font-size: 3rem;
-  line-height: 1.05;
+  line-height: 1.2;
   font-weight: 500;
   letter-spacing: 0;
 }
@@ -2282,7 +2348,7 @@ button.btn,
   max-width: 11ch;
   color: var(--color-text-primary);
   font-size: 3rem;
-  line-height: 1.05;
+  line-height: 1.2;
   font-weight: 500;
   letter-spacing: 0;
 }
@@ -2625,11 +2691,12 @@ button.btn,
   width: min(1120px, 100%);
   margin-bottom: 22px;
 }
-.book-space-hero-copy h1 {
+.book-space-hero-copy h1,
+.wecoda-hero-title {
   margin: 0;
   max-width: 100%;
   font-size: 3rem;
-  line-height: 1.05;
+  line-height: 1.2;
   letter-spacing: 0;
   text-transform: none;
   font-weight: 500;
@@ -2699,7 +2766,8 @@ button.btn,
   .private-meetings-hero .book-space-hero-copy {
     margin-bottom: clamp(26px, 4vh, 38px);
   }
-  .private-meetings-hero .book-space-hero-copy h1 {
+  .private-meetings-hero .book-space-hero-copy h1,
+  .wecoda-hero-title {
     font-size: clamp(2.5rem, 4.1vw, 3rem);
   }
   .private-meetings-hero .private-meetings-hero-text {
@@ -3467,7 +3535,7 @@ button.btn,
 .section-head h3 {
   margin: 0;
   font-size: clamp(1.85rem, 2.6vw, 2.3rem);
-  line-height: 1.05;
+  line-height: 1.2;
 }
 .gallery-lightbox {
   position: fixed;
@@ -3942,7 +4010,7 @@ button.btn,
   font-family: var(--font-heading), Georgia, serif;
   color: var(--quick-card-tone);
   font-size: clamp(19px, 1.65vw, 23px);
-  line-height: 1.05;
+  line-height: 1.2;
   letter-spacing: 0;
   text-transform: none;
   font-weight: 600;
@@ -4558,7 +4626,7 @@ button.btn,
   color: var(--color-text-heading);
   font-weight: 300;
   font-size: clamp(20px, 2vw, 30px);
-  line-height: 1.05;
+  line-height: 1.2;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -5872,7 +5940,7 @@ button.btn,
   color: var(--color-text-primary);
   font-family: var(--font-heading), Georgia, serif;
   font-size: clamp(22px, 1.8vw, 30px);
-  line-height: 1.05;
+  line-height: 1.2;
 }
 .about-pillar p {
   margin: 0;
@@ -8115,11 +8183,11 @@ p.faq-inline-prompt,
   }
   .volunteer-hero h1 {
     font-size: clamp(2rem, 10vw, 3rem);
-    line-height: 1.05;
+    line-height: 1.2;
   }
   .work-hero h1 {
     font-size: clamp(2rem, 10vw, 3rem);
-    line-height: 1.05;
+    line-height: 1.2;
   }
   .volunteer-hero-copy .btn,
   .work-hero-copy .btn {
@@ -8443,7 +8511,7 @@ p.faq-inline-prompt,
   }
   .footer-columns {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 2rem;
     padding-top: 4px;
   }
   .footer-bottom {
@@ -8488,7 +8556,7 @@ p.faq-inline-prompt,
   }
   .home-hero-copy .heading {
     font-size: clamp(31px, 9vw, 42px);
-    line-height: 1.12;
+    line-height: 1.2;
   }
   .home-hero-copy .btn {
     min-height: 40px;
@@ -8501,7 +8569,8 @@ p.faq-inline-prompt,
   .hero-image {
     min-height: 310px;
   }
-  .book-space-hero-copy h1 {
+  .book-space-hero-copy h1,
+  .wecoda-hero-title {
     font-size: clamp(2rem, 10vw, 2.5rem);
   }
   .horizontal-gallery-item {
@@ -8620,7 +8689,7 @@ p.faq-inline-prompt,
     width: 100%;
   }
 
-  /* Host at RORUM hero — center and reorder: "View Packages & Pricing" first */
+  /* Host at RORUM hero — center paired CTAs */
   .private-meetings-hero-actions {
     justify-content: center;
     width: 100%;
@@ -8629,7 +8698,7 @@ p.faq-inline-prompt,
     flex: 1 1 auto;
   }
 
-  /* "Each session includes" CTA — center and reorder: "View Packages & Pricing" first */
+  /* "Each session includes" — center paired CTAs */
   .meeting-session-cta {
     justify-content: center;
     width: 100%;
