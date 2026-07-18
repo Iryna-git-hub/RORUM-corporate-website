@@ -817,10 +817,10 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
         <main className="catering-menu-overlay-main">
           <section className="catering-menu-hero">
             <div className="catering-menu-hero-copy">
+              <h2 id="catering-menu-title" className="heading">
+                Catering menu
+              </h2>
               <div className="catering-menu-hero-text">
-                <h2 id="catering-menu-title" className="heading">
-                  Catering menu
-                </h2>
                 <p>
                   Traditional Ukrainian hospitality, Danish classics, and
                   European-style service for hosted meetings, celebrations, and
@@ -933,14 +933,12 @@ function CateringMenuOverlay({ open, onClose, onRequestMenu }) {
           </div>
 
           <section className="catering-menu-final">
-            <div>
-              <h2 className="heading">Create your custom menu</h2>
-              <p>
-                Tell us about your event, number of guests, preferred cuisine,
-                and dietary needs. We will help create a menu that fits your
-                occasion and makes your guests feel welcome.
-              </p>
-            </div>
+            <h2 className="heading">Create your custom menu</h2>
+            <p className="catering-menu-final-text">
+              Tell us about your event, number of guests, preferred cuisine,
+              and dietary needs. We will help create a menu that fits your
+              occasion and makes your guests feel welcome.
+            </p>
             <div className="catering-menu-final-actions">
               <button className="btn" type="button" onClick={handleRequestMenu}>
                 Request custom menu

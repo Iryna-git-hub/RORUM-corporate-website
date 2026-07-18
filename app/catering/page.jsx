@@ -245,6 +245,7 @@ export default function CateringPage() {
       <section className="section catering-format-section">
         <Container>
           <div className="catering-format-intro">
+            <SectionLabel>Catering</SectionLabel>
             <h2 className="heading section-title">Menu Formats</h2>
           </div>
           <div className="catering-format-grid">
