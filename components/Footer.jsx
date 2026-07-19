@@ -109,6 +109,25 @@ export function Footer() {
             ))}
           </nav>
           <span>
+            Membership icons designed by{" "}
+            <a
+              href="https://www.flaticon.com/authors/freepik"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Freepik
+            </a>{" "}
+            from{" "}
+            <a
+              href="https://www.flaticon.com/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Flaticon
+            </a>
+            .
+          </span>
+          <span>
             Developed by{" "}
             <a
               href="https://irynadev.netlify.app"

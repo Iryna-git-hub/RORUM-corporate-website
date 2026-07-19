@@ -70,6 +70,12 @@ html {
   html {
     scroll-behavior: auto;
   }
+  .site-reveal,
+  .site-reveal.is-site-reveal-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 body {
   margin: 0;
@@ -131,6 +137,17 @@ h6 {
 
 main {
   padding-top: 78px;
+}
+.site-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.site-reveal.is-site-reveal-visible {
+  opacity: 1;
+  transform: none;
 }
 
 .container {
@@ -1784,7 +1801,8 @@ button.btn,
   display: grid;
   gap: 12px;
 }
-.catering-step {
+.catering-step,
+.wecoda-application-steps li {
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr);
   gap: 14px;
@@ -1797,7 +1815,8 @@ button.btn,
 .catering-step:last-child {
   border-bottom: 1px solid rgba(var(--rgb-cream), 0.34);
 }
-.catering-step > span {
+.catering-step > span,
+.wecoda-application-step-number {
   display: inline-block;
   width: auto;
   height: auto;
@@ -1810,7 +1829,8 @@ button.btn,
   line-height: 1.2;
   letter-spacing: 0.06em;
 }
-.catering-step h3 {
+.catering-step h3,
+.wecoda-application-steps strong {
   margin: 0 0 4px;
   color: var(--color-white);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
@@ -1818,7 +1838,8 @@ button.btn,
   line-height: 1.25;
   font-weight: 900;
 }
-.catering-step p {
+.catering-step p,
+.wecoda-application-steps p {
   margin: 0;
   color: rgba(var(--rgb-cream), 0.88);
   font-size: 15px;
@@ -1895,6 +1916,50 @@ button.btn,
   gap: 12px;
   align-items: center;
   margin-top: 10px;
+}
+.wecoda-membership-price-strip {
+  width: 100%;
+  padding: clamp(12px, 1.5vw, 16px) 0;
+  background: var(--color-light-green);
+  color: var(--color-white);
+}
+.membership-price__content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.membership-price__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: color-mix(
+    in srgb,
+    var(--color-light-green) 62%,
+    var(--color-white)
+  );
+  color: var(--color-white);
+  flex: 0 0 auto;
+}
+.membership-price__icon svg {
+  stroke: currentColor;
+}
+.membership-price__text {
+  min-width: 0;
+  margin: 0;
+  color: inherit;
+  font-size: clamp(1.05rem, 1.4vw, 1.18rem);
+  line-height: 1.4;
+  font-weight: 400;
+}
+.membership-price__label {
+  font-weight: 400;
+}
+.membership-price__value {
+  color: inherit;
+  font-weight: 800;
 }
 .wecoda-membership-week-section {
   background: var(--color-white);
@@ -1982,20 +2047,19 @@ button.btn,
   color: var(--color-text-primary);
   box-shadow: 0 12px 30px rgba(var(--rgb-brown), 0.06);
 }
-.wecoda-benefit-icon {
-  display: inline-grid;
-  place-items: center;
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: 50%;
-  background: var(--color-red);
-  color: var(--color-white);
-  justify-self: start;
+.membership-benefit-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 auto;
 }
-.wecoda-benefit-icon svg {
-  width: 30px;
-  height: 30px;
-  color: currentColor;
+.membership-benefit-card__icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .wecoda-benefits-grid.is-animation-ready .wecoda-benefit-item {
   opacity: 0;
@@ -2031,36 +2095,105 @@ button.btn,
   font-size: 0.96rem;
   line-height: 1.62;
 }
+.wecoda-membership-section {
+  background: var(--color-light-green);
+  color: var(--color-text-on-dark);
+}
 .wecoda-membership-panel {
   display: grid;
+  gap: clamp(28px, 4vw, 42px);
+  width: 100%;
+  color: var(--color-text-on-dark);
+}
+.wecoda-membership-panel-main {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) minmax(0, max-content) auto;
+  justify-content: start;
+  align-items: center;
+  column-gap: clamp(20px, 2.4vw, 34px);
+}
+.wecoda-membership-illustration {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
+.wecoda-membership-illustration img {
+  display: block;
+  width: min(100%, 220px);
+  height: auto;
+  object-fit: contain;
+}
+.wecoda-membership-content {
+  display: grid;
   justify-items: start;
-  gap: 14px;
-  max-width: 880px;
-  margin-top: clamp(34px, 5vw, 56px);
-  padding: clamp(24px, 4vw, 38px);
-  background: var(--color-cream);
-  color: var(--color-text-primary);
-  border-left: 4px solid var(--color-red);
+  gap: 10px;
+  min-width: 0;
+}
+.wecoda-membership-cta {
+  display: flex;
+  justify-content: flex-start;
+  min-width: max-content;
 }
 .wecoda-membership-panel h3,
-.wecoda-membership-panel p {
+.wecoda-membership-panel h4,
+.wecoda-membership-panel p,
+.wecoda-membership-panel ol {
   margin: 0;
 }
 .wecoda-membership-panel h3 {
-  color: var(--color-red);
+  color: var(--color-text-on-dark);
   font-family: var(--font-heading), Georgia, serif;
-  font-size: clamp(1.35rem, 2.2vw, 1.8rem);
-  line-height: 1.2;
-  font-weight: 500;
+  font-size: clamp(1.5rem, 2vw, 1.9rem);
+  line-height: 1.18;
+  font-weight: 600;
 }
-.wecoda-membership-panel p {
-  max-width: 72ch;
-  color: rgba(var(--rgb-dark-brown), 0.76);
-  font-size: 0.96rem;
-  line-height: 1.62;
+.wecoda-membership-statement {
+  max-width: 42ch;
+  color: rgba(var(--rgb-cream), 0.9);
+  font-size: clamp(1rem, 1.3vw, 1.12rem);
+  line-height: 1.5;
 }
 .wecoda-membership-panel .btn {
-  margin-top: 6px;
+  margin-top: 2px;
+}
+.wecoda-application-process {
+  display: grid;
+  gap: 18px;
+  padding-top: clamp(24px, 3vw, 34px);
+}
+.wecoda-application-process h4 {
+  color: var(--color-text-on-dark);
+  font-family: var(--font-heading), Georgia, serif;
+  font-size: clamp(1.15rem, 1.8vw, 1.4rem);
+  line-height: 1.2;
+  font-weight: 600;
+}
+.wecoda-application-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(32px, 5vw, 64px);
+  row-gap: 0;
+  padding: 0;
+  list-style: none;
+}
+.wecoda-application-steps li {
+  border-bottom: 0;
+}
+.wecoda-application-steps li:nth-child(1) {
+  grid-column: 1;
+  grid-row: 1;
+}
+.wecoda-application-steps li:nth-child(2) {
+  grid-column: 1;
+  grid-row: 2;
+}
+.wecoda-application-steps li:nth-child(3) {
+  grid-column: 2;
+  grid-row: 1;
+}
+.wecoda-application-steps li:nth-child(4) {
+  grid-column: 2;
+  grid-row: 2;
 }
 .wecoda-donation-section {
   scroll-margin-top: 78px;
@@ -2150,6 +2283,24 @@ button.btn,
   .wecoda-benefits-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .wecoda-membership-panel-main {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+  .wecoda-application-steps {
+    grid-template-columns: 1fr;
+  }
+  .wecoda-application-steps li:nth-child(n) {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .wecoda-membership-illustration img {
+    width: min(40vw, 185px);
+  }
+  .wecoda-membership-cta {
+    justify-content: flex-start;
+    min-width: 0;
+  }
   .wecoda-donation-copy,
   .wecoda-donation-qr {
     grid-column: 1;
@@ -2183,6 +2334,16 @@ button.btn,
   .wecoda-hero-actions .btn,
   .wecoda-membership-panel .btn {
     width: 100%;
+  }
+  .wecoda-membership-panel-main,
+  .wecoda-application-steps {
+    grid-template-columns: 1fr;
+  }
+  .wecoda-membership-panel-main {
+    gap: 24px;
+  }
+  .wecoda-membership-illustration img {
+    width: min(60vw, 170px);
   }
   .wecoda-donation-qr-wrap {
     width: min(160px, 52vw);

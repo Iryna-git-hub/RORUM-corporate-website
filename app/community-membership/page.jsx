@@ -1,16 +1,5 @@
 import Image from "next/image";
-import {
-  ArrowRight,
-  Banknote,
-  CalendarDays,
-  Globe2,
-  GraduationCap,
-  Handshake,
-  HeartHandshake,
-  Landmark,
-  Presentation,
-  UserRoundCheck,
-} from "lucide-react";
+import { ArrowRight, BadgeCheck } from "lucide-react";
 import {
   Button,
   Container,
@@ -74,47 +63,66 @@ const benefits = [
   {
     title: "Event Access",
     text: "Free or discounted participation in WECODA events.",
-    icon: CalendarDays,
+    icon: "/images/membership-benefits/event-access.png",
   },
   {
     title: "Training and Learning",
     text: "Access to training sessions, educational programmes, and masterclasses.",
-    icon: GraduationCap,
+    icon: "/images/membership-benefits/training-learning.png",
   },
   {
     title: "International Networking",
     text: "International business networking and new partnerships.",
-    icon: Handshake,
+    icon: "/images/membership-benefits/international-networking.png",
   },
   {
     title: "International Opportunities",
     text: "Participation in international projects, forums, and business missions.",
-    icon: Globe2,
+    icon: "/images/membership-benefits/international-opportunities.png",
   },
   {
     title: "Funding Information",
     text: "Information about grants, accelerator programmes, and funding opportunities.",
-    icon: Banknote,
+    icon: "/images/membership-benefits/funding-information.png",
   },
   {
     title: "Mentoring and Expert Advice",
     text: "Mentoring support and consultations with experts.",
-    icon: UserRoundCheck,
+    icon: "/images/membership-benefits/mentoring-advice.png",
   },
   {
     title: "Visibility for Your Work",
     text: "Opportunities to present your business, projects, and professional experience.",
-    icon: Presentation,
+    icon: "/images/membership-benefits/visibility-work.png",
   },
   {
     title: "Diplomatic and Cultural Events",
     text: "Participation in unique WECODA events focused on diplomatic gastronomy and cultural diplomacy.",
-    icon: Landmark,
+    icon: "/images/membership-benefits/diplomatic-cultural-events.png",
   },
   {
     title: "A Supportive Community",
     text: "A community of active women who support one another, exchange experience, and create new opportunities.",
-    icon: HeartHandshake,
+    icon: "/images/membership-benefits/supportive-community.png",
+  },
+];
+
+const applicationProcess = [
+  {
+    title: "Submit your application",
+    text: "Complete the WECODA membership application form.",
+  },
+  {
+    title: "Pay the annual membership fee",
+    text: "The annual membership fee is 250 DKK.",
+  },
+  {
+    title: "Board review",
+    text: "The WECODA Board reviews your application and payment.",
+  },
+  {
+    title: "Membership confirmation",
+    text: "You will receive confirmation after your membership has been approved.",
   },
 ];
 
@@ -169,6 +177,22 @@ export default function CommunityMembershipPage() {
         </Container>
       </section>
 
+      <section className="wecoda-membership-price-strip">
+        <Container>
+          <div className="membership-price__content">
+            <span className="membership-price__icon" aria-hidden="true">
+              <BadgeCheck size={23} strokeWidth={2} />
+            </span>
+            <p className="membership-price__text">
+              <span className="membership-price__label">
+                Annual membership price:
+              </span>{" "}
+              <strong className="membership-price__value">250 DKK</strong>
+            </p>
+          </div>
+        </Container>
+      </section>
+
       <section
         id="support-wecoda"
         className="section wecoda-donation-section"
@@ -209,17 +233,23 @@ export default function CommunityMembershipPage() {
         <Container>
           <SectionHeader
             label="Membership Benefits"
-            title="What You Gain as WECODA Member"
+            title="What You Gain as a Member"
           />
           <MembershipBenefitsGrid>
-            {benefits.map(({ title, text, icon: Icon }, index) => (
+            {benefits.map(({ title, text, icon }, index) => (
               <article
                 className="wecoda-benefit-item"
                 key={title}
                 style={{ "--benefit-index": index }}
               >
-                <span className="wecoda-benefit-icon" aria-hidden="true">
-                  <Icon strokeWidth={1.7} />
+                <span className="membership-benefit-card__icon">
+                  <Image
+                    src={icon}
+                    alt=""
+                    aria-hidden="true"
+                    width={48}
+                    height={48}
+                  />
                 </span>
                 <div>
                   <h3>{title}</h3>
@@ -228,21 +258,53 @@ export default function CommunityMembershipPage() {
               </article>
             ))}
           </MembershipBenefitsGrid>
+        </Container>
+      </section>
+
+      <section className="section wecoda-membership-section">
+        <Container>
           <div className="wecoda-membership-panel">
-            <h3>Annual membership: 250 DKK</h3>
-            <p>
-              After submitting your application and paying the annual
-              membership fee, the WECODA Board will review your application.
-              Once approved, you will receive an official membership
-              confirmation.
-            </p>
-            <p>
-              Together, we are building a strong international community of
-              women who inspire, collaborate, and create positive impact.
-            </p>
-            <MembershipButton variant="red">
-              Become a WECODA Member
-            </MembershipButton>
+            <div className="wecoda-membership-panel-main">
+              <div className="wecoda-membership-illustration">
+                <Image
+                  src="/images/membership-benefits/annual-membership-women-networking.svg"
+                  alt=""
+                  aria-hidden="true"
+                  width={750}
+                  height={500}
+                />
+              </div>
+              <div className="wecoda-membership-content">
+                <h3>Annual Membership: 250 DKK</h3>
+                <p className="wecoda-membership-statement">
+                  Together, we are building a strong international community.
+                </p>
+              </div>
+              <div className="wecoda-membership-cta">
+                <MembershipButton variant="red">
+                  Become a Member
+                </MembershipButton>
+              </div>
+            </div>
+            <div className="wecoda-application-process">
+              <h4>Application Process</h4>
+              <ol className="wecoda-application-steps">
+                {applicationProcess.map(({ title, text }, index) => (
+                  <li key={title}>
+                    <span
+                      className="wecoda-application-step-number"
+                      aria-hidden="true"
+                    >
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <div>
+                      <strong>{title}</strong>
+                      <p>{text}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
         </Container>
       </section>
