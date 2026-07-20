@@ -12,8 +12,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata("/community-membership");
 
 const wecodaFormUrl = "https://forms.gle/MpadaPTyL8YCHtAa9";
-const wecodaDonationQrSrc =
-  "/images/membership-week/wecoda-donation-qr.jpg";
+const wecodaDonationQrSrc = "/images/membership-week/wecoda-donation-qr.jpg";
 
 const membershipWeekMedia = [
   {
@@ -130,7 +129,11 @@ function MembershipButton({ children, variant = "primary" }) {
   return (
     <Button href={wecodaFormUrl} variant={variant}>
       {children}
-      <ArrowRight className="button-arrow" aria-hidden="true" strokeWidth={1.9} />
+      <ArrowRight
+        className="button-arrow"
+        aria-hidden="true"
+        strokeWidth={1.9}
+      />
     </Button>
   );
 }
@@ -146,6 +149,10 @@ export default function CommunityMembershipPage() {
               <h1 className="heading wecoda-hero-title">
                 Join a Community That Helps Women Move Forward
               </h1>
+              <p className="wecoda-hero-intro">
+                <strong>WECODA:</strong> Women Entrepreneurs Commerce &
+                Development Association.
+              </p>
               <p className="wecoda-hero-intro">
                 Connect with women entrepreneurs, professionals, and
                 changemakers. Exchange experience, discover new opportunities,
@@ -193,10 +200,7 @@ export default function CommunityMembershipPage() {
         </Container>
       </section>
 
-      <section
-        id="support-wecoda"
-        className="section wecoda-donation-section"
-      >
+      <section id="support-wecoda" className="section wecoda-donation-section">
         <Container>
           <div className="wecoda-donation-layout">
             <div className="wecoda-donation-copy">
@@ -210,8 +214,8 @@ export default function CommunityMembershipPage() {
                 opportunities for women.
               </p>
               <p className="wecoda-support-statement">
-                RORUM proudly supports WECODA by providing a welcoming space
-                for community events, learning, and collaboration.
+                RORUM proudly supports WECODA by providing a welcoming space for
+                community events, learning, and collaboration.
               </p>
             </div>
             <div className="wecoda-donation-qr">
@@ -278,7 +282,6 @@ export default function CommunityMembershipPage() {
             .
           </p>
         </Container>
-        
       </section>
 
       <section className="section wecoda-membership-section">
@@ -286,18 +289,42 @@ export default function CommunityMembershipPage() {
           <div className="wecoda-membership-panel">
             <div className="wecoda-membership-panel-main">
               <div className="wecoda-membership-illustration">
-                <Image
-                  src="/images/membership-benefits/annual-membership-women-networking.svg"
-                  alt=""
-                  aria-hidden="true"
-                  width={800}
-                  height={550}
-                />
+                <div className="wecoda-membership-logo-badge">
+                  <Image
+                    className="wecoda-membership-logo"
+                    src="/images/membership-week/wecoda-logo.jpg"
+                    alt="WECODA Women Entrepreneurs Commerce and Development Association logo"
+                    width={300}
+                    height={260}
+                  />
+                </div>
               </div>
               <div className="wecoda-membership-content">
                 <h3>Annual Membership: 250 DKK</h3>
                 <p className="wecoda-membership-statement">
                   Together, we are building a strong international community.
+                </p>
+                <p class="faq-inline-prompt">
+                  <span>Questions?</span>
+                  <a class="faq-inline-prompt-link" href="/faq">
+                    <span>Read our FAQs</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.9"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="lucide lucide-arrow-right button-arrow"
+                      aria-hidden="true"
+                    >
+                      <path d="M5 12h14"></path>
+                      <path d="m12 5 7 7-7 7"></path>
+                    </svg>
+                  </a>
                 </p>
               </div>
               <div className="wecoda-membership-cta">
@@ -358,7 +385,6 @@ export default function CommunityMembershipPage() {
           </div>
         </Container>
       </section>
-
     </>
   );
 }

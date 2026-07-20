@@ -1872,7 +1872,7 @@ button.btn,
 
 .wecoda-hero {
   background: var(--color-cream);
-  padding: clamp(44px, 6vw, 6rem) 0;
+  padding: clamp(44px, 5vw, 6rem) 0;
 }
 .wecoda-hero-grid {
   display: grid;
@@ -1904,7 +1904,6 @@ button.btn,
   min-width: 0;
 }
 .wecoda-hero-intro {
-  max-width: 64ch;
   color: var(--color-text-primary);
   font-size: 1rem;
   line-height: 1.58;
@@ -1912,17 +1911,20 @@ button.btn,
 .wecoda-hero-logo-panel {
   display: grid;
   place-items: center;
-  width: clamp(220px, 23vw, 260px);
+  width: clamp(240px, 24vw, 300px);
   aspect-ratio: 1;
   justify-self: start;
-  padding: clamp(12px, 1.5vw, 18px);
+  padding: clamp(20px, 2.4vw, 32px);
   background: var(--color-white);
-  border: 1px solid rgba(var(--rgb-brown), 0.12);
+  border-radius: 50%;
+  border: 1px solid rgba(var(--rgb-brown), 0.1);
+  box-shadow: 0 18px 40px rgba(var(--rgb-brown), 0.12);
 }
 .wecoda-hero-logo {
-  width: min(220px, 100%);
-  height: auto;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  border-radius: inherit;
 }
 .wecoda-hero-actions {
   display: flex;
@@ -1982,12 +1984,14 @@ button.btn,
   color: inherit;
   font-weight: 800;
 }
-.wecoda-membership-week-section {
-  background: var(--color-white);
-  padding-top: 0;
-}
 .wecoda-membership-week-section .section-head {
   margin-bottom: clamp(22px, 3vw, 34px);
+}
+.wecoda-membership-content .faq-inline-prompt {
+      color: rgba(var(--rgb-cream), .72);
+}
+.wecoda-membership-content  .faq-inline-prompt-link {
+    color: var(--color-gold);
 }
 .wecoda-membership-week-grid {
   display: grid;
@@ -2139,21 +2143,32 @@ button.btn,
   place-items: center;
   min-width: 0;
 }
-.wecoda-membership-illustration img {
+.wecoda-membership-logo-badge {
+  display: grid;
+  place-items: center;
+  width: min(100%, 200px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--color-white);
+  padding: clamp(20px, 2.2vw, 28px);
+  box-shadow: 0 18px 40px rgba(var(--rgb-brown), 0.16);
+}
+.wecoda-membership-logo {
   display: block;
-  width: min(100%, 220px);
+  width: 100%;
   height: auto;
   object-fit: contain;
+  border-radius: inherit;
 }
 .wecoda-membership-content {
   display: grid;
-  justify-items: start;
+  justify-items: center;
   gap: 10px;
   min-width: 0;
 }
 .wecoda-membership-cta {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   min-width: max-content;
 }
 .wecoda-membership-panel h3,
@@ -2299,12 +2314,8 @@ button.btn,
     row-gap: clamp(20px, 3vw, 28px);
   }
   .wecoda-hero-logo-panel {
-    width: clamp(200px, 30vw, 230px);
     justify-self: center;
-    padding: clamp(12px, 2vw, 16px);
-  }
-  .wecoda-hero-logo {
-    width: min(195px, 100%);
+    width: clamp(200px, 30vw, 260px);
   }
   .wecoda-donation-layout {
     gap: 20px;
@@ -2323,11 +2334,11 @@ button.btn,
     grid-column: auto;
     grid-row: auto;
   }
-  .wecoda-membership-illustration img {
+  .wecoda-membership-logo-badge {
     width: min(40vw, 185px);
   }
   .wecoda-membership-cta {
-    justify-content: flex-start;
+    justify-content: center;
     min-width: 0;
   }
   .wecoda-donation-copy,
@@ -2350,18 +2361,14 @@ button.btn,
     gap: 22px;
   }
   .wecoda-hero-logo-panel {
-    width: min(190px, 58vw);
-    padding: 10px;
-  }
-  .wecoda-hero-logo {
-    width: 100%;
+    width: min(220px, 60vw);
+    padding: clamp(14px, 4vw, 20px);
   }
   .wecoda-hero-actions,
   .wecoda-membership-panel {
     width: 100%;
   }
-  .wecoda-hero-actions .btn,
-  .wecoda-membership-panel .btn {
+  .wecoda-hero-actions .btn {
     width: 100%;
   }
   .wecoda-membership-panel {
@@ -2377,7 +2384,7 @@ button.btn,
   .wecoda-membership-panel-main {
     gap: 44px;
   }
-  .wecoda-membership-illustration img {
+  .wecoda-membership-logo-badge {
     width: min(60vw, 170px);
   }
   .wecoda-membership-panel h3 {
@@ -7400,22 +7407,34 @@ p.faq-inline-prompt,
   outline-offset: 10px;
   animation: hostCtaPulse 2.8s ease-in-out infinite;
 }
-.next-step-card-final .btn {
+.next-step-card-final .btn,
+.wecoda-membership-cta .btn {
   gap: 10px;
   min-height: 56px;
   padding: 18px 40px;
-  border-color: var(--color-cta-red);
-  outline: 5px solid rgba(var(--rgb-gold), 0.23);
   outline-offset: 10px;
-  background: var(--color-cta-red);
-  color: var(--color-white);
   font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
+}
+.next-step-card-final .btn {
+  border-color: var(--color-cta-red);
+  outline: 5px solid rgba(var(--rgb-gold), 0.23);
+  background: var(--color-cta-red);
+  color: var(--color-white);
   animation: finalCtaPulse 2.8s ease-in-out infinite;
 }
-.next-step-section-not-sure .next-step-card-final .btn {
-  outline-color: rgba(var(--rgb-red), 0.23);
+.next-step-section-not-sure .next-step-card-final .btn,
+.wecoda-membership-cta .btn {
+  outline: 5px solid rgba(var(--rgb-red), 0.23);
   animation: notSureCtaPulse 2.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .next-step-card-final .btn,
+  .next-step-card-host .btn,
+  .wecoda-membership-cta .btn {
+    animation: none;
+  }
 }
 .next-step-card-final .btn svg {
   width: 18px;
