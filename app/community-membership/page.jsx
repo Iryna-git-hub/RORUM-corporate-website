@@ -258,7 +258,27 @@ export default function CommunityMembershipPage() {
               </article>
             ))}
           </MembershipBenefitsGrid>
+          <p className="membership-icons">
+            Membership icons designed by{" "}
+            <a
+              href="https://www.flaticon.com/authors/freepik"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Freepik
+            </a>{" "}
+            from{" "}
+            <a
+              href="https://www.flaticon.com/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Flaticon
+            </a>
+            .
+          </p>
         </Container>
+        
       </section>
 
       <section className="section wecoda-membership-section">
@@ -270,8 +290,8 @@ export default function CommunityMembershipPage() {
                   src="/images/membership-benefits/annual-membership-women-networking.svg"
                   alt=""
                   aria-hidden="true"
-                  width={750}
-                  height={500}
+                  width={800}
+                  height={550}
                 />
               </div>
               <div className="wecoda-membership-content">
