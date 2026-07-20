@@ -1877,8 +1877,22 @@ button.btn,
 .wecoda-hero-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(220px, 0.55fr);
-  gap: clamp(24px, 3.5vw, 42px);
-  align-items: center;
+  grid-template-areas:
+    "copy logo"
+    "actions logo";
+  column-gap: clamp(24px, 3.5vw, 42px);
+  row-gap: clamp(10px, 1.3vw, 15px);
+  align-items: start;
+}
+.wecoda-hero-grid .wecoda-hero-copy {
+  grid-area: copy;
+}
+.wecoda-hero-grid .wecoda-hero-logo-panel {
+  grid-area: logo;
+  align-self: center;
+}
+.wecoda-hero-grid .wecoda-hero-actions {
+  grid-area: actions;
 }
 .wecoda-hero .label {
   color: var(--color-red);
@@ -1970,7 +1984,7 @@ button.btn,
 }
 .wecoda-membership-week-section {
   background: var(--color-white);
-  padding-top: clamp(34px, 5vw, 68px);
+  padding-top: 0;
 }
 .wecoda-membership-week-section .section-head {
   margin-bottom: clamp(22px, 3vw, 34px);
@@ -2105,10 +2119,11 @@ button.btn,
 .wecoda-membership-section {
   background: var(--color-light-green);
   color: var(--color-text-on-dark);
+  padding-bottom: 96px;
 }
 .wecoda-membership-panel {
   display: grid;
-  gap: clamp(28px, 7.6vw, 84px);
+  gap: 96px;
   width: 100%;
   color: var(--color-text-on-dark);
 }
@@ -2117,7 +2132,7 @@ button.btn,
   grid-template-columns: minmax(180px, 220px) minmax(0, max-content) auto;
   justify-content: start;
   align-items: center;
-  column-gap: clamp(24px, 2.4vw, 34px);
+  gap: 75px;
 }
 .wecoda-membership-illustration {
   display: grid;
@@ -2150,7 +2165,7 @@ button.btn,
 .wecoda-membership-panel h3 {
   color: var(--color-text-on-dark);
   font-family: var(--font-heading), Georgia, serif;
-  font-size: clamp(1.5rem, 2vw, 1.9rem);
+  font-size: clamp(1.5rem, 3vw, 1.9rem);
   line-height: 1.18;
   font-weight: 600;
 }
@@ -2276,6 +2291,13 @@ button.btn,
   .wecoda-donation-layout {
     grid-template-columns: 1fr;
   }
+  .wecoda-hero-grid {
+    grid-template-areas:
+      "copy"
+      "logo"
+      "actions";
+    row-gap: clamp(20px, 3vw, 28px);
+  }
   .wecoda-hero-logo-panel {
     width: clamp(200px, 30vw, 230px);
     justify-self: center;
@@ -2292,7 +2314,7 @@ button.btn,
   }
   .wecoda-membership-panel-main {
     grid-template-columns: 1fr;
-    gap: 26px;
+    gap: 75px;
   }
   .wecoda-application-steps {
     grid-template-columns: 1fr;
@@ -2342,15 +2364,24 @@ button.btn,
   .wecoda-membership-panel .btn {
     width: 100%;
   }
+  .wecoda-membership-panel {
+    gap: 24px;
+  }
+  .wecoda-membership-section {
+    padding-bottom: 44px;
+  }
   .wecoda-membership-panel-main,
   .wecoda-application-steps {
     grid-template-columns: 1fr;
   }
   .wecoda-membership-panel-main {
-    gap: 24px;
+    gap: 44px;
   }
   .wecoda-membership-illustration img {
     width: min(60vw, 170px);
+  }
+  .wecoda-membership-panel h3 {
+    font-size: 2rem;
   }
   .wecoda-donation-qr-wrap {
     width: min(160px, 52vw);

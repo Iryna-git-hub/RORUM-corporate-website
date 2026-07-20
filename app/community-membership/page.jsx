@@ -151,17 +151,6 @@ export default function CommunityMembershipPage() {
                 changemakers. Exchange experience, discover new opportunities,
                 and grow with the support of an international community.
               </p>
-              <div className="wecoda-hero-actions">
-                <MembershipButton>Become a Member</MembershipButton>
-                <Button href="#support-wecoda" variant="secondary">
-                  Support WECODA
-                  <ArrowRight
-                    className="button-arrow"
-                    aria-hidden="true"
-                    strokeWidth={1.9}
-                  />
-                </Button>
-              </div>
             </div>
             <div className="wecoda-hero-logo-panel">
               <Image
@@ -172,6 +161,17 @@ export default function CommunityMembershipPage() {
                 height={382}
                 priority
               />
+            </div>
+            <div className="wecoda-hero-actions">
+              <MembershipButton>Become a Member</MembershipButton>
+              <Button href="#support-wecoda" variant="secondary">
+                Support WECODA
+                <ArrowRight
+                  className="button-arrow"
+                  aria-hidden="true"
+                  strokeWidth={1.9}
+                />
+              </Button>
             </div>
           </div>
         </Container>
