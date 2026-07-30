@@ -2320,21 +2320,55 @@ button.btn,
 }
 .wecoda-donation-layout {
   display: grid;
-  grid-template-columns: minmax(180px, 220px) minmax(0, 640px);
-  gap: clamp(30px, 4.5vw, 54px);
+  grid-template-columns: minmax(160px, 200px) minmax(200px, 260px) minmax(0, 480px);
+  gap: clamp(24px, 3.5vw, 44px);
   align-items: center;
   width: 100%;
-  max-width: 914px;
+  max-width: 1160px;
   margin-inline: auto;
 }
 .wecoda-donation-copy {
   display: grid;
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 1;
   align-self: center;
   gap: 1.5rem;
-  max-width: 640px;
+  max-width: 480px;
   padding-right: clamp(16px, 3vw, 36px);
+}
+.wecoda-donation-bank {
+  display: grid;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  gap: 14px;
+}
+.wecoda-donation-bank-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.wecoda-donation-bank-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+.wecoda-donation-bank-list > div {
+  display: grid;
+  gap: 1px;
+}
+.wecoda-donation-bank-list dt {
+  color: rgba(var(--rgb-dark-brown), 0.6);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.wecoda-donation-bank-list dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  word-break: break-word;
 }
 .wecoda-donation-copy .section-head {
   margin-bottom: 0;
@@ -2423,6 +2457,7 @@ button.btn,
     min-width: 0;
   }
   .wecoda-donation-copy,
+  .wecoda-donation-bank,
   .wecoda-donation-qr {
     grid-column: 1;
     grid-row: auto;
