@@ -7,6 +7,7 @@ import {
   SectionLabel,
 } from "@/components/ui";
 import { MembershipBenefitsGrid } from "@/components/MembershipBenefitsGrid";
+import { WecodaDonationSection } from "@/components/WecodaDonationSection";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/community-membership");
@@ -213,85 +214,7 @@ export default function CommunityMembershipPage() {
         </Container>
       </section>
 
-      <section id="support-wecoda" className="section wecoda-donation-section">
-        <Container>
-          <div className="wecoda-donation-layout">
-            <div className="wecoda-donation-copy">
-              <SectionHeader
-                label="Donation"
-                title="Donate to the WECODA Community"
-              />
-              <p className="wecoda-donation-text">
-                Your support helps WECODA organise educational programmes,
-                community events, international collaborations, and new
-                opportunities for women.
-              </p>
-              <p className="wecoda-support-statement">
-                RORUM proudly supports WECODA by providing a welcoming space for
-                community events, learning, and collaboration.
-              </p>
-            </div>
-            <div className="wecoda-donation-bank">
-              <h3 className="heading wecoda-donation-bank-title">
-                Bank Details
-              </h3>
-              <dl className="wecoda-donation-bank-list">
-                <div>
-                  <dt>Beneficiary</dt>
-                  <dd>
-                    Women Entrepreneurs Commerce &amp; Development Association
-                    (WECODA)
-                  </dd>
-                </div>
-                <div>
-                  <dt>CVR</dt>
-                  <dd>46365208</dd>
-                </div>
-                <div>
-                  <dt>Bank</dt>
-                  <dd>Danske Bank</dd>
-                </div>
-                <div>
-                  <dt>Account type</dt>
-                  <dd>Danske Direkte Forening</dd>
-                </div>
-                <div>
-                  <dt>Account no.</dt>
-                  <dd>14165789</dd>
-                </div>
-                <div>
-                  <dt>Reg. no.</dt>
-                  <dd>9570</dd>
-                </div>
-                <div>
-                  <dt>IBAN</dt>
-                  <dd>DK96 3000 0014 1657 89</dd>
-                </div>
-                <div>
-                  <dt>SWIFT/BIC</dt>
-                  <dd>DABADKKK</dd>
-                </div>
-                <div>
-                  <dt>Currency</dt>
-                  <dd>DKK (Danish Krone)</dd>
-                </div>
-              </dl>
-            </div>
-            <div className="wecoda-donation-qr">
-              <div className="wecoda-donation-qr-wrap">
-                <Image
-                  src={wecodaDonationQrSrc}
-                  alt="QR code for supporting WECODA"
-                  width={800}
-                  height={800}
-                />
-              </div>
-              <p>Scan QR code to support WECODA.</p>
-            </div>
-          </div>
-        </Container>
-      </section>
-
+      <WecodaDonationSection qrSrc={wecodaDonationQrSrc} />
       <section className="section wecoda-intro-section">
         <Container>
           <SectionHeader

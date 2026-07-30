@@ -1941,7 +1941,9 @@ button.btn,
   font-weight: 700;
   line-height: 1.45;
   text-decoration: none;
-  transition: color 0.18s, transform 0.18s;
+  transition:
+    color 0.18s,
+    transform 0.18s;
 }
 .wecoda-hero-external-link:hover {
   color: var(--color-red);
@@ -2233,6 +2235,7 @@ button.btn,
   display: block;
   width: 100%;
   height: auto;
+  border-radius: 50px;
   object-fit: contain;
 }
 .wecoda-membership-content {
@@ -2318,107 +2321,212 @@ button.btn,
   background: var(--color-white);
   padding: clamp(44px, 6vw, 6rem) 0;
 }
-.wecoda-donation-layout {
+.wecoda-donation-grid {
   display: grid;
-  grid-template-columns: minmax(160px, 200px) minmax(200px, 260px) minmax(0, 480px);
-  gap: clamp(24px, 3.5vw, 44px);
-  align-items: center;
-  width: 100%;
-  max-width: 1160px;
-  margin-inline: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(32px, 5vw, 64px);
+  align-items: start;
 }
-.wecoda-donation-copy {
+.wecoda-donation-left {
   display: grid;
-  grid-column: 3;
-  grid-row: 1;
-  align-self: center;
-  gap: 1.5rem;
-  max-width: 480px;
-  padding-right: clamp(16px, 3vw, 36px);
+  gap: 18px;
+  min-width: 0;
 }
-.wecoda-donation-bank {
-  display: grid;
-  grid-column: 2;
-  grid-row: 1;
-  align-self: center;
-  gap: 14px;
-}
-.wecoda-donation-bank-title {
-  font-size: 1.15rem;
-  font-weight: 600;
-}
-.wecoda-donation-bank-list {
-  display: grid;
-  gap: 10px;
+.wecoda-donation-heading {
   margin: 0;
+  font-size: clamp(1.7rem, 2.6vw, 2.15rem);
 }
-.wecoda-donation-bank-list > div {
-  display: grid;
-  gap: 1px;
-}
-.wecoda-donation-bank-list dt {
-  color: rgba(var(--rgb-dark-brown), 0.6);
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.wecoda-donation-bank-list dd {
+.wecoda-donation-lead {
   margin: 0;
+  max-width: 52ch;
   color: var(--color-text-primary);
-  font-size: 0.9rem;
-  line-height: 1.4;
-  word-break: break-word;
-}
-.wecoda-donation-copy .section-head {
-  margin-bottom: 0;
-}
-.wecoda-donation-copy h2,
-.wecoda-donation-copy p {
-  margin: 0;
-}
-.wecoda-donation-copy p {
-  max-width: 60ch;
   font-size: 1rem;
-  line-height: 1.6;
+  line-height: 1.62;
 }
-
-.wecoda-donation-copy .wecoda-support-statement {
-  color: rgba(var(--rgb-dark-brown), 0.68);
-  padding-left: 14px;
-  border-left: 3px solid var(--color-red);
-  font-size: 0.8rem;
-  line-height: 1.55;
-}
-.wecoda-donation-qr {
+.wecoda-donation-qr-card {
   display: grid;
-  grid-column: 1;
-  grid-row: 1;
   justify-items: center;
-  gap: 8px;
-  justify-self: start;
+  gap: 4px;
+  max-width: 100%;
+  margin-top: 6px;
+  padding: clamp(24px, 3vw, 32px);
+  background: var(--color-white);
 }
-.wecoda-donation-qr-wrap {
+.wecoda-donation-qr-frame {
   display: grid;
   place-items: center;
   width: clamp(160px, 16vw, 190px);
   aspect-ratio: 1 / 1;
+  margin-bottom: 12px;
 }
-.wecoda-donation-qr-wrap img {
+.wecoda-donation-qr-frame img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
-.wecoda-donation-qr > p {
+.wecoda-donation-scan-accent {
   margin: 0;
-  color: rgba(var(--rgb-dark-brown), 0.7);
-  font-size: 0.86rem;
-  line-height: 1.4;
+  color: var(--color-red);
+  font-weight: 700;
+  font-size: 1rem;
+}
+.wecoda-donation-scan-note {
+  margin: 0;
+  color: rgba(var(--rgb-dark-brown), 0.6);
+  font-size: 0.82rem;
+}
+.wecoda-donation-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 10px;
+  color: rgba(var(--rgb-dark-brown), 0.45);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.wecoda-donation-divider::before,
+.wecoda-donation-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(var(--rgb-brown), 0.18);
+}
+.wecoda-donation-transfer-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 auto;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  line-height: 1.55;
   text-align: center;
+}
+.wecoda-donation-transfer-prompt svg {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  color: var(--color-red);
+}
+.wecoda-donation-right {
+  min-width: 0;
+}
+.wecoda-bank-card {
+  width: 100%;
+  padding: clamp(26px, 3vw, 36px);
+  background: var(--color-cream);
+}
+.wecoda-bank-card-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
+.wecoda-bank-card-toggle:focus-visible {
+  outline: 1px solid rgba(var(--rgb-red), 0.45);
+  outline-offset: 4px;
+}
+.wecoda-bank-card-title {
+  margin: 0;
+  font-size: clamp(1.3rem, 2vw, 1.5rem);
+}
+.wecoda-bank-card-chevron {
+  display: none;
+  flex-shrink: 0;
+  color: var(--color-red);
+  transition: transform 0.3s ease;
+}
+.wecoda-bank-card-panel {
+  margin-top: 20px;
+}
+.wecoda-bank-list {
+  margin: 0;
+  display: grid;
+}
+.wecoda-bank-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.8fr) minmax(0, 1.4fr);
+  gap: 16px;
+  align-items: start;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(var(--rgb-brown), 0.16);
+}
+.wecoda-bank-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.wecoda-bank-row:first-child {
+  padding-top: 0;
+}
+.wecoda-bank-row dt {
+  margin: 0;
+  color: rgba(var(--rgb-dark-brown), 0.58);
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.wecoda-bank-row dd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.wecoda-bank-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  color: var(--color-red);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    color 0.16s ease,
+    border-color 0.16s ease;
+}
+.wecoda-bank-copy-btn:hover {
+  background: var(--color-red);
+  border-color: var(--color-red);
+  color: var(--color-white);
+}
+.wecoda-bank-copy-btn:focus-visible {
+  outline: 1px solid rgba(var(--rgb-red), 0.45);
+  outline-offset: 3px;
+}
+.wecoda-donation-note {
+  margin: clamp(32px, 4vw, 48px) 0 0;
+  max-width: 68ch;
+  padding-left: 16px;
+  border-left: 3px solid var(--color-red);
+  color: rgba(var(--rgb-dark-brown), 0.68);
+  font-size: 0.9rem;
+  line-height: 1.55;
 }
 @media (max-width: 980px) {
   .wecoda-hero-grid,
-  .wecoda-donation-layout {
+  .wecoda-donation-grid {
     grid-template-columns: 1fr;
   }
   .wecoda-hero-grid {
@@ -2432,15 +2540,44 @@ button.btn,
     justify-self: center;
     width: clamp(200px, 30vw, 260px);
   }
-  .wecoda-donation-layout {
-    gap: 20px;
+  .wecoda-donation-grid {
+    gap: 32px;
+  }
+  .wecoda-donation-transfer-prompt {
+    display: none;
+  }
+  .wecoda-bank-card-toggle {
+    cursor: pointer;
+  }
+  .wecoda-bank-card-chevron {
+    display: block;
+  }
+  .wecoda-bank-card-panel {
+    max-height: 0;
+    margin-top: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition:
+      max-height 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.3s ease,
+      margin-top 0.3s ease;
+  }
+  .wecoda-bank-card.is-open .wecoda-bank-card-panel {
+    max-height: 900px;
+    margin-top: 20px;
+    opacity: 1;
+  }
+  .wecoda-bank-card.is-open .wecoda-bank-card-chevron {
+    transform: rotate(180deg);
   }
   .wecoda-benefits-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .wecoda-membership-panel-main {
     grid-template-columns: 1fr;
+    justify-items: center;
     gap: 75px;
+    text-align: center;
   }
   .wecoda-application-steps {
     grid-template-columns: 1fr;
@@ -2455,21 +2592,6 @@ button.btn,
   .wecoda-membership-cta {
     justify-content: center;
     min-width: 0;
-  }
-  .wecoda-donation-copy,
-  .wecoda-donation-bank,
-  .wecoda-donation-qr {
-    grid-column: 1;
-    grid-row: auto;
-  }
-  .wecoda-donation-copy {
-    padding-right: 0;
-  }
-  .wecoda-donation-qr {
-    justify-self: center;
-  }
-  .wecoda-donation-qr-wrap {
-    width: clamp(150px, 24vw, 175px);
   }
 }
 @media (max-width: 640px) {
@@ -2509,8 +2631,16 @@ button.btn,
   .wecoda-membership-panel h3 {
     font-size: 2rem;
   }
-  .wecoda-donation-qr-wrap {
-    width: min(160px, 52vw);
+  .wecoda-donation-qr-card {
+    width: 100%;
+    max-width: 420px;
+    margin-inline: auto;
+  }
+  .wecoda-donation-divider {
+    max-width: 100%;
+  }
+  .wecoda-bank-card {
+    padding: clamp(22px, 5vw, 28px);
   }
 }
 @media (prefers-reduced-motion: reduce) {
