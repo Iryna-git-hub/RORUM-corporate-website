@@ -384,18 +384,6 @@ const menuCategories = [
         alt: "Napoleon cake with layered pastry and cream",
       },
       {
-        name: "Profiteroles",
-        description: "Small choux pastry desserts with cream filling.",
-        image: "/images/catering/desserts-profiteroles.png",
-        alt: "Profiteroles with cream and chocolate",
-      },
-      {
-        name: "Mini desserts",
-        description: "Small elegant desserts for receptions and sweet tables.",
-        image: "/images/catering/desserts-mini-desserts.png",
-        alt: "Assorted mini desserts on a sweet table",
-      },
-      {
         name: "Chocolate fountain",
         description:
           "A festive chocolate fountain served with fruit and sweet dipping snacks.",
@@ -416,11 +404,11 @@ const menuCategories = [
         alt: "Medivnyk Ukrainian honey cake",
       },
       {
-        name: "Pani Walewska",
+        name: "Traditional Ukrainian Pliatsky",
         description:
-          "A celebratory layered cake with cream, fruit, and a delicate finish.",
-        image: "/images/catering/desserts-pani-walewska.png",
-        alt: "Pani Walewska layered cake with cream and fresh berries",
+          "Rich, layered cakes made with delicate pastry, creamy fillings, fruit, nuts.",
+        image: "/images/catering/desserts-pliatsky-green-apple.png",
+        alt: "Traditional Ukrainian \"Green Apple\" (Zelene Yabluko) pliatsok",
       },
       {
         name: "Festive sweets",
