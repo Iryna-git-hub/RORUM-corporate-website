@@ -1927,9 +1927,39 @@ button.btn,
 .wecoda-hero-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 20px;
   align-items: center;
   margin-top: 10px;
+}
+.wecoda-hero-external-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  color: var(--color-light-green);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.45;
+  text-decoration: none;
+  transition: color 0.18s, transform 0.18s;
+}
+.wecoda-hero-external-link:hover {
+  color: var(--color-red);
+  transform: translateX(2px);
+}
+.wecoda-hero-external-link-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+.wecoda-membership-content .wecoda-hero-external-link {
+  color: var(--color-gold);
+  transition: opacity 0.16s ease;
+}
+.wecoda-membership-content .wecoda-hero-external-link:hover {
+  color: var(--color-gold);
+  opacity: 0.75;
+  transform: none;
 }
 .wecoda-membership-price-strip {
   width: 100%;
@@ -2033,6 +2063,54 @@ button.btn,
   .wecoda-membership-week-item-featured {
     grid-column: auto;
     grid-row: span 1;
+  }
+}
+.wecoda-intro-section {
+  background: var(--color-cream);
+  color: var(--color-text-primary);
+}
+.wecoda-intro-section .section-head {
+  justify-items: start;
+  margin-inline: 0;
+  margin-bottom: clamp(28px, 4vw, 42px);
+  text-align: left;
+}
+.wecoda-intro-section .label {
+  color: var(--color-red);
+  border-bottom-color: var(--color-red);
+}
+.wecoda-intro-section .section-title {
+  color: var(--color-text-primary);
+}
+.wecoda-intro-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(24px, 3vw, 56px);
+}
+.wecoda-intro-column {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+.wecoda-intro-column p {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+.wecoda-intro-column:first-child p:first-child {
+  font-weight: 600;
+}
+.wecoda-intro-column:last-child p:last-child {
+  font-style: italic;
+}
+.wecoda-intro-section .wecoda-hero-actions {
+  margin-top: clamp(24px, 3vw, 32px);
+}
+@media (max-width: 980px) {
+  .wecoda-intro-columns {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 }
 .wecoda-benefits-section {
@@ -2160,8 +2238,14 @@ button.btn,
 .wecoda-membership-content {
   display: grid;
   justify-items: center;
-  gap: 10px;
+  gap: 20px;
   min-width: 0;
+}
+@media (min-width: 641px) {
+  .wecoda-membership-content .wecoda-hero-external-link,
+  .wecoda-membership-content .faq-inline-prompt {
+    justify-self: start;
+  }
 }
 .wecoda-membership-cta {
   display: flex;
@@ -2366,6 +2450,10 @@ button.btn,
   }
   .wecoda-hero-actions .btn {
     width: 100%;
+  }
+  .wecoda-hero-external-link {
+    width: 100%;
+    justify-content: center;
   }
   .wecoda-membership-panel {
     gap: 24px;

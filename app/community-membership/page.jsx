@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ArrowRight, BadgeCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, ExternalLink } from "lucide-react";
 import {
   Button,
   Container,
@@ -179,6 +179,19 @@ export default function CommunityMembershipPage() {
                   strokeWidth={1.9}
                 />
               </Button>
+              <a
+                className="wecoda-hero-external-link"
+                href="https://wecoda.org"
+                target="_blank"
+                rel="noreferrer"
+              >
+                WECODA website
+                <ExternalLink
+                  className="wecoda-hero-external-link-icon"
+                  aria-hidden="true"
+                  strokeWidth={1.9}
+                />
+              </a>
             </div>
           </div>
         </Container>
@@ -229,6 +242,62 @@ export default function CommunityMembershipPage() {
               </div>
               <p>Scan QR code to support WECODA.</p>
             </div>
+          </div>
+        </Container>
+      </section>
+
+      <section className="section wecoda-intro-section">
+        <Container>
+          <SectionHeader
+            label="WECODA community"
+            title="Connecting Women Who Inspire, Build and Lead."
+          />
+          <div className="wecoda-intro-columns">
+            <div className="wecoda-intro-column">
+              <p>
+                WECODA is an international community where ambitious women
+                entrepreneurs, professionals, and leaders connect to exchange
+                knowledge, build meaningful partnerships, and grow together.
+              </p>
+              <p>
+                What makes WECODA unique is our signature concept of
+                Diplomatic Gastronomy—a distinctive approach that brings
+                together business, culture, and international dialogue. We
+                believe that genuine relationships are built through shared
+                experiences, creating an environment where conversations
+                become collaborations and ideas evolve into lasting
+                partnerships.
+              </p>
+            </div>
+            <div className="wecoda-intro-column">
+              <p>
+                Through curated networking events, business breakfasts,
+                international forums, educational programs, and cultural
+                initiatives, we create opportunities that extend far beyond
+                traditional networking.
+              </p>
+              <p>
+                Become part of a community where business meets purpose,
+                relationships inspire growth, and every connection opens the
+                door to new possibilities.
+              </p>
+            </div>
+          </div>
+          <div className="wecoda-hero-actions">
+            <MembershipButton>Become a Member</MembershipButton>
+            <a
+              className="wecoda-hero-external-link"
+              href="https://wecoda.org"
+              target="_blank"
+              rel="noreferrer"
+            >
+              WECODA website
+              <ExternalLink
+                className="wecoda-hero-external-link-icon"
+                aria-hidden="true"
+                strokeWidth={1.9}
+              />
+            </a>
           </div>
         </Container>
       </section>
@@ -304,6 +373,19 @@ export default function CommunityMembershipPage() {
                 <p className="wecoda-membership-statement">
                   Together, we are building a strong international community.
                 </p>
+                <a
+                  className="wecoda-hero-external-link"
+                  href="https://wecoda.org"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  WECODA website
+                  <ExternalLink
+                    className="wecoda-hero-external-link-icon"
+                    aria-hidden="true"
+                    strokeWidth={1.9}
+                  />
+                </a>
                 <p class="faq-inline-prompt">
                   <span>Questions?</span>
                   <a class="faq-inline-prompt-link" href="/faq">
