@@ -4,8 +4,10 @@ import { useMemo, useState } from "react";
 import { Link2, Mail, Share2 } from "lucide-react";
 import { SocialIcon } from "@/components/SocialIcon";
 
+const INSTAGRAM_COPY_MESSAGE = "Event link copied! You can now paste it into Instagram Stories, DMs, or your bio.";
+
 export function EventShare({ title, text, url }) {
-    const [copied, setCopied] = useState(false);
+    const [feedback, setFeedback] = useState("");
     const shareText = text || "Join this event at RORUM";
 
     function getShareUrl() {
@@ -23,16 +25,38 @@ export function EventShare({ title, text, url }) {
         };
     }, [title, url]);
 
+    function showFeedback(message) {
+        setFeedback(message);
+        window.setTimeout(() => setFeedback(""), 2600);
+    }
+
+    async function copyToClipboard(currentUrl) {
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(currentUrl);
+            return true;
+        }
+        // Older browsers (and some in-app webviews) lack the Clipboard API
+        try {
+            const textarea = document.createElement("textarea");
+            textarea.value = currentUrl;
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
     async function copyLink() {
         const currentUrl = getShareUrl();
         if (!currentUrl) return;
-        try {
-            await navigator.clipboard.writeText(currentUrl);
-            setCopied(true);
-            window.setTimeout(() => setCopied(false), 1800);
-        } catch {
-            setCopied(false);
-        }
+        const didCopy = await copyToClipboard(currentUrl).catch(() => false);
+        if (didCopy) showFeedback("Link copied");
     }
 
     async function shareEvent() {
@@ -48,6 +72,38 @@ export function EventShare({ title, text, url }) {
         }
 
         await copyLink();
+    }
+
+    function isMobileDevice() {
+        return typeof navigator !== "undefined" && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+    }
+
+    async function shareInstagram() {
+        const currentUrl = getShareUrl();
+        if (!currentUrl) return;
+
+        async function copyForInstagram() {
+            const didCopy = await copyToClipboard(currentUrl).catch(() => false);
+            if (didCopy) showFeedback(INSTAGRAM_COPY_MESSAGE);
+        }
+
+        if (!isMobileDevice()) {
+            await copyForInstagram();
+            return;
+        }
+
+        // Instagram has no web share URL, so try handing off to the app first
+        // and fall back to copying the link if the app never takes focus.
+        let appOpened = false;
+        const onVisibilityChange = () => {
+            if (document.hidden) appOpened = true;
+        };
+        document.addEventListener("visibilitychange", onVisibilityChange);
+        window.setTimeout(async () => {
+            document.removeEventListener("visibilitychange", onVisibilityChange);
+            if (!appOpened) await copyForInstagram();
+        }, 1200);
+        window.location.href = "instagram://app";
     }
 
     return (
@@ -72,9 +128,12 @@ export function EventShare({ title, text, url }) {
           <a className="event-share-brand-link" aria-label="Share on Facebook" href={links.facebook} target="_blank" rel="noopener noreferrer" style={{ "--social-brand-color": "#1877F2" }}>
             <SocialIcon icon="facebook" />
           </a>
+          <button className="event-share-brand-link" type="button" aria-label="Share on Instagram" onClick={shareInstagram} style={{ "--social-brand-color": "#E1306C" }}>
+            <SocialIcon icon="instagram" />
+          </button>
         </div>
-        <span className={copied ? "event-share-feedback is-visible" : "event-share-feedback"} aria-live="polite">
-          Link copied
+        <span className={feedback ? "event-share-feedback is-visible" : "event-share-feedback"} aria-live="polite">
+          {feedback || "Link copied"}
         </span>
       </div>
     );
