@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -11,11 +12,17 @@ import {
   Wine,
 } from "lucide-react";
 
-export function Container({ children }) {
+export function Container({ children }: { children: ReactNode }) {
   return <div className="container">{children}</div>;
 }
 
-export function Section({ children, tight = false }) {
+export function Section({
+  children,
+  tight = false,
+}: {
+  children: ReactNode;
+  tight?: boolean;
+}) {
   return (
     <section className={tight ? "section-tight" : "section"}>
       {children}
@@ -23,12 +30,26 @@ export function Section({ children, tight = false }) {
   );
 }
 
-export function SectionLabel({ children }) {
+export function SectionLabel({ children }: { children: ReactNode }) {
   return <span className="label">{children}</span>;
 }
 
-export function SectionHeader({ label, title, text, level = 2 }) {
-  const HeadingTag = `h${level}`;
+type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
+type HeadingTagName = `h${HeadingLevel}`;
+
+export function SectionHeader({
+  label,
+  title,
+  text,
+  level = 2,
+}: {
+  label?: string;
+  title: ReactNode;
+  text?: string;
+  level?: HeadingLevel;
+}) {
+  // `level` is restricted to 1-6 above, so this is always a valid heading tag.
+  const HeadingTag = `h${level}` as HeadingTagName;
   return (
     <div className="section-head">
       {label ? <SectionLabel>{label}</SectionLabel> : null}
@@ -38,7 +59,24 @@ export function SectionHeader({ label, title, text, level = 2 }) {
   );
 }
 
-export function Button({ href, children, variant = "primary" }) {
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "red"
+  | "ghost"
+  | "plum"
+  | "icon"
+  | "event-all";
+
+export function Button({
+  href,
+  children,
+  variant = "primary",
+}: {
+  href?: string;
+  children: ReactNode;
+  variant?: ButtonVariant;
+}) {
   const variantClass = variant === "primary" ? "" : variant;
   const className = `btn ${variantClass}`.trim();
   if (!href)
@@ -58,14 +96,28 @@ export function Button({ href, children, variant = "primary" }) {
   );
 }
 
-export function Card({ children, className = "", variant = "" }) {
+// NOTE: variant generates a `card-{variant}` class, but no CSS rule exists
+// for any of "editorial" | "service" | "package" | "event" today (verified
+// against globals.css) — this hook is currently a no-op. Kept as-is (not a
+// TS/Tailwind migration concern) but flagged here for future cleanup.
+export type CardVariant = "editorial" | "service" | "package" | "event" | "";
+
+export function Card({
+  children,
+  className = "",
+  variant = "",
+}: {
+  children: ReactNode;
+  className?: string;
+  variant?: CardVariant;
+}) {
   const variantClass = variant ? `card-${variant}` : "";
   return (
     <div className={`card ${variantClass} ${className}`.trim()}>{children}</div>
   );
 }
 
-function TrustIcon({ item }) {
+function TrustIcon({ item }: { item: string }) {
   const normalized = item.toLowerCase();
   const Icon = normalized.includes("guest")
     ? Users
@@ -85,6 +137,12 @@ export function PageHero({
   text,
   image = "/images/hero.jpg",
   actions,
+}: {
+  label?: string;
+  title: ReactNode;
+  text?: string;
+  image?: string;
+  actions?: ReactNode;
 }) {
   return (
     <section className="hero">
@@ -120,6 +178,15 @@ export function HomeHero({
   image = "/images/hero.jpg",
   video,
   actions,
+}: {
+  label?: string;
+  title: ReactNode;
+  text?: string;
+  microcopy?: string;
+  trustItems?: string[];
+  image?: string;
+  video?: string;
+  actions?: ReactNode;
 }) {
   return (
     <section
@@ -164,7 +231,25 @@ export function HomeHero({
   );
 }
 
-export function FAQInlinePrompt({ href = "/faq" }) {
+export function FAQInlinePrompt({
+  href = "/faq",
+  // NOTE (pre-existing, not introduced by this migration): `question` and
+  // `label` are accepted here for compatibility with CTASection's call site
+  // (which passes faqQuestion/faqLabel) but are not actually rendered below
+  // — the component always shows the hardcoded "Questions?" / "Read our
+  // FAQs" copy. This means the custom per-page question text authored in
+  // app/page.jsx, app/events/page.jsx and app/about/page.jsx is currently
+  // silently dropped. Flagged for a follow-up decision; behavior preserved
+  // as-is for this migration.
+  question,
+  label,
+}: {
+  href?: string;
+  question?: string;
+  label?: string;
+}) {
+  void question;
+  void label;
   return (
     <p className="faq-inline-prompt">
       <span>Questions?</span>
@@ -180,6 +265,11 @@ export function FAQInlinePrompt({ href = "/faq" }) {
   );
 }
 
+export interface CTALink {
+  href: string;
+  label: string;
+}
+
 export function CTASection({
   title,
   text,
@@ -192,6 +282,18 @@ export function CTASection({
   cardClassName = "",
   faqQuestion = "",
   faqLabel = "Read FAQ",
+}: {
+  title: ReactNode;
+  text?: string;
+  href?: string;
+  label?: ReactNode;
+  eyebrow?: string;
+  links?: CTALink[];
+  variant?: "final" | "host" | "";
+  className?: string;
+  cardClassName?: string;
+  faqQuestion?: string;
+  faqLabel?: string;
 }) {
   const sectionClass =
     `section-tight next-step-section ${variant ? `next-step-section-${variant}` : ""} ${className}`.trim();
@@ -243,6 +345,12 @@ export function FAQHelpStrip({
   href = "/faq",
   label = "Read FAQ",
   className = "",
+}: {
+  title?: string;
+  text?: string;
+  href?: string;
+  label?: string;
+  className?: string;
 }) {
   return (
     <section

@@ -1,4 +1,6 @@
-const icons = {
+import type { ReactNode } from "react";
+
+const icons: Record<string, ReactNode> = {
   instagram: (
     <>
       <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5.2" />
@@ -24,8 +26,14 @@ const icons = {
   ),
 };
 
-export function SocialIcon({ icon, className = "" }) {
-  const normalizedIcon = icon?.toLowerCase();
+export function SocialIcon({
+  icon,
+  className = "",
+}: {
+  icon?: string;
+  className?: string;
+}) {
+  const normalizedIcon = icon?.toLowerCase() ?? "";
   const isInstagram = normalizedIcon === "instagram";
   const isWhatsapp = normalizedIcon === "whatsapp";
   const isStrokeIcon = isInstagram || isWhatsapp;

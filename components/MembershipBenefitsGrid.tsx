@@ -1,9 +1,10 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
-export function MembershipBenefitsGrid({ children }) {
-  const gridRef = useRef(null);
+export function MembershipBenefitsGrid({ children }: { children: ReactNode }) {
+  const gridRef = useRef<HTMLDivElement | null>(null);
   const [animationReady, setAnimationReady] = useState(false);
   const [visible, setVisible] = useState(false);
 
@@ -21,7 +22,7 @@ export function MembershipBenefitsGrid({ children }) {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting) return;
+        if (!entry?.isIntersecting) return;
         setVisible(true);
         observer.disconnect();
       },
