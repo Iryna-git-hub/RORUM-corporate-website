@@ -5,11 +5,11 @@ export const formspreeConfig = {
     process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT?.trim() || endpointPlaceholder,
 };
 
-export function isFormspreeConfigured() {
+export function isFormspreeConfigured(): boolean {
   return formspreeConfig.endpoint !== endpointPlaceholder;
 }
 
-export async function submitToFormspree(formData) {
+export async function submitToFormspree(formData: FormData): Promise<void> {
   if (!isFormspreeConfigured()) {
     throw new Error("FORMSPREE_NOT_CONFIGURED");
   }

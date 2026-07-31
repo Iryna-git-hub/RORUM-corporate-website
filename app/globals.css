@@ -1,5 +1,64 @@
 @import "tailwindcss";
 
+/* Tailwind v4 theme tokens, mapped onto the existing :root design tokens below
+   via `inline` mode so the :root block stays the single source of truth for
+   literal values. Utilities like `bg-accent`, `text-text-primary`,
+   `rounded-lg`, `font-heading` become available to component classNames.
+
+   Intentionally NOT promoted: the --rgb-* triplets (used only inside
+   hand-authored `rgba(var(--rgb-x), alpha)` calls — Tailwind has no utility
+   story for raw RGB triplets) and --color-event-muted/--rgb-hero-overlay-*
+   (single-use, not worth a utility).
+
+   Note: --radius-sm/md/lg intentionally override Tailwind's built-in default
+   radius scale (12/16/24px vs Tailwind's stock values) so `rounded-lg` etc.
+   match this project's existing radii once components start using them. */
+@theme inline {
+  --color-cream: var(--color-cream);
+  --color-beige: var(--color-beige);
+  --color-gold: var(--color-gold);
+  --color-light-green: var(--color-light-green);
+  --color-dark-green: var(--color-dark-green);
+  --color-brown: var(--color-brown);
+  --color-dark-brown: var(--color-dark-brown);
+  --color-red: var(--color-red);
+  --color-white: var(--color-white);
+
+  --color-cta-red: var(--color-cta-red);
+  --color-cta-red-hover: var(--color-cta-red-hover);
+  --color-cta-green: var(--color-cta-green);
+  --color-cta-green-hover: var(--color-cta-green-hover);
+
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-primary-darker: var(--color-primary-darker);
+  --color-primary-light: var(--color-primary-light);
+  --color-secondary: var(--color-secondary);
+  --color-secondary-soft: var(--color-secondary-soft);
+  --color-surface-light: var(--color-surface-light);
+  --color-accent: var(--color-accent);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-on-dark: var(--color-text-on-dark);
+  --color-text-on-image: var(--color-text-on-image);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-pill: var(--radius-pill);
+
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+
+  /* Custom breakpoint mirroring the project's real primary desktop cutoff
+     (used 13+ times as `min-width: 981px` across globals.css) rather than
+     force-fitting onto Tailwind's stock lg:1024 — that breakpoint doesn't
+     exist anywhere in the current responsive system. Generates `desktop:`. */
+  --breakpoint-desktop: 981px;
+}
+
 /* Design tokens */
 :root {
   /* Main colors:

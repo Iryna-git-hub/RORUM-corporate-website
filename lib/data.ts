@@ -1,6 +1,17 @@
 import { contactDetails } from "@/lib/siteConfig";
 
-export const navItems = [
+export interface NavChild {
+  href: string;
+  label: string;
+}
+
+export interface NavItem {
+  href: string | null;
+  label: string;
+  children?: NavChild[];
+}
+
+export const navItems: NavItem[] = [
   { href: "/events", label: "Attend Events" },
   { href: "/host-at-rorum", label: "Host at RORUM" },
   {
@@ -23,7 +34,14 @@ export const navItems = [
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
-export const pages = [
+
+export interface PageMeta {
+  href: string;
+  title: string;
+  description: string;
+}
+
+export const pages: PageMeta[] = [
   {
     href: "/",
     title: "Home",
@@ -108,6 +126,11 @@ export const pages = [
   },
 ];
 
+export interface PracticalDetail {
+  label: string;
+  value: string;
+}
+
 // SINGLE IMAGE SOURCE OF TRUTH
 // Every event has exactly one `image` field. This field is used by:
 //   - EventCard (Events listing page, homepage scroll, related events)
@@ -115,13 +138,43 @@ export const pages = [
 //
 // Do NOT add heroImage, detailImage, coverImage or any secondary image field.
 // When images change, run `next build` to regenerate the static detail pages.
-//
-// Events with a .png banner use the explicit path; events with only .svg use
-// eventBanner() below. Both the listing card and the detail page always use
-// the same value.
-const eventBanner = (slug) => `/images/events/banners/${slug}.svg`;
+export interface RorumEvent {
+  slug: string;
+  title: string;
+  date: string;
+  time: string;
+  category: string;
+  price: string;
+  language: string;
+  host: string;
+  shortDescription: string;
+  longDescription: string;
+  included: string[];
+  whatToExpect: string[];
+  practicalDetails: PracticalDetail[];
+  ticketProvider: string;
+  ticketUrl: string;
+  calendarUrl: string;
+  waitlistUrl: string;
+  isSoldOut: boolean;
+  relatedEventSlugs: string[];
+  image: string;
+  // Never populated by the data below, but read defensively by consumers
+  // (app/events/[slug]/page.jsx, components/EventCard.jsx) as forward-compat
+  // fallbacks in case a future/partial event omits ticketsLeft or supplies a
+  // richer shape. Kept optional to reflect that reality rather than force
+  // a stricter type the actual consumer code doesn't rely on.
+  ticketsLeft?: number;
+  spotsLeft?: number;
+  duration?: string;
+  startTime?: string;
+  endTime?: string;
+  location?: string;
+  fullDescription?: string;
+  description?: string;
+}
 
-const featuredEvents = [
+const featuredEvents: RorumEvent[] = [
   {
     slug: "copenhagen-makers-dinner",
     title: "Copenhagen makers dinner",
@@ -263,7 +316,21 @@ const featuredEvents = [
     image: "/images/events/banners/freelance-morning-salon.png",
   },
 ];
-const eventAdditions = [
+
+interface EventAddition {
+  slug: string;
+  title: string;
+  date: string;
+  time: string;
+  category: string;
+  price: string;
+  language?: string;
+  ticketsLeft?: number;
+  isSoldOut?: boolean;
+  image: string;
+}
+
+const eventAdditions: EventAddition[] = [
   {
     slug: "soft-launch-breakfast",
     title: "Soft launch breakfast",
@@ -574,7 +641,8 @@ const eventAdditions = [
     image: "/images/events/banners/international-supper-salon.png",
   },
 ];
-const expandedEvents = eventAdditions.map((event) => ({
+
+const expandedEvents: RorumEvent[] = eventAdditions.map((event) => ({
   ...event,
   language: event.language ?? "English",
   host: "RORUM",
@@ -613,9 +681,11 @@ const expandedEvents = eventAdditions.map((event) => ({
     "botanical-table-styling-workshop",
   ],
 }));
-export const events = [...featuredEvents, ...expandedEvents];
-export const homeEvents = events;
-export const membershipBenefits = [
+
+export const events: RorumEvent[] = [...featuredEvents, ...expandedEvents];
+export const homeEvents: RorumEvent[] = events;
+
+export const membershipBenefits: string[] = [
   "Early invitations to selected community events",
   "A practical network of hosts, facilitators and independent creatives",
   "Opportunities to test formats, workshops and small gatherings",
@@ -623,7 +693,13 @@ export const membershipBenefits = [
   "Warm introductions around shared interests and skills",
   "Clear updates about RORUM events, services and community moments",
 ];
-export const communityPillars = [
+
+export interface TitledText {
+  title: string;
+  text: string;
+}
+
+export const communityPillars: TitledText[] = [
   {
     title: "Connect",
     text: "Meet people through curated events, small groups and practical introductions that make Copenhagen feel easier to enter.",
@@ -637,13 +713,15 @@ export const communityPillars = [
     text: "Build confidence, visibility and working relationships through events, volunteering, hosting and collaboration.",
   },
 ];
-export const membershipAudiences = [
+
+export const membershipAudiences: string[] = [
   "Independent creatives, freelancers and small business owners",
   "Hosts, facilitators, chefs, stylists and event makers",
   "People new to Copenhagen who want a practical creative network",
   "Community-minded guests who want to contribute, not only attend",
 ];
-export const aboutValues = [
+
+export const aboutValues: TitledText[] = [
   {
     title: "Warmth",
     text: "A room should help people arrive, settle and feel welcome without performance.",
@@ -665,7 +743,14 @@ export const aboutValues = [
     text: "Food, light, layout and timing matter because they shape how people meet.",
   },
 ];
-export const packages = {
+
+export interface PackageTier {
+  title: string;
+  price: string;
+  items: string[];
+}
+
+export const packages: { host: PackageTier[]; booking: PackageTier[] } = {
   host: [
     {
       title: "Single session",
@@ -731,7 +816,11 @@ export const packages = {
     },
   ],
 };
-export const faqs = {
+
+export type FaqEntry = [question: string, answer: string];
+export type FaqData = Record<string, FaqEntry[]>;
+
+export const faqs: FaqData = {
   Events: [
     [
       "How do I book a ticket?",
@@ -777,7 +866,15 @@ export const faqs = {
     ],
   ],
 };
-export const serviceCards = [
+
+export interface ServiceCard {
+  title: string;
+  href: string;
+  text: string;
+  image: string;
+}
+
+export const serviceCards: ServiceCard[] = [
   {
     title: "Catering",
     href: "/catering",
@@ -791,4 +888,5 @@ export const serviceCards = [
     image: "/images/decoration/decoration-1.png",
   },
 ];
+
 export const siteUrl = "https://rorum.dk";
