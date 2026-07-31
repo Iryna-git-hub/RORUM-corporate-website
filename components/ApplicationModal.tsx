@@ -81,7 +81,7 @@ export function ApplicationModal({
 
   return (
     <div
-      className="cv-modal-backdrop"
+      className="fixed inset-0 z-140 grid place-items-center p-[clamp(20px,4vw,48px)] bg-[rgba(var(--rgb-dark-brown),0.48)] backdrop-blur-[10px] max-tablet:items-stretch max-tablet:p-0"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
@@ -89,7 +89,7 @@ export function ApplicationModal({
     >
       <div
         ref={dialogRef}
-        className="cv-modal"
+        className="relative w-[min(760px,100%)] max-h-[min(880px,calc(100dvh-40px))] overflow-y-auto rounded-[8px] bg-white p-[clamp(26px,4vw,44px)] text-text-primary shadow-[0_28px_80px_rgba(var(--rgb-dark-brown),0.28)] max-tablet:w-full max-tablet:max-h-dvh max-tablet:min-h-dvh max-tablet:rounded-none max-tablet:pt-6.5 max-tablet:px-4 max-tablet:pb-8.5"
         data-application-modal="true"
         role="dialog"
         aria-modal="true"
@@ -99,7 +99,7 @@ export function ApplicationModal({
       >
         <button
           ref={closeButtonRef}
-          className="cv-modal-close"
+          className="absolute top-3.5 right-3.5 w-10.5 h-10.5 inline-flex items-center justify-center border border-[rgba(var(--rgb-brown),0.16)] rounded-full bg-white text-dark-brown transition duration-180 ease-[ease] hover:-translate-y-px hover:border-red hover:text-red hover:outline-none focus-visible:-translate-y-px focus-visible:border-red focus-visible:text-red focus-visible:outline-none"
           type="button"
           aria-label={closeLabel}
           onClick={onClose}

@@ -72,23 +72,41 @@ export function EventsPaginatedList({
 
   if (events.length === 0) {
     return (
-      <div className="events-empty-state" role="status" aria-live="polite">
-        <p>No events match your filters.</p>
-        <p>Try changing the date, language, price or availability.</p>
+      <div
+        className="mt-2 p-[clamp(28px,4vw,44px)] border border-[rgba(var(--rgb-beige),0.9)] rounded-lg bg-[rgba(var(--rgb-cream),0.4)] text-center"
+        role="status"
+        aria-live="polite"
+      >
+        <p className="m-0 text-text-primary">No events match your filters.</p>
+        <p className="mt-2 text-[rgba(var(--rgb-brown),0.9)]">
+          Try changing the date, language, price or availability.
+        </p>
       </div>
     );
   }
+
+  const paginationItemBase =
+    "min-h-9 inline-flex items-center justify-center border text-[13px] font-bold leading-none uppercase transition-[background,border-color,color,transform] duration-180 ease-[ease]";
+  const paginationInteractive =
+    "border-[rgba(var(--rgb-light-green),0.24)] bg-transparent text-text-primary hover:border-light-green hover:bg-light-green hover:text-white hover:-translate-y-px focus-visible:border-light-green focus-visible:bg-light-green focus-visible:text-white focus-visible:outline-none focus-visible:-translate-y-px";
+  const paginationActive =
+    "border-light-green bg-light-green text-white outline-none -translate-y-px";
+  const paginationDisabled =
+    "pointer-events-none border-[rgba(var(--rgb-light-green),0.16)] text-[rgba(var(--rgb-light-green),0.36)] bg-transparent";
 
   return (
     <>
       <EventList events={paginatedEvents} />
       {totalPages > 1 ? (
-        <nav className="events-pagination" aria-label="Events pages">
+        <nav
+          className="flex items-center justify-center flex-wrap gap-2 mt-[clamp(28px,4vw,46px)] w-full"
+          aria-label="Events pages"
+        >
           <a
             className={
               currentPage === 1
-                ? "events-pagination-link is-disabled"
-                : "events-pagination-link"
+                ? `${paginationItemBase} px-3.5 ${paginationDisabled}`
+                : `${paginationItemBase} px-3.5 ${paginationInteractive}`
             }
             href={getPageHref(Math.max(1, currentPage - 1))}
             aria-disabled={currentPage === 1}
@@ -96,15 +114,15 @@ export function EventsPaginatedList({
           >
             <span aria-hidden="true">←</span>
           </a>
-          <div className="events-pagination-pages">
+          <div className="flex items-center gap-2">
             {Array.from({ length: totalPages }, (_, index) => {
               const page = index + 1;
               return (
                 <a
                   className={
                     page === currentPage
-                      ? "events-pagination-page is-active"
-                      : "events-pagination-page"
+                      ? `${paginationItemBase} w-9 p-0 ${paginationActive}`
+                      : `${paginationItemBase} w-9 p-0 ${paginationInteractive}`
                   }
                   href={getPageHref(page)}
                   key={page}
@@ -118,8 +136,8 @@ export function EventsPaginatedList({
           <a
             className={
               currentPage === totalPages
-                ? "events-pagination-link is-disabled"
-                : "events-pagination-link"
+                ? `${paginationItemBase} px-3.5 ${paginationDisabled}`
+                : `${paginationItemBase} px-3.5 ${paginationInteractive}`
             }
             href={getPageHref(Math.min(totalPages, currentPage + 1))}
             aria-disabled={currentPage === totalPages}

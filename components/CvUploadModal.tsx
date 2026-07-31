@@ -139,16 +139,23 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
     >
       <div ref={dialogRef}>
         {sent ? (
-          <div className="cv-modal-success">
-            <h2 id="cv-modal-title" className="heading">
+          <div className="grid gap-4.5">
+            <h2
+              id="cv-modal-title"
+              className="m-0 text-text-primary text-[2.4rem] leading-[0.98] font-light tracking-normal"
+            >
               Thank you — we received your CV
             </h2>
-            <p>
+            <p className="m-0 text-text-primary text-[15px] leading-[1.65]">
               Thank you for reaching out and sharing your story with RORUM.
               We’ll keep your details in mind for future collaborations, roles,
               or opportunities.
             </p>
-            <button className="btn" type="button" onClick={onClose}>
+            <button
+              className="inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-red rounded-pill bg-red text-white text-[12.5px] desktop:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker"
+              type="button"
+              onClick={onClose}
+            >
               Close
             </button>
           </div>
@@ -180,7 +187,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
                 aria-describedby={errors.name ? "cv-name-error" : undefined}
               />
               {errors.name ? (
-                <small className="form-error" id="cv-name-error">
+                <small className="text-accent text-xs font-bold" id="cv-name-error">
                   {errors.name}
                 </small>
               ) : null}
@@ -201,7 +208,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
                   aria-describedby={errors.email ? "cv-email-error" : undefined}
                 />
                 {errors.email ? (
-                  <small className="form-error" id="cv-email-error">
+                  <small className="text-accent text-xs font-bold" id="cv-email-error">
                     {errors.email}
                   </small>
                 ) : null}
@@ -222,7 +229,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
                   aria-describedby={errors.phone ? "cv-phone-error" : undefined}
                 />
                 {errors.phone ? (
-                  <small className="form-error" id="cv-phone-error">
+                  <small className="text-accent text-xs font-bold" id="cv-phone-error">
                     {errors.phone}
                   </small>
                 ) : null}
@@ -262,7 +269,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
               </button>
             ) : null}
             {errors.file ? (
-              <small className="form-error" id="cv-file-error" role="alert">
+              <small className="text-accent text-xs font-bold" id="cv-file-error" role="alert">
                 {errors.file}
               </small>
             ) : null}

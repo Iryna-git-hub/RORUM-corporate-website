@@ -88,13 +88,22 @@ function waitForStableLayout(
 
 function FeaturedCard({ item }: { item: CateringMenuItem }) {
   return (
-    <article className="catering-menu-card">
-      <div className="catering-menu-card-media">
-        <img src={item.image} alt={item.alt} loading="lazy" />
+    <article className="min-w-0 overflow-hidden rounded-none border border-[rgba(var(--rgb-brown),0.08)] bg-white shadow-[0_16px_30px_rgba(var(--rgb-brown),0.055)]">
+      <div className="relative aspect-[16/9] overflow-hidden bg-beige">
+        <img
+          src={item.image}
+          alt={item.alt}
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
       </div>
-      <div className="catering-menu-card-copy">
-        <h3>{item.name}</h3>
-        <p>{item.description}</p>
+      <div className="grid gap-[5px] p-[10px] max-tablet:gap-1 max-tablet:p-2">
+        <h3 className="m-0 font-body text-[13px] font-extrabold leading-[1.25] text-text-primary max-tablet:text-[12.5px] max-tablet:leading-[1.2]">
+          {item.name}
+        </h3>
+        <p className="m-0 text-[12px] leading-[1.38] text-text-primary max-tablet:text-[11.5px] max-tablet:leading-[1.32]">
+          {item.description}
+        </p>
       </div>
     </article>
   );
@@ -380,7 +389,7 @@ function CateringMenuOverlay({
   return (
     <div
       ref={overlayRef}
-      className="catering-menu-overlay"
+      className="fixed inset-0 z-120 flex items-center justify-center overflow-hidden overscroll-contain p-2.5 bg-[rgba(var(--rgb-dark-brown),0.46)] text-text-primary backdrop-blur-[10px] [-webkit-overflow-scrolling:touch] max-desktop:block max-desktop:overflow-y-auto max-desktop:bg-white max-desktop:backdrop-blur-none"
       role="dialog"
       aria-modal="true"
       aria-labelledby="catering-menu-title"
@@ -390,13 +399,15 @@ function CateringMenuOverlay({
           <p>RORUM / Catering Menu</p>
           <button
             ref={closeButtonRef}
-            className="catering-menu-close"
+            className="pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(var(--rgb-brown),0.16)] bg-white text-dark-brown shadow-[0_10px_22px_rgba(var(--rgb-brown),0.08)] transition-[transform,border-color,color] duration-180 ease-out hover:-translate-y-px hover:border-red hover:text-red hover:outline-none focus-visible:-translate-y-px focus-visible:border-red focus-visible:text-red focus-visible:outline-none max-tablet:h-10 max-tablet:w-10"
             type="button"
             aria-label="Close catering menu"
             onClick={onClose}
           >
-            <X aria-hidden="true" strokeWidth={1.8} />
-            <span aria-hidden="true">×</span>
+            <X aria-hidden="true" strokeWidth={1.8} className="h-5 w-5" />
+            <span aria-hidden="true" className="absolute h-px w-px overflow-hidden">
+              ×
+            </span>
           </button>
         </header>
 
@@ -406,7 +417,7 @@ function CateringMenuOverlay({
           aria-label="Catering menu example from RORUM catering gallery"
         />
 
-        <main className="catering-menu-overlay-main">
+        <main className="mx-auto w-full pt-10 px-[clamp(24px,4.5vw,60px)] max-desktop:w-[min(calc(100%-32px),820px)] max-desktop:pt-7 max-tablet:w-[min(calc(100%-24px),100%)] max-tablet:pt-4.5 max-tablet:px-0">
           <section className="catering-menu-hero">
             <div className="catering-menu-hero-copy">
               <h2 id="catering-menu-title" className="heading">
@@ -459,7 +470,7 @@ function CateringMenuOverlay({
             </div>
           </nav>
 
-          <div className="catering-menu-sections">
+          <div className="grid gap-0 pt-[clamp(22px,3vw,34px)] px-0 pb-0 max-tablet:pt-[22px] max-tablet:pb-[42px]">
             {orderedMenuCategories.map((category) => {
               const isExpanded = expandedCategories.includes(category.id);
 
@@ -470,14 +481,14 @@ function CateringMenuOverlay({
                   key={category.id}
                 >
                   <button
-                    className="catering-menu-section-toggle"
+                    className="grid w-full min-h-[clamp(84px,8vw,112px)] grid-cols-[minmax(0,1fr)_42px] items-center gap-5 py-[clamp(18px,2.6vw,30px)] border-0 bg-transparent text-left text-text-primary cursor-pointer focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-[rgba(var(--rgb-red),0.45)] max-tablet:min-h-[78px] max-tablet:grid-cols-[minmax(0,1fr)_38px] max-tablet:py-[18px]"
                     type="button"
                     aria-expanded={isExpanded}
                     aria-controls={`catering-menu-panel-${category.id}`}
                     onClick={() => toggleCategory(category.id)}
                   >
                     <span className="catering-menu-section-title">
-                      <span className="catering-menu-section-kicker">
+                      <span className="text-[12px] font-[850] uppercase tracking-[0.08em] text-red">
                         {category.navLabel}
                       </span>
                       <span className="heading">{category.title}</span>
@@ -496,15 +507,19 @@ function CateringMenuOverlay({
                     id={`catering-menu-panel-${category.id}`}
                     aria-hidden={!isExpanded}
                   >
-                    <div className="catering-menu-section-panel-inner">
-                      <div className="catering-menu-section-head">
-                        <p>{category.description}</p>
+                    <div className="grid gap-[clamp(18px,2.4vw,28px)] pb-[clamp(26px,4vw,44px)]">
+                      <div className="grid gap-0 max-w-180">
+                        <p className="z-10 m-0 text-[clamp(14px,1vw,16px)] leading-[1.55] text-text-primary max-tablet:text-base">
+                          {category.description}
+                        </p>
                       </div>
 
                       {category.featuredItems?.length ? (
-                        <div className="catering-menu-featured">
-                          <h3>Featured Dishes</h3>
-                          <div className="catering-menu-card-grid">
+                        <div className="grid gap-4">
+                          <h3 className="m-0 font-body text-[13px] font-black leading-[1.2] tracking-widest uppercase text-red">
+                            Featured Dishes
+                          </h3>
+                          <div className="grid grid-cols-[repeat(auto-fit,minmax(156px,210px))] justify-start gap-3.5 max-desktop:grid-cols-[repeat(auto-fit,minmax(126px,168px))] max-tablet:grid-cols-2 max-tablet:gap-2 max-[420px]:grid-cols-2">
                             {category.featuredItems.map((item) => (
                               <FeaturedCard item={item} key={item.name} />
                             ))}
@@ -600,7 +615,7 @@ export function CateringMenuButton({
     <>
       <button
         ref={triggerRef}
-        className={`btn ${variant === "primary" ? "" : variant} catering-menu-trigger`.trim()}
+        className={`btn ${variant === "primary" ? "" : variant} gap-2`.trim()}
         type="button"
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"

@@ -12,17 +12,23 @@ export function LegalPage({
 }) {
   return (
     <>
-      <section className="legal-hero">
+      <section className="bg-secondary pt-[65px] pb-[clamp(28px,5vw,52px)] px-0">
         <Container>
-          <div className="legal-hero-content">
+          <div className="max-w-[860px]">
             <SectionLabel>LEGAL</SectionLabel>
-            <h1 className="heading legal-title">{title}</h1>
-            <p className="legal-subtitle">{subtitle}</p>
-            <p className="legal-updated">Last updated: May 2026</p>
+            <h1 className="font-heading font-medium tracking-[-0.03em] text-text-primary mx-0 mt-[14px] mb-[18px] text-[36px] leading-[1.08]">
+              {title}
+            </h1>
+            <p className="max-w-[720px] m-0 text-text-primary text-base leading-[1.65]">
+              {subtitle}
+            </p>
+            <p className="mx-0 mt-[16px] mb-0 text-light-green text-[0.9rem] font-bold">
+              Last updated: May 2026
+            </p>
           </div>
         </Container>
       </section>
-      <section className="section legal-content-section">
+      <section className="pt-[clamp(28px,5vw,56px)] pb-[clamp(52px,8vw,104px)] px-0">
         <Container>
           <div className="policy-content">{children}</div>
         </Container>

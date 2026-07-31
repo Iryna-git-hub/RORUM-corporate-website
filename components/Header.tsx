@@ -207,11 +207,11 @@ export function Header() {
   }
 
   return (
-    <header className={`header ${hidden ? "header-hidden" : ""} ${menuOpen ? "mobile-menu-open" : ""}`}>
+    <header className={`header ${hidden ? "transform-[translateY(-110%)]" : ""} ${menuOpen ? "mobile-menu-open" : ""}`}>
       <Container>
-        <div className="header-inner">
-          <Link className="brand" href="/" onClick={closeMenus}>
-            <Image className="brand-wordmark" src={logoSrc} alt="RORUM Creative & Event Space" width={264} height={58} priority />
+        <div className="flex min-h-19.5 items-center justify-between gap-5.5 desktop:max-[1279px]:gap-5 max-tablet:min-h-17">
+          <Link className="inline-flex items-center gap-3 mr-[clamp(8px,1.4vw,22px)] text-primary-dark font-bold tracking-[0.08em] flex-none desktop:max-[1279px]:mr-0" href="/" onClick={closeMenus}>
+            <Image className="w-[min(162px,20vw)] h-auto object-contain desktop:max-[1279px]:w-37 max-[980px]:w-39 max-tablet:w-33" src={logoSrc} alt="RORUM Creative & Event Space" width={264} height={58} priority />
           </Link>
           <nav className="nav" aria-label="Main navigation">
             {navItems.map((item) => {
@@ -243,7 +243,7 @@ export function Header() {
               );
             })}
           </nav>
-          <div className="header-actions">
+          <div className="inline-flex items-center gap-2 ml-auto flex-none max-[980px]:hidden">
             <div className="language-switcher" aria-label="Language selector">
               {languages.map((language, index) => (
                 <Fragment key={language}>
@@ -257,7 +257,7 @@ export function Header() {
             <LanguageDropdown className="desktop-language-dropdown" currentLanguage={currentLanguage} onLanguageChange={setCurrentLanguage} />
             <div className="header-cta">
               <Button href="/contact">
-                <MessageCircle className="talk-icon" aria-hidden="true" strokeWidth={2} />
+                <MessageCircle className="w-3.75 h-3.75 mr-1.75 -translate-y-px flex-none desktop:max-[1279px]:w-3.5 desktop:max-[1279px]:h-3.5 desktop:max-[1279px]:mr-1.25" aria-hidden="true" strokeWidth={2} />
                 Let&apos;s Talk
               </Button>
             </div>
@@ -271,7 +271,7 @@ export function Header() {
       </Container>
       <button className="mobile-menu-backdrop" type="button" aria-label="Close menu" onClick={closeMenus} />
       <aside className="mobile-menu-panel" aria-label="Mobile menu">
-        <div className="mobile-menu-topbar">
+        <div className="flex items-center justify-start gap-9.5 min-h-17 -mt-6 -mx-8 px-6.5 bg-cream border-b border-border max-[360px]:gap-2 max-[360px]:px-4">
           <Link className="btn mobile-topbar-cta" href="/contact" onClick={closeMenus}>
             Let&apos;s Talk
           </Link>
@@ -302,7 +302,7 @@ export function Header() {
                   </Link>
                 )}
                 {item.children && isOpen ? (
-                  <div className="mobile-nav-children">
+                  <div className="grid pb-2">
                     {item.children.map((child) => {
                       const childActive = pathname === child.href || pathname.startsWith(`${child.href}/`);
                       return (
@@ -319,7 +319,7 @@ export function Header() {
         </nav>
         <div className="mobile-panel-socials">
           {socialLinks.map((link) => (
-            <a className="mobile-social-link" href={link.href} key={link.label} target="_blank" rel="noopener noreferrer" aria-label={link.label} style={{ "--social-brand-color": link.brandColor } as BrandColorStyle}>
+            <a href={link.href} key={link.label} target="_blank" rel="noopener noreferrer" aria-label={link.label} style={{ "--social-brand-color": link.brandColor } as BrandColorStyle}>
               <SocialIcon icon={link.icon} />
             </a>
           ))}

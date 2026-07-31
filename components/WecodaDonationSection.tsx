@@ -40,7 +40,7 @@ function CopyButton({
   return (
     <button
       type="button"
-      className="wecoda-bank-copy-btn"
+      className="inline-flex items-center gap-1.25 shrink-0 py-1.25 px-2.5 rounded-pill bg-white text-red text-[0.72rem] font-semibold cursor-pointer transition-[background,color,border-color] duration-160 ease-[ease] hover:bg-red hover:border-red hover:text-white focus-visible:outline-1 focus-visible:outline-[rgba(var(--rgb-red),0.45)] focus-visible:outline-offset-[3px]"
       onClick={() => onCopy(label, value)}
       aria-label={isCopied ? `${label} copied` : `Copy ${label}`}
     >
@@ -77,31 +77,35 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
   };
 
   return (
-    <section id="support-wecoda" className="section wecoda-donation-section">
+    <section
+      id="support-wecoda"
+      className="scroll-mt-[78px] bg-white py-[clamp(44px,6vw,6rem)]"
+    >
       <Container>
-        <div className="wecoda-donation-grid">
-          <div className="wecoda-donation-left">
+        <div className="grid grid-cols-2 max-[980px]:grid-cols-1 gap-[clamp(32px,5vw,64px)] max-[980px]:gap-8 items-start">
+          <div className="grid gap-[18px] min-w-0">
             <SectionLabel>Donation</SectionLabel>
-            <h2 className="heading wecoda-donation-heading">
+            <h2 className="font-heading font-medium leading-tight tracking-[-0.03em] text-text-primary m-0 text-[clamp(1.7rem,2.6vw,2.15rem)]">
               Support the WECODA Community
             </h2>
-            <p className="wecoda-donation-lead">
+            <p className="m-0 max-w-[52ch] text-text-primary text-base leading-[1.62]">
               Your support helps WECODA organise educational programmes,
               community events, international collaborations, and new
               opportunities for women.
             </p>
 
-            <div className="wecoda-donation-qr-card">
-              <div className="wecoda-donation-qr-frame">
+            <div className="grid justify-items-center gap-1 max-w-full mt-[6px] p-[clamp(24px,3vw,32px)] bg-white max-tablet:w-full max-tablet:max-w-[420px] max-tablet:mx-auto">
+              <div className="grid place-items-center w-[clamp(160px,16vw,190px)] aspect-square mb-3">
                 <Image
                   src={qrSrc}
                   alt="QR code for supporting WECODA"
                   width={800}
                   height={800}
+                  className="h-full w-full object-contain"
                 />
               </div>
-              <p className="wecoda-donation-scan-accent">Scan to donate</p>
-              <p className="wecoda-donation-scan-note">
+              <p className="m-0 text-red font-bold text-base">Scan to donate</p>
+              <p className="m-0 text-[rgba(var(--rgb-dark-brown),0.6)] text-[0.82rem]">
                 Fast, secure and easy.
               </p>
             </div>
@@ -110,38 +114,55 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
               <span>OR</span>
             </div>
 
-            <p className="wecoda-donation-transfer-prompt">
-              <Landmark size={18} aria-hidden="true" strokeWidth={1.8} />
+            <p className="flex items-center justify-center gap-[10px] mx-auto my-0 text-text-primary text-base leading-[1.55] text-center max-[980px]:hidden">
+              <Landmark
+                size={18}
+                aria-hidden="true"
+                strokeWidth={1.8}
+                className="shrink-0 w-[30px] h-[30px] text-red"
+              />
               Prefer bank transfer? See our bank details on the right.
             </p>
           </div>
 
-          <div className="wecoda-donation-right">
-            <div className={`wecoda-bank-card ${bankOpen ? "is-open" : ""}`}>
+          <div className="min-w-0">
+            <div className="w-full p-[clamp(26px,3vw,36px)] bg-cream max-tablet:p-[clamp(22px,5vw,28px)]">
               <button
                 type="button"
-                className="wecoda-bank-card-toggle"
+                className="flex items-center justify-between gap-3 w-full m-0 p-0 border-0 bg-transparent text-inherit [font:inherit] text-left cursor-default max-[980px]:cursor-pointer focus-visible:outline-1 focus-visible:outline-[rgba(var(--rgb-red),0.45)] focus-visible:outline-offset-4"
                 aria-expanded={bankOpen}
                 aria-controls="wecoda-bank-panel"
                 onClick={() => setBankOpen((open) => !open)}
               >
-                <span className="heading wecoda-bank-card-title">
+                <span className="font-heading font-medium leading-tight tracking-[-0.03em] text-text-primary m-0 text-[clamp(1.3rem,2vw,1.5rem)]">
                   Bank Details
                 </span>
                 <ChevronDown
-                  className="wecoda-bank-card-chevron"
+                  className={`hidden shrink-0 text-red transition-transform duration-300 ease-[ease] max-[980px]:block ${bankOpen ? "rotate-180" : ""}`}
                   size={20}
                   aria-hidden="true"
                   strokeWidth={1.8}
                 />
               </button>
-              <div className="wecoda-bank-card-panel" id="wecoda-bank-panel">
-                <div className="wecoda-bank-card-panel-inner">
-                  <dl className="wecoda-bank-list">
+              <div
+                className={`mt-5 max-[980px]:overflow-hidden max-[980px]:[transition:max-height_0.42s_cubic-bezier(0.22,1,0.36,1),opacity_0.3s_ease,margin-top_0.3s_ease] ${
+                  bankOpen
+                    ? "max-[980px]:max-h-[900px] max-[980px]:mt-5 max-[980px]:opacity-100"
+                    : "max-[980px]:max-h-0 max-[980px]:mt-0 max-[980px]:opacity-0"
+                }`}
+                id="wecoda-bank-panel"
+              >
+                <div>
+                  <dl className="m-0 grid">
                     {bankFields.map((field) => (
-                      <div className="wecoda-bank-row" key={field.label}>
-                        <dt>{field.label}</dt>
-                        <dd>
+                      <div
+                        className="grid grid-cols-[minmax(110px,0.8fr)_minmax(0,1.4fr)] gap-4 items-start py-2.5 border-b border-b-[rgba(var(--rgb-brown),0.16)] last:border-b-0 last:pb-0 first:pt-0"
+                        key={field.label}
+                      >
+                        <dt className="m-0 text-[rgba(var(--rgb-dark-brown),0.58)] text-[0.76rem] font-semibold uppercase tracking-[0.04em]">
+                          {field.label}
+                        </dt>
+                        <dd className="flex items-center justify-between gap-2.5 m-0 text-text-primary text-base font-semibold leading-[1.4] break-words">
                           <span>{field.value}</span>
                           {field.copyable ? (
                             <CopyButton
@@ -159,7 +180,7 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
               </div>
             </div>
 
-            <p className="wecoda-donation-note">
+            <p className="mt-[clamp(32px,4vw,48px)] mx-0 mb-0 max-w-[68ch] pl-4 border-l-[3px] border-red text-[rgba(var(--rgb-dark-brown),0.68)] text-[0.9rem] leading-[1.55]">
               RORUM proudly supports WECODA by providing a welcoming space for
               community events, learning, and collaboration.
             </p>

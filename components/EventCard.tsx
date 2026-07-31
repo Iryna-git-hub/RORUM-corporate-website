@@ -81,29 +81,52 @@ export function EventCard({
     >
       <div className="event-media">
         <span
-          className="event-media-image"
+          className={`absolute inset-0 bg-center bg-cover bg-no-repeat scale-100 transition-[transform_0.42s_ease,filter_0.24s_ease] group-hover:scale-[1.07] group-focus-visible:scale-[1.07] ${
+            event.isSoldOut
+              ? "grayscale-[70%] saturate-[60%] brightness-[0.85]"
+              : "group-hover:saturate-[1.08] group-hover:contrast-[1.04] group-focus-visible:saturate-[1.08] group-focus-visible:contrast-[1.04]"
+          }`}
           style={{ backgroundImage: `url(${event.image ?? "/images/hero.jpg"})` }}
           aria-hidden="true"
         />
-        <time className="event-date-card" dateTime={event.date}>
-          <span className="event-date-day">{badgeDate.day}</span>
-          <span className="event-date-month">{badgeDate.month}</span>
+        <time
+          className="absolute top-[14px] left-[14px] max-[980px]:top-[12px] max-[980px]:left-[12px] z-[1] grid place-items-center content-center gap-px w-[52px] min-h-[52px] px-[7px] py-[6px] bg-light-green text-[var(--color-text-heading)] text-center font-body"
+          dateTime={event.date}
+        >
+          <span className="text-secondary font-body text-[22px] leading-[0.9] font-black">
+            {badgeDate.day}
+          </span>
+          <span className="text-gold font-body text-[11px] leading-[0.95] font-extrabold tracking-[0.04em]">
+            {badgeDate.month}
+          </span>
         </time>
       </div>
-      <div className="event-body">
-        <h3 className={isListingCard ? "event-card-title" : ""}>{event.title}</h3>
+      <div
+        className={
+          isListingCard
+            ? "grid content-start gap-0 px-[clamp(18px,2.3vw,24px)] pt-[clamp(18px,2.3vw,24px)] pb-[clamp(5px,0.8vw,8px)]"
+            : "flex flex-col gap-[11px] px-[clamp(14px,2vw,18px)] pt-[clamp(14px,2vw,18px)] pb-[clamp(4px,0.75vw,6px)]"
+        }
+      >
+        <h3
+          className={`m-0 font-heading text-[var(--color-text-heading)] font-bold text-[18px] leading-[1.3]${
+            isListingCard ? " mb-[14px]" : ""
+          }`}
+        >
+          {event.title}
+        </h3>
         {isListingCard ? (
           <>
-            <div className="event-card-meta">
-              <span className="event-card-meta-item">
-                <span className="event-card-meta-icon">
-                  <CalendarDays aria-hidden="true" />
+            <div className="flex items-center gap-[28px] flex-wrap text-text-primary text-[14.5px] leading-[1.35] font-medium">
+              <span className="inline-flex items-center gap-2 min-w-0">
+                <span className="inline-flex items-center justify-center w-[30px] h-[30px] bg-[rgba(var(--rgb-light-green),0.12)] text-light-green shrink-0">
+                  <CalendarDays className="size-4" aria-hidden="true" />
                 </span>
                 <time dateTime={event.date}>{formatListingDate(event.date)}</time>
               </span>
-              <span className="event-card-meta-item">
-                <span className="event-card-meta-icon">
-                  <Clock aria-hidden="true" />
+              <span className="inline-flex items-center gap-2 min-w-0">
+                <span className="inline-flex items-center justify-center w-[30px] h-[30px] bg-[rgba(var(--rgb-light-green),0.12)] text-light-green shrink-0">
+                  <Clock className="size-4" aria-hidden="true" />
                 </span>
                 <time dateTime={`${event.date}T${eventStartTime}`}>
                   {formatEventTime(event.time)}
@@ -112,14 +135,18 @@ export function EventCard({
             </div>
             {ticketStatus ? (
               <p
-                className={
-                  event.isSoldOut
-                    ? "event-card-availability is-sold-out"
-                    : "event-card-availability"
-                }
+                className={`inline-flex items-center gap-2 w-fit my-[3px] text-sm leading-[1.35] font-medium ${
+                  event.isSoldOut ? "text-accent" : "text-gold"
+                }`}
               >
-                <span className="event-card-availability-icon">
-                  <ListingAvailabilityIcon aria-hidden="true" />
+                <span
+                  className={`inline-flex items-center justify-center w-[30px] h-[30px] shrink-0 ${
+                    event.isSoldOut
+                      ? "bg-[rgba(var(--rgb-red),0.1)] text-accent"
+                      : "bg-[rgba(var(--rgb-gold),0.14)] text-gold"
+                  }`}
+                >
+                  <ListingAvailabilityIcon className="size-4" aria-hidden="true" />
                 </span>
                 <span>{ticketStatus}</span>
               </p>
@@ -127,38 +154,53 @@ export function EventCard({
           </>
         ) : (
           <>
-            <div className="event-meta-list">
-              <span className="event-info-row">
-                <span className="event-info-icon">
-                  <CalendarDays aria-hidden="true" />
+            <div className="grid gap-[6px] text-sm font-medium mt-auto">
+              <span className="grid grid-cols-[30px_minmax(0,1fr)] gap-[10px] items-start min-w-0">
+                <span className="inline-flex items-center justify-center w-[30px] h-[30px] -translate-y-1 bg-[rgba(var(--rgb-light-green),0.12)] text-light-green">
+                  <CalendarDays className="size-4 stroke-[2.35]" aria-hidden="true" />
                 </span>
-                <span className="event-info-copy">
-                  <time dateTime={event.date}>{formatEventDate(event.date)}</time>
+                <span className="grid gap-[2px] min-w-0">
+                  <time
+                    className="text-text-primary text-sm leading-[1.25] font-medium"
+                    dateTime={event.date}
+                  >
+                    {formatEventDate(event.date)}
+                  </time>
                 </span>
               </span>
-              <span className="event-info-row">
-                <span className="event-info-icon">
-                  <Clock aria-hidden="true" />
+              <span className="grid grid-cols-[30px_minmax(0,1fr)] gap-[10px] items-start min-w-0">
+                <span className="inline-flex items-center justify-center w-[30px] h-[30px] -translate-y-1 bg-[rgba(var(--rgb-light-green),0.12)] text-light-green">
+                  <Clock className="size-4 stroke-[2.35]" aria-hidden="true" />
                 </span>
-                <span className="event-info-copy">
-                  <time dateTime={`${event.date}T${eventStartTime}`}>
+                <span className="grid gap-[2px] min-w-0">
+                  <time
+                    className="text-text-primary text-sm leading-[1.25] font-medium"
+                    dateTime={`${event.date}T${eventStartTime}`}
+                  >
                     {event.time}
                   </time>
                 </span>
               </span>
               {homeAvailability ? (
-                <span
-                  className={
-                    event.isSoldOut
-                      ? "event-info-row event-home-availability is-sold-out"
-                      : "event-info-row event-home-availability"
-                  }
-                >
-                  <span className="event-info-icon event-home-availability-icon">
-                    <HomeAvailabilityIcon aria-hidden="true" />
+                <span className="grid grid-cols-[30px_minmax(0,1fr)] gap-[10px] items-start min-w-0">
+                  <span
+                    className={`inline-flex items-center justify-center w-[30px] h-[30px] -translate-y-1 ${
+                      event.isSoldOut
+                        ? "bg-[rgba(var(--rgb-red),0.1)] text-accent"
+                        : "bg-[rgba(var(--rgb-gold),0.14)] text-gold"
+                    }`}
+                  >
+                    <HomeAvailabilityIcon
+                      className="size-4 stroke-[2.35]"
+                      aria-hidden="true"
+                    />
                   </span>
-                  <span className="event-info-copy">
-                    <span className="event-home-availability-text">
+                  <span className="grid gap-[2px] min-w-0">
+                    <span
+                      className={`text-sm font-medium leading-[1.25] ${
+                        event.isSoldOut ? "text-accent" : "text-gold"
+                      }`}
+                    >
                       {homeAvailability}
                     </span>
                   </span>
@@ -174,7 +216,7 @@ export function EventCard({
   if (event.slug) {
     return (
       <Link
-        className="event-card-link"
+        className="event-card-link group"
         href={`/events/${event.slug}`}
         aria-label={`View event: ${event.title}`}
       >

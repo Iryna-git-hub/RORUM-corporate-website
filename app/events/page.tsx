@@ -21,7 +21,7 @@ export const metadata = pageMetadata("/events");
 export default function EventsPage() {
   return (
     <>
-      <section className="section events-page-section">
+      <section className="pt-[clamp(16px,2vw,28px)] px-0 pb-[clamp(52px,8vw,104px)]">
         <Container>
           <SectionHeader title="Upcoming events at RORUM." level={1} />
           <Suspense fallback={null}>

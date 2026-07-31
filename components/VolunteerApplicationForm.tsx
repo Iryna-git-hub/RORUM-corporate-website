@@ -36,7 +36,7 @@ function validateField(
 
 function FieldError({ id, message }: { id: string; message?: string }) {
   return message ? (
-    <small className="form-error" id={id} role="alert">
+    <small className="text-accent text-xs font-bold" id={id} role="alert">
       {message}
     </small>
   ) : null;
@@ -95,7 +95,7 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
       onClose={onClose}
     >
     <form
-      className="form volunteer-application-form cv-modal-form"
+      className="form cv-modal-form"
       action={formspreeConfig.endpoint}
       method="post"
       onSubmit={handleSubmit}
@@ -108,21 +108,27 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
         name="subject"
         value="New Volunteer With Us application"
       />
-      <div className="form-heading">
+      <div className="grid gap-2 mb-1">
         <h2 id="volunteer-modal-title" className="heading form-title">
           Volunteer With Us
         </h2>
       </div>
 
       {sent ? (
-        <div className="success" role="status">
+        <div
+          className="border border-[rgba(var(--rgb-light-green),0.28)] rounded-none bg-[rgba(var(--rgb-beige),0.24)] p-3.5 text-primary-dark font-bold"
+          role="status"
+        >
           Thank you. Your volunteer application has been sent to the RORUM
           team.
         </div>
       ) : null}
 
       {submitError ? (
-        <div className="form-submit-error" role="alert">
+        <div
+          className="border border-[rgba(var(--rgb-red),0.24)] bg-[rgba(var(--rgb-red),0.08)] p-3.5 text-accent text-sm font-bold leading-[1.55]"
+          role="alert"
+        >
           {submitError}
         </div>
       ) : null}

@@ -117,9 +117,9 @@ export default function HostAtRorumPage() {
       </section>
       <section className="section meeting-includes-section">
         <Container>
-          <div className="meeting-session-layout">
+          <div className="grid grid-cols-2 max-desktop:grid-cols-1 gap-0 items-stretch min-h-[clamp(560px,50vw,720px)] max-desktop:min-h-auto">
             <div
-              className="meeting-session-media"
+              className="w-full min-w-0 min-h-full bg-beige bg-center bg-cover bg-no-repeat max-desktop:min-h-[320px] max-tablet:min-h-[clamp(280px,56vw,360px)]"
               role="img"
               aria-label="Hosted meeting room setup at RORUM"
               style={{ backgroundImage: `url(${sessionDetailsImage})` }}
@@ -130,34 +130,60 @@ export default function HostAtRorumPage() {
                 title="Each session includes:"
                 level={3}
               />
-              <div className="meeting-session-included-list">
-                <div className="meeting-session-included-col">
+              <div className="grid grid-cols-2 max-tablet:grid-cols-1 gap-y-[clamp(10px,1.5vw,14px)] gap-x-[clamp(16px,2vw,24px)]">
+                <div className="grid content-start gap-[clamp(10px,1.5vw,14px)]">
                   {includedItems.map(([item, Icon]) => (
-                    <div className="meeting-session-item" key={item}>
-                      <Icon aria-hidden="true" strokeWidth={1.8} />
-                      <p>{item}</p>
+                    <div
+                      className="grid grid-cols-[38px_minmax(0,1fr)] gap-3 items-start min-w-0"
+                      key={item}
+                    >
+                      <Icon
+                        aria-hidden="true"
+                        strokeWidth={1.8}
+                        className="w-7.5 h-7.5 text-red mt-px"
+                      />
+                      <p className="m-0 text-text-primary text-base leading-[1.45] font-[620]">
+                        {item}
+                      </p>
                     </div>
                   ))}
                 </div>
-                <div className="meeting-session-included-col">
+                <div className="grid content-start gap-[clamp(10px,1.5vw,14px)]">
                   {basicsSetupItems.map(([item, Icon]) => (
-                    <div className="meeting-session-item" key={item}>
-                      <Icon aria-hidden="true" strokeWidth={1.8} />
-                      <p>{item}</p>
+                    <div
+                      className="grid grid-cols-[38px_minmax(0,1fr)] gap-3 items-start min-w-0"
+                      key={item}
+                    >
+                      <Icon
+                        aria-hidden="true"
+                        strokeWidth={1.8}
+                        className="w-7.5 h-7.5 text-red mt-px"
+                      />
+                      <p className="m-0 text-text-primary text-base leading-[1.45] font-[620]">
+                        {item}
+                      </p>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="meeting-session-optional-group">
-                <h3 className="meeting-session-optional-title">Optional</h3>
-                <div className="meeting-session-optional-list">
+              <div className="grid gap-3 mt-[clamp(6px,1.2vw,10px)] pt-[clamp(12px,1.6vw,18px)] border-t border-t-[rgba(var(--rgb-beige),0.68)]">
+                <h3 className="m-0 font-body text-light-green text-xs leading-[1.2] font-black tracking-[0.08em] uppercase">
+                  Optional
+                </h3>
+                <div className="grid grid-cols-2 max-tablet:grid-cols-1 gap-y-[clamp(10px,1.5vw,14px)] gap-x-[clamp(16px,2vw,24px)]">
                   {optionalItems.map(([item, Icon]) => (
                     <div
-                      className="meeting-session-item meeting-session-item-optional"
+                      className="grid grid-cols-[38px_minmax(0,1fr)] gap-3 items-start min-w-0"
                       key={item}
                     >
-                      <Icon aria-hidden="true" strokeWidth={1.8} />
-                      <p>{item}</p>
+                      <Icon
+                        aria-hidden="true"
+                        strokeWidth={1.8}
+                        className="w-7.5 h-7.5 text-light-green mt-px"
+                      />
+                      <p className="m-0 text-text-primary text-base leading-[1.45] font-[620]">
+                        {item}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -190,20 +216,20 @@ export default function HostAtRorumPage() {
       >
         <Container>
           <SectionHeader label="Packages" title="Hosting Packages" level={3} />
-          <div className="hosting-packages-intro">
+          <div className="grid gap-3 max-w-230 mb-[clamp(26px,4vw,40px)] text-[rgba(var(--rgb-cream),0.92)] leading-[1.7]">
             <p>
-              <i>
+              <i className="text-[15px] italic">
                 Every event has its own atmosphere and unique requirements,
-                which is why the packages below are simply <strong><em>examples</em></strong> of our most
+                which is why the packages below are simply <strong className="font-extrabold"><em>examples</em></strong> of our most
                 popular formats.
               </i>
             </p>
 
             <p>
-              <strong>Looking for something different?</strong>
+              <strong className="font-extrabold">Looking for something different?</strong>
             </p>
             <p>
-              <i>
+              <i className="text-[15px] italic">
                 We would be happy to tailor the space and arrangements to your
                 needs. Whether you require a different duration, specific days,
                 recurring bookings, event support, or a fully customized
@@ -211,8 +237,14 @@ export default function HostAtRorumPage() {
               </i>
             </p>
             <p>
-              <Link href="/contact">Get in touch</Link> with us to discuss your
-              event and receive a personalized proposal.
+              <Link
+                href="/contact"
+                className="font-extrabold underline underline-offset-[3px] transition-colors duration-180 hover:text-white focus-visible:text-white"
+              >
+                Get in touch
+              </Link>{" "}
+              with us to discuss your event and receive a personalized
+              proposal.
             </p>
           </div>
           <PackageGrid
@@ -236,7 +268,7 @@ export default function HostAtRorumPage() {
             id="request-private-meeting"
             className="split private-meeting-request"
           >
-            <div className="private-meeting-request-copy">
+            <div className="grid gap-8 max-w-[48ch]">
               <SectionLabel>How it works</SectionLabel>
               <h2 className="heading section-title">3-step setup</h2>
               <div

@@ -167,24 +167,27 @@ export function HorizontalGallery({ images }: { images: string[] }) {
           {availableImages.length > 1 ? (
             <>
               <button
-                className="horizontal-gallery-nav horizontal-gallery-nav-prev"
+                className="absolute top-1/2 left-3.5 z-2 inline-flex h-10.5 w-10.5 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-[rgba(var(--rgb-dark-brown),0.42)] text-white backdrop-blur-[6px] transition-[background-color,opacity,transform] duration-180 ease-out hover:bg-[rgba(var(--rgb-dark-brown),0.56)] hover:outline-none focus-visible:bg-[rgba(var(--rgb-dark-brown),0.56)] focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_rgba(var(--rgb-cream),0.85)] disabled:opacity-[0.38] disabled:cursor-default enabled:hover:scale-[1.03] enabled:focus-visible:scale-[1.03] max-tablet:h-10 max-tablet:w-10 max-tablet:left-2.5"
                 type="button"
                 onClick={() => moveTrack(-1)}
                 aria-label="Previous slide"
                 disabled={safeCurrentIndex === 0}
               >
-                <ChevronLeft aria-hidden="true" strokeWidth={2.2} />
+                <ChevronLeft aria-hidden="true" strokeWidth={2.2} className="h-5 w-5" />
               </button>
               <button
-                className="horizontal-gallery-nav horizontal-gallery-nav-next"
+                className="absolute top-1/2 right-3.5 z-2 inline-flex h-10.5 w-10.5 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-[rgba(var(--rgb-dark-brown),0.42)] text-white backdrop-blur-[6px] transition-[background-color,opacity,transform] duration-180 ease-out hover:bg-[rgba(var(--rgb-dark-brown),0.56)] hover:outline-none focus-visible:bg-[rgba(var(--rgb-dark-brown),0.56)] focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_rgba(var(--rgb-cream),0.85)] disabled:opacity-[0.38] disabled:cursor-default enabled:hover:scale-[1.03] enabled:focus-visible:scale-[1.03] max-tablet:h-10 max-tablet:w-10 max-tablet:right-2.5"
                 type="button"
                 onClick={() => moveTrack(1)}
                 aria-label="Next slide"
                 disabled={safeCurrentIndex === availableImages.length - 1}
               >
-                <ChevronRight aria-hidden="true" strokeWidth={2.2} />
+                <ChevronRight aria-hidden="true" strokeWidth={2.2} className="h-5 w-5" />
               </button>
-              <div className="horizontal-gallery-counter" aria-live="polite">
+              <div
+                className="absolute bottom-3.5 right-3.5 z-2 min-w-14.5 rounded-pill bg-[rgba(var(--rgb-dark-brown),0.42)] px-2.5 py-1.5 text-center text-xs font-bold tracking-[0.06em] text-white backdrop-blur-[6px] max-tablet:bottom-2.5 max-tablet:right-2.5 max-tablet:px-2.25 max-tablet:py-1.25"
+                aria-live="polite"
+              >
                 {safeCurrentIndex + 1} / {availableImages.length}
               </div>
             </>
@@ -214,19 +217,19 @@ export function HorizontalGallery({ images }: { images: string[] }) {
       </div>
       {safeLightboxIndex !== null ? (
         <div
-          className="gallery-lightbox"
+          className="fixed inset-0 z-2000 grid place-items-center overflow-hidden px-6 py-11 max-tablet:px-0 max-tablet:py-3"
           role="dialog"
           aria-modal="true"
           aria-label="Image preview"
         >
           <button
-            className="gallery-lightbox-backdrop"
+            className="absolute inset-0 border-0 bg-black/68"
             type="button"
             onClick={closeLightbox}
             aria-label="Close image preview"
           />
           <div
-            className="gallery-lightbox-content"
+            className="relative z-1 grid h-[min(calc(100dvh-88px),720px)] w-[min(1320px,100%)] cursor-grab touch-pan-y place-items-center overflow-hidden active:cursor-grabbing max-tablet:h-[min(calc(100dvh-112px),620px)] max-tablet:w-screen max-tablet:grid-cols-1 max-tablet:overflow-visible"
             onTouchStart={(event: TouchEvent<HTMLDivElement>) =>
               handleDragStart(event.touches[0]?.clientX ?? 0)
             }
@@ -246,7 +249,10 @@ export function HorizontalGallery({ images }: { images: string[] }) {
             >
               Close
             </button>
-            <div className="gallery-lightbox-counter" aria-live="polite">
+            <div
+              className="absolute left-1/2 top-5.5 z-4 -translate-x-1/2 rounded-pill bg-[rgba(var(--rgb-dark-brown),0.54)] px-3 py-2 text-[12px] font-black tracking-[0.04em] text-cream"
+              aria-live="polite"
+            >
               {safeLightboxIndex + 1} / {availableImages.length}
             </div>
             <button

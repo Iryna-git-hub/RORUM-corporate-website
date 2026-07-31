@@ -120,8 +120,15 @@ export function EventFilters({
   }));
 
   return (
-    <div className="events-controls" aria-label="Filter events">
-      <div className="events-filters" role="group" aria-label="Event filters">
+    <div
+      className="flex items-center justify-between flex-wrap gap-x-5 gap-y-3 mb-6 p-0 border-0 bg-transparent max-[980px]:items-stretch"
+      aria-label="Filter events"
+    >
+      <div
+        className="flex flex-wrap items-center gap-x-5.5 gap-y-2.5 flex-[1_1_640px] max-[980px]:basis-full"
+        role="group"
+        aria-label="Event filters"
+      >
         <EventFilterDropdown
           name="date"
           label="Date"
@@ -151,7 +158,10 @@ export function EventFilters({
           onSelect={selectFilter}
         />
         {hasActiveFilters ? (
-          <Link className="events-clear-filters" href="/events">
+          <Link
+            className="min-h-8.5 inline-flex items-center justify-center p-0 border-0 border-b border-b-[rgba(var(--rgb-red),0.32)] rounded-none text-red text-[13px] font-semibold uppercase tracking-[0.02em] transition-colors duration-180 ease-[ease] hover:bg-[rgba(var(--rgb-red),0.08)] hover:text-red focus-visible:bg-[rgba(var(--rgb-red),0.08)] focus-visible:text-red focus-visible:outline-none"
+            href="/events"
+          >
             Clear filters
           </Link>
         ) : null}

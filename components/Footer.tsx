@@ -57,9 +57,9 @@ export function Footer() {
   return (
     <footer className="footer">
       <Container>
-        <div className="footer-main">
-          <div className="footer-brand">
-            <span className="footer-brand-heading">Contact details</span>
+        <div className="grid grid-cols-[minmax(240px,0.72fr)_minmax(0,1.55fr)] gap-[clamp(28px,4vw,54px)] items-stretch max-[980px]:grid-cols-1 max-[980px]:gap-7">
+          <div className="grid content-start gap-2 text-text-primary max-tablet:pl-[clamp(8px,6vw,18px)] max-tablet:pr-[clamp(4px,5vw,12px)]">
+            <span className="text-text-primary text-[11px] font-[950] tracking-[0.14em] uppercase mb-2.5">Contact details</span>
             <div className="footer-contact-stack">
               <p>
                 <span className="footer-contact-icon" aria-hidden="true">
@@ -70,7 +70,7 @@ export function Footer() {
               <Link className="footer-map-link" href={contactDetails.mapHref}>
                 View on map
               </Link>
-              <p className="footer-phone-line">
+              <p className="text-[17px] leading-[1.55] font-medium">
                 <span className="footer-contact-icon" aria-hidden="true">
                   <Phone aria-hidden="true" strokeWidth={1.8} />
                 </span>
@@ -99,7 +99,7 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="footer-columns">
+          <div className="grid grid-cols-[repeat(4,minmax(120px,1fr))] gap-[clamp(18px,2.4vw,30px)] max-[980px]:grid-cols-2 max-tablet:grid-cols-2 max-tablet:gap-x-5 max-tablet:gap-y-8 max-tablet:items-start max-tablet:pt-1 max-tablet:pl-[clamp(8px,6vw,18px)] max-tablet:pr-[clamp(4px,5vw,12px)]">
             <FooterLinkColumn title="Visit & host" links={visitHostLinks} />
             <FooterLinkColumn title="Services" links={serviceLinks} />
             <FooterLinkColumn title="Community" links={communityLinks} />

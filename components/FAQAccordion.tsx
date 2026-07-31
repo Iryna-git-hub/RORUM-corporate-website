@@ -12,10 +12,12 @@ export function FAQAccordion({
   const [openItem, setOpenItem] = useState<string | null>(null);
 
   return (
-    <div className="faq">
+    <div className="grid gap-17.5 max-[980px]:gap-10.5">
       {categories.map((category) => (
-        <section key={category}>
-          <h2 className="heading faq-category-title">{category}</h2>
+        <section className="grid gap-0" key={category}>
+          <h2 className="mb-3 text-red font-body text-[clamp(15px,1.4vw,18px)] leading-tight font-black tracking-[0.03em]">
+            {category}
+          </h2>
           {(faqs[category] ?? []).map(([question, answer]) => {
             const id = `${category}-${question}`;
             const isOpen = openItem === id;

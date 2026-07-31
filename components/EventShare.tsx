@@ -125,8 +125,23 @@ export function EventShare({
   }
 
   return (
-    <div className="event-share">
-      <p className="event-share-title">Share with friends</p>
+    <div className="grid gap-2 w-fit max-w-full mt-1 pt-2 border-0 bg-transparent">
+      <p className="m-0 text-dark-green text-xs font-[850] tracking-[0.08em] leading-[1.2] uppercase">
+        Share with friends
+      </p>
+      {/*
+        Kept as the legacy `.event-share-actions` class: globals.css scopes the
+        button/link shape, per-platform backgrounds, hover/focus states, and
+        (crucially) a `.event-share-actions .social-icon` 18px size override
+        entirely through descendant selectors anchored on this class. Those
+        rules are unlayered CSS, so they win over any Tailwind utility
+        regardless of what we add here — and SocialIcon.tsx (out of scope)
+        always renders its own hardcoded `.social-icon` class, which falls
+        back to a 20px base size if this ancestor class is removed. Keeping
+        this class (and the child classNames below) unchanged is the only way
+        to preserve the original rendered result without touching those other
+        files.
+      */}
       <div className="event-share-actions">
         <button
           className="event-share-utility-link"
@@ -192,7 +207,9 @@ export function EventShare({
         </button>
       </div>
       <span
-        className={feedback ? "event-share-feedback is-visible" : "event-share-feedback"}
+        className={`min-h-2 text-light-green text-xs font-extrabold transition-opacity duration-180 ease-[ease] ${
+          feedback ? "opacity-100" : "opacity-0"
+        }`}
         aria-live="polite"
       >
         {feedback || "Link copied"}

@@ -226,15 +226,24 @@ export default function CateringPage() {
       <section id="catering-gallery" className="catering-gallery-section">
         <Container>
           <HorizontalGallery images={galleryImages} />
-          <div className="catering-suitable-tags">
-            <p>Suitable for:</p>
+          <div className="grid gap-2.5 mt-[clamp(18px,3vw,28px)]">
+            <p className="m-0 text-text-primary text-[15px] font-black">
+              Suitable for:
+            </p>
             <div
-              className="catering-chip-grid"
+              className="flex flex-wrap gap-2.5"
               aria-label="Suitable catering formats"
             >
               {suitableFor.map(([item, Icon]) => (
-                <span key={item}>
-                  <Icon aria-hidden="true" strokeWidth={1.8} />
+                <span
+                  key={item}
+                  className="inline-flex items-center gap-2 min-h-9.5 px-3.25 rounded-none bg-[rgba(var(--rgb-beige),0.5)] border-0 text-red text-[13.5px] font-[850]"
+                >
+                  <Icon
+                    aria-hidden="true"
+                    strokeWidth={1.8}
+                    className="w-4 h-4 text-red"
+                  />
                   {item}
                 </span>
               ))}
@@ -243,19 +252,28 @@ export default function CateringPage() {
         </Container>
       </section>
 
-      <section className="section catering-format-section">
+      <section className="section bg-white">
         <Container>
           <div className="catering-format-intro">
             <SectionLabel>Catering</SectionLabel>
             <h2 className="heading section-title">Menu Formats</h2>
           </div>
-          <div className="catering-format-grid">
+          <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-y-[clamp(30px,4vw,48px)] gap-x-[clamp(22px,3vw,36px)]">
             {menuFormats.map(({ title, description, image, alt }) => (
-              <article className="catering-format-card" key={title}>
-                <img src={image} alt={alt} loading="lazy" />
-                <div className="catering-format-card-copy">
-                  <h3>{title}</h3>
-                  <p>{description}</p>
+              <article className="min-w-0" key={title}>
+                <img
+                  src={image}
+                  alt={alt}
+                  loading="lazy"
+                  className="block w-full aspect-4/3 object-cover"
+                />
+                <div className="grid gap-2.25 pt-[clamp(16px,2vw,22px)]">
+                  <h3 className="m-0 font-heading text-[clamp(20px,1.55vw,24px)] leading-[1.2] desktop:whitespace-nowrap">
+                    {title}
+                  </h3>
+                  <p className="m-0 text-[15px] leading-[1.62]">
+                    {description}
+                  </p>
                 </div>
               </article>
             ))}

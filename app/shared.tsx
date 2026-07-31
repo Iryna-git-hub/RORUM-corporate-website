@@ -59,7 +59,7 @@ function QuickPathCard({
         </span>
         <span className="quick-card-text">{text}</span>
       </span>
-      <span className="quick-card-actions">
+      <span className="absolute left-[clamp(18px,2.4vw,26px)] right-[clamp(18px,2.4vw,26px)] bottom-5.5 z-2 grid justify-items-center gap-3">
         <span className="quick-card-cta">
           <span>{meta.cta}</span>
           <ArrowRight aria-hidden="true" strokeWidth={1.9} />
@@ -81,7 +81,7 @@ export function QuickPathsGrid({
   items: [title: string, text: string, href: QuickPathHref, image: string][];
 }) {
   return (
-    <div className="grid-4 quick-paths-grid">
+    <div className="grid grid-cols-4 gap-[18px] items-stretch max-tablet:grid-cols-1 tablet:max-wide:grid-cols-2">
       {items.map(([title, text, href, image]) => (
         <QuickPathCard key={title} title={title} text={text} href={href} image={image} />
       ))}

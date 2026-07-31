@@ -40,7 +40,7 @@ export function SocialIcon({
 
   return (
     <svg
-      className={`social-icon ${className}`.trim()}
+      className={`block w-5 h-5 flex-none ${className}`.trim()}
       aria-hidden="true"
       viewBox="0 0 24 24"
       fill={isStrokeIcon ? "none" : "currentColor"}

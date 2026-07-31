@@ -16,6 +16,27 @@ const bookingPackageOptions = [
 
 const bookingServiceOptions = ["Breakfast", "Snacks", "Lunch", "Coffee setup"];
 
+const CARD_FORM_CLASS =
+  "grid gap-4 border-0 rounded-none bg-white p-[clamp(20px,3vw,4rem)] text-text-primary shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] overflow-hidden";
+const FORM_HEADING_CLASS = "grid gap-2 mb-1";
+const FORM_TITLE_CLASS =
+  "m-0 font-body text-[clamp(17px,1.35vw,20px)] font-black leading-tight tracking-normal normal-case text-text-primary";
+const FORM_INTRO_CLASS = "m-0 text-[15px] leading-[1.65] text-text-primary";
+const SUCCESS_CLASS =
+  "border border-[rgba(var(--rgb-light-green),0.28)] rounded-none bg-[rgba(var(--rgb-beige),0.24)] p-3.5 text-primary-dark font-bold";
+const FORM_GRID_CLASS = "grid grid-cols-2 gap-3.5 max-tablet:grid-cols-1";
+const LABEL_CLASS =
+  "block text-[rgba(var(--rgb-dark-brown),0.5)] font-semibold text-[0.82rem]";
+const REQUIRED_MARK_CLASS = "ml-0.5 text-[rgba(var(--rgb-red),0.62)]";
+const INPUT_CLASS =
+  "block w-full mt-1.75 border border-beige rounded-none bg-white px-[13px] py-3 text-text-primary text-base font-medium leading-[1.45] placeholder:text-[rgba(var(--rgb-dark-brown),0.38)] placeholder:font-medium placeholder:opacity-100 focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(var(--rgb-light-green),0.24)] aria-[invalid=true]:border-accent aria-[invalid=true]:outline-none aria-[invalid=true]:shadow-[0_0_0_2px_rgba(var(--rgb-red),0.16)]";
+const SELECT_CLASS =
+  "block w-full mt-1.75 appearance-none cursor-pointer border border-[rgba(var(--rgb-beige),0.7)] rounded-none bg-white bg-no-repeat [background-image:url('data:image/svg+xml,%3Csvg_width=%2714%27_height=%2714%27_viewBox=%270_0_14_14%27_xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cpath_d=%27M3_5.25_7_9l4-3.75%27_fill=%27none%27_stroke=%27%23555C43%27_stroke-width=%271.7%27_stroke-linecap=%27round%27_stroke-linejoin=%27round%27/%3E%3C/svg%3E')] [background-position:right_14px_center] [background-size:14px_14px] py-3 pl-[13px] pr-[42px] text-text-primary text-base font-medium leading-[1.45] hover:border-[rgba(var(--rgb-light-green),0.72)] hover:bg-[rgba(var(--rgb-cream),0.42)] focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(var(--rgb-light-green),0.24)] aria-[invalid=true]:border-accent aria-[invalid=true]:outline-none aria-[invalid=true]:shadow-[0_0_0_2px_rgba(var(--rgb-red),0.16)]";
+const OPTION_CLASS =
+  "bg-white text-text-primary font-medium checked:bg-cream checked:text-red disabled:text-[rgba(var(--rgb-dark-brown),0.42)]";
+const SUBMIT_BUTTON_CLASS =
+  "inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] desktop:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker disabled:cursor-not-allowed disabled:opacity-[0.62] disabled:transform-none";
+
 function validateField(
   name: string,
   value: FormDataEntryValue | null,
@@ -134,19 +155,19 @@ export function InquiryForm({
 
   if (isBooking) {
     return (
-      <form className="form card card-pad" onSubmit={onSubmit} noValidate>
-        <div className="form-heading">
-          <h2 className="heading form-title">{title}</h2>
-          {intro ? <p>{intro}</p> : null}
+      <form className={CARD_FORM_CLASS} onSubmit={onSubmit} noValidate>
+        <div className={FORM_HEADING_CLASS}>
+          <h2 className={FORM_TITLE_CLASS}>{title}</h2>
+          {intro ? <p className={FORM_INTRO_CLASS}>{intro}</p> : null}
         </div>
         {sent ? (
-          <div className="success" role="status">
+          <div className={SUCCESS_CLASS} role="status">
             Thank you. Your Host at RORUM request is ready for the RORUM team.
           </div>
         ) : null}
 
-        <label htmlFor="booking-name">
-          Full Name<span aria-hidden="true">*</span>
+        <label htmlFor="booking-name" className={LABEL_CLASS}>
+          Full Name<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id="booking-name"
             name="name"
@@ -157,12 +178,13 @@ export function InquiryForm({
             aria-required="true"
             aria-invalid={Boolean(errors.name)}
             aria-describedby={errors.name ? "booking-name-error" : undefined}
+            className={INPUT_CLASS}
           />
           <FieldError id="booking-name-error" message={errors.name} />
         </label>
-        <div className="form-grid">
-          <label htmlFor="booking-phone">
-            Phone number<span aria-hidden="true">*</span>
+        <div className={FORM_GRID_CLASS}>
+          <label htmlFor="booking-phone" className={LABEL_CLASS}>
+            Phone number<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
             <input
               id="booking-phone"
               name="phone"
@@ -175,11 +197,12 @@ export function InquiryForm({
               aria-describedby={
                 errors.phone ? "booking-phone-error" : undefined
               }
+              className={INPUT_CLASS}
             />
             <FieldError id="booking-phone-error" message={errors.phone} />
           </label>
-          <label htmlFor="booking-email">
-            Email<span aria-hidden="true">*</span>
+          <label htmlFor="booking-email" className={LABEL_CLASS}>
+            Email<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
             <input
               id="booking-email"
               name="email"
@@ -192,14 +215,15 @@ export function InquiryForm({
               aria-describedby={
                 errors.email ? "booking-email-error" : undefined
               }
+              className={INPUT_CLASS}
             />
             <FieldError id="booking-email-error" message={errors.email} />
           </label>
         </div>
 
-        <div className="form-grid">
-          <label htmlFor="booking-package">
-            Package<span aria-hidden="true">*</span>
+        <div className={FORM_GRID_CLASS}>
+          <label htmlFor="booking-package" className={LABEL_CLASS}>
+            Package<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
             <select
               id="booking-package"
               name="package"
@@ -211,36 +235,41 @@ export function InquiryForm({
               aria-describedby={
                 errors.package ? "booking-package-error" : undefined
               }
+              className={SELECT_CLASS}
             >
-              <option value="" disabled>
+              <option value="" disabled className={OPTION_CLASS}>
                 Select package
               </option>
               {bookingPackageOptions.map((option) => (
-                <option key={option}>{option}</option>
+                <option key={option} className={OPTION_CLASS}>
+                  {option}
+                </option>
               ))}
             </select>
             <FieldError id="booking-package-error" message={errors.package} />
           </label>
-          <label htmlFor="booking-date">
+          <label htmlFor="booking-date" className={LABEL_CLASS}>
             Event date
             <input
               id="booking-date"
               name="eventDate"
               type="date"
+              className={INPUT_CLASS}
             />
           </label>
         </div>
 
-        <div className="form-grid">
-          <label htmlFor="booking-time">
+        <div className={FORM_GRID_CLASS}>
+          <label htmlFor="booking-time" className={LABEL_CLASS}>
             Event time
             <input
               id="booking-time"
               name="eventTime"
               type="time"
+              className={INPUT_CLASS}
             />
           </label>
-          <label htmlFor="booking-guests">
+          <label htmlFor="booking-guests" className={LABEL_CLASS}>
             Number of people
             <input
               id="booking-guests"
@@ -254,6 +283,7 @@ export function InquiryForm({
               aria-describedby={
                 errors.guests ? "booking-guests-error" : undefined
               }
+              className={INPUT_CLASS}
             />
             <FieldError id="booking-guests-error" message={errors.guests} />
           </label>
@@ -273,8 +303,8 @@ export function InquiryForm({
           ))}
         </fieldset>
 
-        <label htmlFor="booking-message">
-          Comment<span aria-hidden="true">*</span>
+        <label htmlFor="booking-message" className={LABEL_CLASS}>
+          Comment<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <textarea
             id="booking-message"
             name="message"
@@ -286,13 +316,14 @@ export function InquiryForm({
             aria-describedby={
               errors.message ? "booking-message-error" : undefined
             }
+            className={INPUT_CLASS}
           />
           <FieldError id="booking-message-error" message={errors.message} />
         </label>
 
         <PrivacyConsent id="booking-privacy" required={false} />
 
-        <button className="btn" type="submit">
+        <button className={SUBMIT_BUTTON_CLASS} type="submit">
           {submitLabel}
         </button>
       </form>
@@ -300,19 +331,19 @@ export function InquiryForm({
   }
 
   return (
-    <form className="form card card-pad" onSubmit={onSubmit} noValidate>
-      <div className="form-heading">
-        <h2 className="heading form-title">{title}</h2>
-        {intro ? <p>{intro}</p> : null}
+    <form className={CARD_FORM_CLASS} onSubmit={onSubmit} noValidate>
+      <div className={FORM_HEADING_CLASS}>
+        <h2 className={FORM_TITLE_CLASS}>{title}</h2>
+        {intro ? <p className={FORM_INTRO_CLASS}>{intro}</p> : null}
       </div>
       {sent ? (
-        <div className="success" role="status">
+        <div className={SUCCESS_CLASS} role="status">
           Thank you. Your request is ready for the RORUM team.
         </div>
       ) : null}
 
-      <label htmlFor={`${type}-name`}>
-        Full Name<span aria-hidden="true">*</span>
+      <label htmlFor={`${type}-name`} className={LABEL_CLASS}>
+        Full Name<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
         <input
           id={`${type}-name`}
           name="name"
@@ -321,12 +352,13 @@ export function InquiryForm({
           placeholder="Full Name"
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? `${type}-name-error` : undefined}
+          className={INPUT_CLASS}
         />
         <FieldError id={`${type}-name-error`} message={errors.name} />
       </label>
-      <div className="form-grid">
-        <label htmlFor={`${type}-phone`}>
-          Phone number<span aria-hidden="true">*</span>
+      <div className={FORM_GRID_CLASS}>
+        <label htmlFor={`${type}-phone`} className={LABEL_CLASS}>
+          Phone number<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id={`${type}-phone`}
             name="phone"
@@ -335,11 +367,12 @@ export function InquiryForm({
             placeholder="+45 12 34 56 78"
             aria-invalid={Boolean(errors.phone)}
             aria-describedby={errors.phone ? `${type}-phone-error` : undefined}
+            className={INPUT_CLASS}
           />
           <FieldError id={`${type}-phone-error`} message={errors.phone} />
         </label>
-        <label htmlFor={`${type}-email`}>
-          Email<span aria-hidden="true">*</span>
+        <label htmlFor={`${type}-email`} className={LABEL_CLASS}>
+          Email<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id={`${type}-email`}
             name="email"
@@ -348,13 +381,14 @@ export function InquiryForm({
             placeholder="you@example.com"
             aria-invalid={Boolean(errors.email)}
             aria-describedby={errors.email ? `${type}-email-error` : undefined}
+            className={INPUT_CLASS}
           />
           <FieldError id={`${type}-email-error`} message={errors.email} />
         </label>
       </div>
-      <div className="form-grid">
-        <label htmlFor={`${type}-date`}>
-          Event date<span aria-hidden="true">*</span>
+      <div className={FORM_GRID_CLASS}>
+        <label htmlFor={`${type}-date`} className={LABEL_CLASS}>
+          Event date<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id={`${type}-date`}
             name="eventDate"
@@ -363,13 +397,14 @@ export function InquiryForm({
             aria-describedby={
               errors.eventDate ? `${type}-date-error` : undefined
             }
+            className={INPUT_CLASS}
           />
           <FieldError id={`${type}-date-error`} message={errors.eventDate} />
         </label>
       </div>
 
-      <label htmlFor={`${type}-message`}>
-        Message<span aria-hidden="true">*</span>
+      <label htmlFor={`${type}-message`} className={LABEL_CLASS}>
+        Message<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
         <textarea
           id={`${type}-message`}
           name="message"
@@ -383,13 +418,14 @@ export function InquiryForm({
           aria-describedby={
             errors.message ? `${type}-message-error` : undefined
           }
+          className={INPUT_CLASS}
         />
         <FieldError id={`${type}-message-error`} message={errors.message} />
       </label>
 
       <PrivacyConsent id={`${type}-privacy`} error={errors.privacyConsent} />
 
-      <button className="btn" type="submit">
+      <button className={SUBMIT_BUTTON_CLASS} type="submit">
         {submitLabel}
       </button>
     </form>

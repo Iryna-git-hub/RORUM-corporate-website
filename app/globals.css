@@ -52,11 +52,23 @@
   --font-heading: var(--font-heading);
   --font-body: var(--font-body);
 
-  /* Custom breakpoint mirroring the project's real primary desktop cutoff
-     (used 13+ times as `min-width: 981px` across globals.css) rather than
-     force-fitting onto Tailwind's stock lg:1024 — that breakpoint doesn't
-     exist anywhere in the current responsive system. Generates `desktop:`. */
+  /* Custom breakpoints mirroring the project's real ad hoc cutoffs (rather
+     than force-fitting onto Tailwind's stock sm/md/lg/xl scale, which
+     doesn't exist anywhere in the current responsive system). Only the
+     cutoffs reused several times across globals.css get a named token;
+     one-off cutoffs (360/420/560/980/1024/1100/1279) use Tailwind's
+     arbitrary-value variant syntax (e.g. `max-[560px]:`) at their call
+     sites instead of bloating this block with single-use names.
+     - `desktop:` / `max-desktop:` — used 13+ times as `min-width: 981px`.
+     - `tablet:` / `max-tablet:` — used 7+ times as `min-width: 640/641px`
+       / `max-width: 640px` (the ~1px gap between 640 and 641 in the
+       original hand-authored breakpoints is not meaningfully different
+       from Tailwind's own max-* boundary, which is exclusive at
+       `640px - 0.02px`).
+     - `wide:` / `max-wide:` — used 3 times as `min-width: 1280px`. */
   --breakpoint-desktop: 981px;
+  --breakpoint-tablet: 640px;
+  --breakpoint-wide: 1280px;
 }
 
 /* Design tokens */
@@ -118,55 +130,67 @@
   --radius-pill: 999px;
 }
 
-/* Base/reset */
-* {
-  box-sizing: border-box;
-}
-html {
-  scroll-behavior: smooth;
-}
-@media (prefers-reduced-motion: reduce) {
+/* Base/reset
+   Wrapped in Tailwind's `base` layer (same layer Tailwind's own preflight
+   uses) rather than left unlayered. Reason: per the CSS cascade-layers spec,
+   an unlayered rule always beats a layered rule for the same property
+   regardless of specificity or source order. Element-selector resets here
+   (h1-h6 color, `a` color, `button/input/select/textarea` font) would
+   otherwise permanently block any Tailwind color/font utility applied to a
+   heading, link, or form control anywhere in the site, since Tailwind's
+   utilities live in the `utilities` layer. Layering this block lets
+   component-level utilities correctly win over it, exactly like Tailwind's
+   own preflight is designed to be overridden. */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
   html {
-    scroll-behavior: auto;
+    scroll-behavior: smooth;
   }
-  .site-reveal,
-  .site-reveal.is-site-reveal-visible {
-    opacity: 1;
-    transform: none;
-    transition: none;
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    .site-reveal,
+    .site-reveal.is-site-reveal-visible {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
   }
-}
-body {
-  margin: 0;
-  background: var(--color-secondary);
-  color: var(--color-text-primary);
-  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  font-size: 17px;
-  font-weight: 500;
-  line-height: 1.55;
-  overflow-x: hidden;
-}
-a {
-  color: inherit;
-  text-decoration: none;
-}
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-img {
-  max-width: 100%;
-  display: block;
-}
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: var(--color-text-primary);
+  body {
+    margin: 0;
+    background: var(--color-secondary);
+    color: var(--color-text-primary);
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+  img {
+    max-width: 100%;
+    display: block;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-text-primary);
+  }
 }
 .page-hero-title {
   font-size: 3rem;
