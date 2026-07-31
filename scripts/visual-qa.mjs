@@ -68,22 +68,37 @@ async function capture() {
           failures.push(`${route} @ ${width}px -> HTTP ${res?.status()}`);
         }
 
-        // Neutralize the two known sources of run-to-run screenshot noise:
+        // Neutralize known sources of run-to-run screenshot noise:
         // 1) next/font "swap" can paint a fallback font briefly before the
         //    real font is ready, shifting text metrics between runs.
-        // 2) the home hero's autoplay/loop <video> is at a different frame
-        //    every capture. Pause + rewind every <video> and force any
-        //    scroll-reveal elements to their finished state so screenshots
-        //    are deterministic regardless of animation/playback timing.
+        // 2) autoplay/loop <video> elements paint a different frame every
+        //    capture — pausing and seeking to time 0 is NOT reliable (browsers
+        //    seek to the nearest keyframe, which itself isn't guaranteed to be
+        //    the same frame every decode). Visual regression here only needs
+        //    to catch layout/style regressions, not validate exact video
+        //    pixel content, so the deterministic fix is to hide each video's
+        //    rendered content (keeping its layout box, so nothing reflows)
+        //    rather than chase a specific frame.
+        // 3) Force any scroll-reveal elements to their finished state so
+        //    screenshots don't depend on IntersectionObserver/animation timing.
+        // 4) Next.js's dev-mode <nextjs-portal> floating indicator badge is
+        //    position:fixed and dev-server-only (never present in a
+        //    production build) — it isn't part of the app, but its stitched
+        //    position in a fullPage screenshot can drift as page height
+        //    changes across stages, producing a false-positive diff. Remove
+        //    it before every screenshot.
         await page.evaluate(async () => {
           await document.fonts.ready;
+
           document.querySelectorAll("video").forEach((video) => {
             video.pause();
-            video.currentTime = 0;
+            video.style.visibility = "hidden";
           });
+
           document.querySelectorAll(".site-reveal").forEach((el) => {
             el.classList.add("is-site-reveal-visible");
           });
+          document.querySelector("nextjs-portal")?.remove();
         });
         await page.waitForTimeout(150);
 

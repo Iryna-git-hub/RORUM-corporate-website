@@ -5,11 +5,12 @@ export interface NavChild {
   label: string;
 }
 
-export interface NavItem {
-  href: string | null;
-  label: string;
-  children?: NavChild[];
-}
+// Discriminated on `children` so consumers (Header.jsx) narrow correctly:
+// a link-style item always has a real `href`, a dropdown-style item never
+// does (its `href` is null and it carries `children` instead).
+export type NavItem =
+  | { href: string; label: string; children?: undefined }
+  | { href: null; label: string; children: NavChild[] };
 
 export const navItems: NavItem[] = [
   { href: "/events", label: "Attend Events" },

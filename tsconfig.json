@@ -9,7 +9,7 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "allowJs": true,
+    "allowJs": false,
     "checkJs": false,
     "strict": true,
     "noUncheckedIndexedAccess": true,
