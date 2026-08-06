@@ -130,14 +130,16 @@ export function Button({
   href,
   children,
   variant = "primary",
+  className: extraClassName = "",
 }: {
   href?: string;
   children: ReactNode;
   variant?: ButtonVariant;
+  className?: string;
 }) {
   const variantClass = variant === "primary" ? "" : variant;
   const className =
-    `btn inline-flex items-center justify-center font-bold uppercase cursor-pointer transition-all duration-[180ms] ease-[ease] group has-[.button-arrow]:gap-2 ${variantClass} ${BUTTON_VARIANT_CLASSES[variant]}`.trim();
+    `btn inline-flex items-center justify-center font-bold uppercase cursor-pointer transition-all duration-[180ms] ease-[ease] group has-[.button-arrow]:gap-2 ${variantClass} ${BUTTON_VARIANT_CLASSES[variant]} ${extraClassName}`.trim();
   if (!href)
     return (
       <button className={className} type="button">

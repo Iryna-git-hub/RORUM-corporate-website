@@ -3589,11 +3589,27 @@ button.btn,
   box-shadow: 0 18px 38px rgba(var(--rgb-brown), 0.08);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(6px);
+  /* `--menu-shift-x` is set inline by EventFilters.tsx (EventFilterDropdown)
+     after measuring the open menu's actual position against the viewport -
+     whichever trigger's menu would overflow either edge gets nudged back in,
+     regardless of which trigger it is or which edge it's near (a fixed
+     `left`/`right` anchor can't know that ahead of time on a flex-wrap row
+     where any trigger can end up next to either edge). Defaults to 0px when
+     unset/not needed. */
+  transform: translateY(6px) translateX(var(--menu-shift-x, 0px));
   transition:
     opacity 0.16s ease,
     transform 0.16s ease,
     visibility 0.16s ease;
+}
+@media (max-width: 640px) {
+  /* `min-width: 210px` alone can be wider than a very narrow viewport has
+     room for even after the JS shift above nudges it back in bounds - cap it
+     so it can shrink to fit instead of forcing overflow. */
+  .events-filter-menu {
+    min-width: 0;
+    width: min(210px, calc(100vw - 32px));
+  }
 }
 .events-filter-menu::before {
   content: "";
@@ -3606,7 +3622,7 @@ button.btn,
 .events-filter-dropdown.is-open .events-filter-menu {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateY(0) translateX(var(--menu-shift-x, 0px));
 }
 .events-filter-menu button {
   width: 100%;

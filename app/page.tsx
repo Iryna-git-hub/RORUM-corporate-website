@@ -94,7 +94,7 @@ export default function Home() {
                 strokeWidth={1.9}
               />
             </Button>
-            <Button href="/events" variant="secondary">
+            <Button href="/events" variant="secondary" className="backdrop-blur-md">
               Attend Events
               <ArrowRight
                 className="button-arrow"
