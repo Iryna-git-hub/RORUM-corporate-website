@@ -172,9 +172,9 @@ export function EventCard({
                 <span className="inline-flex items-center justify-center w-[30px] h-[30px] -translate-y-1 bg-[rgba(var(--rgb-light-green),0.12)] text-light-green">
                   <Clock className="size-4 stroke-[2.35]" aria-hidden="true" />
                 </span>
-                <span className="grid gap-[2px] min-w-0">
+                <span className="grid gap-0.5 min-w-0">
                   <time
-                    className="text-text-primary text-sm leading-[1.25] font-medium"
+                    className="text-text-primary text-sm leading-tight font-medium"
                     dateTime={`${event.date}T${eventStartTime}`}
                   >
                     {event.time}

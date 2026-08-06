@@ -285,7 +285,7 @@ export default function HostAtRorumPage() {
                   </article>
                 ))}
               </div>
-              <FAQInlinePrompt />
+              <FAQInlinePrompt questionClassName="text-[rgba(var(--rgb-cream),0.88)]!" />
             </div>
             <InquiryForm
               type="booking"

@@ -212,7 +212,7 @@ export default function AboutPage() {
         text="Whether you are planning a workshop, private session, community gathering, catering request or event styling idea — tell us what you have in mind, and we'll help you find the right format."
         href="/contact"
         label="Let's talk"
-        faqQuestion="Still have practical questions?"
+        faqQuestion="Have questions?"
         faqLabel="Read FAQ"
         links={[
           { href: "/events", label: "Attend Events" },

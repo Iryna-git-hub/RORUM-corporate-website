@@ -1,5 +1,10 @@
 # RORUM Website — TypeScript & Tailwind Foundations Migration Report
 
+> **Update:** The CSS→Tailwind component migration, dead-CSS cleanup, and bug
+> decisions flagged as follow-ups below (§17) were executed in a second
+> session. See [Part 2](#part-2--css-tailwind-component-migration-dead-css-cleanup--bug-decisions)
+> at the end of this document for that report.
+
 ## 1. Executive Summary
 
 This migration converted the entire RORUM website codebase from JavaScript/JSX to TypeScript, added Tailwind CSS 4 theme-token foundations, fixed several real pre-existing bugs discovered through strict typing, and validated every stage with a real browser (Playwright) visual-regression harness before removing that harness at the end.
@@ -197,3 +202,94 @@ All 14 route `page.jsx` files, `layout.jsx`, home `page.jsx`, and `shared.jsx` c
 | `package.json` | Added `"typecheck": "tsc --noEmit"` script. `playwright`/`pixelmatch`/`pngjs` added then removed (net zero). |
 | `.gitignore` | `.qa`/`test-results` entries added then removed along with the Playwright tooling. |
 | `dev-restart.err.log` | Removed (stray debug artifact). |
+
+---
+
+# Part 2 — CSS→Tailwind Component Migration, Dead-CSS Cleanup & Bug Decisions
+
+## 1. Executive Summary
+
+This second session executed the three items Part 1 explicitly left as follow-ups (§5, §14, §17): the CSS→Tailwind component migration, a rigorous re-attempt at the dead-CSS cleanup, and a decision on the 5 pre-existing bugs. All three are now complete.
+
+- **CSS→Tailwind**: 35 of 44 component/page files had their custom CSS classes converted to Tailwind utility classes, staged risk-ascending (foundations → leaf components → forms/modals → complex interactive components → site shell → route pages), each stage validated with `typecheck`/`lint`/`build` plus a Playwright screenshot diff across all 15 routes × 3 breakpoints. 9 files needed no changes (see §6).
+- **Dead-CSS cleanup**: `app/globals.css` went from 9,284 → 5,823 lines (−37%), removing 678 selector-list entries (580 whole rule blocks + 21 selector lists trimmed of a dead alternative + 8 now-empty `@media` blocks), using an AST-based (PostCSS) removal tool rather than the regex-based approach that corrupted content last time — see §4 for how the false-positive trap from Part 1 §14 was specifically re-verified against.
+- **Bugs**: 2 of 5 fixed (`FAQInlinePrompt` dead props, `Card`'s dead `variant` prop removed as cleanup), 1 explicitly left as-is per user decision (`EventsClientPage`'s "soonest" filter), 2 left as-is per user decision (`ContactForm`/`CateringInquiryForm`/`InquiryForm` not actually submitting — the user will wire up Formspree submission separately later; a third instance of the same bug, in `InquiryForm.tsx`, was discovered and is flagged in §7 but also left untouched per that decision).
+- **A new bug class was found and fixed globally**: the base CSS reset (`h1`–`h6`, `a`, `button`/`input`/`select`/`textarea`, `img`) was unlayered CSS, which per the CSS cascade-layers spec always beats a Tailwind utility for the same property regardless of source order or specificity — this silently blocked color/font utilities on any heading, link, or form control anywhere a component tried to use one. Fixed by wrapping that block in `@layer base` (§3), matching how Tailwind's own preflight is designed to be overridden.
+- Zero visual regressions in the final state, validated by Playwright screenshot diff across all 15 routes × 3 breakpoints at every stage (see §8).
+
+## 2. Approach
+
+Followed the staged, risk-ascending plan from Part 1 §17.1: Stage 0 (Playwright safety net reinstalled), Stage 1 (theme foundation), Stages 2–6 (component/page conversion, leaf → complex → shell → pages), Stage 7 (dead-CSS sweep), Stage 8 (tooling removal, this report). Most of the mechanical conversion work was delegated to parallel subagents (one per file or small file group) with a shared, detailed brief covering the theme-token mapping, breakpoint strategy, and the cascade-layers rule below — each agent's output was independently verified (`typecheck`/`lint`, cross-checked against other agents' conflicting claims, and screenshot-diffed) rather than trusted blindly. Two agent runs hit an account-level API session limit mid-task; those files (`app/events/[slug]/page.tsx`, `app/page.tsx`) were completed by hand instead.
+
+## 3. The Cascade-Layers Trap (a new finding, not in Part 1)
+
+Tailwind v4's own utilities live inside CSS `@layer` blocks (`@layer theme, base, components, utilities;`, declared implicitly by `@import "tailwindcss"`). Every hand-written custom class in `globals.css` was, before this session, **unlayered** CSS. Per the CSS cascade-layers spec, *any* unlayered rule beats *any* layered rule for the same property, regardless of selector specificity or source order. Two consequences this session had to design around:
+
+1. **The base reset was unlayered.** `h1‑h6 { color: var(--color-text-primary) }`, `a { color: inherit }`, and `button/input/select/textarea { font: inherit }` near the top of `globals.css` silently overrode *any* Tailwind color/font utility applied to a heading, link, or form control, site-wide — discovered when `FAQAccordion.tsx`'s category headings rendered dark instead of red after conversion, despite a correct `text-red` utility being present. **Fixed once, globally**, by wrapping that reset block in `@layer base` (`app/globals.css`, "Base/reset" section) — the same layer Tailwind's own preflight uses, so component-level utilities now correctly win over it, exactly as intended.
+2. **Retained custom classes still block utilities on the same element.** For any class kept for a `::before`/`::after` pseudo-element, `@keyframes` animation, or a descendant-selector dependency from a file that couldn't be touched, adding a Tailwind utility for a property *that class already declares* is silently a no-op. Every stage's conversion work checked for this explicitly before adding a utility alongside a retained class (see §5 for the general "when to retain" methodology, and its extension in `ui.tsx` and several page files where deep cross-cutting descendant-selector coupling meant a class had to stay literal but the added utilities are provably inert today — the pattern already noted in Part 1 §14 for the `next-step-card-*` case, now applied deliberately rather than accidentally).
+
+## 4. Theme Foundation
+
+Extended the `@theme inline` block (`app/globals.css`) with two more named breakpoints, alongside the existing `--breakpoint-desktop: 981px`:
+- `--breakpoint-tablet: 640px` (generates `tablet:`/`max-tablet:`) — the most-reused cutoff after 981px.
+- `--breakpoint-wide: 1280px` (generates `wide:`/`max-wide:`).
+
+The remaining one-off cutoffs from the site's ad hoc 360/420/560/980/1024/1100/1279px breakpoint system were **not** promoted to named tokens (would bloat the theme with single-use names) — they're expressed at their call sites via Tailwind's arbitrary-value bracket variant syntax (`max-[560px]:`, `min-[1024px]:`, etc.), with each one's real `@media` value grepped and confirmed before use rather than assumed.
+
+## 5. Component/Page Conversion Methodology
+
+For every element with a custom className, in order: (1) find every rule targeting it, including responsive/state overrides scattered elsewhere in the file; (2) translate declarations to Tailwind utilities, using the theme-token mapping (colors, radii, fonts) where the CSS value is a project design token, and arbitrary-value syntax (`gap-[18px]`, `shadow-[0_4px_12px_rgba(var(--rgb-brown),0.18)]`) for one-off pixel values and the deliberately-non-token `--rgb-*` triplets; (3) translate `@media` overrides to the matching breakpoint variant; (4) **retain the original class name, unconverted**, for `::before`/`::after` pseudo-elements, `@keyframes`/transition-driven animations, `grid-template-areas` layouts, or — the most common reason in practice — a descendant-selector dependency reaching from a file outside the current conversion's scope (verified by grep, not assumed).
+
+That last case turned out to be far more common than pseudo-elements/animations alone, because of how much this codebase's original CSS reaches from a page into a shared component's internals (e.g. `app/host-at-rorum/page.tsx`'s `.private-meeting-packages-section` reskins `Cards.tsx`'s `PackageCard` red/white; `.cv-modal-form .privacy-consent-field input` resizes `PrivacyConsent.tsx`'s checkbox specifically inside modals). Each such case is documented at its retention site.
+
+## 6. Files Requiring No Changes
+
+9 files had zero custom className usage worth converting, each for a concrete, verified reason (not just "nothing found"):
+- `components/SiteShell.tsx` — its `site-shell` class is a **behavioral** dependency: a `useEffect` calls `document.querySelectorAll(".site-shell main > section, ...")` for the scroll-reveal system, not just a style hook.
+- `app/layout.tsx` — no custom classes exist here at all (only Next.js font `variable` classes).
+- `app/page.tsx` (home) — its two page-specific classes (`quick-paths-section`, `event-section-head`) are both purely descendant-selector hooks into `ui.tsx`'s `SectionLabel`/`SectionHeader`/`Button` internals.
+- `app/cookie-policy/page.tsx`, `app/privacy-policy/page.tsx`, `app/terms/page.tsx` — all content is passed as plain children to the already-converted `LegalPage.tsx`, with zero classNames of their own.
+- `components/MembershipBenefitsGrid.tsx` — retained since Stage 2 of this session (see §7's WECODA note below).
+- `components/PrivacyPolicyContent.tsx` — no classNames anywhere; styled entirely via the retained `.policy-content` wrapper in `PrivacyPolicyModal.tsx`.
+- `components/EventsClientPage.tsx` — pure filtering/pagination logic and composition (renders `EventFilters`/`EventsPaginatedList`); has zero `className` usage of its own.
+
+## 7. Bug Decisions (Part 1 §17.3)
+
+Per explicit user direction mid-session:
+- **Fixed**: `FAQInlinePrompt` (`components/ui.tsx`) now renders its `question`/`label` props instead of always showing hardcoded "Questions?" copy, falling back to that hardcoded copy when the props aren't passed (3+ call sites that don't pass them render identically to before).
+- **Fixed (as cleanup, not a behavior change)**: `Card`'s dead `variant`/`card-{variant}` class generation removed from `components/ui.tsx` — confirmed zero matching CSS existed for any of its 4 values.
+- **Left as documented, not fixed**: `EventsClientPage.tsx`'s `getDateWindow` "soonest" vs "upcoming" mismatch — picking "Soonest first" still only re-sorts rather than filtering, exactly as before.
+- **Left as documented, not fixed**: `ContactForm.tsx`/`CateringInquiryForm.tsx` still show a "Thank you" success message without calling `submitToFormspree` — the user will wire up real Formspree submission across all the site's forms in a separate pass later.
+- **New finding, also left as-is per the same decision**: `components/InquiryForm.tsx` (used for booking/decoration inquiries on `host-at-rorum` and other pages) has the *identical* bug — validates and shows success without ever submitting. Not in Part 1's original 5-bug list; discovered this session while preparing the Formspree fix, and intentionally left unfixed alongside the other two once the user decided to defer all Formspree wiring to a later, dedicated pass.
+
+## 8. Dead-CSS Cleanup (Part 1 §17.2 re-attempt)
+
+The original attempt's failure mode — a literal-string search missing classes built via template literals like `` `next-step-card-${variant}` `` — was the starting point for this re-attempt's method:
+
+1. Extracted every unique class name referenced by any selector in `globals.css` (574 before cleanup).
+2. Checked each for a literal-string reference anywhere in `app/`, `components/`, `lib/` — but **first** exhaustively grepped every `className={\`...${...}...\`}` template literal in the codebase (not just the one known `next-step-card-${variant}` case) to catalog every dynamic-class-construction pattern before trusting any "zero references" result. Found and exempted 5 dynamically-reachable classes this way: `next-step-section-final` (from `` `next-step-section-${variant}` `` in `ui.tsx`), and `quick-path-card-red`/`-green`/`-events`/`-host-at-rorum` (from `` `quick-path-card-${meta.tone}` ``/`` `quick-path-card-${slug}` `` in `app/shared.tsx`). A sibling class, `quick-path-card-static`, looked superficially similar but was confirmed to have zero reachable code path (no tone or slug value ever produces it) and was correctly removed.
+3. Built the actual removal as a **PostCSS AST transform**, not a regex/string-splice — the exact category of bug (a "span-overlap" corruption) that sank the original attempt is structurally impossible with an AST-based approach. The tool removes a selector (one comma-separated alternative within a rule) if it references *any* confirmed-dead class, since a selector requiring even one class no element ever has can never match regardless of what else is in it — this correctly cascades through compound/descendant selectors like `.catering-philosophy-actions .btn .button-arrow` (removed, because `.catering-philosophy-actions` is dead, even though `.btn`/`.button-arrow` are both very much alive elsewhere).
+4. The output was validated by re-parsing it as CSS (refusing to write if that failed), diffed for a dry run before being applied for real, and — most importantly — verified against the full Playwright screenshot suite across all 15 routes × 3 breakpoints before being trusted: **zero new visual differences** versus the pre-cleanup state.
+
+Result: 678 selector-list entries removed (580 whole rule blocks, 21 rules with one dead alternative trimmed from a selector list, 8 `@media` blocks left empty and removed), taking `globals.css` from 9,284 to 5,823 lines and from 574 to 311 unique class names still in use.
+
+## 9. Validation
+
+Identical bar to Part 1: `npm run typecheck` (0 errors), `npm run lint` (0 errors, same 12 pre-existing `<img>`/LCP warnings as Part 1, unrelated to this work), `npm run build` (green, same 50-route static/SSG split), run after every stage. Playwright screenshot diff across all 15 routes × 3 breakpoints (375/768/1440px) after every stage, using a temporarily-reinstalled `playwright`/`pixelmatch`/`pngjs` (removed again at the end, same as Part 1's Stage 0/8 pattern). Two real regressions were caught and fixed this way before being finalized: `app/events/[slug]/page.tsx`'s "Practical details" labels losing `uppercase` styling (two overlapping CSS rules for the same selector, only one accounted for during conversion) and its "Buy Ticket" button wrapping to two lines (missing `whitespace-nowrap`) plus a dropped `padding-bottom` on the main content section. All other diffs across the full session were traced to genuine environmental noise unrelated to any code change: a live Google Maps embed on the contact page, the homepage's autoplay hero video being mid-transition in one capture vs. the other, and a large (2.6MB) unoptimized `<img>` occasionally failing to render under this session's memory-constrained environment — none affect real users on a normally-provisioned machine.
+
+## 10. File-by-File Summary
+
+35 of 44 component/page files converted (9 needed none, per §6). Representative pattern, not exhaustively listed per-file here since §5 covers the method uniformly — see `git diff` for the full per-file changes. Notable individual outcomes:
+- `components/ui.tsx` — the most heavily-retained file: nearly every original class name was kept (with utilities added alongside, currently inert per §3) because its primitives (`Container`, `Section`, `Button`, `Card`, `CTASection`, etc.) are targeted by descendant selectors from dozens of other, independently-converted files.
+- `components/Header.tsx` — similarly mostly retained (nav/dropdown/mobile-menu system's dense selector web), but did drop one confirmed-dead class (`mobile-social-link`).
+- `components/SocialIcon.tsx`, `components/EventShare.tsx` (partial), `app/faq/page.tsx` — fully converted, simplest cases.
+- `app/events/[slug]/page.tsx` — fully converted by hand (not by subagent, after two agent failures from an API session limit); the file with the most real bugs found and fixed during this session's own verification (§9).
+
+## 11. Configuration
+
+| File | Change |
+|---|---|
+| `app/globals.css` | `@theme inline` extended with `--breakpoint-tablet`/`--breakpoint-wide`; base reset wrapped in `@layer base` (§3); 678 dead selector-list entries removed (§8). Net: 9,284 → 5,823 lines. |
+| `package.json` | `playwright`/`pixelmatch`/`pngjs` added then removed again (net zero), mirroring Part 1. |
+| `.gitignore` | `.qa`/`test-results` entries added then removed along with the Playwright tooling, mirroring Part 1. |
+| Throwaway scripts | `scripts/visual-diff.mjs` (screenshot-diff harness), `scripts/find-dead-css.mjs`/`scripts/remove-dead-css.mjs` (dead-CSS detection/removal) — all removed at the end of this session, not part of the permanent toolchain. |

@@ -291,7 +291,7 @@ export default function DecorationPage() {
                   </article>
                 ))}
               </div>
-              <FAQInlinePrompt />
+              <FAQInlinePrompt questionClassName="text-[rgba(var(--rgb-cream),0.88)]!" />
             </div>
             <InquiryForm
               type="decoration"

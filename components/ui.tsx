@@ -325,14 +325,16 @@ export function FAQInlinePrompt({
   href = "/faq",
   question,
   label,
+  questionClassName = "",
 }: {
   href?: string;
   question?: string;
   label?: string;
+  questionClassName?: string;
 }) {
   return (
     <p className="faq-inline-prompt flex flex-wrap items-center gap-x-2 gap-y-1 m-0 text-[0.8125rem] font-medium leading-[1.4]">
-      <span>{question || "Questions?"}</span>
+      <span className={questionClassName}>{question || "Questions?"}</span>
       <Link
         className="faq-inline-prompt-link group inline-flex items-center gap-1 font-semibold no-underline transition-opacity duration-[160ms] ease-[ease] hover:opacity-75"
         href={href}

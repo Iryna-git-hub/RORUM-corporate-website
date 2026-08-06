@@ -37,7 +37,7 @@ export default function EventsPage() {
         text="Explore our space for workshops, meetings, and community gatherings of up to 12 guests."
         href="/host-at-rorum"
         label="Host at RORUM"
-        faqQuestion="Questions before joining or hosting an event?"
+        faqQuestion="Have questions?"
         faqLabel="Read FAQ"
       />
     </>
