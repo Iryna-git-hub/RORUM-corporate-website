@@ -213,7 +213,7 @@ export default function AboutPage() {
         href="/contact"
         label="Let's talk"
         faqQuestion="Have questions?"
-        faqLabel="Read FAQ"
+        faqLabel="Read our FAQs"
         links={[
           { href: "/events", label: "Attend Events" },
           { href: "/host-at-rorum", label: "Host at RORUM" },

@@ -87,7 +87,7 @@ export default function ContactPage() {
               </div>
               <FAQInlinePrompt
                 question="Have questions?"
-                label="Read FAQs"
+                label="Read our FAQs"
               />
             </div>
           </div>

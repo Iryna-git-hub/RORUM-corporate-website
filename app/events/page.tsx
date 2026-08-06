@@ -38,7 +38,7 @@ export default function EventsPage() {
         href="/host-at-rorum"
         label="Host at RORUM"
         faqQuestion="Have questions?"
-        faqLabel="Read FAQ"
+        faqLabel="Read our FAQs"
       />
     </>
   );

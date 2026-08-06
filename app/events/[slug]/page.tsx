@@ -256,7 +256,7 @@ export default async function EventDetailPage({
               <InfoGridItem icon={Clock} label="Time" value={time} />
               <InfoGridItem icon={MapPin} label="Location" value={location} />
               <InfoGridItem icon={Ticket} label="Price" value={event.price} prominent />
-              <div className={`${infoItemGridClass} grid-cols-1 items-center justify-items-end min-w-47 !border-r-0 max-[980px]:justify-items-stretch`}>
+              <div className="flex items-center justify-end min-h-23 px-5 py-4.5 border-r-0 min-w-47 max-[980px]:min-h-0 max-[980px]:border-b-0 max-tablet:p-3.25">
                 <TicketButton event={event} />
               </div>
             </div>
