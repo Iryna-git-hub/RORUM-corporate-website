@@ -82,7 +82,7 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
       className="scroll-mt-[78px] bg-white py-[clamp(44px,6vw,6rem)]"
     >
       <Container>
-        <div className="grid grid-cols-2 max-[980px]:grid-cols-1 gap-[clamp(32px,5vw,64px)] max-[980px]:gap-8 items-start">
+        <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-[clamp(32px,5vw,64px)] max-lg:gap-8 items-start">
           <div className="grid gap-[18px] min-w-0">
             <SectionLabel>Donation</SectionLabel>
             <h2 className="font-heading font-medium leading-tight tracking-[-0.03em] text-text-primary m-0 text-[clamp(1.7rem,2.6vw,2.15rem)]">
@@ -94,7 +94,7 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
               opportunities for women.
             </p>
 
-            <div className="grid justify-items-center gap-1 max-w-full mt-[6px] p-[clamp(24px,3vw,32px)] bg-white max-tablet:w-full max-tablet:max-w-[420px] max-tablet:mx-auto">
+            <div className="grid justify-items-center gap-1 max-w-full mt-[6px] p-[clamp(24px,3vw,32px)] bg-white max-sm:w-full max-sm:max-w-[420px] max-sm:mx-auto">
               <div className="grid place-items-center w-[clamp(160px,16vw,190px)] aspect-square mb-3">
                 <Image
                   src={qrSrc}
@@ -110,11 +110,14 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
               </p>
             </div>
 
-            <div className="wecoda-donation-divider" role="separator">
+            <div
+              className="flex items-center gap-3.5 w-full mt-2.5 text-[rgba(var(--rgb-dark-brown),0.45)] text-[0.72rem] font-bold tracking-[0.1em] before:content-[''] before:flex-1 before:h-px before:bg-[rgba(var(--rgb-brown),0.18)] after:content-[''] after:flex-1 after:h-px after:bg-[rgba(var(--rgb-brown),0.18)]"
+              role="separator"
+            >
               <span>OR</span>
             </div>
 
-            <p className="flex items-center justify-center gap-[10px] mx-auto my-0 text-text-primary text-base leading-[1.55] text-center max-[980px]:hidden">
+            <p className="flex items-center justify-center gap-[10px] mx-auto my-0 text-text-primary text-base leading-[1.55] text-center max-lg:hidden">
               <Landmark
                 size={18}
                 aria-hidden="true"
@@ -126,10 +129,10 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
           </div>
 
           <div className="min-w-0">
-            <div className="w-full p-[clamp(26px,3vw,36px)] bg-cream max-tablet:p-[clamp(22px,5vw,28px)]">
+            <div className="w-full p-[clamp(26px,3vw,36px)] bg-cream max-sm:p-[clamp(22px,5vw,28px)]">
               <button
                 type="button"
-                className="flex items-center justify-between gap-3 w-full m-0 p-0 border-0 bg-transparent text-inherit [font:inherit] text-left cursor-default max-[980px]:cursor-pointer focus-visible:outline-1 focus-visible:outline-[rgba(var(--rgb-red),0.45)] focus-visible:outline-offset-4"
+                className="flex items-center justify-between gap-3 w-full m-0 p-0 border-0 bg-transparent text-inherit [font:inherit] text-left cursor-default max-lg:cursor-pointer focus-visible:outline-1 focus-visible:outline-[rgba(var(--rgb-red),0.45)] focus-visible:outline-offset-4"
                 aria-expanded={bankOpen}
                 aria-controls="wecoda-bank-panel"
                 onClick={() => setBankOpen((open) => !open)}
@@ -138,17 +141,17 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
                   Bank Details
                 </span>
                 <ChevronDown
-                  className={`hidden shrink-0 text-red transition-transform duration-300 ease-[ease] max-[980px]:block ${bankOpen ? "rotate-180" : ""}`}
+                  className={`hidden shrink-0 text-red transition-transform duration-300 ease-[ease] max-lg:block ${bankOpen ? "rotate-180" : ""}`}
                   size={20}
                   aria-hidden="true"
                   strokeWidth={1.8}
                 />
               </button>
               <div
-                className={`mt-5 max-[980px]:overflow-hidden max-[980px]:[transition:max-height_0.42s_cubic-bezier(0.22,1,0.36,1),opacity_0.3s_ease,margin-top_0.3s_ease] ${
+                className={`mt-5 max-lg:overflow-hidden max-lg:[transition:max-height_0.42s_cubic-bezier(0.22,1,0.36,1),opacity_0.3s_ease,margin-top_0.3s_ease] ${
                   bankOpen
-                    ? "max-[980px]:max-h-[900px] max-[980px]:mt-5 max-[980px]:opacity-100"
-                    : "max-[980px]:max-h-0 max-[980px]:mt-0 max-[980px]:opacity-0"
+                    ? "max-lg:max-h-[900px] max-lg:mt-5 max-lg:opacity-100"
+                    : "max-lg:max-h-0 max-lg:mt-0 max-lg:opacity-0"
                 }`}
                 id="wecoda-bank-panel"
               >

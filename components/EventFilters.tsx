@@ -168,11 +168,11 @@ export function EventFilters({
 
   return (
     <div
-      className="flex items-center justify-between flex-wrap gap-x-5 gap-y-3 mb-6 p-0 border-0 bg-transparent max-[980px]:items-stretch"
+      className="flex items-center justify-between flex-wrap gap-x-5 gap-y-3 mb-6 p-0 border-0 bg-transparent max-lg:items-stretch"
       aria-label="Filter events"
     >
       <div
-        className="flex flex-wrap items-center gap-x-5.5 gap-y-2.5 flex-[1_1_640px] max-[980px]:basis-full"
+        className="flex flex-wrap items-center gap-x-5.5 gap-y-2.5 flex-[1_1_640px] max-lg:basis-full"
         role="group"
         aria-label="Event filters"
       >

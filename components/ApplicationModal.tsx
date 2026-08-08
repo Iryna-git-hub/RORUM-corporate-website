@@ -81,7 +81,7 @@ export function ApplicationModal({
 
   return (
     <div
-      className="fixed inset-0 z-140 grid place-items-center p-[clamp(20px,4vw,48px)] bg-[rgba(var(--rgb-dark-brown),0.48)] backdrop-blur-[10px] max-tablet:items-stretch max-tablet:p-0"
+      className="fixed inset-0 z-140 grid place-items-center p-[clamp(20px,4vw,48px)] bg-[rgba(var(--rgb-dark-brown),0.48)] backdrop-blur-[10px] max-sm:items-stretch max-sm:p-0"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
@@ -89,7 +89,7 @@ export function ApplicationModal({
     >
       <div
         ref={dialogRef}
-        className="relative w-[min(760px,100%)] max-h-[min(880px,calc(100dvh-40px))] overflow-y-auto rounded-[8px] bg-white p-[clamp(26px,4vw,44px)] text-text-primary shadow-[0_28px_80px_rgba(var(--rgb-dark-brown),0.28)] max-tablet:w-full max-tablet:max-h-dvh max-tablet:min-h-dvh max-tablet:rounded-none max-tablet:pt-6.5 max-tablet:px-4 max-tablet:pb-8.5"
+        className="relative w-[min(760px,100%)] max-h-[min(880px,calc(100dvh-40px))] overflow-y-auto rounded-[8px] bg-white p-[clamp(26px,4vw,44px)] text-text-primary shadow-[0_28px_80px_rgba(var(--rgb-dark-brown),0.28)] max-sm:w-full max-sm:max-h-dvh max-sm:min-h-dvh max-sm:rounded-none max-sm:pt-6.5 max-sm:px-4 max-sm:pb-8.5"
         data-application-modal="true"
         role="dialog"
         aria-modal="true"

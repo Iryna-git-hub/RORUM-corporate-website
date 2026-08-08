@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
-  CircleHelp,
   MapPin,
   MessageCircle,
   MessagesSquare,
@@ -13,30 +12,38 @@ import {
 } from "lucide-react";
 
 // NOTE ON THIS FILE'S MIGRATION APPROACH:
-// Every original hand-written class name (e.g. `container`, `btn`, `card`,
-// `hero`, `next-step-card-final`, ...) is intentionally kept on its element
-// exactly as before — none are removed. app/globals.css defines these as
-// unlayered CSS, and it (and every other page/component file that still
-// targets these class names with its own descendant selectors, e.g.
-// `.home-hero-copy .btn`, `.wecoda-membership-content .faq-inline-prompt`)
-// is out of scope for this change. Per the CSS cascade-layers spec, an
-// unlayered rule always wins over a Tailwind utility (which lives in a
-// `@layer`) for the same property, regardless of source order — so as long
-// as the old classes stay, the Tailwind utilities added alongside them are
-// visually inert today and the rendered result is unchanged. They exist so
-// that a later cleanup pass can delete the now-redundant globals.css rules
-// (and the matching cross-file selectors) with confidence that the visual
-// result carries over unchanged. Where a property's effective value
-// legitimately varies by ancestor/variant context in ways this component
-// can't know about on its own (e.g. `.faq-inline-prompt-link` turning gold
-// inside `.next-step-card-final`, or the `.next-step-card-final .btn` /
-// `.next-step-card-host .btn` pulse `@keyframes` animations), that specific
-// property was intentionally left untranslated and is still driven entirely
-// by the retained class — flagged in the accompanying report.
+// Container/Section/SectionLabel/Card/HomeHero/FAQInlinePrompt/CTASection
+// are fully Tailwind-driven now (context-dependent styling, e.g.
+// `.home-hero-copy .label`, is resolved via each component's own
+// `className` prop rather than a descendant selector living in
+// globals.css). A few legacy class names are still deliberately kept
+// present on their elements, for two different reasons:
+//   1. `btn` (Button) and `heading`/`section-title` (SectionHeader,
+//      CTASection's title) are still the ONLY styling source for many
+//      other, not-yet-Tailwind-converted pages that apply these same
+//      class names directly to their own elements — removing the CSS
+//      would break those pages. Safe to remove once every consumer is
+//      converted (tracked in MIGRATION_REPORT.md).
+//   2. `card` stays because `.card h3, .package h3 { text-transform:
+//      none; letter-spacing: 0 }` in globals.css is a narrow,
+//      genuinely cross-cutting reset that's impractical to trace to
+//      every Card consumer's children.
+// The `.next-step-card-final .btn` / `.next-step-card-host .btn` pulse
+// `@keyframes` animations (and their shared sizing/outline block) are also
+// intentionally left as hand-written CSS — a deliberate "complex animation"
+// exception, not a leftover.
 
-export function Container({ children }: { children: ReactNode }) {
+export function Container({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="container w-[min(calc(100%_-_2.5rem),1180px)] max-w-[1180px] mx-auto max-tablet:w-[min(calc(100%_-_2.5rem),100%)]">
+    <div
+      className={`w-[min(calc(100%_-_2.5rem),1180px)] max-w-[1180px] mx-auto max-sm:w-[min(calc(100%_-_2.5rem),100%)] ${className}`.trim()}
+    >
       {children}
     </div>
   );
@@ -51,20 +58,28 @@ export function Section({
 }) {
   return (
     <section
-      className={
-        tight
-          ? "section-tight py-[clamp(40px,6vw,76px)]"
-          : "section py-[clamp(52px,8vw,104px)]"
-      }
+      className={tight ? "py-[clamp(40px,6vw,76px)]" : "py-[clamp(52px,8vw,104px)]"}
     >
       {children}
     </section>
   );
 }
 
-export function SectionLabel({ children }: { children: ReactNode }) {
+export function SectionLabel({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <span className="label inline-flex items-center gap-[10px] text-red text-[0.78rem] font-extrabold tracking-[0.08em] uppercase w-fit border-b border-red">
+    // `label` is kept (deferred, like `btn`/`heading`/`section-head`): 18+
+    // other, not-yet-converted pages reach into it with their own
+    // `.some-hero .label { color: ...; border-bottom-color: ... }`
+    // context overrides (see MIGRATION_REPORT.md for the full list).
+    <span
+      className={`label inline-flex items-center gap-[10px] text-red text-[0.78rem] font-extrabold tracking-[0.08em] uppercase w-fit border-b border-red ${className}`.trim()}
+    >
       {children}
     </span>
   );
@@ -78,21 +93,44 @@ export function SectionHeader({
   title,
   text,
   level = 2,
+  className = "",
+  labelClassName = "",
+  titleClassName = "",
+  textClassName = "",
 }: {
   label?: string;
   title: ReactNode;
   text?: string;
   level?: HeadingLevel;
+  className?: string;
+  labelClassName?: string;
+  titleClassName?: string;
+  textClassName?: string;
 }) {
   // `level` is restricted to 1-6 above, so this is always a valid heading tag.
   const HeadingTag = `h${level}` as HeadingTagName;
+  // `.section-head h3` in globals.css sets line-height:1.2 specifically for
+  // h3 (vs. the generic `.section-title` rule's 1.25 for every other
+  // level) - a real per-level variance, not an arbitrary leftover.
+  const headingLeading = level === 3 ? "leading-[1.2]" : "leading-tight";
   return (
-    <div className="section-head grid gap-[14px] max-w-[760px] mb-7">
-      {label ? <SectionLabel>{label}</SectionLabel> : null}
-      <HeadingTag className="heading section-title font-heading font-medium text-text-primary m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] leading-[1.25] tracking-[0] normal-case">
+    // `section-head` is kept (deferred, like `btn`/`heading`): at least 6
+    // other, not-yet-converted pages reach into it with their own
+    // `.some-wrapper .section-head { margin-bottom: ... }`-style context
+    // overrides (community-membership, home, host-at-rorum) - removing it
+    // would silently drop their spacing until each of those is converted.
+    // `className`/`labelClassName`/`titleClassName`/`textClassName` let a
+    // caller supply its own context override (with `!important` since it's
+    // competing against this component's own layered Tailwind defaults)
+    // instead of reaching in via a `.context .section-head` CSS selector.
+    <div className={`section-head grid gap-3.5 max-w-190 mb-7 ${className}`.trim()}>
+      {label ? <SectionLabel className={labelClassName}>{label}</SectionLabel> : null}
+      <HeadingTag
+        className={`section-title font-heading font-medium text-text-primary m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] ${headingLeading} tracking-normal normal-case ${titleClassName}`.trim()}
+      >
         {title}
       </HeadingTag>
-      {text ? <p>{text}</p> : null}
+      {text ? <p className={textClassName}>{text}</p> : null}
     </div>
   );
 }
@@ -121,7 +159,7 @@ const BUTTON_VARIANT_CLASSES: Record<ButtonVariant, string> = {
   ghost:
     "min-h-[42px] w-fit px-0 border border-transparent rounded-pill bg-transparent text-inherit text-[12.5px] tracking-[0.02em] hover:bg-transparent hover:text-primary-dark hover:border-transparent",
   plum: "min-h-[42px] w-fit px-6 border border-secondary rounded-pill bg-secondary text-primary-dark text-[12.5px] tracking-[0.02em]",
-  icon: "w-[46px] h-[46px] min-h-[46px] p-0 border border-primary rounded-full bg-primary text-white hover:bg-primary-dark hover:border-primary-dark active:bg-primary-darker active:border-primary-darker",
+  icon: "w-[46px] h-[46px] min-h-11.5 p-0 border border-primary rounded-full bg-primary text-white hover:bg-primary-dark hover:border-primary-dark active:bg-primary-darker active:border-primary-darker",
   "event-all":
     "min-h-[40px] w-fit gap-2 border border-primary-light rounded-pill px-[18px] py-[5px] bg-transparent text-primary-dark text-[12.5px] tracking-[0.02em] hover:bg-[rgba(var(--rgb-beige),0.14)] hover:border-primary-light hover:text-primary-dark",
 };
@@ -178,6 +216,11 @@ export function Card({
 }) {
   void variant;
   return (
+    // `card` is kept (not just an inert legacy hook): `.card h3, .package
+    // h3 { text-transform: none; letter-spacing: 0 }` in globals.css is a
+    // narrow, genuinely cross-cutting reset for any heading a caller
+    // happens to render inside a Card, impossible to trace to specific
+    // call sites without auditing every Card consumer's children.
     <div
       className={`card border border-[rgba(var(--rgb-beige),0.42)] rounded-none bg-[rgba(var(--rgb-cream),0.72)] shadow-[0_12px_34px_rgba(var(--rgb-brown),0.045)] text-text-primary overflow-hidden ${className}`.trim()}
     >
@@ -206,50 +249,6 @@ function TrustIcon({ item }: { item: string }) {
   );
 }
 
-export function PageHero({
-  label,
-  title,
-  text,
-  image = "/images/hero.jpg",
-  actions,
-}: {
-  label?: string;
-  title: ReactNode;
-  text?: string;
-  image?: string;
-  actions?: ReactNode;
-}) {
-  return (
-    <section className="hero pt-[clamp(56px,8vw,104px)] pb-[clamp(38px,6vw,72px)] max-tablet:pt-[38px]">
-      <Container>
-        <div className="hero-grid grid grid-cols-[minmax(0,0.9fr)_minmax(340px,1fr)] gap-[34px] items-stretch max-[980px]:grid-cols-1">
-          <div className="hero-copy grid content-center gap-[22px]">
-            <SectionLabel>{label}</SectionLabel>
-            <h1 className="heading page-hero-title font-heading font-medium text-text-primary m-0 text-[clamp(34px,4.5vw,64px)] leading-[0.96] tracking-[0] max-w-[14ch] normal-case max-[980px]:max-w-[12ch]">
-              {title}
-            </h1>
-            <p>{text}</p>
-            {actions ? (
-              <div className="hero-actions flex flex-wrap gap-[12px]">
-                {actions}
-              </div>
-            ) : null}
-          </div>
-          <div
-            className="hero-image"
-            style={{ backgroundImage: `url(${image})` }}
-          >
-            <div className="hero-note absolute left-[18px] right-[18px] bottom-[18px] z-[1] p-[18px] border border-[rgba(var(--rgb-cream),0.42)] rounded-none bg-[rgba(var(--rgb-cream),0.88)]">
-              A warm Copenhagen room for people, ideas, food and thoughtful
-              gatherings.
-            </div>
-          </div>
-        </div>
-      </Container>
-    </section>
-  );
-}
-
 export function HomeHero({
   label,
   title,
@@ -271,7 +270,7 @@ export function HomeHero({
 }) {
   return (
     <section
-      className="home-hero-full relative min-h-[100svh] w-full grid items-center -mt-[78px] pt-[78px] bg-center bg-cover bg-no-repeat overflow-hidden max-tablet:-mt-[68px] max-tablet:pt-[68px]"
+      className="home-hero-full relative min-h-[100svh] w-full grid items-center -mt-[78px] pt-[78px] bg-center bg-cover bg-no-repeat overflow-hidden max-sm:-mt-[68px] max-sm:pt-[68px]"
       style={{ backgroundImage: `url(${image})` }}
     >
       {video ? (
@@ -287,15 +286,15 @@ export function HomeHero({
         />
       ) : null}
       <div className="home-hero-overlay absolute inset-0 bg-[#00000080] z-[1]" />
-      <Container>
-        <div className="home-hero-copy w-[min(62%,730px)] grid gap-[22px] py-[clamp(42px,7vw,84px)] translate-y-[clamp(-42px,-3vw,-18px)] max-[980px]:w-[min(72vw,680px)] max-[980px]:translate-y-0 max-tablet:w-full max-tablet:-mt-[35%] max-tablet:translate-y-0 max-tablet:gap-[18px]">
-          <SectionLabel>{label}</SectionLabel>
-          <h1 className="heading font-heading font-medium text-white text-[clamp(34px,3.95vw,66px)] leading-[1.1] tracking-[0] normal-case max-tablet:text-[clamp(31px,9vw,42px)] max-tablet:leading-[1.2]">
+      <Container className="relative z-2">
+        <div className="home-hero-copy w-[min(62%,730px)] grid gap-[22px] py-[clamp(42px,7vw,84px)] translate-y-[clamp(-42px,-3vw,-18px)] max-lg:w-[min(72vw,680px)] max-lg:translate-y-0 max-sm:w-full max-sm:-mt-[35%] max-sm:translate-y-0 max-sm:gap-[18px]">
+          <SectionLabel className="text-beige! border-b-transparent!">{label}</SectionLabel>
+          <h1 className="heading font-heading font-medium text-white text-[clamp(34px,3.95vw,66px)] leading-[1.1] tracking-[0] normal-case max-sm:text-[clamp(31px,9vw,42px)] max-sm:leading-[1.2]">
             {title}
           </h1>
-          <p>{text}</p>
+          <p className="max-w-[58ch] m-0 text-text-on-image text-[18px] leading-[1.6]">{text}</p>
           {actions ? (
-            <div className="hero-actions flex flex-wrap gap-[12px]">
+            <div className="flex flex-wrap gap-[12px]">
               {actions}
             </div>
           ) : null}
@@ -308,7 +307,7 @@ export function HomeHero({
       </Container>
       {trustItems.length ? (
         <ul
-          className="home-hero-trust absolute inset-x-0 bottom-0 z-[2] grid grid-cols-4 gap-[18px] w-full m-0 py-[18px] px-[max(16px,calc((100vw_-_1180px)/2))] list-none bg-[rgba(var(--rgb-cream),0.14)] backdrop-blur-[12px] max-tablet:grid-cols-1"
+          className="home-hero-trust absolute inset-x-0 bottom-0 z-[2] grid grid-cols-4 gap-[18px] w-full m-0 py-[18px] px-[max(16px,calc((100vw_-_1180px)/2))] list-none bg-[rgba(var(--rgb-cream),0.14)] backdrop-blur-[12px] max-sm:grid-cols-1"
           aria-label="RORUM highlights"
         >
           {trustItems.map((item) => (
@@ -328,22 +327,38 @@ export function FAQInlinePrompt({
   question,
   label,
   questionClassName = "",
+  className = "",
+  linkClassName = "",
 }: {
   href?: string;
   question?: string;
   label?: string;
   questionClassName?: string;
+  className?: string;
+  linkClassName?: string;
 }) {
   return (
-    <p className="faq-inline-prompt flex flex-wrap items-center gap-x-2 gap-y-1 m-0 text-[0.8125rem] font-medium leading-[1.4]">
+    // `faq-inline-prompt`/`faq-inline-prompt-link` are kept (deferred, like
+    // `section-head`): several other, not-yet-converted pages
+    // (catering, community-membership, forms) reach into them with their
+    // own `.some-wrapper .faq-inline-prompt(-link)` color overrides. The
+    // base declarations themselves are gone (fully replaced by the
+    // Tailwind utilities below); only the class names still need to exist
+    // for those external selectors to keep matching.
+    // The `p.faq-inline-prompt` tag+class rule (more specific than the
+    // class-only base rule) set font-size to 0.95rem, not the base rule's
+    // 0.8125rem - that's the actual effective value reflected below.
+    <p
+      className={`faq-inline-prompt flex flex-wrap items-center gap-x-2 gap-y-1 m-0 text-[0.95rem] font-medium leading-[1.4] text-[rgba(var(--rgb-dark-brown),0.62)] max-sm:justify-center max-sm:text-center ${className}`.trim()}
+    >
       <span className={questionClassName}>{question || "Questions?"}</span>
       <Link
-        className="faq-inline-prompt-link group inline-flex items-center gap-1 font-semibold no-underline transition-opacity duration-[160ms] ease-[ease] hover:opacity-75"
+        className={`faq-inline-prompt-link group inline-flex items-center gap-1 text-red font-semibold no-underline transition-opacity duration-[160ms] ease-[ease] hover:opacity-75 ${linkClassName}`.trim()}
         href={href}
       >
         <span>{label || "Read our FAQs"}</span>
         <ArrowRight
-          className="button-arrow w-[13px] h-[13px] shrink-0 transition-transform duration-[180ms] ease-[ease] group-hover:translate-x-1"
+          className="w-[13px] h-[13px] shrink-0 transition-transform duration-[180ms] ease-[ease] group-hover:translate-x-1"
           aria-hidden="true"
           strokeWidth={1.9}
         />
@@ -390,41 +405,85 @@ export function CTASection({
   // (rather than layering diff-only utilities on top of a shared base), to
   // avoid depending on Tailwind's internal ordering to settle conflicts
   // like `display: flex` vs `display: grid` between variants.
+  // Breakpoint note: the original CSS switched to the 2-column desktop
+  // layout at `min-width:1024px` and to single-column at `max-width:980px`,
+  // leaving a ~40px dead zone (981-1023px) where the *base* (unmediated)
+  // 2-column rule applied. That sliver is folded into the single-column
+  // (`lg:`) bucket here, matching this project's 981->1024 normalization
+  // elsewhere — using `max-sm:` (640px) instead of `lg:` (1024px) here was
+  // an earlier bug that produced 2 columns between 640-1023px.
   const cardVariantClass =
     variant === "final"
-      ? "next-step-card-final relative isolate overflow-hidden grid grid-cols-[minmax(0,1fr)_auto] items-center min-h-[clamp(300px,34vw,420px)] py-[clamp(42px,7vw,78px)] text-cream rounded-none max-tablet:grid-cols-1 max-tablet:gap-[28px] max-tablet:min-h-0 max-tablet:py-9 min-[1024px]:items-start min-[1024px]:grid-cols-[minmax(0,620px)_auto] min-[1024px]:justify-start min-[1024px]:gap-x-[clamp(18px,2.3vw,36px)]"
+      ? "next-step-card-final relative isolate overflow-hidden grid grid-cols-1 items-center gap-x-[28px] gap-y-[28px] py-[clamp(42px,7vw,78px)] max-[360px]:py-9 text-cream rounded-none lg:items-start lg:grid-cols-[minmax(0,620px)_auto] lg:justify-start lg:gap-x-[clamp(18px,2.3vw,36px)] lg:gap-y-0 lg:min-h-[clamp(300px,34vw,420px)]"
       : variant === "host"
-        ? "next-step-card-host relative isolate overflow-hidden flex items-center justify-between gap-6 py-[clamp(26px,4vw,44px)] rounded-none"
-        : "flex items-center justify-between gap-6 py-[clamp(26px,4vw,44px)] rounded-none";
+        ? "next-step-card-host relative isolate overflow-hidden flex items-center justify-start gap-[clamp(20px,7vw,100px)] py-[clamp(26px,4vw,44px)] rounded-none max-sm:grid"
+        : "flex items-center justify-start gap-[clamp(20px,7vw,100px)] py-[clamp(26px,4vw,44px)] rounded-none max-sm:grid";
+  // `!important`: Card's own className hardcodes an arbitrary-value
+  // background/border/shadow, and Tailwind's utility sort order for
+  // arbitrary-vs-named values of the same property isn't guaranteed to
+  // match JSX string order, so a plain `bg-transparent` appended after it
+  // isn't reliably guaranteed to win.
   const cardClass =
-    `cta next-step-card px-0 bg-transparent border-0 shadow-none ${cardVariantClass} ${cardClassName}`.trim();
+    `cta next-step-card px-0 bg-transparent! border-0! shadow-none! ${cardVariantClass} ${cardClassName}`.trim();
 
-  const copyClass = `next-step-copy grid gap-[18px] max-w-[760px]${variant ? " relative z-[2]" : ""}`;
+  const copyClass = `grid gap-[18px] max-w-[760px]${variant ? " relative z-[2]" : ""}`;
 
   const actionClass =
     variant === "final"
-      ? "next-step-action relative z-[2] grid justify-items-end gap-[15px] min-w-[220px] p-[18px] max-[980px]:justify-items-start max-[980px]:min-w-0 min-[1024px]:items-start min-[1024px]:justify-items-start min-[1024px]:min-w-[180px] min-[1024px]:p-0 min-[1024px]:mt-[clamp(48px,5.4vw,70px)] min-[1024px]:mr-0 min-[1024px]:transform-none"
+      ? "next-step-action relative z-[2] grid justify-items-end gap-[15px] min-w-[220px] p-[18px] max-lg:justify-items-start max-lg:min-w-0 lg:items-start lg:justify-items-start lg:min-w-[180px] lg:p-0 lg:mt-[clamp(48px,5.4vw,70px)] lg:mr-0 lg:transform-none"
       : variant === "host"
         ? "next-step-action relative z-[2] grid place-items-center gap-[15px] min-w-[220px] min-h-[132px]"
         : "next-step-action";
 
+  // `.next-step-card .label` (host/default) sets font-weight:600, overriding
+  // SectionLabel's own 800; `.next-step-card-final .label` (final) recolors
+  // to gold instead. Both need `!important` because SectionLabel's base
+  // `.label` class is still retained CSS (other, not-yet-converted pages
+  // still reach into it), so it remains unlayered and would otherwise beat
+  // a plain Tailwind override here.
+  const eyebrowClassName =
+    variant === "final"
+      ? "text-gold! border-b-[rgba(var(--rgb-gold),0.72)]!"
+      : "font-semibold!";
+  // `text-cream!`: the h2 below still carries the (deferred, still-live)
+  // `heading` class, whose unlayered `color: text-primary` would otherwise
+  // beat a plain Tailwind color utility regardless of source order.
+  const titleClassName =
+    variant === "final"
+      ? "text-cream! max-w-[13ch] text-[clamp(2.1rem,4vw,4rem)]"
+      : "text-text-primary! text-[clamp(1.85rem,2.6vw,2.3rem)]";
+  const textClassName =
+    variant === "final"
+      ? "m-0 max-w-[66ch] text-[rgba(var(--rgb-cream),0.9)] text-[clamp(16px,1.25vw,18px)] leading-[1.65]"
+      : "m-0 text-dark-green leading-[1.65]";
+  const isNotSure = className.includes("next-step-section-not-sure");
+
   return (
     <section className={sectionClass}>
-      <Container>
+      <Container className="relative z-2">
         <Card className={cardClass}>
           <div className={copyClass}>
-            <SectionLabel>{eyebrow}</SectionLabel>
-            <h2 className="heading cta-title font-heading font-medium m-0 leading-[1.25] tracking-[0] normal-case">
+            <SectionLabel className={eyebrowClassName}>{eyebrow}</SectionLabel>
+            {/* No literal `heading` class here (unlike some other
+                headings that keep it): its own line-height:1.2 would beat
+                this element's intended 1.25 regardless of `!important`
+                shenanigans, so every property it would have supplied is
+                set directly below instead - same approach as
+                SectionHeader's heading tag. */}
+            <h2
+              className={`font-heading font-medium m-0 leading-[1.25] tracking-[0] normal-case ${titleClassName}`}
+            >
               {title}
             </h2>
-            <p>{text}</p>
+            <p className={textClassName}>{text}</p>
             {links.length ? (
-              <div
-                className="next-step-links flex flex-wrap gap-[10px] mt-1"
-                aria-label="Suggested paths"
-              >
+              <div className="flex flex-wrap gap-[10px] mt-1 max-sm:grid" aria-label="Suggested paths">
                 {links.map((link) => (
-                  <Link key={link.href} href={link.href}>
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="inline-flex items-center min-h-9 py-2 px-3.75 border border-[rgba(var(--rgb-cream),0.22)] bg-[rgba(var(--rgb-cream),0.08)] text-cream text-xs font-semibold uppercase tracking-[0.04em] backdrop-blur-[10px] transition-[background,color,border-color] duration-200 ease-[ease] hover:bg-[rgba(var(--rgb-cream),0.16)] hover:border-[rgba(var(--rgb-gold),0.55)] hover:text-white max-sm:justify-center"
+                  >
                     {link.label}
                   </Link>
                 ))}
@@ -433,11 +492,11 @@ export function CTASection({
           </div>
           {variant === "final" ? (
             <div
-              className="final-cta-illustration absolute inset-0 z-[1] pointer-events-none flex items-center justify-end pr-[clamp(24px,4vw,80px)] text-[rgb(212,236,152)] opacity-[0.04] max-[980px]:transform-none max-[980px]:mt-0 max-[980px]:justify-center max-[980px]:pr-0"
+              className="absolute inset-0 z-[1] pointer-events-none flex items-center justify-end pr-[clamp(24px,4vw,80px)] text-[rgb(212,236,152)] opacity-[0.04] max-lg:transform-none max-lg:mt-0 max-lg:justify-center max-lg:pr-0"
               aria-hidden="true"
             >
               <MessagesSquare
-                className="w-auto h-[95%] max-w-none translate-x-[8%] max-[980px]:h-[85%] max-[980px]:translate-x-0"
+                className="w-auto h-[95%] max-w-none translate-x-[8%] max-lg:h-[85%] max-lg:translate-x-0"
                 strokeWidth={1.15}
               />
             </div>
@@ -454,7 +513,12 @@ export function CTASection({
               {label}
             </Button>
             {faqQuestion ? (
-              <FAQInlinePrompt question={faqQuestion} label={faqLabel} />
+              <FAQInlinePrompt
+                question={faqQuestion}
+                label={faqLabel}
+                className={`justify-self-center text-center ${isNotSure ? "pt-5" : ""} ${variant === "final" ? "text-[rgba(var(--rgb-cream),0.72)]!" : ""}`.trim()}
+                linkClassName={variant === "final" ? "text-gold!" : ""}
+              />
             ) : null}
           </div>
         </Card>
@@ -463,50 +527,3 @@ export function CTASection({
   );
 }
 
-export function FAQHelpStrip({
-  title = "Questions before booking?",
-  text = "Find answers about hosting at RORUM, catering, events and practical details before you send a request.",
-  href = "/faq",
-  label = "Read FAQ",
-  className = "",
-}: {
-  title?: string;
-  text?: string;
-  href?: string;
-  label?: string;
-  className?: string;
-}) {
-  return (
-    <section
-      className={`section-tight py-[clamp(40px,6vw,76px)] faq-help-strip-section bg-beige ${className}`.trim()}
-    >
-      <Container>
-        <div className="faq-help-strip grid grid-cols-[auto_minmax(0,1fr)_auto] gap-[clamp(18px,3vw,34px)] items-center py-[clamp(26px,4vw,42px)] border-t border-b border-[rgba(var(--rgb-beige),0.72)] max-tablet:grid-cols-1 max-tablet:justify-items-start">
-          <div
-            className="faq-help-icon w-[54px] h-[54px] inline-flex items-center justify-center border border-[rgba(var(--rgb-light-green),0.78)] rounded-full text-dark-green bg-[rgba(var(--rgb-light-green),0.18)]"
-            aria-hidden="true"
-          >
-            <CircleHelp className="w-6 h-6" strokeWidth={1.7} />
-          </div>
-          <div className="faq-help-copy grid gap-2 min-w-0">
-            <SectionLabel>FAQ</SectionLabel>
-            <h2 className="heading font-heading font-medium text-text-primary tracking-[-0.03em] m-0 text-[clamp(1.6rem,3vw,2.35rem)] leading-[1.08]">
-              {title}
-            </h2>
-            <p>{text}</p>
-          </div>
-          <div className="faq-help-action flex justify-end max-tablet:justify-start">
-            <Button href={href} variant="secondary">
-              <span>{label}</span>
-              <ArrowRight
-                className="button-arrow w-[15px] h-[15px] shrink-0 transition-transform duration-[180ms] ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1"
-                aria-hidden="true"
-                strokeWidth={1.9}
-              />
-            </Button>
-          </div>
-        </div>
-      </Container>
-    </section>
-  );
-}

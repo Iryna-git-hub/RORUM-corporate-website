@@ -14,6 +14,22 @@ const acceptedMimeTypes = [
 ];
 const maxFileSize = 10 * 1024 * 1024;
 
+const CV_LABEL_CLASS =
+  "grid gap-1.75 text-[rgba(var(--rgb-dark-brown),0.5)] text-[0.82rem] font-semibold";
+const CV_FIELD_LABEL_CLASS = "inline-flex items-baseline w-fit";
+const CV_REQUIRED_MARK_CLASS = "ml-0.5 text-cta-red";
+const CV_INPUT_BASE_CLASS =
+  "w-full border border-[rgba(var(--rgb-brown),0.18)] rounded-none bg-white text-text-primary text-base font-medium outline-none focus:border-light-green focus:shadow-[0_0_0_2px_rgba(var(--rgb-light-green),0.12)]";
+const CV_INPUT_CLASS = `${CV_INPUT_BASE_CLASS} min-h-11 px-[13px]`;
+const CV_TEXTAREA_CLASS = `${CV_INPUT_BASE_CLASS} min-h-29 py-3 px-[13px] resize-y`;
+// No `lg:` font-size bump here (unlike the success-state Close button below,
+// and unlike InquiryForm/VolunteerApplicationForm's submit buttons): this
+// button never had a `.form` ancestor, so the `.form button[type="submit"]
+// .btn, ... { font-size: 13px }` desktop rule never applied to it - it
+// stayed a flat 12.5px at every width under the original CSS cascade.
+const CV_SUBMIT_BUTTON_CLASS =
+  "inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-red rounded-pill bg-red text-white text-[12.5px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker disabled:opacity-[0.62]";
+
 function isAcceptedFile(file: File): boolean {
   const fileName = file.name.toLowerCase();
   return (
@@ -152,7 +168,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
               or opportunities.
             </p>
             <button
-              className="inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-red rounded-pill bg-red text-white text-[12.5px] desktop:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker"
+              className="inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-red rounded-pill bg-red text-white text-[12.5px] lg:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker"
               type="button"
               onClick={onClose}
             >
@@ -160,21 +176,27 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
             </button>
           </div>
         ) : (
-          <form className="cv-modal-form" onSubmit={handleSubmit} noValidate>
-            <div className="cv-modal-heading">
-              <h2 id="cv-modal-title" className="heading">
+          <form className="grid gap-4.5" onSubmit={handleSubmit} noValidate>
+            <div className="grid gap-3 pr-12 max-sm:pr-11.5">
+              {/* `.cv-modal-heading h2` (more specific than `.heading`) wins
+                  line-height/font-weight/letter-spacing; `.heading`'s
+                  font-family is the only property that survives unshadowed. */}
+              <h2
+                id="cv-modal-title"
+                className="font-heading m-0 text-text-primary text-[2.4rem] leading-[0.98] font-light tracking-normal"
+              >
                 Send your CV
               </h2>
-              <p id="cv-modal-description">
+              <p className="m-0 text-text-primary text-[15px] leading-[1.65]" id="cv-modal-description">
                 We’d love to hear from you. Upload your CV and tell us a little
                 about yourself — we’ll keep your details in mind for future
                 collaborations, roles, or opportunities at RORUM.
               </p>
             </div>
 
-            <label htmlFor="cv-name">
-              <span className="cv-field-label">
-                Full Name<span className="required-marker" aria-hidden="true">*</span>
+            <label htmlFor="cv-name" className={CV_LABEL_CLASS}>
+              <span className={CV_FIELD_LABEL_CLASS}>
+                Full Name<span aria-hidden="true" className={CV_REQUIRED_MARK_CLASS}>*</span>
               </span>
               <input
                 id="cv-name"
@@ -185,6 +207,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
                 required
                 aria-invalid={Boolean(errors.name)}
                 aria-describedby={errors.name ? "cv-name-error" : undefined}
+                className={CV_INPUT_CLASS}
               />
               {errors.name ? (
                 <small className="text-accent text-xs font-bold" id="cv-name-error">
@@ -193,10 +216,10 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
               ) : null}
             </label>
 
-            <div className="cv-modal-grid">
-              <label htmlFor="cv-email">
-                <span className="cv-field-label">
-                  Email<span className="required-marker" aria-hidden="true">*</span>
+            <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
+              <label htmlFor="cv-email" className={CV_LABEL_CLASS}>
+                <span className={CV_FIELD_LABEL_CLASS}>
+                  Email<span aria-hidden="true" className={CV_REQUIRED_MARK_CLASS}>*</span>
                 </span>
                 <input
                   id="cv-email"
@@ -206,6 +229,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
                   required
                   aria-invalid={Boolean(errors.email)}
                   aria-describedby={errors.email ? "cv-email-error" : undefined}
+                  className={CV_INPUT_CLASS}
                 />
                 {errors.email ? (
                   <small className="text-accent text-xs font-bold" id="cv-email-error">
@@ -214,9 +238,9 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
                 ) : null}
               </label>
 
-              <label htmlFor="cv-phone">
-                <span className="cv-field-label">
-                  Phone number<span className="required-marker" aria-hidden="true">*</span>
+              <label htmlFor="cv-phone" className={CV_LABEL_CLASS}>
+                <span className={CV_FIELD_LABEL_CLASS}>
+                  Phone number<span aria-hidden="true" className={CV_REQUIRED_MARK_CLASS}>*</span>
                 </span>
                 <input
                   id="cv-phone"
@@ -227,6 +251,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
                   required
                   aria-invalid={Boolean(errors.phone)}
                   aria-describedby={errors.phone ? "cv-phone-error" : undefined}
+                  className={CV_INPUT_CLASS}
                 />
                 {errors.phone ? (
                   <small className="text-accent text-xs font-bold" id="cv-phone-error">
@@ -236,12 +261,12 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
               </label>
             </div>
 
-            <label className="cv-upload-label" htmlFor="cv-upload">
-              <span className="cv-field-label">
-                Upload your CV<span className="required-marker" aria-hidden="true">*</span>
+            <label className={CV_LABEL_CLASS} htmlFor="cv-upload">
+              <span className={CV_FIELD_LABEL_CLASS}>
+                Upload your CV<span aria-hidden="true" className={CV_REQUIRED_MARK_CLASS}>*</span>
               </span>
-              <span className="cv-upload-dropzone">
-                <Upload aria-hidden="true" strokeWidth={1.7} />
+              <span className="grid grid-cols-[34px_minmax(0,1fr)] items-center gap-3 min-h-18 p-4 border border-dashed border-[rgba(var(--rgb-brown),0.32)] bg-cream text-text-primary text-[15px] font-bold max-sm:grid-cols-[28px_minmax(0,1fr)] max-sm:min-h-16.5 max-sm:p-3.5">
+                <Upload className="w-7 h-7 text-red" aria-hidden="true" strokeWidth={1.7} />
                 <span>
                   {selectedFile
                     ? selectedFile.name
@@ -257,11 +282,12 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
                 aria-invalid={Boolean(errors.file)}
                 aria-describedby={errors.file ? "cv-file-error" : undefined}
                 onChange={handleFileChange}
+                className="absolute w-px h-px opacity-0 pointer-events-none"
               />
             </label>
             {selectedFile ? (
               <button
-                className="cv-remove-file"
+                className="justify-self-start w-fit border-0 bg-transparent text-red text-[13px] font-extrabold underline underline-offset-[3px] cursor-pointer"
                 type="button"
                 onClick={removeFile}
               >
@@ -274,27 +300,32 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
               </small>
             ) : null}
 
-            <label htmlFor="cv-message">
+            <label htmlFor="cv-message" className={CV_LABEL_CLASS}>
               Short message
               <textarea
                 id="cv-message"
                 name="message"
                 rows={4}
                 placeholder="Tell us briefly what kind of collaboration you are interested in."
+                className={CV_TEXTAREA_CLASS}
               />
             </label>
 
             <PrivacyConsent id="cv-privacy" error={errors.privacyConsent} />
 
             {submitError ? (
-              <p className="cv-submit-error" role="alert">
+              <p className="m-0 py-3 px-3.5 bg-[rgba(var(--rgb-red),0.08)] text-red text-sm leading-[1.55] font-bold" role="alert">
                 Something went wrong while sending your CV. Please try again, or
                 contact us directly at{" "}
-                <a href="mailto:rorum2025@gmail.com">rorum2025@gmail.com</a>.
+                <a href="mailto:rorum2025@gmail.com" className="text-inherit underline underline-offset-[3px]">rorum2025@gmail.com</a>.
               </p>
             ) : null}
 
-            <button className="btn" type="submit" disabled={isSubmitting}>
+            <button
+              className={CV_SUBMIT_BUTTON_CLASS}
+              type="submit"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? "Sending..." : "Submit CV"}
             </button>
           </form>

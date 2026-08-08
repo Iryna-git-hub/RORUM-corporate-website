@@ -160,25 +160,25 @@ type BenefitIndexStyle = CSSProperties & { "--benefit-index": number };
 export default function CommunityMembershipPage() {
   return (
     <>
-      <section className="wecoda-hero bg-cream py-[clamp(44px,5vw,6rem)] max-tablet:p-[24px_0_28px]">
+      <section className="wecoda-hero bg-cream py-[clamp(44px,5vw,6rem)] max-sm:p-[24px_0_28px]">
         <Container>
           <div className="wecoda-hero-grid">
             <div className="wecoda-hero-copy grid gap-[clamp(10px,1.3vw,15px)] min-w-0">
               <SectionLabel>WECODA Community</SectionLabel>
-              <h1 className="heading wecoda-hero-title font-heading text-text-primary font-medium normal-case tracking-[0] leading-[1.2] m-0 max-w-full text-[3rem] max-tablet:text-[clamp(2rem,10vw,2.5rem)]">
+              <h1 className="heading wecoda-hero-title font-heading text-text-primary font-medium normal-case tracking-[0] leading-[1.2] m-0 max-w-full text-[3rem] max-sm:text-[clamp(2rem,10vw,2.5rem)]">
                 Join a Community That Helps Women Move Forward
               </h1>
-              <p className="wecoda-hero-intro text-text-primary text-[1rem] leading-[1.58] max-tablet:m-[2px_0_4px]">
+              <p className="wecoda-hero-intro text-text-primary text-[1rem] leading-[1.58] max-sm:m-[2px_0_4px]">
                 <strong>WECODA:</strong> Women Entrepreneurs Commerce &
                 Development Association.
               </p>
-              <p className="wecoda-hero-intro text-text-primary text-[1rem] leading-[1.58] max-tablet:m-[2px_0_4px]">
+              <p className="wecoda-hero-intro text-text-primary text-[1rem] leading-[1.58] max-sm:m-[2px_0_4px]">
                 Connect with women entrepreneurs, professionals, and
                 changemakers. Exchange experience, discover new opportunities,
                 and grow with the support of an international community.
               </p>
             </div>
-            <div className="wecoda-hero-logo-panel grid place-items-center w-[clamp(240px,24vw,300px)] aspect-square justify-self-start bg-white rounded-full border border-[rgba(var(--rgb-brown),0.1)] shadow-[0_18px_40px_rgba(var(--rgb-brown),0.12)] max-[980px]:w-[clamp(200px,30vw,260px)] max-[980px]:justify-self-center max-tablet:w-[min(220px,60vw)]">
+            <div className="wecoda-hero-logo-panel grid place-items-center w-[clamp(240px,24vw,300px)] aspect-square justify-self-start bg-white rounded-full border border-[rgba(var(--rgb-brown),0.1)] shadow-[0_18px_40px_rgba(var(--rgb-brown),0.12)] max-lg:w-[clamp(200px,30vw,260px)] max-lg:justify-self-center max-sm:w-[min(220px,60vw)]">
               <Image
                 className="wecoda-hero-logo w-[75%] h-[75%] object-contain"
                 src="/images/membership-week/wecoda-logo.jpg"
@@ -188,7 +188,7 @@ export default function CommunityMembershipPage() {
                 priority
               />
             </div>
-            <div className="wecoda-hero-actions flex flex-wrap gap-5 items-center max-tablet:w-full max-tablet:mt-1">
+            <div className="wecoda-hero-actions flex flex-wrap gap-5 items-center max-sm:w-full max-sm:mt-1">
               <MembershipButton>Become a Member</MembershipButton>
               <Button href="#support-wecoda" variant="secondary">
                 Support WECODA
@@ -199,7 +199,7 @@ export default function CommunityMembershipPage() {
                 />
               </Button>
               <a
-                className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-tablet:w-full max-tablet:justify-center"
+                className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
                 href="https://wecoda.org"
                 target="_blank"
                 rel="noreferrer"
@@ -239,7 +239,7 @@ export default function CommunityMembershipPage() {
             label="WECODA community"
             title="Connecting Women Who Inspire, Build and Lead."
           />
-          <div className="wecoda-intro-columns grid grid-cols-2 gap-[clamp(24px,3vw,56px)] max-[980px]:grid-cols-1 max-[980px]:gap-5">
+          <div className="wecoda-intro-columns grid grid-cols-2 gap-[clamp(24px,3vw,56px)] max-lg:grid-cols-1 max-lg:gap-5">
             <div className="wecoda-intro-column grid gap-4 content-start">
               <p>
                 WECODA is an international community where ambitious women
@@ -270,10 +270,10 @@ export default function CommunityMembershipPage() {
               </p>
             </div>
           </div>
-          <div className="wecoda-hero-actions flex flex-wrap gap-5 items-center max-tablet:w-full max-tablet:mt-1">
+          <div className="wecoda-hero-actions flex flex-wrap gap-5 items-center max-sm:w-full max-sm:mt-1">
             <MembershipButton>Become a Member</MembershipButton>
             <a
-              className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-tablet:w-full max-tablet:justify-center"
+              className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
               href="https://wecoda.org"
               target="_blank"
               rel="noreferrer"
@@ -294,36 +294,43 @@ export default function CommunityMembershipPage() {
           <SectionHeader
             label="Membership Benefits"
             title="What You Gain as a Member"
+            className="mb-[clamp(28px,4vw,42px)]!"
           />
           <MembershipBenefitsGrid>
             {benefits.map(({ title, text, icon }, index) => (
               <article
-                className="wecoda-benefit-item"
+                className="wecoda-benefit-item grid grid-cols-1 content-start gap-4 p-[clamp(20px,2.6vw,28px)] border-0 rounded-none bg-white text-text-primary shadow-[0_12px_30px_rgba(var(--rgb-brown),0.06)]"
                 key={title}
                 style={{ "--benefit-index": index } as BenefitIndexStyle}
               >
-                <span className="membership-benefit-card__icon flex items-center justify-start w-12 h-12 shrink-0">
+                <span className="flex items-center justify-start w-12 h-12 shrink-0">
                   <Image
                     src={icon}
                     alt=""
                     aria-hidden="true"
                     width={48}
                     height={48}
+                    className="block w-full h-full object-contain"
                   />
                 </span>
-                <div>
-                  <h3>{title}</h3>
-                  <p>{text}</p>
+                <div className="grid">
+                  <h3 className="m-0 mb-4 text-text-primary font-heading text-[1.2rem] leading-[1.2] font-semibold">
+                    {title}
+                  </h3>
+                  <p className="m-0 max-w-[54ch] text-[rgba(var(--rgb-dark-brown),0.76)] text-[0.96rem] leading-[1.62]">
+                    {text}
+                  </p>
                 </div>
               </article>
             ))}
           </MembershipBenefitsGrid>
-          <p className="membership-icons text-[0.8rem] pt-8">
+          <p className="text-[0.8rem] pt-8">
             Membership icons designed by{" "}
             <a
               href="https://www.flaticon.com/authors/freepik"
               target="_blank"
               rel="noreferrer"
+              className="hover:text-red"
             >
               Freepik
             </a>{" "}
@@ -332,6 +339,7 @@ export default function CommunityMembershipPage() {
               href="https://www.flaticon.com/"
               target="_blank"
               rel="noreferrer"
+              className="hover:text-red"
             >
               Flaticon
             </a>
@@ -340,12 +348,12 @@ export default function CommunityMembershipPage() {
         </Container>
       </section>
 
-      <section className="section wecoda-membership-section bg-light-green text-text-on-dark pb-24 max-tablet:pb-11">
+      <section className="section wecoda-membership-section bg-light-green text-text-on-dark pb-24 max-sm:pb-11">
         <Container>
-          <div className="wecoda-membership-panel grid gap-24 w-full text-text-on-dark max-tablet:w-full max-tablet:gap-6">
-            <div className="wecoda-membership-panel-main grid grid-cols-[minmax(180px,220px)_minmax(0,max-content)_auto] justify-start items-center gap-[75px] max-[980px]:grid-cols-1 max-[980px]:justify-items-center max-[980px]:text-center max-tablet:grid-cols-1 max-tablet:gap-11">
+          <div className="wecoda-membership-panel grid gap-24 w-full text-text-on-dark max-sm:w-full max-sm:gap-6">
+            <div className="wecoda-membership-panel-main grid grid-cols-[minmax(180px,220px)_minmax(0,max-content)_auto] justify-start items-center gap-[75px] max-lg:grid-cols-1 max-lg:justify-items-center max-lg:text-center max-sm:grid-cols-1 max-sm:gap-11">
               <div className="wecoda-membership-illustration grid place-items-center min-w-0">
-                <div className="wecoda-membership-logo-badge grid place-items-center w-[min(100%,200px)] aspect-square rounded-full bg-white p-[clamp(20px,2.2vw,28px)] shadow-[0_18px_40px_rgba(var(--rgb-brown),0.16)] max-[980px]:w-[min(40vw,185px)] max-tablet:w-[min(60vw,170px)]">
+                <div className="wecoda-membership-logo-badge grid place-items-center w-[min(100%,200px)] aspect-square rounded-full bg-white p-[clamp(20px,2.2vw,28px)] shadow-[0_18px_40px_rgba(var(--rgb-brown),0.16)] max-lg:w-[min(40vw,185px)] max-sm:w-[min(60vw,170px)]">
                   <Image
                     className="wecoda-membership-logo block w-full h-auto object-contain"
                     src="/images/membership-week/wecoda-logo.jpg"
@@ -361,7 +369,7 @@ export default function CommunityMembershipPage() {
                   Together, we are building a strong international community.
                 </p>
                 <a
-                  className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-tablet:w-full max-tablet:justify-center"
+                  className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
                   href="https://wecoda.org"
                   target="_blank"
                   rel="noreferrer"
@@ -388,7 +396,7 @@ export default function CommunityMembershipPage() {
                   </a>
                 </p>
               </div>
-              <div className="wecoda-membership-cta flex justify-center min-w-max max-[980px]:justify-center max-[980px]:min-w-0">
+              <div className="wecoda-membership-cta flex justify-center min-w-max max-lg:justify-center max-lg:min-w-0">
                 <MembershipButton variant="red">
                   Become a Member
                 </MembershipButton>
@@ -396,7 +404,7 @@ export default function CommunityMembershipPage() {
             </div>
             <div className="wecoda-application-process grid gap-[18px] pt-[clamp(24px,3vw,34px)]">
               <h4>Application Process</h4>
-              <ol className="wecoda-application-steps grid grid-cols-2 gap-x-[clamp(32px,5vw,64px)] gap-y-0 p-0 list-none max-[980px]:grid-cols-1">
+              <ol className="wecoda-application-steps grid grid-cols-2 gap-x-[clamp(32px,5vw,64px)] gap-y-0 p-0 list-none max-lg:grid-cols-1">
                 {applicationProcess.map(({ title, text }, index) => (
                   <li key={title}>
                     <span
@@ -420,7 +428,7 @@ export default function CommunityMembershipPage() {
       <section className="section wecoda-membership-week-section">
         <Container>
           <SectionHeader label="Gallery" title="WECODA Community Meetings" />
-          <div className="wecoda-membership-week-grid grid grid-cols-4 auto-rows-[clamp(230px,21vw,340px)] gap-[clamp(12px,1.6vw,18px)] max-[980px]:grid-cols-2 max-[980px]:auto-rows-[clamp(190px,38vw,320px)] max-[560px]:grid-cols-1 max-[560px]:auto-rows-[clamp(230px,72vw,380px)]">
+          <div className="wecoda-membership-week-grid grid grid-cols-4 auto-rows-[clamp(230px,21vw,340px)] gap-[clamp(12px,1.6vw,18px)] max-lg:grid-cols-2 max-lg:auto-rows-[clamp(190px,38vw,320px)] max-[560px]:grid-cols-1 max-[560px]:auto-rows-[clamp(230px,72vw,380px)]">
             {membershipWeekMedia.map((item) => (
               <figure
                 className={`wecoda-membership-week-item relative min-w-0 min-h-0 m-0 overflow-hidden bg-beige ${

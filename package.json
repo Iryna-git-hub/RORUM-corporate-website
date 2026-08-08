@@ -8,7 +8,10 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test tests/interactions.spec.ts tests/breakpoints.spec.ts",
+    "test:visual": "playwright test tests/visual.spec.ts",
+    "test:visual:update": "playwright test tests/visual.spec.ts --update-snapshots"
   },
   "dependencies": {
     "lucide-react": "^1.11.0",
@@ -17,6 +20,7 @@
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "25.5.2",
     "@types/react": "^19.2.14",

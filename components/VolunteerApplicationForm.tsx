@@ -16,6 +16,18 @@ const requiredFields: [name: string, label: string][] = [
   ["message", "Message"],
 ];
 
+// Matches InquiryForm.tsx's field styling exactly: both forms render the
+// same visual design, just from a different starting cascade (this one used
+// to combine legacy `.form`/`.cv-modal-form` classes; that cascade's winning
+// declarations - worked out property-by-property - are what these encode).
+const LABEL_CLASS =
+  "block text-[rgba(var(--rgb-dark-brown),0.5)] font-semibold text-[0.82rem]";
+const REQUIRED_MARK_CLASS = "ml-0.5 text-[rgba(var(--rgb-red),0.62)]";
+const INPUT_CLASS =
+  "block w-full mt-1.75 border border-beige rounded-none bg-white px-[13px] py-3 text-text-primary text-base font-medium leading-[1.45] placeholder:text-[rgba(var(--rgb-dark-brown),0.38)] placeholder:font-medium placeholder:opacity-100 focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(var(--rgb-light-green),0.24)] aria-[invalid=true]:border-accent aria-[invalid=true]:outline-none aria-[invalid=true]:shadow-[0_0_0_2px_rgba(var(--rgb-red),0.16)]";
+const SUBMIT_BUTTON_CLASS =
+  "inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] lg:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker disabled:cursor-not-allowed disabled:opacity-[0.62] disabled:transform-none";
+
 function validateField(
   name: string,
   value: FormDataEntryValue | null,
@@ -95,7 +107,7 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
       onClose={onClose}
     >
     <form
-      className="form cv-modal-form"
+      className="grid gap-4"
       action={formspreeConfig.endpoint}
       method="post"
       onSubmit={handleSubmit}
@@ -109,7 +121,13 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
         value="New Volunteer With Us application"
       />
       <div className="grid gap-2 mb-1">
-        <h2 id="volunteer-modal-title" className="heading form-title">
+        {/* Neither `.heading` nor the generic `.section-title,.cta-title,
+            .form-title` rule wins here - the more specific (still-deferred)
+            `.form .form-title` rule does, for every overlapping property. */}
+        <h2
+          id="volunteer-modal-title"
+          className="m-0 text-text-primary font-body text-[clamp(17px,1.35vw,20px)] leading-tight font-black tracking-normal normal-case"
+        >
           Volunteer With Us
         </h2>
       </div>
@@ -133,8 +151,8 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
         </div>
       ) : null}
 
-      <label htmlFor="volunteer-name">
-        Full Name<span className="required-marker" aria-hidden="true">*</span>
+      <label htmlFor="volunteer-name" className={LABEL_CLASS}>
+        Full Name<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
         <input
           id="volunteer-name"
           name="name"
@@ -144,13 +162,14 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
           required
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? "volunteer-name-error" : undefined}
+          className={INPUT_CLASS}
         />
         <FieldError id="volunteer-name-error" message={errors.name} />
       </label>
 
-      <div className="form-grid">
-        <label htmlFor="volunteer-email">
-          Email<span className="required-marker" aria-hidden="true">*</span>
+      <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
+        <label htmlFor="volunteer-email" className={LABEL_CLASS}>
+          Email<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id="volunteer-email"
             name="email"
@@ -162,12 +181,13 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
             aria-describedby={
               errors.email ? "volunteer-email-error" : undefined
             }
+            className={INPUT_CLASS}
           />
           <FieldError id="volunteer-email-error" message={errors.email} />
         </label>
 
-        <label htmlFor="volunteer-phone">
-          Phone number<span className="required-marker" aria-hidden="true">*</span>
+        <label htmlFor="volunteer-phone" className={LABEL_CLASS}>
+          Phone number<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id="volunteer-phone"
             name="phone"
@@ -180,13 +200,14 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
             aria-describedby={
               errors.phone ? "volunteer-phone-error" : undefined
             }
+            className={INPUT_CLASS}
           />
           <FieldError id="volunteer-phone-error" message={errors.phone} />
         </label>
       </div>
 
-      <label htmlFor="volunteer-message">
-        Message<span className="required-marker" aria-hidden="true">*</span>
+      <label htmlFor="volunteer-message" className={LABEL_CLASS}>
+        Message<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
         <textarea
           id="volunteer-message"
           name="message"
@@ -197,6 +218,7 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
           aria-describedby={
             errors.message ? "volunteer-message-error" : undefined
           }
+          className={INPUT_CLASS}
         />
         <FieldError id="volunteer-message-error" message={errors.message} />
       </label>
@@ -206,7 +228,11 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
         error={errors.privacyConsent}
       />
 
-      <button className="btn" type="submit" disabled={isSubmitting || sent}>
+      <button
+        className={SUBMIT_BUTTON_CLASS}
+        type="submit"
+        disabled={isSubmitting || sent}
+      >
         {isSubmitting
           ? "Sending..."
           : sent

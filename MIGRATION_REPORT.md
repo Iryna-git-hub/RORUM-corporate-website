@@ -3,6 +3,13 @@
 > **Update:** The CSS→Tailwind component migration, dead-CSS cleanup, and bug
 > decisions flagged as follow-ups below (§17) were executed in a second
 > session. See [Part 2](#part-2--css-tailwind-component-migration-dead-css-cleanup--bug-decisions)
+> for that report. A third session standardized the breakpoint system and
+> added permanent test infrastructure — see
+> [Part 3](#part-3--standard-tailwind-breakpoint-migration--permanent-test-infrastructure).
+> A fourth session then went through the remaining `app/globals.css` line by
+> line, extended shared component APIs to eliminate cross-file CSS coupling,
+> and took the file from 5,839 to 2,365 lines — see
+> [Part 4](#part-4--line-by-line-csstailwind-conversion--component-api-decoupling)
 > at the end of this document for that report.
 
 ## 1. Executive Summary
@@ -293,3 +300,124 @@ Identical bar to Part 1: `npm run typecheck` (0 errors), `npm run lint` (0 error
 | `package.json` | `playwright`/`pixelmatch`/`pngjs` added then removed again (net zero), mirroring Part 1. |
 | `.gitignore` | `.qa`/`test-results` entries added then removed along with the Playwright tooling, mirroring Part 1. |
 | Throwaway scripts | `scripts/visual-diff.mjs` (screenshot-diff harness), `scripts/find-dead-css.mjs`/`scripts/remove-dead-css.mjs` (dead-CSS detection/removal) — all removed at the end of this session, not part of the permanent toolchain. |
+
+# Part 3 — Standard Tailwind Breakpoint Migration & Permanent Test Infrastructure
+
+## 1. Executive Summary
+
+This third session completed the two items Part 2 explicitly deferred by construction: the project's ad hoc breakpoint system (`tablet:`/`desktop:`/`wide:` at 640/981/1280px, plus assorted one-off arbitrary cutoffs) was replaced with Tailwind's standard scale (`sm:`/`md:`/`lg:`/`xl:`/`2xl:` at 640/768/1024/1280/1536px), and the throwaway Playwright harness used in Parts 1–2 (installed, used, then uninstalled each session) was replaced with a permanent, committed test suite with its own `npm run test:e2e`/`test:visual` scripts.
+
+- **Breakpoints**: the custom `--breakpoint-tablet`/`--breakpoint-desktop`/`--breakpoint-wide` `@theme` tokens were removed; every `tablet:`/`max-tablet:`, `desktop:`/`max-desktop:`, `wide:`/`max-wide:` variant across 26 TSX files (~185 occurrences) was mapped onto `sm:`/`lg:`/`xl:`, and the equivalent hand-written `@media` boundaries in `app/globals.css` (~24 occurrences) were moved onto the matching standard px value. The old "desktop" cutoff (981px) had no standard equivalent nearby, so it shifted to `lg` (1024px) — see §4 for the full boundary mapping and which real device-width range that shift affects.
+- **Dead code found along the way**: two hand-written `@media` blocks for `.wecoda-membership-week-grid` (a component already fully Tailwind-converted in Part 2, whose CSS-side responsive rules had become an exact, unreachable duplicate of the Tailwind utilities already on the element) were removed, plus one redundant arbitrary variant (`max-[420px]:grid-cols-2` in `CateringMenuOverlay.tsx`, restating a value already set by the wider `max-sm:` rule).
+- **One JS-side breakpoint fixed to match**: `EventsPaginatedList.tsx`'s column-count logic used a hardcoded `width >= 981` check mirroring the old CSS grid breakpoint; updated to `>= 1024` to stay in sync with the grid's new `lg` boundary (would otherwise have silently mismatched the CSS by 43px).
+- **Permanent test infrastructure**: `@playwright/test` is now a real (not throwaway) devDependency, with `playwright.config.ts`, a `tests/` directory, and 123 tests covering visual regression (60 screenshots: 14 static routes + 1 representative dynamic event route × 4 widths), the specific breakpoint-transition regressions this project has hit before (mobile burger visibility, desktop nav, event-filter dropdown containment, Buy Ticket sizing — tested across the full 12-point responsive matrix the task specifies), and broader interaction coverage (nav, forms, modals, FAQ, catering overlay, gallery lightbox, pagination). All 123 pass against the final state.
+- Zero remaining custom breakpoint tokens; every retained arbitrary breakpoint is small in number (4 call sites total) and individually justified in §5.
+
+## 2. Approach
+
+1. Installed dependencies fresh (`npm ci`, one transient `EPERM` on a locked binary resolved by retrying), captured baseline `typecheck`/`lint`/`build` (all clean, matching Part 2's documented end state).
+2. Built the permanent Playwright suite *before* touching any breakpoint code, generated a full visual baseline against the pre-migration build, and confirmed the new interaction/breakpoint tests pass against it (one test — the `lg`-boundary nav check at 1023px — was written to assert the *target* post-migration behavior and correctly failed against the pre-migration code, confirming the test itself was meaningful rather than vacuous).
+3. Inventoried every `tablet:`/`desktop:`/`wide:` variant and hand-written `@media` boundary (§4), then applied the rename mechanically (a small Node script doing ordered literal/regex replacement, not manual per-file edits, to guarantee consistency across 26 files) and re-validated.
+4. Re-ran the full test suite against the migrated code: all pre-existing tests still passed, and the 1023px boundary test now passed as expected, directly demonstrating the `desktop`→`lg` shift took effect correctly.
+5. Fixed two test-infrastructure flakiness sources discovered while regenerating the baseline (§6) — neither was a real app bug — then regenerated a clean baseline and confirmed a full back-to-back rerun was 100% stable before treating it as final.
+
+## 3. Files Changed
+
+`app/globals.css` plus 26 TSX files: `app/{about,catering,community-membership,contact,event-decoration,host-at-rorum,work-with-us}/page.tsx`, `app/events/[slug]/page.tsx`, `app/shared.tsx`, `components/{ApplicationModal,Cards,CateringInquiryForm,CateringMenuOverlay,ContactForm,CvUploadModal,EventCard,EventFilters,EventsPaginatedList,FAQAccordion,Footer,Header,HomeEditorialSections,HorizontalGallery,InquiryForm,PrivacyPolicyModal,WecodaDonationSection,ui}.tsx`. New: `playwright.config.ts`, `tests/{routes,support,visual.spec,breakpoints.spec,interactions.spec}.ts`. Config: `package.json` (test scripts, `@playwright/test` devDependency), `eslint.config.mjs` (ignore generated `playwright-report/`/`test-results/`), `.gitignore` (Playwright output directories).
+
+## 4. Breakpoint Mapping
+
+| Old | New | Notes |
+|---|---|---|
+| `tablet:` / `max-tablet:` (640px) | `sm:` / `max-sm:` | Exact value match, no behavior change. |
+| `desktop:` / `max-desktop:` (981px) | `lg:` / `max-lg:` | **Shifted +43px.** Only affects real layouts in the 981–1023px window (a narrow band with no common device at that exact width — e.g. no mainstream tablet ships at 1000px); above 1024 and below 981 behavior is identical to before. |
+| `wide:` / `max-wide:` (1280px) | `xl:` / `max-xl:` | Exact value match. |
+| `max-[980px]:` (arbitrary stand-in for the same "desktop" cutoff, used inconsistently alongside the `desktop:` token) | `max-lg:` | Same shift and rationale as `desktop:` above — this was always the same design cutoff, just spelled two different ways. |
+| `min-[1024px]:` (arbitrary, `components/ui.tsx`) | `lg:` | Already exactly the `lg` value; purely a naming cleanup. |
+| `desktop:max-[1279px]:` (compound, `Header.tsx`, header compaction between the old desktop/wide cutoffs) | `lg:max-xl:` | Compound variant, each half mapped per its own row above. |
+| Hand-written `@media (min-width: 981px)` / `(max-width: 980px)` (`globals.css`) | `(min-width: 1024px)` / `(max-width: 1023px)` | Same shift as `desktop:`. |
+| Hand-written `@media (max-width: 640px)` / `(min-width: 641px)` (`globals.css`) | `(max-width: 639px)` / `(min-width: 640px)` | Closes the project's original 1px gap between its two hand-picked "mobile vs. tablet" cutoffs onto Tailwind's single, exclusive `sm` boundary. |
+
+## 5. Remaining Arbitrary Breakpoints (all documented at their call site)
+
+Four call sites keep a non-standard cutoff, each because it solves a real layout problem standard breakpoints don't cover:
+
+- **`max-[360px]:`** — `Header.tsx`'s mobile-menu top bar (gap/padding) and the matching `globals.css` `.header .mobile-topbar-cta` rule. A dedicated allowance for the narrowest real phones (e.g. 320–360px devices), tighter than `sm`'s 640px floor by design — collapsing it into a standard breakpoint would either apply the compaction too broadly (at `max-sm`, affecting phones that have room to spare) or not at all.
+- **`max-[560px]:`** — `community-membership/page.tsx`'s WECODA photo grid (4→2→1 columns as width shrinks). The 1-column threshold sits intentionally below `sm` (640) because at 560–639px, 2 photo columns are still comfortably legible; only below 560 do individual photos get too narrow. Using `max-sm` here would drop to 1 column 80px earlier than the content actually requires.
+- **`@media (min-width: 1024px) and (max-width: 1100px)`** — `globals.css`, collapses the header's language switcher into a compact dropdown specifically in the narrow "just past `lg`" range where the full switcher and the rest of the header controls would otherwise crowd each other. Pre-existing (not introduced this session); kept because it targets a real, narrow collision window that neither `lg` nor `xl` alone describes.
+- **`@media (min-width: 1024px) and (max-width: 1279px)`** — `globals.css`, compacts nav spacing and the header CTA button in the same "narrow desktop" window, immediately above. This one *is* exactly the `lg`-to-`xl` range, so it's arguably already "standard" in spirit even though it's written as literal pixel values rather than chained Tailwind variants (kept as hand-written CSS rather than converted to Tailwind classes because it targets several unrelated selectors at once — `.nav`, `.header .header-cta .btn` — which is what this rule already was in Part 2 and wasn't in scope to restructure this session).
+
+## 6. Test-Infrastructure Fixes (not app bugs)
+
+Three sources of screenshot flakiness were found and fixed while building the permanent visual-regression baseline — all are test-harness gaps, not application defects, confirmed by the fact that the *same* flaky behavior was reproducible on the pre-migration code too:
+
+1. **Reduced-motion-gated content** (`MembershipBenefitsGrid.tsx` and `SiteShell.tsx`'s site-wide per-`<section>` scroll-reveal both gate their entrance animation behind an IntersectionObserver, but skip it entirely when `window.matchMedia("(prefers-reduced-motion: reduce)").matches` is true). A headless `fullPage` screenshot capture doesn't reliably reproduce the same scroll-intersection timing a real user would, so sections could be caught pre-reveal, producing large page-height mismatches between runs (up to ~1500px on `/community-membership`, and a near-total diff on `/catering`). Fixed with `page.emulateMedia({ reducedMotion: "reduce" })` — the app's own documented accessibility behavior for this exact case, not a test-only workaround. The first fix attempt called this *after* `page.goto()`; that was still flaky, because both components check `matchMedia` synchronously in a mount-time `useEffect`, which runs *during* navigation — the emulation has to be set up before `goto()` so the very first render already observes reduced motion.
+2. **Large `<img>` elements decoded asynchronously**: waiting for the `load` event (or `.complete`) is not sufficient — Chromium can composite a screenshot before an async-decoded image has actually painted. Fixed by additionally awaiting `img.decode()` on every image before each screenshot.
+3. **Worker contention**: reduced the default local worker count from Playwright's automatic `cpuCount/2` to a fixed 4, after intermittent 30s timeouts on the heaviest page (home, autoplay video + several images) under full parallelism.
+
+Verified stable with two consecutive full-suite reruns (123/123 both times) after all three fixes, not just a single green run.
+
+## 7. Validation
+
+`npm ci` (clean), `npm run typecheck` (0 errors), `npm run lint` (0 errors, same 12 pre-existing `<img>` warnings), `npm run build` (green, same 50-route split as Parts 1–2). `npm run test:e2e` (63/63 passed: interaction + breakpoint-transition tests across the full 360/375/639/640/767/768/1023/1024/1279/1280/1535/1536px matrix). `npm run test:visual` (60/60 passed against a freshly-regenerated, back-to-back-verified-stable baseline).
+
+## 8. Configuration
+
+| File | Change |
+|---|---|
+| `app/globals.css` | `--breakpoint-tablet`/`--breakpoint-desktop`/`--breakpoint-wide` tokens removed (replaced by Tailwind's own defaults); ~24 hand-written `@media` boundaries moved onto standard px values (§4); 2 dead `.wecoda-membership-week-grid` media blocks removed (§1). Net: 5,839 → 5,813 lines. |
+| `package.json` | `@playwright/test` added as a **permanent** devDependency (unlike Parts 1–2's install/uninstall pattern); `test:e2e`/`test:visual`/`test:visual:update` scripts added. |
+| `playwright.config.ts`, `tests/**` | New, permanent — see §1. |
+| `eslint.config.mjs` | Added `ignores` for `playwright-report/`/`test-results/`/`blob-report/` (generated Playwright output was otherwise being linted as source, producing thousands of false errors from minified trace-viewer bundles). |
+| `.gitignore` | Added Playwright output directories. |
+
+# Part 4 — Line-by-Line CSS→Tailwind Conversion & Component-API Decoupling
+
+## 1. Executive Summary
+
+Part 2 converted the majority of component/page files to Tailwind utilities, but — by its own §3/§5 methodology — retained the *original class name* wherever a page's CSS reached into a shared component's internals via a descendant selector, even when the declarations themselves were simple. That left `app/globals.css` at 5,839 lines: mostly still-live, unlayered CSS, with Tailwind utilities sitting alongside it inertly (per Part 2 §3.2). This session went through that remaining file **line by line**, selector by selector, and did the harder work Part 2 deferred: extending shared `ui.tsx` primitives with `className`/variant-override props so page-specific styling could be passed in explicitly instead of reaching into the component from outside, then converting the newly-decoupled page CSS to Tailwind and deleting it.
+
+- **`app/globals.css`: 5,839 → 2,365 lines (−59.5%, −3,474 lines)**, worked in 11 risk-ascending batches (shared primitives first, then leaf components, forms, complex interactive components, page-by-page, finishing with a dedicated pseudo-element sweep), each batch gated by `typecheck`/`lint`/`build`/full Playwright suite before moving on.
+- **Component-API refactor**: `ui.tsx`'s `SectionLabel`, `SectionHeader`, `FAQInlinePrompt`, `Button`, and `CTASection`, plus `CateringMenuOverlay.tsx`'s `CateringMenuButton`, gained `className`/`labelClassName`/`titleClassName`/`linkClassName`/`questionClassName` override props. This is the mechanism that let dozens of `.some-context .label { color: gold }`-style descendant-selector overrides across the codebase be deleted and replaced with an explicit prop at the call site, rather than staying as permanently-retained CSS hooks.
+- **Zero visual regressions in the final state** — validated with the full 123-test Playwright suite (60 visual-regression screenshots across 15 routes × 4 widths, unchanged from Part 3, plus 63 interaction/breakpoint tests), run after every batch, all green. Three real regressions were introduced and caught by this same suite mid-session (see §3) and fixed before moving on.
+- **What was deliberately left as hand-written CSS**, and why: complex pseudo-element/animation/carousel constructs (`HorizontalGallery`'s gradient fades, custom scrollbar hiding, and lightbox slide-transform carousel; the FAQ accordion's plus/minus cross; the catering-menu overlay's watermark; `quick-path-card`'s hover-reveal gradient; `EventFilters`' JS-positioned dropdown; `CTASection`'s `next-step-card-*` pulse animation), and one shared low-footprint typography context (`.policy-content`, styling raw prose across the three legal pages). None of these were force-converted — see §5 for the full list and rationale per item, consistent with the retention criteria Part 2 §5 already established.
+
+## 2. Approach
+
+Same staged, gated methodology as Parts 2–3, but scoped explicitly to *close out* Part 2's retained-class backlog rather than do a first pass:
+
+1. Read every remaining top-level selector in `app/globals.css` in file order, cross-referencing each against every `.tsx` file that used its class name (literal grep, plus a check for template-literal construction — the false-positive class this session's dead-CSS predecessor in Part 2 §8 had already been burned by once).
+2. For each selector, decide: (a) fully convert to Tailwind and delete the CSS, (b) convert *and* extend a shared component's props so the page no longer needs a descendant-selector hook, or (c) leave as hand-written CSS (pseudo-element/animation/shared-context cases, §5).
+3. Before deleting any rule shared across a comma-separated selector list (very common in this codebase — e.g. `.catering-step` sharing declarations with `.wecoda-application-steps li`), verified every branch independently rather than deleting the whole rule once one branch's owning page was converted — two near-misses this session (§3) were caused by skipping this check.
+4. Batch checkpoint: `typecheck`, `lint`, `build`, full 123-test Playwright suite. No batch was called done with a red suite.
+
+## 3. Regressions Introduced and Caught This Session
+
+Three real bugs were introduced by this session's own conversion work (not pre-existing) and caught by the Playwright visual-regression suite before being finalized — recorded here because each is a specific, non-obvious CSS cascade behavior worth knowing about for any future CSS work on this codebase:
+
+1. **Unlayered `body { font-size: 17px }` silently overrides an *absent* Tailwind font-size.** `host-at-rorum`'s hero paragraphs relied on a since-deleted `.book-space-hero-copy p { font-size: 16px }` rule; the converted `<p>` had no font-size utility at all, so it inherited the 1px-larger body default instead — invisible in isolation, but enough to shift line-wrapping and cascade into a 12px page-height mismatch at mobile widths. Fixed by adding the `16px` utility explicitly rather than assuming "no utility = same as before."
+2. **`flex-1` (`flex: 1 1 0%`) is not the same as `flex-auto` (`flex: 1 1 auto`).** The original mobile CTA-row rule used `flex: 1 1 auto`; converting it to Tailwind's `flex-1` changes the flex-basis from `auto` to `0%`, which only visibly differs when sibling flex items have different content lengths — exactly the case for two differently-worded buttons side by side. Caught at 375px/768px only (both affected buttons happened to be equal-width at the widths that passed).
+3. **A `@media (max-width: 980px)` rule three screens away from the element it affects.** `.catering-hero-actions`'s `margin-top: 18px` mobile/tablet override lived in a completely different part of the file from the rest of the class's rules, and was missed on the first conversion pass despite the rest of the class being fully accounted for. Root-caused via a temporary, file-scoped revert-and-diff (restore just the two affected files to their committed `HEAD` version, screenshot, compare, restore the working copy) rather than guessing from the CSS text alone — the computed-style gap (18px, exactly matching the missed rule) was the concrete signal. This is the specific failure mode grep-based auditing can't catch reliably: the rule was findable by class name, but easy to miss by eye against the sheer number of unrelated rules between it and its sibling declarations.
+
+All three were mobile/tablet-only (≤1023px), which is why the desktop-width tests passed clean while these were live — a reminder that the existing 4-width matrix (375/768/1024/1440px, in place since Part 3), not just a spot-check at one width, is what actually caught them.
+
+## 4. Remaining Custom CSS (updated from Part 1 §13)
+
+117 top-level class names remain in `app/globals.css` (down from Part 2's 311), each retained for one of these reasons:
+
+- **Pseudo-element / gradient / animation constructs**: `HorizontalGallery`'s edge-fade gradients and lightbox slide-transform carousel (`.horizontal-gallery-frame::before/::after`, `.gallery-lightbox-slide-*`), the FAQ accordion's plus/minus cross (`.faq-question::before/::after`), the catering-menu overlay's watermark (`.catering-menu-final::before`) and plus/minus icon, `.quick-path-card`'s hover-reveal gradient overlay (multiple transition-driven `::before`/`::after` states), `.event-media`'s hover/sold-out gradient overlay, `CTASection`'s `.next-step-card-final`/`.next-step-card-host` pulse animation.
+- **JS-toggled-class + CSS-transition pairs**: `EventFilters`' dropdown menu (`.events-filter-dropdown.is-open`, positioned via a JS-computed `--menu-shift-x` custom property that the CSS `transition` animates).
+- **Shared low-footprint typography context**: `.policy-content` (4 rules, ~18 lines) styles raw `h2`/`p`/`a`/`ul` prose across `terms`, `privacy-policy`, and `cookie-policy` — converting would mean duplicating identical utility classNames across dozens of static prose elements in three files for no visual difference, the same category Part 2 already established for `.btn`/`.label`/`.heading`.
+- **Widely-shared primitive hooks** (`.btn`, `.label`, `.heading`, `.section`, `.section-tight`, `.card`): still targeted by descendant-selector context overrides from files outside this session's batch scope, or used as the deferred base styling layer under `ui.tsx`'s primitives themselves.
+
+## 5. Validation
+
+`npm run typecheck` (0 errors), `npm run lint` (0 errors, same 12 pre-existing `<img>`/LCP warnings as Parts 1–3, unrelated to this work), `npm run build` (green, same 50-route static/SSG split). Full Playwright suite (`npx playwright test`): **123/123 passed** — 60 visual-regression screenshots (15 routes × 4 widths) and 63 interaction/breakpoint tests — run after every one of the 11 batches, not just at the end.
+
+## 6. Configuration
+
+| File | Change |
+|---|---|
+| `app/globals.css` | 11 batches of selector-by-selector conversion/deletion (§2); simple `::before`/`::after` constructs converted to `before:`/`after:` Tailwind variants where not entangled with animation/complex layout (§4). Net: 5,839 → 2,365 lines. |
+| `components/ui.tsx` | `SectionLabel`, `SectionHeader`, `FAQInlinePrompt`, `CTASection` extended with `className`/`labelClassName`/`titleClassName`/`linkClassName`/`questionClassName` override props (§1). |
+| `components/CateringMenuOverlay.tsx` | `CateringMenuButton` gained a `className` override prop, same purpose. |

@@ -34,9 +34,13 @@ export function MembershipBenefitsGrid({ children }: { children: ReactNode }) {
   }, []);
 
   return (
+    // `wecoda-benefits-grid`/`is-animation-ready`/`is-visible` are kept:
+    // the scroll-triggered stagger animation (per-item `--benefit-index`
+    // transition-delay) stays hand-authored CSS, matching this project's
+    // allowance for complex animations. The grid layout itself is Tailwind.
     <div
       ref={gridRef}
-      className={`wecoda-benefits-grid ${
+      className={`wecoda-benefits-grid grid grid-cols-3 gap-[clamp(18px,2.2vw,26px)] items-stretch max-lg:grid-cols-2 max-sm:grid-cols-1 ${
         animationReady ? "is-animation-ready" : ""
       } ${visible ? "is-visible" : ""}`.trim()}
     >

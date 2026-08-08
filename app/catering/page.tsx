@@ -191,22 +191,29 @@ const steps: [title: string, text: string][] = [
 export default function CateringPage() {
   return (
     <>
-      <section className="service-hero catering-hero">
+      <section className="bg-secondary px-0 pt-16.25 pb-0 max-sm:pt-9.5 lg:grid lg:items-center lg:min-h-auto">
         <Container>
-          <div className="catering-hero-layout">
-            <div className="service-hero-copy">
-              <SectionLabel>Catering</SectionLabel>
-              <h1 className="heading">Catering</h1>
-              <p>
+          <div className="grid grid-cols-1 gap-[clamp(28px,5vw,72px)] items-end lg:items-center">
+            <div className="grid gap-4.5 lg:grid-cols-2 lg:gap-x-[clamp(40px,6vw,80px)] lg:gap-y-[clamp(12px,1.5vw,18px)] lg:items-start">
+              <SectionLabel className="lg:col-start-1 lg:row-start-1">
+                Catering
+              </SectionLabel>
+              <h1 className="font-heading font-medium text-text-primary m-0 text-[3rem] leading-[1.02] tracking-normal normal-case [@media(min-width:1024px)_and_(max-height:820px)]:text-[clamp(2.55rem,4.2vw,3rem)] lg:col-start-1 lg:row-start-2">
+                Catering
+              </h1>
+              <p className="m-0 text-text-primary text-base leading-[1.7] [@media(min-width:1024px)_and_(max-height:820px)]:max-w-[88ch] [@media(min-width:1024px)_and_(max-height:820px)]:leading-[1.55] lg:col-start-2 lg:row-start-1 lg:row-span-3 lg:self-end">
                 Traditional Ukrainian cuisine in harmonious combination with
                 modern European gastronomy. We create not just dishes, but an
                 atmosphere where taste, aesthetics, and service work together.
               </p>
-              <div className="hero-actions catering-hero-actions">
-                <Button href="#catering-inquiry">
+              <div className="flex flex-wrap items-center gap-3 max-lg:mt-4.5 max-sm:justify-center max-sm:w-full lg:col-start-1 lg:row-start-3 lg:justify-self-start lg:w-fit lg:mt-[clamp(6px,1vw,12px)]">
+                <Button
+                  href="#catering-inquiry"
+                  className="min-h-10! px-6.5! max-sm:flex-auto"
+                >
                   Request catering
                   <ArrowRight
-                    className="button-arrow"
+                    className="button-arrow w-3.75 h-3.75 shrink-0 transition-transform duration-180 ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1"
                     aria-hidden="true"
                     strokeWidth={1.9}
                   />
@@ -214,6 +221,7 @@ export default function CateringPage() {
                 <CateringMenuButton
                   requestTargetId="catering-inquiry"
                   variant="secondary"
+                  className="min-h-10! px-6.5! max-sm:flex-auto"
                 >
                   Menu examples
                 </CateringMenuButton>
@@ -254,11 +262,13 @@ export default function CateringPage() {
 
       <section className="section bg-white">
         <Container>
-          <div className="catering-format-intro">
+          <div className="grid justify-items-center gap-3 mb-[clamp(30px,6vw,54px)] text-center">
             <SectionLabel>Catering</SectionLabel>
-            <h2 className="heading section-title">Menu Formats</h2>
+            <h2 className="font-heading font-medium text-text-primary m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] leading-tight tracking-normal normal-case">
+              Menu Formats
+            </h2>
           </div>
-          <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-y-[clamp(30px,4vw,48px)] gap-x-[clamp(22px,3vw,36px)]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-[clamp(30px,4vw,48px)] gap-x-[clamp(22px,3vw,36px)]">
             {menuFormats.map(({ title, description, image, alt }) => (
               <article className="min-w-0" key={title}>
                 <img
@@ -268,7 +278,7 @@ export default function CateringPage() {
                   className="block w-full aspect-4/3 object-cover"
                 />
                 <div className="grid gap-2.25 pt-[clamp(16px,2vw,22px)]">
-                  <h3 className="m-0 font-heading text-[clamp(20px,1.55vw,24px)] leading-[1.2] desktop:whitespace-nowrap">
+                  <h3 className="m-0 font-heading text-[clamp(20px,1.55vw,24px)] leading-[1.2] lg:whitespace-nowrap">
                     {title}
                   </h3>
                   <p className="m-0 text-[15px] leading-[1.62]">
@@ -281,24 +291,26 @@ export default function CateringPage() {
         </Container>
       </section>
 
-      <section className="section catering-offer-section">
+      <section className="section bg-white">
         <Container>
-          <div className="catering-offer-layout catering-philosophy-grid catering-offer-grid-mirror">
-            <div className="catering-offer-media-frame">
+          <div className="grid grid-cols-[minmax(320px,0.8fr)_minmax(0,0.95fr)] gap-[clamp(28px,5vw,72px)] items-start max-lg:grid-cols-1">
+            <div className="block w-full h-[min(560px,48vw)] min-h-90 overflow-hidden shadow-[0_18px_40px_rgba(var(--rgb-brown),0.08)] max-lg:-order-1 max-sm:h-auto max-sm:min-h-90 max-sm:aspect-4/3 lg:sticky lg:top-24">
               <img
-                className="catering-philosophy-image catering-offer-media"
+                className="block w-full h-full min-h-0 object-cover object-center shadow-none"
                 src="/images/catering/catering-service-team.png"
                 alt="RORUM catering team preparing food for an event"
               />
             </div>
-            <div className="catering-intro catering-offer-intro-copy">
+            <div className="grid gap-4 max-w-205">
               <SectionLabel>Catering</SectionLabel>
-              <h2 className="heading section-title">What we offer</h2>
-              <p className="catering-philosophy-lead">
+              <h2 className="font-heading font-medium text-text-primary m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] leading-tight tracking-normal normal-case">
+                What we offer
+              </h2>
+              <p className="max-w-[48ch] m-0 text-text-primary text-[clamp(17px,1.4vw,20px)] leading-[1.65]">
                 Catering shaped around your event, your guests and your
                 atmosphere.
               </p>
-              <p>
+              <p className="m-0 text-text-primary text-[18px] leading-[1.75]">
                 We create catering for different types of events - from elegant
                 finger food and light buffet solutions to full menus for family
                 celebrations, corporate events and official occasions. Each menu
@@ -306,30 +318,37 @@ export default function CateringPage() {
                 with a modern European approach, thoughtful presentation and
                 attentive service.
               </p>
-              <div className="catering-philosophy-list decoration-philosophy-list catering-offer-list">
+              <div className="grid gap-0 mt-2 border-t border-t-[rgba(var(--rgb-beige),0.64)]">
                 {formats.map(({ title, text, icon: Icon }) => (
-                  <div className="catering-philosophy-item" key={title}>
-                    <span className="decoration-philosophy-icon">
-                      <Icon aria-hidden="true" strokeWidth={1.55} />
+                  <div
+                    className="grid grid-cols-[54px_minmax(0,1fr)] gap-4.5 items-start py-4.5 border-b border-b-[rgba(var(--rgb-beige),0.64)]"
+                    key={title}
+                  >
+                    <span className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-[rgba(var(--rgb-red),0.1)] text-red">
+                      <Icon aria-hidden="true" strokeWidth={1.55} className="w-5.5 h-5.5" />
                     </span>
                     <div>
-                      <h3>{title}</h3>
-                      <p>{text}</p>
+                      <h3 className="mb-1 text-text-primary font-body text-[clamp(16px,1.2vw,18px)] leading-tight font-black">
+                        {title}
+                      </h3>
+                      <p className="m-0 text-text-primary text-[15px] leading-[1.55]">
+                        {text}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
-          <div className="decoration-tailored-row catering-offer-tailored-row">
-            <div className="decoration-tailored-note catering-offer-note">
+          <div className="decoration-tailored-row">
+            <div className="decoration-tailored-note">
               <h3>Tailored upon request</h3>
               <p>
                 Every catering concept is created individually based on your
                 event, location, guest count and wishes.
               </p>
             </div>
-            <div className="catering-offer-actions">
+            <div className="flex flex-wrap justify-end gap-3 mt-0 max-sm:justify-center">
               <Button href="#catering-inquiry">Request catering</Button>
               <CateringMenuButton
                 requestTargetId="catering-inquiry"
@@ -342,24 +361,39 @@ export default function CateringPage() {
         </Container>
       </section>
 
-      <section className="section catering-inquiry-section">
+      {/* `.catering-inquiry-section`'s bg/label/faq-link-color CSS is kept
+          (shared with event-decoration's identical wrapper), but this page
+          no longer applies the class itself - equivalent Tailwind/prop
+          overrides are used directly below instead. */}
+      <section className="section bg-light-green text-cream">
         <Container>
-          <div id="catering-inquiry" className="catering-form-wrap">
-            <div className="catering-form-aside">
-              <SectionLabel>How it works</SectionLabel>
-              <h2 className="heading section-title">3-step setup</h2>
-              <div className="catering-steps">
+          <div id="catering-inquiry" className="grid grid-cols-[minmax(260px,0.62fr)_minmax(0,1fr)] gap-24 items-start scroll-mt-24 max-lg:grid-cols-1">
+            <div className="grid gap-8 pt-2">
+              <SectionLabel className="text-gold! border-b-gold!">How it works</SectionLabel>
+              <h2 className="font-heading font-medium text-white! m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] leading-tight tracking-normal normal-case">
+                3-step setup
+              </h2>
+              <div className="grid gap-3">
                 {steps.map(([title, text], index) => (
-                  <article className="catering-step" key={title}>
-                    <span>{String(index + 1).padStart(2, "0")}</span>
+                  <article
+                    className="grid grid-cols-[42px_minmax(0,1fr)] gap-3.5 items-start py-4.5 bg-transparent border-t border-t-[rgba(var(--rgb-cream),0.34)] rounded-none last:border-b last:border-b-[rgba(var(--rgb-cream),0.34)]"
+                    key={title}
+                  >
+                    <span className="inline-block w-auto h-auto rounded-none bg-transparent p-0 text-gold text-[13px] font-black leading-tight tracking-[0.06em]">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
                     <div>
-                      <h3>{title}</h3>
-                      <p>{text}</p>
+                      <h3 className="mb-1 text-white font-body text-[clamp(16px,1.2vw,18px)] leading-tight font-black">
+                        {title}
+                      </h3>
+                      <p className="m-0 text-[rgba(var(--rgb-cream),0.88)] text-[15px] leading-[1.55]">
+                        {text}
+                      </p>
                     </div>
                   </article>
                 ))}
               </div>
-              <FAQInlinePrompt />
+              <FAQInlinePrompt linkClassName="text-gold!" />
             </div>
             <CateringInquiryForm />
           </div>

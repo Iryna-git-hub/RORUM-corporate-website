@@ -104,7 +104,7 @@ export function CateringInquiryForm() {
         />
         <FieldError id="catering-name-error" message={errors.name} />
       </label>
-      <div className="grid grid-cols-2 gap-3.5 max-tablet:grid-cols-1">
+      <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
         <label htmlFor="catering-phone" className={labelClasses}>
           Phone number<span aria-hidden="true" className={requiredMarkClasses}>*</span>
           <input
@@ -134,7 +134,7 @@ export function CateringInquiryForm() {
           <FieldError id="catering-email-error" message={errors.email} />
         </label>
       </div>
-      <div className="grid grid-cols-2 gap-3.5 max-tablet:grid-cols-1">
+      <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
         <label htmlFor="catering-date" className={labelClasses}>
           Event date<span aria-hidden="true" className={requiredMarkClasses}>*</span>
           <input
@@ -170,7 +170,7 @@ export function CateringInquiryForm() {
       <PrivacyConsent id="catering-privacy" error={errors.privacyConsent} />
 
       <button
-        className="inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] desktop:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker disabled:cursor-not-allowed disabled:opacity-[0.62] disabled:transform-none"
+        className="inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] lg:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker disabled:cursor-not-allowed disabled:opacity-[0.62] disabled:transform-none"
         type="submit"
       >
         Request Catering

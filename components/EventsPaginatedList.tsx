@@ -7,9 +7,9 @@ import type { RorumEvent } from "@/lib/data";
 const ROWS_PER_PAGE = 7;
 
 // Breakpoints match the .event-list CSS grid:
-//   >= 981px  → 3 columns  (repeat(3, 1fr))
-//   640-980px → 2 columns  (repeat(2, 1fr))
-//   < 640px   → 1 column   (1fr)
+//   >= 1024px  → 3 columns  (repeat(3, 1fr)) - `lg`
+//   640-1023px → 2 columns  (repeat(2, 1fr)) - `sm`
+//   < 640px    → 1 column   (1fr)
 // Default to desktop (3 × 7 = 21) so SSR output matches the most common
 // layout and avoids hydration mismatches. useEffect corrects after mount.
 function useEventsPerPage(): number {
@@ -19,7 +19,7 @@ function useEventsPerPage(): number {
     function update() {
       const width = window.innerWidth;
       let columns: number;
-      if (width >= 981) {
+      if (width >= 1024) {
         columns = 3;
       } else if (width >= 640) {
         columns = 2;

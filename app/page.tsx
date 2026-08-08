@@ -86,18 +86,30 @@ export default function Home() {
         video="/videos/home-hero.mp4"
         actions={
           <>
-            <Button href="/host-at-rorum">
+            {/* `!important`: Button's own `.btn` base (deferred, still-
+                unlayered CSS) sets background/border/padding/min-height/
+                font-size too, and unlayered CSS isn't reliably beaten by a
+                plain layered Tailwind utility regardless of specificity or
+                className order. */}
+            <Button
+              href="/host-at-rorum"
+              className="min-h-11.5! px-5! text-[12.5px]! max-sm:min-h-10! max-sm:px-3.5! max-sm:text-[11px]! bg-[#ae5745]! border-[#ae5745]! text-white! hover:bg-cta-red-hover! hover:border-cta-red-hover! hover:text-white!"
+            >
               Host at RORUM
               <ArrowRight
-                className="button-arrow"
+                className="button-arrow w-3.75 h-3.75 shrink-0 transition-transform duration-180 ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1"
                 aria-hidden="true"
                 strokeWidth={1.9}
               />
             </Button>
-            <Button href="/events" variant="secondary" className="backdrop-blur-md">
+            <Button
+              href="/events"
+              variant="secondary"
+              className="backdrop-blur-md min-h-11.5! px-5! text-[12.5px]! max-sm:min-h-10! max-sm:px-3.5! max-sm:text-[11px]! bg-[rgb(255_250_242/28%)]! border-transparent! text-white! hover:bg-[rgba(var(--rgb-beige),0.2)]! hover:border-primary-light! hover:text-white!"
+            >
               Attend Events
               <ArrowRight
-                className="button-arrow"
+                className="button-arrow w-3.75 h-3.75 shrink-0 transition-transform duration-180 ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1"
                 aria-hidden="true"
                 strokeWidth={1.9}
               />
@@ -105,7 +117,7 @@ export default function Home() {
           </>
         }
       />
-      <section className="section quick-paths-section">
+      <section className="py-[clamp(52px,8vw,104px)] bg-white">
         <Container>
           <SectionHeader
             label="Quick paths"
@@ -119,12 +131,12 @@ export default function Home() {
           <div className="event-section-head">
             <SectionHeader
               label="What's on"
-              title="Upcoming events at RORUM."
+              title="Upcoming events at RORUM"
             />
             <Button href="/events" variant="event-all">
               <span>View all events</span>
               <ArrowRight
-                className="event-all-icon"
+                className="event-all-icon w-4.5 h-4.5 bg-transparent text-current transition-transform duration-200 ease-[ease] flex-none group-hover:translate-x-1"
                 aria-hidden="true"
                 strokeWidth={1.9}
               />

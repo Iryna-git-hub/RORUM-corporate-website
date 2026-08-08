@@ -77,7 +77,7 @@ function getPracticalDetail(event: RorumEvent, label: string): string | undefine
 }
 
 const ticketButtonBase =
-    "group inline-flex items-center justify-center gap-2 w-fit whitespace-nowrap min-h-11.5 border rounded-pill px-6 py-3 text-[12.5px] font-extrabold tracking-[0.04em] uppercase transition-[transform,color,background,border-color] duration-180 ease-[ease] max-[980px]:w-full";
+    "group inline-flex items-center justify-center gap-2 w-fit whitespace-nowrap min-h-11.5 border rounded-pill px-6 py-3 text-[12.5px] font-extrabold tracking-[0.04em] uppercase transition-[transform,color,background,border-color] duration-180 ease-[ease] max-lg:w-full";
 const ticketArrowClass =
     "w-3.75 h-3.75 text-current shrink-0 transition-transform duration-180 ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1";
 
@@ -122,7 +122,7 @@ function TicketButton({ event }: { event: RorumEvent }) {
 function DetailRow({ label, value }: { label: string; value?: ReactNode }) {
     if (!value) return null;
     return (
-      <div className="grid grid-cols-[minmax(116px,0.42fr)_minmax(0,1fr)] gap-4.5 items-start py-3.75 border-b border-[rgba(var(--rgb-beige),0.34)] first:pt-0 last:border-b-0 max-tablet:grid-cols-1 max-tablet:gap-1.25">
+      <div className="grid grid-cols-[minmax(116px,0.42fr)_minmax(0,1fr)] gap-4.5 items-start py-3.75 border-b border-[rgba(var(--rgb-beige),0.34)] first:pt-0 last:border-b-0 max-sm:grid-cols-1 max-sm:gap-1.25">
         <dt className="text-light-green text-[11px] leading-[1.35] font-[850] tracking-[0.08em] uppercase">{label}</dt>
         <dd className="m-0 text-text-primary text-sm font-medium leading-[1.5]">{value}</dd>
       </div>
@@ -130,7 +130,7 @@ function DetailRow({ label, value }: { label: string; value?: ReactNode }) {
 }
 
 const infoItemGridClass =
-    "grid grid-cols-[48px_minmax(0,1fr)] gap-3 items-center min-h-23 px-5 py-4.5 border-r-0 max-[980px]:min-h-0 max-[980px]:border-b-0 max-tablet:grid-cols-[44px_minmax(0,1fr)] max-tablet:p-3.25";
+    "grid grid-cols-[48px_minmax(0,1fr)] gap-3 items-center min-h-23 px-5 py-4.5 border-r-0 max-lg:min-h-0 max-lg:border-b-0 max-sm:grid-cols-[44px_minmax(0,1fr)] max-sm:p-3.25";
 
 function InfoGridItem({
     icon: Icon,
@@ -145,8 +145,8 @@ function InfoGridItem({
 }) {
     return (
       <div className={infoItemGridClass}>
-        <span className="inline-flex items-center justify-center w-12 h-12 rounded-none bg-[rgba(var(--rgb-light-green),0.12)] text-light-green max-tablet:w-11 max-tablet:h-11">
-          <Icon aria-hidden="true" strokeWidth={1.85} className="w-6.5 h-6.5 text-current max-tablet:w-5.75 max-tablet:h-5.75" />
+        <span className="inline-flex items-center justify-center w-12 h-12 rounded-none bg-[rgba(var(--rgb-light-green),0.12)] text-light-green max-sm:w-11 max-sm:h-11">
+          <Icon aria-hidden="true" strokeWidth={1.85} className="w-6.5 h-6.5 text-current max-sm:w-5.75 max-sm:h-5.75" />
         </span>
         <div>
           <dt className="sr-only">{label}</dt>
@@ -154,7 +154,7 @@ function InfoGridItem({
             className={
               prominent
                 ? "text-light-green text-[clamp(1.05rem,1.45vw,1.25rem)] leading-[1.25] font-semibold"
-                : "m-0 text-text-primary text-[15.5px] leading-[1.35] font-medium max-tablet:text-[15px]"
+                : "m-0 text-text-primary text-[15.5px] leading-[1.35] font-medium max-sm:text-[15px]"
             }
           >
             {value}
@@ -234,29 +234,29 @@ export default async function EventDetailPage({
             priority
           />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(var(--rgb-dark-brown),0.34)_0%,rgba(var(--rgb-light-green),0.58)_100%),linear-gradient(90deg,rgba(var(--rgb-light-green),0.68)_0%,rgba(var(--rgb-brown),0.26)_62%,rgba(var(--rgb-dark-brown),0.44)_100%)]" />
-          <Container>
-            <div className="grid gap-3 max-w-[780px] text-cream max-tablet:justify-items-start max-tablet:text-left">
+          <Container className="relative z-1">
+            <div className="grid gap-3 max-w-[780px] text-cream max-sm:justify-items-start max-sm:text-left">
               <time
                 dateTime={event.date}
                 className="text-gold text-[clamp(12px,1.1vw,15px)] font-extrabold tracking-[0.08em] uppercase"
               >
                 {fullDate}
               </time>
-              <h1 className="font-heading font-medium text-white m-0 max-w-[18ch] text-5xl leading-[1.3] tracking-normal max-tablet:max-w-[13ch] max-tablet:text-[clamp(1.9rem,8vw,2.6rem)]">
+              <h1 className="font-heading font-medium text-white m-0 max-w-[18ch] text-5xl leading-[1.3] tracking-normal max-sm:max-w-[13ch] max-sm:text-[clamp(1.9rem,8vw,2.6rem)]">
                 {event.title}
               </h1>
             </div>
           </Container>
         </section>
 
-        <section className="relative z-2 -mt-11 p-0 max-tablet:-mt-7" aria-label="Event information">
+        <section className="relative z-2 -mt-11 p-0 max-sm:-mt-7" aria-label="Event information">
           <Container>
-            <div className="grid grid-cols-[repeat(4,minmax(0,1fr))_auto] items-stretch gap-0 m-0 border-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] max-[980px]:grid-cols-1 max-tablet:p-3.25 max-tablet:border-x-0 max-tablet:shadow-[0_8px_20px_rgba(var(--rgb-brown),0.06)]">
+            <div className="grid grid-cols-[repeat(4,minmax(0,1fr))_auto] items-stretch gap-0 m-0 border-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] max-lg:grid-cols-1 max-sm:p-3.25 max-sm:border-x-0 max-sm:shadow-[0_8px_20px_rgba(var(--rgb-brown),0.06)]">
               <InfoGridItem icon={CalendarDays} label="Date" value={shortDate} />
               <InfoGridItem icon={Clock} label="Time" value={time} />
               <InfoGridItem icon={MapPin} label="Location" value={location} />
               <InfoGridItem icon={Ticket} label="Price" value={event.price} prominent />
-              <div className="flex items-center justify-end min-h-23 px-5 py-4.5 border-r-0 min-w-47 max-[980px]:min-h-0 max-[980px]:border-b-0 max-tablet:p-3.25">
+              <div className="flex items-center justify-end min-h-23 px-5 py-4.5 border-r-0 min-w-47 max-lg:min-h-0 max-lg:border-b-0 max-sm:p-3.25">
                 <TicketButton event={event} />
               </div>
             </div>
@@ -265,7 +265,7 @@ export default async function EventDetailPage({
 
         <section className="pt-[clamp(42px,6vw,76px)] pb-[clamp(52px,8vw,104px)]">
           <Container>
-            <div className="grid grid-cols-[minmax(0,1fr)_minmax(280px,340px)] gap-[clamp(28px,5vw,58px)] items-start max-[980px]:grid-cols-1">
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(280px,340px)] gap-[clamp(28px,5vw,58px)] items-start max-lg:grid-cols-1">
               <article className="grid gap-[clamp(30px,4vw,46px)] min-w-0">
                 <section className="grid gap-4 pb-[clamp(28px,4vw,38px)] border-b border-[rgba(var(--rgb-beige),0.48)] last:border-b-0 last:pb-0">
                   <h2 className="m-0 text-[clamp(26px,3vw,38px)] leading-[1.08] font-light">Event overview</h2>
@@ -287,7 +287,7 @@ export default async function EventDetailPage({
               </article>
 
               <aside
-                className="sticky top-26 grid gap-5 p-[clamp(22px,2.6vw,30px)] border-none rounded-none bg-white shadow-[0_12px_30px_rgba(var(--rgb-brown),0.06)] max-[980px]:static max-[980px]:order-first"
+                className="sticky top-26 grid gap-5 p-[clamp(22px,2.6vw,30px)] border-none rounded-none bg-white shadow-[0_12px_30px_rgba(var(--rgb-brown),0.06)] max-lg:static max-lg:order-first"
                 aria-label="Practical details"
               >
                 <h2 className="m-0 pb-3 border-b border-[rgba(var(--rgb-beige),0.34)] text-text-primary font-body text-[17px] font-extrabold tracking-normal leading-tight uppercase">

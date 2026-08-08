@@ -23,7 +23,7 @@ export default function EventsPage() {
     <>
       <section className="pt-[clamp(16px,2vw,28px)] px-0 pb-[clamp(52px,8vw,104px)]">
         <Container>
-          <SectionHeader title="Upcoming events at RORUM." level={1} />
+          <SectionHeader title="Upcoming events at RORUM" level={1} />
           <Suspense fallback={null}>
             <EventsClientPage events={events} />
           </Suspense>

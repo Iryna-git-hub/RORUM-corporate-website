@@ -37,12 +37,17 @@ export function EditorialFeatureSection({
 }) {
   return (
     <section className="editorial-feature">
-      <Container>
-        <div className="grid grid-cols-2 max-[980px]:grid-cols-1 gap-0 items-stretch min-h-[clamp(560px,50vw,720px)] max-[980px]:min-h-auto">
+      {/* `!important`: Container's own base className sets an arbitrary-
+          value width/max-width, and a plain named `w-full`/`max-w-none`
+          isn't reliably guaranteed to win over it (Tailwind's generated
+          order for arbitrary-vs-named utilities of the same property
+          doesn't follow this string's order). */}
+      <Container className="w-full! max-w-none! mx-0!">
+        <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-0 items-stretch min-h-[clamp(560px,50vw,720px)] max-lg:min-h-auto">
           <div
-            className={`grid gap-[18px] content-center max-w-none pt-[clamp(56px,8vw,96px)] pb-[clamp(56px,8vw,96px)] max-[980px]:pt-[44px] max-[980px]:pb-[44px] max-[980px]:pl-[max(16px,calc((100vw_-_720px)/2))] max-[980px]:pr-[max(16px,calc((100vw_-_720px)/2))] ${
+            className={`grid gap-[18px] content-center max-w-none pt-[clamp(56px,8vw,96px)] pb-[clamp(56px,8vw,96px)] max-lg:pt-[44px] max-lg:pb-[44px] max-lg:pl-[max(16px,calc((100vw_-_720px)/2))] max-lg:pr-[max(16px,calc((100vw_-_720px)/2))] ${
               reversed
-                ? "pr-[max(16px,calc((100vw_-_1180px)/2))] pl-[clamp(42px,6vw,86px)] desktop:order-2"
+                ? "pr-[max(16px,calc((100vw_-_1180px)/2))] pl-[clamp(42px,6vw,86px)] lg:order-2"
                 : "pl-[max(16px,calc((100vw_-_1180px)/2))] pr-[clamp(42px,6vw,86px)]"
             }`}
           >
@@ -55,7 +60,7 @@ export function EditorialFeatureSection({
             ) : null}
             <p className="m-0 leading-[1.7] max-w-140">{description}</p>
             {features.length ? (
-              <ul className="grid grid-cols-2 max-tablet:grid-cols-1 gap-x-4 gap-y-3 mt-4 mb-6 mx-0 p-0 list-none max-w-140">
+              <ul className="grid grid-cols-2 max-sm:grid-cols-1 gap-x-4 gap-y-3 mt-4 mb-6 mx-0 p-0 list-none max-w-140">
                 {features.map((feature, index) => {
                   const FeatureIcon = featureIcons[index] ?? Wrench;
                   return (
@@ -92,7 +97,7 @@ export function EditorialFeatureSection({
             </Link>
           </div>
           <div
-            className={`min-h-full bg-beige bg-center bg-cover bg-no-repeat max-[980px]:min-h-[320px] max-tablet:min-h-[260px] ${reversed ? "desktop:order-1" : ""}`}
+            className={`min-h-full bg-beige bg-center bg-cover bg-no-repeat max-lg:min-h-[320px] max-sm:min-h-[260px] ${reversed ? "lg:order-1" : ""}`}
             role="img"
             aria-label={imageAlt}
             style={{ backgroundImage: `url(${image})` }}
@@ -119,15 +124,15 @@ export function ServicesTeaserSection({ services }: { services: ServiceTeaser[] 
           label="Services"
           title="Services for thoughtful gatherings"
         />
-        <div className="grid grid-cols-2 max-[980px]:grid-cols-1 gap-[22px]">
+        <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-[22px]">
           {services.map((service) => (
             <Link
-              className="group grid grid-cols-[minmax(170px,0.72fr)_minmax(0,1fr)] max-[980px]:grid-cols-1 border border-border bg-surface-light min-h-[250px] cursor-pointer [transition:grid-template-columns_0.32s_ease,box-shadow_0.2s_ease,border-color_0.2s_ease] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(var(--rgb-gold),0.72)] focus-visible:outline-offset-4 desktop:hover:grid-cols-[minmax(180px,0.77fr)_minmax(0,0.95fr)] desktop:focus-visible:grid-cols-[minmax(180px,0.77fr)_minmax(0,0.95fr)]"
+              className="group grid grid-cols-[minmax(170px,0.72fr)_minmax(0,1fr)] max-lg:grid-cols-1 border border-border bg-surface-light min-h-[250px] cursor-pointer [transition:grid-template-columns_0.32s_ease,box-shadow_0.2s_ease,border-color_0.2s_ease] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(var(--rgb-gold),0.72)] focus-visible:outline-offset-4 lg:hover:grid-cols-[minmax(180px,0.77fr)_minmax(0,0.95fr)] lg:focus-visible:grid-cols-[minmax(180px,0.77fr)_minmax(0,0.95fr)]"
               href={service.href}
               aria-label={service.cta ?? service.title}
               key={service.title}
             >
-              <div className="relative min-h-full bg-beige overflow-hidden max-[980px]:min-h-[220px] max-tablet:min-h-[190px]">
+              <div className="relative min-h-full bg-beige overflow-hidden max-lg:min-h-[220px] max-sm:min-h-[190px]">
                 <span
                   className="absolute inset-0 bg-center bg-cover bg-no-repeat scale-100 [transition:transform_0.42s_ease,filter_0.24s_ease] group-hover:scale-[1.07] group-hover:[filter:saturate(1.04)_contrast(1.02)] group-focus-visible:scale-[1.07] group-focus-visible:[filter:saturate(1.04)_contrast(1.02)]"
                   style={{ backgroundImage: `url(${service.image})` }}
@@ -164,11 +169,13 @@ export function CommunityTeaserSection() {
   ];
 
   return (
-    <section className="py-[clamp(40px,6vw,76px)] community-section">
+    <section className="py-[clamp(40px,6vw,76px)] relative isolate overflow-hidden bg-dark-green bg-[url('/images/catering/community-catering-bg.png')] bg-position-[center_45%] bg-cover bg-no-repeat before:content-[''] before:absolute before:inset-0 before:z-0 before:bg-[linear-gradient(90deg,rgb(0_0_0/58%)_0%,rgb(0_0_0/38%)_52%,rgb(0_0_0/16%)_100%)]">
       <Container>
-        <div className="grid grid-cols-[minmax(220px,0.62fr)_minmax(0,1fr)_auto] max-[980px]:grid-cols-1 gap-[clamp(20px,4vw,48px)] relative z-1 items-center py-[clamp(34px,5vw,64px)]">
+        <div className="grid grid-cols-[minmax(220px,0.62fr)_minmax(0,1fr)_auto] max-lg:grid-cols-1 gap-[clamp(20px,4vw,48px)] relative z-1 items-center py-[clamp(34px,5vw,64px)]">
           <div className="grid gap-2">
-            <SectionLabel>Community</SectionLabel>
+            <SectionLabel className="text-gold! border-b-[rgba(var(--rgb-gold),0.72)]!">
+              Community
+            </SectionLabel>
             <h2 className="font-heading font-medium leading-tight text-cream m-0 text-[clamp(1.85rem,2.6vw,2.3rem)]">
               More than a space
             </h2>
@@ -178,7 +185,7 @@ export function CommunityTeaserSection() {
             our community, collaborate with us or become part of the team behind
             the experiences.
           </p>
-          <div className="flex flex-wrap justify-end max-[980px]:justify-start gap-2.5">
+          <div className="flex flex-wrap justify-end max-lg:justify-start gap-2.5">
             {links.map((link) => (
               <Link
                 key={link.href}

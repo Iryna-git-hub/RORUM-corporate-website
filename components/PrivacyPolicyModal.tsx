@@ -93,7 +93,7 @@ export function PrivacyPolicyModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[170] grid place-items-center p-[clamp(16px,3vw,36px)] bg-[rgba(var(--rgb-dark-brown),0.58)] backdrop-blur-[12px] max-tablet:items-stretch max-tablet:p-0"
+      className="fixed inset-0 z-[170] grid place-items-center p-[clamp(16px,3vw,36px)] bg-[rgba(var(--rgb-dark-brown),0.58)] backdrop-blur-[12px] max-sm:items-stretch max-sm:p-0"
       data-privacy-policy-modal="true"
       role="presentation"
       onMouseDown={(event) => {
@@ -102,13 +102,13 @@ export function PrivacyPolicyModal({
     >
       <div
         ref={dialogRef}
-        className="relative grid grid-rows-[auto_minmax(0,1fr)_auto] w-[min(780px,100%)] max-h-[min(900px,calc(100dvh-32px))] overflow-hidden rounded-[8px] bg-white text-text-primary shadow-[0_32px_90px_rgba(var(--rgb-dark-brown),0.34)] max-tablet:w-full max-tablet:max-h-dvh max-tablet:min-h-dvh max-tablet:rounded-none"
+        className="relative grid grid-rows-[auto_minmax(0,1fr)_auto] w-[min(780px,100%)] max-h-[min(900px,calc(100dvh-32px))] overflow-hidden rounded-[8px] bg-white text-text-primary shadow-[0_32px_90px_rgba(var(--rgb-dark-brown),0.34)] max-sm:w-full max-sm:max-h-dvh max-sm:min-h-dvh max-sm:rounded-none"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
       >
-        <header className="relative pt-[clamp(24px,4vw,36px)] pr-[clamp(68px,9vw,84px)] pb-5 pl-[clamp(22px,4vw,36px)] border-b border-border max-tablet:pt-6 max-tablet:pr-17 max-tablet:pb-4.5 max-tablet:pl-4.5">
+        <header className="relative pt-[clamp(24px,4vw,36px)] pr-[clamp(68px,9vw,84px)] pb-5 pl-[clamp(22px,4vw,36px)] border-b border-border max-sm:pt-6 max-sm:pr-17 max-sm:pb-4.5 max-sm:pl-4.5">
           <div>
             <h2
               id={titleId}
@@ -135,16 +135,16 @@ export function PrivacyPolicyModal({
         </header>
 
         <div
-          className="policy-content w-full overflow-y-auto overscroll-contain pt-1.5 px-[clamp(22px,4vw,36px)] pb-7 outline-none [scrollbar-gutter:stable] focus-visible:shadow-[inset_0_0_0_2px_rgba(var(--rgb-light-green),0.32)] max-tablet:pt-1 max-tablet:px-4.5 max-tablet:pb-6"
+          className="policy-content w-full overflow-y-auto overscroll-contain pt-1.5 px-[clamp(22px,4vw,36px)] pb-7 outline-none [scrollbar-gutter:stable] focus-visible:shadow-[inset_0_0_0_2px_rgba(var(--rgb-light-green),0.32)] max-sm:pt-1 max-sm:px-4.5 max-sm:pb-6"
           aria-label="Privacy Policy content"
           tabIndex={0}
         >
           <PrivacyPolicyContent />
         </div>
 
-        <footer className="py-4.5 px-[clamp(22px,4vw,36px)] border-t border-border bg-cream max-tablet:pt-3.5 max-tablet:px-4.5 max-tablet:pb-[calc(14px+env(safe-area-inset-bottom))]">
+        <footer className="py-4.5 px-[clamp(22px,4vw,36px)] border-t border-border bg-cream max-sm:pt-3.5 max-sm:px-4.5 max-sm:pb-[calc(14px+env(safe-area-inset-bottom))]">
           <button
-            className="inline-flex items-center justify-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] desktop:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker"
+            className="inline-flex items-center justify-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] lg:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker"
             type="button"
             onClick={onAgree}
           >

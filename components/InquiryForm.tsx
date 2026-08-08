@@ -24,7 +24,7 @@ const FORM_TITLE_CLASS =
 const FORM_INTRO_CLASS = "m-0 text-[15px] leading-[1.65] text-text-primary";
 const SUCCESS_CLASS =
   "border border-[rgba(var(--rgb-light-green),0.28)] rounded-none bg-[rgba(var(--rgb-beige),0.24)] p-3.5 text-primary-dark font-bold";
-const FORM_GRID_CLASS = "grid grid-cols-2 gap-3.5 max-tablet:grid-cols-1";
+const FORM_GRID_CLASS = "grid grid-cols-2 gap-3.5 max-sm:grid-cols-1";
 const LABEL_CLASS =
   "block text-[rgba(var(--rgb-dark-brown),0.5)] font-semibold text-[0.82rem]";
 const REQUIRED_MARK_CLASS = "ml-0.5 text-[rgba(var(--rgb-red),0.62)]";
@@ -35,7 +35,7 @@ const SELECT_CLASS =
 const OPTION_CLASS =
   "bg-white text-text-primary font-medium checked:bg-cream checked:text-red disabled:text-[rgba(var(--rgb-dark-brown),0.42)]";
 const SUBMIT_BUTTON_CLASS =
-  "inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] desktop:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker disabled:cursor-not-allowed disabled:opacity-[0.62] disabled:transform-none";
+  "inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] lg:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker disabled:cursor-not-allowed disabled:opacity-[0.62] disabled:transform-none";
 
 function validateField(
   name: string,
@@ -59,7 +59,7 @@ function getInitialPackage(options: string[] = []): string {
 
 function FieldError({ id, message }: { id: string; message?: string }) {
   return message ? (
-    <small className="form-error" id={id}>
+    <small className="text-accent text-xs font-bold" id={id}>
       {message}
     </small>
   ) : null;
@@ -289,16 +289,24 @@ export function InquiryForm({
           </label>
         </div>
 
-        <fieldset className="checkbox-group">
-          <legend>Additional services</legend>
+        <fieldset className="grid grid-cols-2 gap-x-3 gap-y-2.5 m-0 p-0 border-0 max-sm:grid-cols-1">
+          <legend className="col-span-full mb-0.5 text-[rgba(var(--rgb-dark-brown),0.5)] text-[0.82rem] font-semibold">
+            Additional services
+          </legend>
           {bookingServiceOptions.map((service) => (
-            <label key={service}>
+            <label
+              key={service}
+              className="flex items-center justify-start flex-nowrap gap-2.5 min-h-10 py-2.25 px-2.75 bg-[rgba(var(--rgb-beige),0.18)] border border-[rgba(var(--rgb-beige),0.3)] rounded-none cursor-pointer"
+            >
               <input
                 name="additionalServices"
                 type="checkbox"
                 value={service}
+                className="appearance-none flex-none w-4.5 h-4.5 min-w-4.5 m-0 grid place-content-center border border-[rgba(var(--rgb-red),0.48)] bg-white cursor-pointer before:content-[''] before:w-2.5 before:h-2.5 before:bg-red before:scale-0 before:transition-transform before:duration-140 checked:before:scale-100"
               />
-              <span>{service}</span>
+              <span className="inline-flex items-center min-w-0 text-text-primary text-base font-medium leading-[1.45] whitespace-nowrap">
+                {service}
+              </span>
             </label>
           ))}
         </fieldset>

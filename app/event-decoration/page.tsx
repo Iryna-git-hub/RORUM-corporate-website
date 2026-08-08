@@ -101,32 +101,29 @@ const steps: [title: string, text: string][] = [
 export default function DecorationPage() {
   return (
     <>
-      {/*
-        Hero section: `service-hero`, `decoration-hero`, `catering-hero-layout`,
-        `service-hero-copy` and `hero-actions catering-hero-actions` are kept as
-        retained (unconverted) classes. They participate in a shared
-        `:is(.catering-hero .service-hero-copy, .decoration-hero .service-hero-copy, ...)`
-        explicit grid-column/grid-row placement rule (app/globals.css ~3805-3885)
-        that also governs private-meetings-hero and the catering menu overlay —
-        functionally equivalent to grid-template-areas and not safely
-        reproducible from this file alone without touching those other pages.
-      */}
-      <section className="service-hero decoration-hero">
+      <section className="bg-secondary px-0 pt-16.25 pb-0 max-sm:pt-9.5 lg:grid lg:items-center lg:min-h-auto">
         <Container>
-          <div className="catering-hero-layout">
-            <div className="service-hero-copy">
-              <SectionLabel>Event decoration</SectionLabel>
-              <h1 className="heading">Event decoration</h1>
-              <p>
+          <div className="grid grid-cols-1 gap-[clamp(28px,5vw,72px)] items-end lg:items-center">
+            <div className="grid gap-4.5 lg:grid-cols-2 lg:gap-x-[clamp(40px,6vw,80px)] lg:gap-y-[clamp(12px,1.5vw,18px)] lg:items-start">
+              <SectionLabel className="lg:col-start-1 lg:row-start-1">
+                Event decoration
+              </SectionLabel>
+              <h1 className="font-heading font-medium text-text-primary m-0 text-[3rem] leading-[1.02] tracking-normal normal-case [@media(min-width:1024px)_and_(max-height:820px)]:text-[clamp(2.55rem,4.2vw,3rem)] lg:col-start-1 lg:row-start-2">
+                Event decoration
+              </h1>
+              <p className="m-0 text-text-primary text-base leading-[1.7] [@media(min-width:1024px)_and_(max-height:820px)]:max-w-[88ch] [@media(min-width:1024px)_and_(max-height:820px)]:leading-[1.55] lg:col-start-2 lg:row-start-1 lg:row-span-3 lg:self-end">
                 Flowers, table styling, candles, balloon decor and visual
                 details for warm, memorable events at RORUM or selected external
                 locations.
               </p>
-              <div className="hero-actions catering-hero-actions">
-                <Button href="#decoration-inquiry">
+              <div className="flex flex-wrap items-center gap-3 max-lg:mt-4.5 max-sm:justify-center max-sm:w-full lg:col-start-1 lg:row-start-3 lg:justify-self-start lg:w-fit lg:mt-[clamp(6px,1vw,12px)]">
+                <Button
+                  href="#decoration-inquiry"
+                  className="min-h-10! px-6.5! max-sm:flex-auto"
+                >
                   Request decoration
                   <ArrowRight
-                    className="button-arrow"
+                    className="button-arrow w-3.75 h-3.75 shrink-0 transition-transform duration-180 ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1"
                     aria-hidden="true"
                     strokeWidth={1.9}
                   />
@@ -176,7 +173,7 @@ export default function DecorationPage() {
 
       <Section tight>
         <Container>
-          <div className="grid grid-cols-[minmax(0,0.95fr)_minmax(320px,0.8fr)] gap-[clamp(28px,5vw,68px)] items-start max-desktop:grid-cols-1">
+          <div className="grid grid-cols-[minmax(0,0.95fr)_minmax(320px,0.8fr)] gap-[clamp(28px,5vw,68px)] items-start max-lg:grid-cols-1">
             <div className="grid gap-4 max-w-[820px]">
               <SectionLabel>Decoration</SectionLabel>
               <h2 className="font-heading font-medium text-text-primary m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] leading-[1.25] tracking-[0] normal-case">
@@ -218,7 +215,7 @@ export default function DecorationPage() {
               </div>
             </div>
             <img
-              className="block w-full h-[min(560px,48vw)] min-h-[360px] object-cover object-center shadow-[0_18px_40px_rgba(var(--rgb-brown),0.08)] self-start desktop:sticky desktop:top-24 max-tablet:h-[280px] max-tablet:min-h-[280px]"
+              className="block w-full h-[min(560px,48vw)] min-h-[360px] object-cover object-center shadow-[0_18px_40px_rgba(var(--rgb-brown),0.08)] self-start lg:sticky lg:top-24 max-sm:h-[280px] max-sm:min-h-[280px]"
               src="/images/decoration/decoration-entrance-arch.png"
               alt=""
             />
@@ -244,7 +241,7 @@ export default function DecorationPage() {
             <Button href="#decoration-inquiry">
               Request decoration
               <ArrowRight
-                className="button-arrow"
+                className="button-arrow w-3.75 h-3.75 shrink-0 transition-transform duration-180 ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1"
                 aria-hidden="true"
                 strokeWidth={1.9}
               />
@@ -253,21 +250,17 @@ export default function DecorationPage() {
         </Container>
       </Section>
 
-      {/*
-        `catering-inquiry-section` is retained: it is the ancestor for
-        `.catering-inquiry-section .label` and `.catering-inquiry-section
-        .faq-inline-prompt-link` color overrides on the SectionLabel and
-        FAQInlinePrompt shared components below, neither of which accepts a
-        className/color override prop.
-      */}
-      <section className="py-[clamp(52px,8vw,104px)] catering-inquiry-section">
+      {/* `.catering-inquiry-section`'s bg/label/faq-link-color CSS is now
+          fully dead (this was its last consumer) and removed; equivalent
+          Tailwind/prop overrides are used directly below instead. */}
+      <section className="py-[clamp(52px,8vw,104px)] bg-light-green text-cream">
         <Container>
           <div
             id="decoration-inquiry"
-            className="grid grid-cols-[minmax(260px,0.62fr)_minmax(0,1fr)] gap-24 items-start scroll-mt-24 max-desktop:grid-cols-1"
+            className="grid grid-cols-[minmax(260px,0.62fr)_minmax(0,1fr)] gap-24 items-start scroll-mt-24 max-lg:grid-cols-1"
           >
             <div className="grid gap-8 pt-2">
-              <SectionLabel>How it works</SectionLabel>
+              <SectionLabel className="text-gold! border-b-gold!">How it works</SectionLabel>
               <h2 className="font-heading font-medium text-white m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] leading-[1.25] tracking-[0] normal-case">
                 3-step setup
               </h2>
@@ -291,7 +284,10 @@ export default function DecorationPage() {
                   </article>
                 ))}
               </div>
-              <FAQInlinePrompt questionClassName="text-[rgba(var(--rgb-cream),0.88)]!" />
+              <FAQInlinePrompt
+                questionClassName="text-[rgba(var(--rgb-cream),0.88)]!"
+                linkClassName="text-gold!"
+              />
             </div>
             <InquiryForm
               type="decoration"

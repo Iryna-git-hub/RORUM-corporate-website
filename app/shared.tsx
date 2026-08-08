@@ -81,7 +81,7 @@ export function QuickPathsGrid({
   items: [title: string, text: string, href: QuickPathHref, image: string][];
 }) {
   return (
-    <div className="grid grid-cols-4 gap-[18px] items-stretch max-tablet:grid-cols-1 tablet:max-wide:grid-cols-2">
+    <div className="grid grid-cols-4 gap-[18px] items-stretch max-sm:grid-cols-1 sm:max-xl:grid-cols-2">
       {items.map(([title, text, href, image]) => (
         <QuickPathCard key={title} title={title} text={text} href={href} image={image} />
       ))}

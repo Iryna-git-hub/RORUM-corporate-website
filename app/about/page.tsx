@@ -60,17 +60,17 @@ const INLINE_LINK_CLASS =
   "inline-flex items-center gap-2 min-h-10 px-4 border border-white rounded-full bg-white text-dark-green text-[13px] font-black tracking-[0.03em] uppercase transition-[color,background-color,border-color,transform] duration-[180ms] ease-[ease] hover:text-red hover:border-[rgba(var(--rgb-red),0.44)] hover:-translate-y-px focus-visible:text-red focus-visible:border-[rgba(var(--rgb-red),0.44)] focus-visible:-translate-y-px";
 
 const VISUAL_IMG_CLASS =
-  "w-full h-full object-cover block shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] max-desktop:min-h-[220px] max-tablet:min-h-[210px]";
+  "w-full h-full object-cover block shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] max-lg:min-h-[220px] max-sm:min-h-[210px]";
 
 export default function AboutPage() {
   return (
     <>
-      <section className="pt-[65px] pb-[clamp(34px,5vw,58px)] bg-cream text-text-primary max-tablet:pt-[38px]">
+      <section className="pt-[65px] pb-[clamp(34px,5vw,58px)] bg-cream text-text-primary max-sm:pt-[38px]">
         <Container>
-          <div className="grid grid-cols-[minmax(0,0.88fr)_minmax(360px,0.86fr)] gap-[clamp(28px,5vw,72px)] items-center max-desktop:grid-cols-1">
+          <div className="grid grid-cols-[minmax(0,0.88fr)_minmax(360px,0.86fr)] gap-[clamp(28px,5vw,72px)] items-center max-lg:grid-cols-1">
             <div className="grid gap-[18px]">
               <SectionLabel>About</SectionLabel>
-              <h1 className="font-heading font-medium text-text-primary m-0 max-w-[12ch] text-[3rem] leading-[1.02] tracking-[-0.03em] max-desktop:max-w-[16ch]">
+              <h1 className="font-heading font-medium text-text-primary m-0 max-w-[12ch] text-[3rem] leading-[1.02] tracking-[-0.03em] max-lg:max-w-[16ch]">
                 About RORUM
               </h1>
               <p className="m-0 max-w-[68ch] text-text-primary text-base leading-[1.7] font-medium">
@@ -144,11 +144,11 @@ export default function AboutPage() {
               </div>
             </div>
             <div
-              className="grid grid-cols-[minmax(0,1fr)_minmax(0,0.72fr)] grid-rows-[repeat(2,minmax(170px,1fr))] gap-3 min-h-[clamp(380px,43vw,560px)] max-desktop:min-h-auto max-desktop:grid-rows-[auto] max-tablet:grid-cols-1"
+              className="grid grid-cols-[minmax(0,1fr)_minmax(0,0.72fr)] grid-rows-[repeat(2,minmax(170px,1fr))] gap-3 min-h-[clamp(380px,43vw,560px)] max-lg:min-h-auto max-lg:grid-rows-[auto] max-sm:grid-cols-1"
               aria-label="RORUM atmosphere"
             >
               <img
-                className={`${VISUAL_IMG_CLASS} row-span-2 max-tablet:[grid-row:auto]`}
+                className={`${VISUAL_IMG_CLASS} row-span-2 max-sm:[grid-row:auto]`}
                 src="/images/about/about-room-borscht.png"
                 alt="Ukrainian borscht with pampushky prepared for a RORUM gathering"
               />
@@ -169,8 +169,8 @@ export default function AboutPage() {
 
       <Section tight>
         <Container>
-          <div className="grid grid-cols-[minmax(0,0.78fr)_minmax(0,1fr)] gap-[clamp(28px,5vw,72px)] items-start max-desktop:grid-cols-1">
-            <div className="grid gap-3.5 sticky top-[108px] max-desktop:static">
+          <div className="grid grid-cols-[minmax(0,0.78fr)_minmax(0,1fr)] gap-[clamp(28px,5vw,72px)] items-start max-lg:grid-cols-1">
+            <div className="grid gap-3.5 sticky top-[108px] max-lg:static">
               <SectionLabel>Experience principles</SectionLabel>
               <h2 className="font-heading font-medium text-text-primary m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] leading-[1.25] tracking-[0] normal-case">
                 Thoughtful and practical
