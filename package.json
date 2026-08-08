@@ -9,15 +9,27 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "playwright test tests/interactions.spec.ts tests/breakpoints.spec.ts",
+    "test:e2e": "playwright test tests/interactions.spec.ts tests/breakpoints.spec.ts tests/sanity.spec.ts",
     "test:visual": "playwright test tests/visual.spec.ts",
-    "test:visual:update": "playwright test tests/visual.spec.ts --update-snapshots"
+    "test:visual:update": "playwright test tests/visual.spec.ts --update-snapshots",
+    "test:visual:docker": "docker run --rm -v \"$(pwd):/work/\" -w /work/ -e HOME=/work mcr.microsoft.com/playwright:v1.62.1-noble npm run test:visual:update",
+    "sanity:schema:extract": "sanity schema extract --force",
+    "sanity:typegen": "npm run sanity:schema:extract && sanity typegen generate",
+    "sanity:import:dry-run": "tsx scripts/import-content.ts --dry-run",
+    "sanity:import": "tsx scripts/import-content.ts"
   },
   "dependencies": {
+    "@sanity/client": "^7.26.2",
+    "@sanity/image-url": "^2.1.1",
+    "@sanity/vision": "^6.9.1",
     "lucide-react": "^1.11.0",
     "next": "^16.2.2",
+    "next-sanity": "^13.3.1",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "sanity": "^6.9.1",
+    "sanity-plugin-internationalized-array": "^5.1.25",
+    "styled-components": "^6.5.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
@@ -28,6 +40,7 @@
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.2",
     "tailwindcss": "^4.1.18",
+    "tsx": "^4.23.11",
     "typescript": "^6.0.2"
   }
 }

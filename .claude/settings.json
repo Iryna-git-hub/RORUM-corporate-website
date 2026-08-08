@@ -29,7 +29,24 @@
       "Bash(node _remove-batch9-css.mjs)",
       "Bash(awk 'NR<=5643 && /@media/{line=NR; rule=$0} END{print line\": \"rule}' _orig_globals.css)",
       "Bash(git checkout *)",
-      "Bash(awk 'NR<=5395 && /@media/{line=NR; rule=$0} END{print line\": \"rule}' app/globals.css)"
+      "Bash(awk 'NR<=5395 && /@media/{line=NR; rule=$0} END{print line\": \"rule}' app/globals.css)",
+      "Bash(rm -rf node_modules)",
+      "Bash(npm ci *)",
+      "Bash(node _audit_consumers.js)",
+      "Bash(grep -rn \"quick-path-card-\\\\|quick-path-card\\\\`\\\\|\\\\`quick-path-card\" app/shared.tsx)",
+      "Bash(node _audit_all_classes.js)",
+      "Bash(awk 'NR<=1258 && NR>=1240' app/globals.css)",
+      "Bash(grep -E \"\\\\.log$|tsbuildinfo\")",
+      "Bash(npm view *)",
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; cat {}')",
+      "Bash(xargs -n1 basename)",
+      "Bash(npm uninstall *)",
+      "Bash(npx sanity *)",
+      "Bash(NEXT_PUBLIC_SANITY_PROJECT_ID=placeholder NEXT_PUBLIC_SANITY_DATASET=production npx sanity typegen generate)",
+      "Bash(rm -f sanity-typegen.json)",
+      "Bash(NEXT_PUBLIC_SANITY_PROJECT_ID=placeholder NEXT_PUBLIC_SANITY_DATASET=production npm run sanity:typegen)",
+      "Bash(npm install *)",
+      "Bash(node -e ' *)"
     ]
   }
 }

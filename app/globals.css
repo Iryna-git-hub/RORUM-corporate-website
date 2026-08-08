@@ -249,9 +249,7 @@ main {
   letter-spacing: -0.03em;
   color: var(--color-text-primary);
 }
-.section-title,
-.cta-title,
-.form-title {
+.section-title {
   margin: 0;
   font-size: clamp(1.85rem, 2.6vw, 2.3rem);
   line-height: 1.25;
@@ -981,9 +979,6 @@ button.btn,
   .wecoda-membership-panel h3 {
     font-size: 2rem;
   }
-  .wecoda-donation-divider {
-    max-width: 100%;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .wecoda-benefits-grid.is-animation-ready .wecoda-benefit-item,
@@ -1241,7 +1236,7 @@ button.btn,
   max-width: 100%;
   max-height: calc(100% - 18px);
   object-fit: contain;
-  object-position: 50% 50% !important;
+  object-position: 50% 50%;
   user-select: none;
   pointer-events: none;
   box-shadow: 0 24px 70px rgba(var(--rgb-brown), 0.32);
@@ -1975,10 +1970,6 @@ button.btn,
   height: 17px;
   color: currentColor;
 }
-.event-share-actions .social-icon {
-  width: 18px;
-  height: 18px;
-}
 .event-share-actions button:hover,
 .event-share-actions a:hover {
   color: var(--color-white);
@@ -2172,12 +2163,6 @@ button.btn,
   50% {
     outline-color: rgba(var(--rgb-red), 0);
   }
-}
-.social-icon {
-  display: block;
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
 }
 .policy-content {
   max-width: 880px;

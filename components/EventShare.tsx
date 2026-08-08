@@ -130,17 +130,14 @@ export function EventShare({
         Share with friends
       </p>
       {/*
-        Kept as the legacy `.event-share-actions` class: globals.css scopes the
-        button/link shape, per-platform backgrounds, hover/focus states, and
-        (crucially) a `.event-share-actions .social-icon` 18px size override
-        entirely through descendant selectors anchored on this class. Those
-        rules are unlayered CSS, so they win over any Tailwind utility
-        regardless of what we add here — and SocialIcon.tsx (out of scope)
-        always renders its own hardcoded `.social-icon` class, which falls
-        back to a 20px base size if this ancestor class is removed. Keeping
-        this class (and the child classNames below) unchanged is the only way
-        to preserve the original rendered result without touching those other
-        files.
+        Kept as the legacy `.event-share-actions` class: globals.css scopes
+        the button/link shape, per-platform backgrounds, hover/focus states,
+        and the icon size (`.event-share-actions svg`, 17px) entirely through
+        descendant selectors anchored on this class. Those rules are
+        unlayered CSS, so they win over any Tailwind utility regardless of
+        what we add here. Keeping this class (and the child classNames below)
+        unchanged is the only way to preserve the original rendered result
+        without touching those other files.
       */}
       <div className="event-share-actions">
         <button

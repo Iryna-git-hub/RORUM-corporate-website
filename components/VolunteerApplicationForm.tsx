@@ -121,9 +121,6 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
         value="New Volunteer With Us application"
       />
       <div className="grid gap-2 mb-1">
-        {/* Neither `.heading` nor the generic `.section-title,.cta-title,
-            .form-title` rule wins here - the more specific (still-deferred)
-            `.form .form-title` rule does, for every overlapping property. */}
         <h2
           id="volunteer-modal-title"
           className="m-0 text-text-primary font-body text-[clamp(17px,1.35vw,20px)] leading-tight font-black tracking-normal normal-case"
