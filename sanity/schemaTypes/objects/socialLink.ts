@@ -1,4 +1,12 @@
 import { defineField, defineType } from "sanity";
+import { SOCIAL_LINK_ICONS } from "@/sanity/components/actionIcons";
+
+const PLATFORM_TITLES: Record<string, string> = {
+  instagram: "Instagram",
+  facebook: "Facebook",
+  linkedin: "LinkedIn",
+  whatsapp: "WhatsApp",
+};
 
 // Not localized: platform, URL and brand color are identical regardless of
 // language. Only `label` (used as the link's accessible name) is localized.
@@ -47,6 +55,13 @@ export default defineType({
     }),
   ],
   preview: {
-    select: { title: "icon", subtitle: "href" },
+    select: { icon: "icon", href: "href" },
+    prepare({ icon, href }) {
+      return {
+        title: (typeof icon === "string" && PLATFORM_TITLES[icon]) || "(no platform selected)",
+        subtitle: href,
+        media: typeof icon === "string" ? SOCIAL_LINK_ICONS[icon] : undefined,
+      };
+    },
   },
 });

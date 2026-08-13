@@ -40,10 +40,15 @@ function triBody(
   daBlocks: ReturnType<typeof block>[],
   ukBlocks: ReturnType<typeof block>[],
 ) {
-  return mergeLocales(localizedBody("en", enBlocks), localizedBody("da", daBlocks), localizedBody("uk", ukBlocks));
+  return mergeLocales(
+    localizedBody("en", enBlocks),
+    localizedBody("da", daBlocks),
+    localizedBody("uk", ukBlocks),
+  );
 }
 
-const DRY_RUN = process.argv.includes("--dry-run") || !process.env.SANITY_API_WRITE_TOKEN;
+const DRY_RUN =
+  process.argv.includes("--dry-run") || !process.env.SANITY_API_WRITE_TOKEN;
 
 function cta(en: string, da: string, uk: string, href: string) {
   return { label: tri(en, da, uk), href };
@@ -51,7 +56,13 @@ function cta(en: string, da: string, uk: string, href: string) {
 
 type Tri = readonly [string, string, string];
 
-function iconCard(icon: string, en: string, da: string, uk: string, text?: Tri) {
+function iconCard(
+  icon: string,
+  en: string,
+  da: string,
+  uk: string,
+  text?: Tri,
+) {
   return {
     _type: "iconCard",
     icon,
@@ -74,24 +85,68 @@ function titledText(key: string, title: Tri | null, text: Tri) {
 // ---------------------------------------------------------------------------
 
 const T = {
-  centralCopenhagen: ["Central Copenhagen", "Centralt i København", "У центрі Копенгагена"] as const,
-  upTo12Guests: ["Up to 12 guests", "Op til 12 gæster", "До 12 гостей"] as const,
-  onSiteSupport: ["On-site support", "Support på stedet", "Підтримка на місці"] as const,
-  hostAtRorum: ["Host at RORUM", "Vær vært hos RORUM", "Проведіть подію в RORUM"] as const,
-  attendEvents: ["Attend Events", "Deltag i events", "Відвідати події"] as const,
+  centralCopenhagen: [
+    "Central Copenhagen",
+    "Centralt i København",
+    "У центрі Копенгагена",
+  ] as const,
+  upTo12Guests: [
+    "Up to 12 guests",
+    "Op til 12 gæster",
+    "До 12 гостей",
+  ] as const,
+  onSiteSupport: [
+    "On-site support",
+    "Support på stedet",
+    "Підтримка на місці",
+  ] as const,
+  hostAtRorum: [
+    "Host at RORUM",
+    "Vær vært hos RORUM",
+    "Проведіть подію в RORUM",
+  ] as const,
+  attendEvents: [
+    "Attend Events",
+    "Deltag i events",
+    "Відвідати події",
+  ] as const,
   catering: ["Catering", "Catering", "Кейтеринг"] as const,
-  eventDecoration: ["Event Decoration", "Eventdekoration", "Декор подій"] as const,
-  eventDecorationLower: ["Event decoration", "Eventdekoration", "Декор подій"] as const,
-  haveQuestions: ["Have questions?", "Har du spørgsmål?", "Маєте запитання?"] as const,
-  readFaqs: ["Read our FAQs", "Læs vores FAQ", "Переглянути поширені запитання"] as const,
+  eventDecoration: [
+    "Event Decoration",
+    "Eventdekoration",
+    "Декор подій",
+  ] as const,
+  eventDecorationLower: [
+    "Event decoration",
+    "Eventdekoration",
+    "Декор подій",
+  ] as const,
+  haveQuestions: [
+    "Have questions?",
+    "Har du spørgsmål?",
+    "Маєте запитання?",
+  ] as const,
+  readFaqs: [
+    "Read our FAQs",
+    "Læs vores FAQ",
+    "Переглянути поширені запитання",
+  ] as const,
   about: ["About", "Om os", "Про нас"] as const,
   contact: ["Contact", "Kontakt", "Контакти"] as const,
   community: ["Community", "Fællesskab", "Спільнота"] as const,
   services: ["Services", "Services", "Послуги"] as const,
   faq: ["FAQ", "FAQ", "Поширені запитання"] as const,
   workWithUs: ["Work with us", "Arbejd med os", "Працюйте з нами"] as const,
-  volunteerWithUs: ["Volunteer with us", "Bliv frivillig hos os", "Станьте волонтером"] as const,
-  wecodaMembership: ["WECODA membership", "WECODA-medlemskab", "Членство i WECODA"] as const,
+  volunteerWithUs: [
+    "Volunteer with us",
+    "Bliv frivillig hos os",
+    "Станьте волонтером",
+  ] as const,
+  wecodaMembership: [
+    "WECODA membership",
+    "WECODA-medlemskab",
+    "Членство i WECODA",
+  ] as const,
   address: ["Address", "Adresse", "Адреса"] as const,
   arrival: ["Arrival", "Ankomst", "Прибуття"] as const,
   duration: ["Duration", "Varighed", "Тривалість"] as const,
@@ -117,7 +172,11 @@ const T = {
 // ---------------------------------------------------------------------------
 
 const homePageFields = {
-  heroLabel: tri("Copenhagen event space", "Begivenhedslokale i København", "Простір для подій у Копенгагені"),
+  heroLabel: tri(
+    "Copenhagen event space",
+    "Begivenhedslokale i København",
+    "Простір для подій у Копенгагені",
+  ),
   heroTitle: tri(
     "A Copenhagen space for meaningful gatherings",
     "Et rum i København til meningsfulde sammenkomster",
@@ -186,7 +245,11 @@ const homePageFields = {
     "Найближчі події в RORUM",
   ),
   attendEventsFeature: {
-    eyebrow: tri("Meaningful Gatherings", "Meningsfulde sammenkomster", "Змістовні зустрічі"),
+    eyebrow: tri(
+      "Meaningful Gatherings",
+      "Meningsfulde sammenkomster",
+      "Змістовні зустрічі",
+    ),
     title: tri(...T.attendEvents),
     intro: triText(
       "Join meaningful gatherings at RORUM.",
@@ -199,10 +262,25 @@ const homePageFields = {
       "Відкрийте для себе воркшопи, розмови та спільнотні події в самому серці Копенгагена.",
     ),
     features: [
-      triBullet("f0", "Small-group experiences", "Oplevelser i mindre grupper", "Досвід у невеликих групах"),
-      triBullet("f1", "Up to 12 participants", "Op til 12 deltagere", "До 12 учасників"),
+      triBullet(
+        "f0",
+        "Small-group experiences",
+        "Oplevelser i mindre grupper",
+        "Досвід у невеликих групах",
+      ),
+      triBullet(
+        "f1",
+        "Up to 12 participants",
+        "Op til 12 deltagere",
+        "До 12 учасників",
+      ),
       triBullet("f2", ...T.centralCopenhagen),
-      triBullet("f3", "Community-focused", "Fællesskabsfokuseret", "Орієнтовано на спільноту"),
+      triBullet(
+        "f3",
+        "Community-focused",
+        "Fællesskabsfokuseret",
+        "Орієнтовано на спільноту",
+      ),
     ],
     cta: cta(...T.attendEvents, "/events"),
     reversed: false,
@@ -222,7 +300,12 @@ const homePageFields = {
     ),
     features: [
       triBullet("f0", ...T.upTo12Guests),
-      triBullet("f1", "Flexible room setup", "Fleksibel rumindretning", "Гнучке облаштування простору"),
+      triBullet(
+        "f1",
+        "Flexible room setup",
+        "Fleksibel rumindretning",
+        "Гнучке облаштування простору",
+      ),
       triBullet("f2", ...T.centralCopenhagen),
       triBullet("f3", ...T.onSiteSupport),
     ],
@@ -245,14 +328,18 @@ const homePageFields = {
       "Uanset om du planlægger en workshop, en privat session, et fællesskabsarrangement, en cateringforespørgsel eller en idé til eventstyling — fortæl os, hvad du har i tankerne, så hjælper vi dig med at finde det rette format.",
       "Незалежно від того, чи плануєте ви воркшоп, приватну зустріч, спільнотний захід, запит на кейтеринг чи ідею оформлення події — розкажіть нам, що ви маєте на увазі, і ми допоможемо знайти правильний формат.",
     ),
-    cta: cta("Let's talk", "Lad os tale sammen", "Поговорімо", "/contact"),
+    cta: cta("Let's talk", "Lad os tale", "Поговорімо", "/contact"),
     faqQuestion: tri(...T.haveQuestions),
     faqLabel: tri(...T.readFaqs),
     links: [
       { _key: "l0", href: "/events", label: tri(...T.attendEvents) },
       { _key: "l1", href: "/host-at-rorum", label: tri(...T.hostAtRorum) },
       { _key: "l2", href: "/catering", label: tri(...T.catering) },
-      { _key: "l3", href: "/event-decoration", label: tri(...T.eventDecorationLower) },
+      {
+        _key: "l3",
+        href: "/event-decoration",
+        label: tri(...T.eventDecorationLower),
+      },
     ],
   },
   seo: {
@@ -283,7 +370,11 @@ const homePageFields = {
         "Frisk, enkel og elegant catering til møder, private sammenkomster, workshops og særlige øjeblikke.",
         "Свіжий, простий та елегантний кейтеринг для зустрічей, приватних заходів, воркшопів та особливих моментів.",
       ),
-      cta: tri("Explore catering", "Udforsk catering", "Дізнатися про кейтеринг"),
+      cta: tri(
+        "Explore catering",
+        "Udforsk catering",
+        "Дізнатися про кейтеринг",
+      ),
       href: "/catering",
     },
     {
@@ -295,21 +386,44 @@ const homePageFields = {
         "Blomster, bordstyling, lys og visuelle detaljer designet til at skabe en varm og mindeværdig atmosfære.",
         "Квіти, сервірування столу, свічки та візуальні деталі, створені для теплої й незабутньої атмосфери.",
       ),
-      cta: tri("Explore decoration", "Udforsk dekoration", "Дізнатися про декор"),
+      cta: tri(
+        "Explore decoration",
+        "Udforsk dekoration",
+        "Дізнатися про декор",
+      ),
       href: "/event-decoration",
     },
   ],
   communityLabel: tri(...T.community),
-  communityTitle: tri("More than a space", "Mere end et lokale", "Більше, ніж простір"),
+  communityTitle: tri(
+    "More than a space",
+    "Mere end et lokale",
+    "Більше, ніж простір",
+  ),
   communityText: triText(
     "RORUM is a place for events, ideas and meaningful connections. Join our community, collaborate with us or become part of the team behind the experiences.",
     "RORUM er et sted for events, idéer og meningsfulde forbindelser. Bliv en del af vores fællesskab, samarbejd med os, eller bliv en del af teamet bag oplevelserne.",
     "RORUM — це місце для подій, ідей і значущих зв'язків. Приєднуйтесь до нашої спільноти, співпрацюйте з нами або станьте частиною команди, що створює ці події.",
   ),
   communityLinks: [
-    { _key: "cl0", _type: "communityLink", label: tri(...T.wecodaMembership), href: "/community-membership" },
-    { _key: "cl1", _type: "communityLink", label: tri(...T.workWithUs), href: "/work-with-us" },
-    { _key: "cl2", _type: "communityLink", label: tri(...T.volunteerWithUs), href: "/volunteer" },
+    {
+      _key: "cl0",
+      _type: "communityLink",
+      label: tri(...T.wecodaMembership),
+      href: "/community-membership",
+    },
+    {
+      _key: "cl1",
+      _type: "communityLink",
+      label: tri(...T.workWithUs),
+      href: "/work-with-us",
+    },
+    {
+      _key: "cl2",
+      _type: "communityLink",
+      label: tri(...T.volunteerWithUs),
+      href: "/volunteer",
+    },
   ],
 };
 
@@ -338,7 +452,11 @@ const aboutPageFields = {
       "RORUM також формують учасники, партнери та люди, які хочуть підтримувати продумані локальні зустрічі.",
     ]),
   ],
-  pillarsLabel: tri("Experience principles", "Erfaringsprincipper", "Принципи досвіду"),
+  pillarsLabel: tri(
+    "Experience principles",
+    "Erfaringsprincipper",
+    "Принципи досвіду",
+  ),
   pillars: [
     titledText(
       "p0",
@@ -360,7 +478,11 @@ const aboutPageFields = {
     ),
     titledText(
       "p2",
-      ["Flexible but not blank", "Fleksibel, men ikke tom", "Гнучкість без порожнечі"],
+      [
+        "Flexible but not blank",
+        "Fleksibel, men ikke tom",
+        "Гнучкість без порожнечі",
+      ],
       [
         "Tables, seating, screen, Wi-Fi and styling options give hosts a clear starting point.",
         "Borde, siddepladser, skærm, Wi-Fi og stylingmuligheder giver værter et klart udgangspunkt.",
@@ -369,7 +491,11 @@ const aboutPageFields = {
     ),
     titledText(
       "p3",
-      ["Personal without noise", "Personlig uden støj", "Особисте без зайвого шуму"],
+      [
+        "Personal without noise",
+        "Personlig uden støj",
+        "Особисте без зайвого шуму",
+      ],
       [
         "The space has character, but leaves enough space for each format to feel like its own.",
         "Rummet har karakter, men efterlader plads nok til, at hvert format kan føles som sit eget.",
@@ -377,7 +503,11 @@ const aboutPageFields = {
       ],
     ),
   ],
-  locationTitle: tri("Thoughtful and practical", "Gennemtænkt og praktisk", "Продумано та практично"),
+  locationTitle: tri(
+    "Thoughtful and practical",
+    "Gennemtænkt og praktisk",
+    "Продумано та практично",
+  ),
   locationText: triText(
     "These principles shape the way RORUM approaches meetings, hosted events, catering, decoration and community collaborations.",
     "Disse principper former den måde, RORUM tilgår møder, værtsskabsarrangementer, catering, dekoration og fællesskabssamarbejder på.",
@@ -407,14 +537,18 @@ const aboutPageFields = {
       "Uanset om du planlægger en workshop, en privat session, et fællesskabsarrangement, en cateringforespørgsel eller en idé til eventstyling — fortæl os, hvad du har i tankerne, så hjælper vi dig med at finde det rette format.",
       "Незалежно від того, чи плануєте ви воркшоп, приватну зустріч, спільнотний захід, запит на кейтеринг чи ідею оформлення події — розкажіть нам, що ви маєте на увазі, і ми допоможемо знайти правильний формат.",
     ),
-    cta: cta("Let's talk", "Lad os tale sammen", "Поговорімо", "/contact"),
+    cta: cta("Let's talk", "Lad os tale", "Поговорімо", "/contact"),
     faqQuestion: tri(...T.haveQuestions),
     faqLabel: tri(...T.readFaqs),
     links: [
       { _key: "l0", href: "/events", label: tri(...T.attendEvents) },
       { _key: "l1", href: "/host-at-rorum", label: tri(...T.hostAtRorum) },
       { _key: "l2", href: "/catering", label: tri(...T.catering) },
-      { _key: "l3", href: "/event-decoration", label: tri(...T.eventDecorationLower) },
+      {
+        _key: "l3",
+        href: "/event-decoration",
+        label: tri(...T.eventDecorationLower),
+      },
     ],
   },
 };
@@ -443,7 +577,11 @@ const cateringPageFields = {
   menuFormats: [
     {
       _key: "mf0",
-      title: tri("Private dinner menu", "Privat middagsmenu", "Меню для приватної вечері"),
+      title: tri(
+        "Private dinner menu",
+        "Privat middagsmenu",
+        "Меню для приватної вечері",
+      ),
       description: triText(
         "A seated dinner with seasonal starters, main courses, sides, and desserts.",
         "En siddende middag med sæsonbaserede forretter, hovedretter, tilbehør og desserter.",
@@ -452,7 +590,11 @@ const cateringPageFields = {
     },
     {
       _key: "mf1",
-      title: tri("Reception-style menu", "Reception-menu", "Меню в стилі фуршету"),
+      title: tri(
+        "Reception-style menu",
+        "Reception-menu",
+        "Меню в стилі фуршету",
+      ),
       description: triText(
         "Elegant light dishes, small bites, and shareable plates.",
         "Elegante, lette retter, små snacks og fælles serveringsfade.",
@@ -461,7 +603,11 @@ const cateringPageFields = {
     },
     {
       _key: "mf2",
-      title: tri("Business meeting menu", "Menu til forretningsmøder", "Меню для бізнес-зустрічей"),
+      title: tri(
+        "Business meeting menu",
+        "Menu til forretningsmøder",
+        "Меню для бізнес-зустрічей",
+      ),
       description: triText(
         "Balanced, easy-to-serve dishes suitable for workshops, presentations, and longer meetings.",
         "Afbalancerede retter, der er nemme at servere, og som passer til workshops, præsentationer og længere møder.",
@@ -525,38 +671,58 @@ const cateringPageFields = {
         "Наша професійна команда підтримує подію на всіх етапах — від підготовки до подачі та уважного обслуговування.",
       ],
     ),
-    iconCard(
-      "Flame",
-      "Grill parties",
-      "Grillfester",
-      "Гриль-вечірки",
-      [
-        "Lively grill experiences for warm, informal gatherings where food, conversation and atmosphere come together.",
-        "Livlige grilloplevelser til varme, uformelle sammenkomster, hvor mad, samtale og stemning går op i en højere enhed.",
-        "Жваві гриль-заходи для теплих, невимушених зустрічей, де їжа, спілкування та атмосфера поєднуються.",
-      ],
-    ),
+    iconCard("Flame", "Grill parties", "Grillfester", "Гриль-вечірки", [
+      "Lively grill experiences for warm, informal gatherings where food, conversation and atmosphere come together.",
+      "Livlige grilloplevelser til varme, uformelle sammenkomster, hvor mad, samtale og stemning går op i en højere enhed.",
+      "Жваві гриль-заходи для теплих, невимушених зустрічей, де їжа, спілкування та атмосфера поєднуються.",
+    ]),
   ],
   suitableForLabel: tri("Suitable for:", "Velegnet til:", "Підходить для:"),
   suitableFor: [
     iconCard("CalendarCheck", ...T.hostAtRorum),
     iconCard("Presentation", "Workshops", "Workshops", "Воркшопи"),
-    iconCard("Handshake", "Community events", "Fællesskabsarrangementer", "Спільнотні заходи"),
-    iconCard("Lightbulb", "Creative sessions", "Kreative sessioner", "Творчі сесії"),
-    iconCard("BriefcaseBusiness", "Founder sessions", "Sessioner for iværksættere", "Зустрічі для засновників"),
+    iconCard(
+      "Handshake",
+      "Community events",
+      "Fællesskabsarrangementer",
+      "Спільнотні заходи",
+    ),
+    iconCard(
+      "Lightbulb",
+      "Creative sessions",
+      "Kreative sessioner",
+      "Творчі сесії",
+    ),
+    iconCard(
+      "BriefcaseBusiness",
+      "Founder sessions",
+      "Sessioner for iværksættere",
+      "Зустрічі для засновників",
+    ),
     iconCard("Cake", "Birthdays", "Fødselsdage", "Дні народження"),
     iconCard("Gem", "Weddings", "Bryllupper", "Весілля"),
-    iconCard("Landmark", "Diplomatic meetings", "Diplomatiske møder", "Дипломатичні зустрічі"),
-    iconCard("Building2", "Business meetings", "Forretningsmøder", "Бізнес-зустрічі"),
+    iconCard(
+      "Landmark",
+      "Diplomatic meetings",
+      "Diplomatiske møder",
+      "Дипломатичні зустрічі",
+    ),
+    iconCard(
+      "Building2",
+      "Business meetings",
+      "Forretningsmøder",
+      "Бізнес-зустрічі",
+    ),
     iconCard("Users", "Conferences", "Konferencer", "Конференції"),
-    iconCard("PartyPopper", "External events", "Eksterne arrangementer", "Зовнішні заходи"),
+    iconCard(
+      "PartyPopper",
+      "External events",
+      "Eksterne arrangementer",
+      "Зовнішні заходи",
+    ),
     iconCard("CircleEllipsis", "And more", "Og mere", "І багато іншого"),
   ],
-  philosophyTitle: tri(
-    "What we offer",
-    "Hvad vi tilbyder",
-    "Що ми пропонуємо",
-  ),
+  philosophyTitle: tri("What we offer", "Hvad vi tilbyder", "Що ми пропонуємо"),
   philosophyText: triText(
     "We create catering for different types of events - from elegant finger food and light buffet solutions to full menus for family celebrations, corporate events and official occasions. Each menu is developed individually, combining authentic Ukrainian recipes with a modern European approach, thoughtful presentation and attentive service.",
     "Vi skaber catering til forskellige typer arrangementer - fra elegant fingermad og lette buffetløsninger til fulde menuer til familiefester, virksomhedsarrangementer og officielle lejligheder. Hver menu udvikles individuelt og kombinerer autentiske ukrainske opskrifter med en moderne europæisk tilgang, gennemtænkt præsentation og opmærksom service.",
@@ -564,7 +730,11 @@ const cateringPageFields = {
   ),
   tailoredNote: titledText(
     "tn",
-    ["Tailored upon request", "Skræddersyet efter ønske", "Індивідуально за запитом"],
+    [
+      "Tailored upon request",
+      "Skræddersyet efter ønske",
+      "Індивідуально за запитом",
+    ],
     [
       "Every catering concept is created individually based on your event, location, guest count and wishes.",
       "Hvert cateringkoncept skabes individuelt baseret på dit event, lokation, antal gæster og ønsker.",
@@ -575,7 +745,11 @@ const cateringPageFields = {
   steps: [
     titledText(
       "s0",
-      ["Tell us about your event", "Fortæl os om dit event", "Розкажіть нам про вашу подію"],
+      [
+        "Tell us about your event",
+        "Fortæl os om dit event",
+        "Розкажіть нам про вашу подію",
+      ],
       [
         "Share the date, location, guest count and format.",
         "Del dato, lokation, antal gæster og format.",
@@ -622,8 +796,16 @@ const cateringPageFields = {
       "Тепла скандинавська кухня для воркшопів, зустрічей та камерних подій.",
     ),
   },
-  inquiryTitle: tri("Request catering", "Anmod om catering", "Замовити кейтеринг"),
-  inquirySubmitLabel: tri("Request Catering", "Anmod om catering", "Замовити кейтеринг"),
+  inquiryTitle: tri(
+    "Request catering",
+    "Anmod om catering",
+    "Замовити кейтеринг",
+  ),
+  inquirySubmitLabel: tri(
+    "Request Catering",
+    "Anmod om catering",
+    "Замовити кейтеринг",
+  ),
   messagePlaceholder: triText(
     "Describe your event, timing and catering wishes.",
     "Beskriv dit event, tidspunkt og cateringønsker.",
@@ -656,20 +838,36 @@ const cateringPageFields = {
         "Кожне меню створюється індивідуально з урахуванням формату вашої події, кількості гостей, сезону та харчових уподобань.",
       ),
     ],
-    requestCta: tri("Request custom menu", "Anmod om skræddersyet menu", "Замовити індивідуальне меню"),
-    featuredDishesLabel: tri("Featured Dishes", "Udvalgte retter", "Обрані страви"),
+    requestCta: tri(
+      "Request custom menu",
+      "Anmod om skræddersyet menu",
+      "Замовити індивідуальне меню",
+    ),
+    featuredDishesLabel: tri(
+      "Featured Dishes",
+      "Udvalgte retter",
+      "Обрані страви",
+    ),
     disclaimerNote: triText(
       "The dishes shown are examples of what we can offer. We'll be happy to create a menu tailored to your event, preferences, and guests.",
       "Retterne vist er eksempler på, hvad vi kan tilbyde. Vi skaber gerne en menu, der er skræddersyet til dit event, dine præferencer og dine gæster.",
       "Показані страви є прикладами того, що ми можемо запропонувати. Ми з радістю створимо меню, адаптоване до вашої події, уподобань та гостей.",
     ),
-    customMenuTitle: tri("Create your custom menu", "Skab din skræddersyede menu", "Створіть своє індивідуальне меню"),
+    customMenuTitle: tri(
+      "Create your custom menu",
+      "Skab din skræddersyede menu",
+      "Створіть своє індивідуальне меню",
+    ),
     customMenuText: triText(
       "Tell us about your event, number of guests, preferred cuisine, and dietary needs. We will help create a menu that fits your occasion and makes your guests feel welcome.",
       "Fortæl os om dit event, antal gæster, foretrukne køkken og kostbehov. Vi hjælper med at skabe en menu, der passer til lejligheden og får dine gæster til at føle sig velkomne.",
       "Розкажіть нам про вашу подію, кількість гостей, бажану кухню та харчові потреби. Ми допоможемо створити меню, яке підходить для вашої події та порадує гостей.",
     ),
-    backToCateringCta: tri("Back to Catering", "Tilbage til catering", "Назад до кейтерингу"),
+    backToCateringCta: tri(
+      "Back to Catering",
+      "Tilbage til catering",
+      "Назад до кейтерингу",
+    ),
   },
 };
 
@@ -721,17 +919,11 @@ const eventDecorationPageFields = {
         "Елегантне сервірування столу з квітами, свічками, деталями сервіровки та ретельно підібраними візуальними акцентами.",
       ],
     ),
-    iconCard(
-      "Flower",
-      "Florals",
-      "Blomster",
-      "Флористика",
-      [
-        "Seasonal floral arrangements designed around your event mood, space and color palette.",
-        "Sæsonbaserede blomsterarrangementer designet ud fra dit events stemning, rum og farvepalette.",
-        "Сезонні флористичні композиції, розроблені відповідно до настрою вашої події, простору та кольорової палітри.",
-      ],
-    ),
+    iconCard("Flower", "Florals", "Blomster", "Флористика", [
+      "Seasonal floral arrangements designed around your event mood, space and color palette.",
+      "Sæsonbaserede blomsterarrangementer designet ud fra dit events stemning, rum og farvepalette.",
+      "Сезонні флористичні композиції, розроблені відповідно до настрою вашої події, простору та кольорової палітри.",
+    ]),
     iconCard(
       "Balloon",
       "Balloon accents",
@@ -768,18 +960,32 @@ const eventDecorationPageFields = {
   ],
   suitableForLabel: tri("Suitable for:", "Velegnet til:", "Підходить для:"),
   suitableFor: [
-    iconCard("CalendarCheck", "Private events", "Private arrangementer", "Приватні події"),
+    iconCard(
+      "CalendarCheck",
+      "Private events",
+      "Private arrangementer",
+      "Приватні події",
+    ),
     iconCard("Gem", "Weddings", "Bryllupper", "Весілля"),
     iconCard("PartyPopper", "Birthdays", "Fødselsdage", "Дні народження"),
     iconCard("Lightbulb", "Workshops", "Workshops", "Воркшопи"),
-    iconCard("UtensilsCrossed", "Dinner tables", "Middagsborde", "Святкові столи"),
+    iconCard(
+      "UtensilsCrossed",
+      "Dinner tables",
+      "Middagsborde",
+      "Святкові столи",
+    ),
     iconCard("Sparkles", "Photo corners", "Fotohjørner", "Фотозони"),
     iconCard("Flower2", "Seasonal moments", "Sæsonmomenter", "Сезонні моменти"),
     iconCard("CircleEllipsis", "And more", "Og mere", "І багато іншого"),
   ],
   tailoredNote: titledText(
     "tn",
-    ["Tailored upon request", "Skræddersyet efter ønske", "Індивідуально за запитом"],
+    [
+      "Tailored upon request",
+      "Skræddersyet efter ønske",
+      "Індивідуально за запитом",
+    ],
     [
       "We create each setup individually according to your event format, location and wishes.",
       "Vi skaber hver opsætning individuelt ud fra dit eventformat, lokation og ønsker.",
@@ -812,7 +1018,11 @@ const eventDecorationPageFields = {
     ),
     titledText(
       "s2",
-      ["We prepare the setup", "Vi forbereder opsætningen", "Ми готуємо оформлення"],
+      [
+        "We prepare the setup",
+        "Vi forbereder opsætningen",
+        "Ми готуємо оформлення",
+      ],
       [
         "The decorative layer is arranged with care before guests arrive.",
         "Det dekorative lag arrangeres med omhu, før gæsterne ankommer.",
@@ -833,8 +1043,16 @@ const eventDecorationPageFields = {
       "Продумане сервірування столу, флористика та оформлення атмосфери для подій RORUM.",
     ),
   },
-  inquiryTitle: tri("Decoration request", "Dekorationsforespørgsel", "Запит на декор"),
-  inquirySubmitLabel: tri("Send request", "Send forespørgsel", "Надіслати запит"),
+  inquiryTitle: tri(
+    "Decoration request",
+    "Dekorationsforespørgsel",
+    "Запит на декор",
+  ),
+  inquirySubmitLabel: tri(
+    "Send request",
+    "Send forespørgsel",
+    "Надіслати запит",
+  ),
   messagePlaceholder: triText(
     "Describe your event, location and desired visual setup.",
     "Beskriv dit event, sted og ønsket visuelt setup.",
@@ -864,7 +1082,12 @@ const hostAtRorumPageFields = {
       "RORUM er et lille, kurateret lokale centralt i København, designet til møder, workshops og private arrangementer for op til 12 gæster. Ideelt til mindre teams, iværksættere og kuraterede sammenkomster. Vi tilbyder rolige og velorganiserede rammer med support før og under dit event.",
       "RORUM — це невеликий кураторський простір у центрі Копенгагена, створений для зустрічей, воркшопів і приватних подій до 12 гостей. Ідеально підходить для невеликих команд, засновників і кураторських зібрань. Ми пропонуємо спокійну, добре організовану обстановку з підтримкою до та під час вашої події.",
     ),
-    primaryCta: cta("Apply to Host", "Ansøg om at være vært", "Подати заявку", "#request-private-meeting"),
+    primaryCta: cta(
+      "Apply to Host",
+      "Ansøg om at være vært",
+      "Подати заявку",
+      "#request-private-meeting",
+    ),
     secondaryCta: cta(
       "View Packages & Pricing",
       "Se pakker & priser",
@@ -879,8 +1102,18 @@ const hostAtRorumPageFields = {
     "Кожна сесія включає:",
   ),
   includedItems: [
-    triBullet("i0", "Use of the space", "Brug af lokalet", "Використання простору"),
-    triBullet("i1", "Coffee, tea and water", "Kaffe, te og vand", "Кава, чай і вода"),
+    triBullet(
+      "i0",
+      "Use of the space",
+      "Brug af lokalet",
+      "Використання простору",
+    ),
+    triBullet(
+      "i1",
+      "Coffee, tea and water",
+      "Kaffe, te og vand",
+      "Кава, чай і вода",
+    ),
     triBullet("i2", ...T.onSiteSupport),
     triBullet(
       "i3",
@@ -895,16 +1128,29 @@ const hostAtRorumPageFields = {
   optionalLabel: tri("Optional", "Valgfrit", "Додатково"),
   optionalItems: [
     triBullet("o0", ...T.catering),
-    triBullet("o1", "Customized food options", "Skræddersyede madvalg", "Індивідуальні варіанти харчування"),
+    triBullet(
+      "o1",
+      "Customized food options",
+      "Skræddersyede madvalg",
+      "Індивідуальні варіанти харчування",
+    ),
   ],
   packagesLabel: tri("Packages", "Pakker", "Пакети"),
-  packagesTitle: tri("Hosting Packages", "Værtspakker", "Пакети для проведення подій"),
+  packagesTitle: tri(
+    "Hosting Packages",
+    "Værtspakker",
+    "Пакети для проведення подій",
+  ),
   packagesIntro: triText(
     "Every event has its own atmosphere and unique requirements, which is why the packages below are simply examples of our most popular formats. Looking for something different? We would be happy to tailor the space and arrangements to your needs.",
     "Hvert event har sin egen stemning og unikke krav, hvorfor pakkerne nedenfor blot er eksempler på vores mest populære formater. Leder du efter noget andet? Vi hjælper gerne med at tilpasse lokalet og arrangementerne til dine behov.",
     "Кожна подія має власну атмосферу та унікальні вимоги, тому пакети нижче — лише приклади наших найпопулярніших форматів. Шукаєте щось інше? Ми з радістю адаптуємо простір і організацію під ваші потреби.",
   ),
-  cancellationTitle: tri("Cancellation policy:", "Afbestillingspolitik:", "Політика скасування:"),
+  cancellationTitle: tri(
+    "Cancellation policy:",
+    "Afbestillingspolitik:",
+    "Політика скасування:",
+  ),
   cancellationItems: [
     triBullet(
       "c0",
@@ -972,8 +1218,16 @@ const hostAtRorumPageFields = {
       "Проводьте воркшопи, зустрічі та камерні заходи в RORUM.",
     ),
   },
-  inquiryTitle: tri("Apply to Host at RORUM", "Ansøg om at være vært hos RORUM", "Подати заявку на проведення в RORUM"),
-  inquirySubmitLabel: tri("Submit Hosting Request", "Send værtsanmodning", "Надіслати запит на проведення"),
+  inquiryTitle: tri(
+    "Apply to Host at RORUM",
+    "Ansøg om at være vært hos RORUM",
+    "Подати заявку на проведення в RORUM",
+  ),
+  inquirySubmitLabel: tri(
+    "Submit Hosting Request",
+    "Send værtsanmodning",
+    "Надіслати запит на проведення",
+  ),
   messagePlaceholder: triText(
     "Tell us about your meeting format, timing and preferences.",
     "Fortæl os om dit mødeformat, tidspunkt og præferencer.",
@@ -1092,8 +1346,18 @@ const communityMembershipPageFields = {
       "Знайомтеся з жінками-підприємницями, професіоналками та лідерками змін. Обмінюйтесь досвідом, відкривайте нові можливості та розвивайтеся за підтримки міжнародної спільноти.",
     ),
   ],
-  supportCta: cta("Support WECODA", "Støt WECODA", "Підтримати WECODA", "#support-wecoda"),
-  externalSiteCta: cta("WECODA website", "WECODA hjemmeside", "Сайт WECODA", "https://wecoda.org"),
+  supportCta: cta(
+    "Support WECODA",
+    "Støt WECODA",
+    "Підтримати WECODA",
+    "#support-wecoda",
+  ),
+  externalSiteCta: cta(
+    "WECODA website",
+    "WECODA hjemmeside",
+    "Сайт WECODA",
+    "https://wecoda.org",
+  ),
   priceStripText: tri(
     "Annual membership price: 250 DKK",
     "Årlig medlemspris: 250 DKK",
@@ -1180,7 +1444,11 @@ const communityMembershipPageFields = {
       "Спільнота підтримки — Спільнота активних жінок, які підтримують одна одну, обмінюються досвідом і створюють нові можливості.",
     ),
   ],
-  applicationTitle: tri("Application Process", "Ansøgningsproces", "Процес подачі заявки"),
+  applicationTitle: tri(
+    "Application Process",
+    "Ansøgningsproces",
+    "Процес подачі заявки",
+  ),
   applicationSteps: [
     titledText(
       "as0",
@@ -1234,14 +1502,22 @@ const communityMembershipPageFields = {
     "https://forms.gle/MpadaPTyL8YCHtAa9",
   ),
   seo: {
-    title: tri("Community Membership", "Fællesskabsmedlemskab", "Членство у спільноті"),
+    title: tri(
+      "Community Membership",
+      "Fællesskabsmedlemskab",
+      "Членство у спільноті",
+    ),
     description: triText(
       "Join the RORUM community for events, collaboration and practical creative support in Copenhagen.",
       "Bliv en del af RORUM-fællesskabet for events, samarbejde og praktisk kreativ støtte i København.",
       "Приєднуйтесь до спільноти RORUM заради подій, співпраці та практичної творчої підтримки в Копенгагені.",
     ),
   },
-  introSectionLabel: tri("WECODA community", "WECODA-fællesskab", "Спільнота WECODA"),
+  introSectionLabel: tri(
+    "WECODA community",
+    "WECODA-fællesskab",
+    "Спільнота WECODA",
+  ),
   introSectionTitle: tri(
     "Connecting Women Who Inspire, Build and Lead.",
     "Forbinder kvinder, der inspirerer, bygger og leder.",
@@ -1265,15 +1541,27 @@ const communityMembershipPageFields = {
       "Din støtte hjælper WECODA med at arrangere uddannelsesprogrammer, fællesskabsarrangementer, internationale samarbejder og nye muligheder for kvinder.",
       "Ваша підтримка допомагає WECODA організовувати освітні програми, спільнотні заходи, міжнародну співпрацю та нові можливості для жінок.",
     ),
-    scanText: tri("Scan to donate", "Scan for at donere", "Скануйте, щоб зробити пожертву"),
-    scanSubtext: tri("Fast, secure and easy.", "Hurtigt, sikkert og nemt.", "Швидко, безпечно та просто."),
+    scanText: tri(
+      "Scan to donate",
+      "Scan for at donere",
+      "Скануйте, щоб зробити пожертву",
+    ),
+    scanSubtext: tri(
+      "Fast, secure and easy.",
+      "Hurtigt, sikkert og nemt.",
+      "Швидко, безпечно та просто.",
+    ),
     orText: tri("OR", "ELLER", "АБО"),
     bankTransferText: tri(
       "Prefer bank transfer? See our bank details on the right.",
       "Foretrækker du bankoverførsel? Se vores bankoplysninger til højre.",
       "Надаєте перевагу банківському переказу? Реквізити наведено праворуч.",
     ),
-    bankDetailsTitle: tri("Bank Details", "Bankoplysninger", "Банківські реквізити"),
+    bankDetailsTitle: tri(
+      "Bank Details",
+      "Bankoplysninger",
+      "Банківські реквізити",
+    ),
     supportText: triText(
       "RORUM proudly supports WECODA by providing a welcoming space for community events, learning, and collaboration.",
       "RORUM støtter med stolthed WECODA ved at stille et imødekommende lokale til rådighed for fællesskabsarrangementer, læring og samarbejde.",
@@ -1358,8 +1646,16 @@ const eventsPageFields = {
     soonestLabel: tri("Soonest first", "Snarest først", "Спочатку найближчі"),
     weekLabel: tri("This week", "Denne uge", "Цього тижня"),
     monthLabel: tri("This month", "Denne måned", "Цього місяця"),
-    priceAscLabel: tri("From low to high", "Fra lav til høj", "Від дешевих до дорогих"),
-    priceDescLabel: tri("From high to low", "Fra høj til lav", "Від дорогих до дешевих"),
+    priceAscLabel: tri(
+      "From low to high",
+      "Fra lav til høj",
+      "Від дешевих до дорогих",
+    ),
+    priceDescLabel: tri(
+      "From high to low",
+      "Fra høj til lav",
+      "Від дорогих до дешевих",
+    ),
     availableLabel: tri("Available", "Ledig", "Доступно"),
     soldOutLabel: tri("Sold out", "Udsolgt", "Розпродано"),
     clearFiltersLabel: tri("Clear filters", "Ryd filtre", "Скинути фільтри"),
@@ -1393,7 +1689,11 @@ const faqPageFields = {
 
 const volunteerPageFields = {
   heroLabel: tri(...T.volunteerWithUs),
-  heroTitle: tri("Volunteer at RORUM", "Bliv frivillig hos RORUM", "Волонтерство в RORUM"),
+  heroTitle: tri(
+    "Volunteer at RORUM",
+    "Bliv frivillig hos RORUM",
+    "Волонтерство в RORUM",
+  ),
   heroParagraphs: [
     triBulletParagraph(
       "hp0",
@@ -1421,9 +1721,24 @@ const volunteerPageFields = {
     ),
   ],
   highlights: [
-    iconCard("Users", "A place where people know each other.", "Et sted, hvor folk kender hinanden.", "Місце, де люди знають одне одного."),
-    iconCard("HandHeart", "Support each other.", "Støtter hinanden.", "Підтримують одне одного."),
-    iconCard("Rocket", "Build something together.", "Bygger noget sammen.", "Створюють щось разом."),
+    iconCard(
+      "Users",
+      "A place where people know each other.",
+      "Et sted, hvor folk kender hinanden.",
+      "Місце, де люди знають одне одного.",
+    ),
+    iconCard(
+      "HandHeart",
+      "Support each other.",
+      "Støtter hinanden.",
+      "Підтримують одне одного.",
+    ),
+    iconCard(
+      "Rocket",
+      "Build something together.",
+      "Bygger noget sammen.",
+      "Створюють щось разом.",
+    ),
   ],
   closingParagraphs: [
     triBulletParagraph(
@@ -1445,7 +1760,12 @@ const volunteerPageFields = {
       "Подайте заявку на волонтерство та приєднуйтесь до RORUM.",
     ),
   ],
-  applyCta: cta("Apply to volunteer", "Ansøg om at blive frivillig", "Подати заявку на волонтерство", "#apply"),
+  applyCta: cta(
+    "Apply to volunteer",
+    "Ansøg om at blive frivillig",
+    "Подати заявку на волонтерство",
+    "#apply",
+  ),
   seo: {
     title: tri(...T.volunteerWithUs),
     description: triText(
@@ -1521,14 +1841,22 @@ const legalTermsSubtitle = triText(
   "Умови використання вебсайту RORUM, надсилання запитів і переходу за зовнішніми посиланнями на квитки.",
 );
 
-const legalPrivacyTitle = tri("Privacy policy", "Privatlivspolitik", "Політика конфіденційності");
+const legalPrivacyTitle = tri(
+  "Privacy policy",
+  "Privatlivspolitik",
+  "Політика конфіденційності",
+);
 const legalPrivacySubtitle = triText(
   "How RORUM handles personal information submitted through this website.",
   "Hvordan RORUM håndterer personlige oplysninger indsendt via denne hjemmeside.",
   "Як RORUM обробляє персональні дані, надіслані через цей вебсайт.",
 );
 
-const legalCookieTitle = tri("Cookie policy", "Cookiepolitik", "Політика використання файлів cookie");
+const legalCookieTitle = tri(
+  "Cookie policy",
+  "Cookiepolitik",
+  "Політика використання файлів cookie",
+);
 const legalCookieSubtitle = triText(
   "How RORUM may use cookies and similar technologies.",
   "Hvordan RORUM kan bruge cookies og lignende teknologier.",
@@ -1607,7 +1935,9 @@ const legalPrivacyBodyDa = [
     "RORUM behandler personoplysninger for at besvare forespørgsler, håndtere anmodninger, drøfte events, værtsledede sammenkomster, catering, eventdekoration, samarbejder og fællesskabsrelateret kommunikation. Afhængigt af anmodningen kan retsgrundlaget være:",
   ),
   bulletBlock("skridt før indgåelse af en aftale"),
-  bulletBlock("RORUM's legitime interesse i at besvare forespørgsler og håndtere kommunikation"),
+  bulletBlock(
+    "RORUM's legitime interesse i at besvare forespørgsler og håndtere kommunikation",
+  ),
   bulletBlock("samtykke, hvor du har givet samtykke til et specifikt formål"),
   block("5. CV og samarbejdsforespørgsler", "h2"),
   block(
@@ -1620,7 +1950,9 @@ const legalPrivacyBodyDa = [
   block(
     "Billetto anvendes som ekstern billetudbyder til udvalgte eventbilletlinks. Hvis du bruger Billetto, gælder deres egen privatlivspolitik og vilkår.",
   ),
-  block("Kontaktsiden kan inkludere en Google Maps iframe. Google kan behandle data, når kortet indlæses."),
+  block(
+    "Kontaktsiden kan inkludere en Google Maps iframe. Google kan behandle data, når kortet indlæses.",
+  ),
   block("7. Analyse og sporing", "h2"),
   block(
     "Google Analytics og Meta Pixel anvendes ikke bevidst som standard på denne forenklede hjemmeside. RORUM anvender ikke bevidst markedsføringssporing som standard.",
@@ -1633,7 +1965,9 @@ const legalPrivacyBodyDa = [
   block(
     "Du kan kontakte RORUM for at anmode om adgang til dine personoplysninger, berigtigelse, sletning, begrænsning af behandling eller for at gøre indsigelse mod behandling, hvor det er relevant.",
   ),
-  block("Hvis behandlingen er baseret på samtykke, kan du til enhver tid trække dit samtykke tilbage."),
+  block(
+    "Hvis behandlingen er baseret på samtykke, kan du til enhver tid trække dit samtykke tilbage.",
+  ),
   block("10. Kontakt", "h2"),
   block("For spørgsmål om privatliv, kontakt hello@rorum.dk."),
 ];
@@ -1652,7 +1986,9 @@ const legalPrivacyBodyUk = [
     "RORUM обробляє персональні дані для відповіді на запити, управління зверненнями, обговорення подій, організованих зустрічей, кейтерингу, декору подій, співпраці та спільнотної комунікації. Залежно від запиту правовою підставою може бути:",
   ),
   bulletBlock("вжиття заходів до укладення договору"),
-  bulletBlock("законний інтерес RORUM у відповіді на запити та управлінні комунікацією"),
+  bulletBlock(
+    "законний інтерес RORUM у відповіді на запити та управлінні комунікацією",
+  ),
   bulletBlock("згода, якщо ви надали згоду для конкретної мети"),
   block("5. Резюме та запити щодо співпраці", "h2"),
   block(
@@ -1665,7 +2001,9 @@ const legalPrivacyBodyUk = [
   block(
     "Billetto використовується як зовнішній постачальник квитків для обраних посилань на квитки подій. Якщо ви використовуєте Billetto, застосовуються їхні власні політика конфіденційності та умови.",
   ),
-  block("Сторінка контактів може містити iframe Google Maps. Google може обробляти дані під час завантаження карти."),
+  block(
+    "Сторінка контактів може містити iframe Google Maps. Google може обробляти дані під час завантаження карти.",
+  ),
   block("7. Аналітика та відстеження", "h2"),
   block(
     "Google Analytics і Meta Pixel за замовчуванням свідомо не використовуються на цьому спрощеному вебсайті. RORUM свідомо не використовує маркетингове відстеження за замовчуванням.",
@@ -1678,7 +2016,9 @@ const legalPrivacyBodyUk = [
   block(
     "Ви можете звернутися до RORUM із запитом на доступ до ваших персональних даних, їх виправлення, видалення, обмеження обробки або заперечення проти обробки, де це застосовно.",
   ),
-  block("Якщо обробка ґрунтується на згоді, ви можете відкликати свою згоду в будь-який час."),
+  block(
+    "Якщо обробка ґрунтується на згоді, ви можете відкликати свою згоду в будь-який час.",
+  ),
   block("10. Контакти", "h2"),
   block("З питань конфіденційності звертайтесь на hello@rorum.dk."),
 ];
@@ -1761,7 +2101,9 @@ const legalPrivacyBodyEn = [
     "RORUM processes personal information to respond to inquiries, manage requests, discuss events, hosted gatherings, catering, event decoration, collaborations and community-related communication. Depending on the request, the legal basis may be:",
   ),
   bulletBlock("taking steps before entering into an agreement"),
-  bulletBlock("RORUM's legitimate interest in responding to inquiries and managing communication"),
+  bulletBlock(
+    "RORUM's legitimate interest in responding to inquiries and managing communication",
+  ),
   bulletBlock("consent, where you have given consent for a specific purpose"),
   block("5. CV and collaboration inquiries", "h2"),
   block(
@@ -1774,7 +2116,9 @@ const legalPrivacyBodyEn = [
   block(
     "Billetto is used as an external ticket provider for selected event ticket links. If you use Billetto, their own privacy policy and terms apply.",
   ),
-  block("The Contact page may include a Google Maps iframe. Google may process data when the map is loaded."),
+  block(
+    "The Contact page may include a Google Maps iframe. Google may process data when the map is loaded.",
+  ),
   block("7. Analytics and tracking", "h2"),
   block(
     "Google Analytics and Meta Pixel are not intentionally used by default on this simplified website. RORUM does not intentionally use marketing tracking by default.",
@@ -1787,7 +2131,9 @@ const legalPrivacyBodyEn = [
   block(
     "You may contact RORUM to request access to your personal data, correction, deletion, restriction of processing, or to object to processing where applicable.",
   ),
-  block("If processing is based on consent, you may withdraw your consent at any time."),
+  block(
+    "If processing is based on consent, you may withdraw your consent at any time.",
+  ),
   block("10. Contact", "h2"),
   block("For privacy questions, contact hello@rorum.dk."),
 ];
@@ -1871,14 +2217,22 @@ const navigationFields = {
       label: tri(...T.services),
       children: [
         { _key: "c0", href: "/catering", label: tri(...T.catering) },
-        { _key: "c1", href: "/event-decoration", label: tri("Decoration", "Dekoration", "Декор") },
+        {
+          _key: "c1",
+          href: "/event-decoration",
+          label: tri("Decoration", "Dekoration", "Декор"),
+        },
       ],
     },
     {
       _key: "n3",
       label: tri(...T.community),
       children: [
-        { _key: "c0", href: "/community-membership", label: tri(...T.wecodaMembership) },
+        {
+          _key: "c0",
+          href: "/community-membership",
+          label: tri(...T.wecodaMembership),
+        },
         { _key: "c1", href: "/volunteer", label: tri(...T.volunteerWithUs) },
         { _key: "c2", href: "/work-with-us", label: tri(...T.workWithUs) },
       ],
@@ -1887,23 +2241,31 @@ const navigationFields = {
     { _key: "n5", href: "/contact", label: tri(...T.contact) },
   ],
   languageSwitcherLabel: tri("Language", "Sprog", "Мова"),
-  contactCtaLabel: tri("Let's Talk", "Lad os tale sammen", "Поговорімо"),
+  contactCtaLabel: tri("Let's Talk", "Lad os tale", "Поговорімо"),
 };
 
 function footerColumn(key: string, title: Tri, links: [string, Tri][]) {
   return {
     _key: key,
     title: tri(...title),
-    links: links.map(([href, label], i) => ({ _key: `l${i}`, href, label: tri(...label) })),
+    links: links.map(([href, label], i) => ({
+      _key: `l${i}`,
+      href,
+      label: tri(...label),
+    })),
   };
 }
 
 const footerFields = {
   columns: [
-    footerColumn("visit", ["Visit & host", "Besøg & vær vært", "Відвідати та проводити"], [
-      ["/events", T.attendEvents],
-      ["/host-at-rorum", T.hostAtRorum],
-    ]),
+    footerColumn(
+      "visit",
+      ["Visit & host", "Besøg & vær vært", "Відвідати та проводити"],
+      [
+        ["/events", T.attendEvents],
+        ["/host-at-rorum", T.hostAtRorum],
+      ],
+    ),
     footerColumn("services", T.services, [
       ["/catering", T.catering],
       ["/event-decoration", ["Decoration", "Dekoration", "Декор"]],
@@ -1913,27 +2275,59 @@ const footerFields = {
       ["/volunteer", T.volunteerWithUs],
       ["/work-with-us", T.workWithUs],
     ]),
-    footerColumn("company", ["Company", "Virksomhed", "Компанія"], [
-      ["/about", T.about],
-      ["/contact", T.contact],
-      ["/faq", T.faq],
-    ]),
+    footerColumn(
+      "company",
+      ["Company", "Virksomhed", "Компанія"],
+      [
+        ["/about", T.about],
+        ["/contact", T.contact],
+        ["/faq", T.faq],
+      ],
+    ),
   ],
   legalLinks: [
-    { _key: "l0", href: "/terms", label: tri("Terms and conditions", "Vilkår og betingelser", "Умови та положення") },
-    { _key: "l1", href: "/privacy-policy", label: tri("Privacy policy", "Privatlivspolitik", "Політика конфіденційності") },
-    { _key: "l2", href: "/cookie-policy", label: tri("Cookie policy", "Cookiepolitik", "Політика cookie") },
+    {
+      _key: "l0",
+      href: "/terms",
+      label: tri(
+        "Terms and conditions",
+        "Vilkår og betingelser",
+        "Умови та положення",
+      ),
+    },
+    {
+      _key: "l1",
+      href: "/privacy-policy",
+      label: tri(
+        "Privacy policy",
+        "Privatlivspolitik",
+        "Політика конфіденційності",
+      ),
+    },
+    {
+      _key: "l2",
+      href: "/cookie-policy",
+      label: tri("Cookie policy", "Cookiepolitik", "Політика cookie"),
+    },
   ],
   copyrightText: tri(
     "© 2026 RORUM. All rights reserved.",
     "© 2026 RORUM. Alle rettigheder forbeholdes.",
     "© 2026 RORUM. Усі права захищено.",
   ),
-  contactDetailsLabel: tri("Contact details", "Kontaktoplysninger", "Контактна інформація"),
+  contactDetailsLabel: tri(
+    "Contact details",
+    "Kontaktoplysninger",
+    "Контактна інформація",
+  ),
 };
 
 const formMessagesFields = {
-  requiredFieldTemplate: tri("{field} is required.", "{field} er påkrævet.", "{field} є обов'язковим полем."),
+  requiredFieldTemplate: tri(
+    "{field} is required.",
+    "{field} er påkrævet.",
+    "{field} є обов'язковим полем.",
+  ),
   invalidEmailMessage: tri(
     "Please enter a valid email address.",
     "Indtast venligst en gyldig e-mailadresse.",
@@ -1956,16 +2350,32 @@ const formMessagesFields = {
   emailLabel: tri("Email", "E-mail", "Електронна пошта"),
   messageLabel: tri("Message", "Besked", "Повідомлення"),
   eventDateLabel: tri("Event date", "Eventdato", "Дата події"),
-  agreeButtonLabel: tri("I Have Read and Agree", "Jeg har læst og accepterer", "Я прочитав(ла) і погоджуюсь"),
+  agreeButtonLabel: tri(
+    "I Have Read and Agree",
+    "Jeg har læst og accepterer",
+    "Я прочитав(ла) і погоджуюсь",
+  ),
   closeLabel: tri("Close", "Luk", "Закрити"),
   copyLabel: tri("Copy", "Kopier", "Копіювати"),
   copiedLabel: tri("Copied", "Kopieret", "Скопійовано"),
   packageLabel: tri("Package", "Pakke", "Пакет"),
-  selectPackagePlaceholder: tri("Select package", "Vælg pakke", "Оберіть пакет"),
+  selectPackagePlaceholder: tri(
+    "Select package",
+    "Vælg pakke",
+    "Оберіть пакет",
+  ),
   eventTimeLabel: tri("Event time", "Eventtidspunkt", "Час події"),
-  numberOfPeopleLabel: tri("Number of people", "Antal personer", "Кількість осіб"),
+  numberOfPeopleLabel: tri(
+    "Number of people",
+    "Antal personer",
+    "Кількість осіб",
+  ),
   guestsPlaceholder: tri("Approx. number", "Ca. antal", "Приблизна кількість"),
-  additionalServicesLabel: tri("Additional services", "Yderligere services", "Додаткові послуги"),
+  additionalServicesLabel: tri(
+    "Additional services",
+    "Yderligere services",
+    "Додаткові послуги",
+  ),
   commentLabel: tri("Comment", "Kommentar", "Коментар"),
   guestsRangeMessage: tri(
     "Please enter a whole number between 1 and 30.",
@@ -1980,20 +2390,50 @@ const formMessagesFields = {
 // ---------------------------------------------------------------------------
 
 const eventTitleTranslations: Record<string, [string, string]> = {
-  "Copenhagen makers dinner": ["Copenhagen makers-middag", "Вечеря копенгагенських майстрів"],
-  "Botanical table styling workshop": ["Botanisk bordstyling-workshop", "Воркшоп із ботанічного сервірування столу"],
-  "Freelance morning salon": ["Freelance morgensalon", "Ранковий салон для фрилансерів"],
-  "Soft launch breakfast": ["Soft launch-morgenmad", "Сніданок м'якого запуску"],
-  "Candlelit listening room": ["Lysbelyst lytterum", "Кімната для прослуховування при свічках"],
-  "Summer table lab": ["Sommer bordlaboratorium", "Літня лабораторія сервірування"],
+  "Copenhagen makers dinner": [
+    "Copenhagen makers-middag",
+    "Вечеря копенгагенських майстрів",
+  ],
+  "Botanical table styling workshop": [
+    "Botanisk bordstyling-workshop",
+    "Воркшоп із ботанічного сервірування столу",
+  ],
+  "Freelance morning salon": [
+    "Freelance morgensalon",
+    "Ранковий салон для фрилансерів",
+  ],
+  "Soft launch breakfast": [
+    "Soft launch-morgenmad",
+    "Сніданок м'якого запуску",
+  ],
+  "Candlelit listening room": [
+    "Lysbelyst lytterum",
+    "Кімната для прослуховування при свічках",
+  ],
+  "Summer table lab": [
+    "Sommer bordlaboratorium",
+    "Літня лабораторія сервірування",
+  ],
   "Creative hosts circle": ["Kreativ værtscirkel", "Коло творчих господарів"],
   "Nordic brunch club": ["Nordisk brunch-klub", "Клуб нордичного бранчу"],
   "Tiny talks evening": ["Tiny talks-aften", "Вечір коротких розмов"],
-  "Floral mood workshop": ["Blomsterstemning-workshop", "Воркшоп квіткового настрою"],
-  "Independent work morning": ["Selvstændig arbejdsmorgen", "Ранок незалежної роботи"],
+  "Floral mood workshop": [
+    "Blomsterstemning-workshop",
+    "Воркшоп квіткового настрою",
+  ],
+  "Independent work morning": [
+    "Selvstændig arbejdsmorgen",
+    "Ранок незалежної роботи",
+  ],
   "Seasonal supper preview": ["Sæsonmiddag preview", "Прев'ю сезонної вечері"],
-  "Community reset night": ["Fællesskabets resetaften", "Вечір перезавантаження спільноти"],
-  "Business breakfast Copenhagen": ["Erhvervsmorgenmad København", "Бізнес-сніданок у Копенгагені"],
+  "Community reset night": [
+    "Fællesskabets resetaften",
+    "Вечір перезавантаження спільноти",
+  ],
+  "Business breakfast Copenhagen": [
+    "Erhvervsmorgenmad København",
+    "Бізнес-сніданок у Копенгагені",
+  ],
   "Networking for international founders": [
     "Netværk for internationale iværksættere",
     "Нетворкінг для міжнародних засновників",
@@ -2002,34 +2442,62 @@ const eventTitleTranslations: Record<string, [string, string]> = {
     "Dansk for ukrainere: Hverdagsgrundlag",
     "Данська для українців: базові фрази",
   ],
-  "Yoga after work reset": ["Yoga efter arbejde reset", "Йога для перезавантаження після роботи"],
+  "Yoga after work reset": [
+    "Yoga efter arbejde reset",
+    "Йога для перезавантаження після роботи",
+  ],
   "Present yourself with confidence": [
     "Præsenter dig selv med selvtillid",
     "Впевнена самопрезентація",
   ],
   "Slow art evening": ["Slow art-aften", "Вечір повільного мистецтва"],
-  "Danish conversation cafe": ["Dansk samtalecafé", "Кафе данської розмовної практики"],
-  "Creative business roundtable": ["Kreativt erhvervsrundbord", "Круглий стіл творчого бізнесу"],
+  "Danish conversation cafe": [
+    "Dansk samtalecafé",
+    "Кафе данської розмовної практики",
+  ],
+  "Creative business roundtable": [
+    "Kreativt erhvervsrundbord",
+    "Круглий стіл творчого бізнесу",
+  ],
   "Mindful morning yoga": ["Mindful morgenyoga", "Усвідомлена ранкова йога"],
-  "LinkedIn profile lab": ["LinkedIn-profillaboratorium", "Лабораторія профілю LinkedIn"],
+  "LinkedIn profile lab": [
+    "LinkedIn-profillaboratorium",
+    "Лабораторія профілю LinkedIn",
+  ],
   "Ukrainian-Danish community night": [
     "Ukrainsk-dansk fællesskabsaften",
     "Українсько-данський вечір спільноти",
   ],
   "Watercolor & wine": ["Akvarel & vin", "Акварель і вино"],
-  "Danish work culture breakfast": ["Dansk arbejdskultur-morgenmad", "Сніданок про данську культуру праці"],
-  "Calm networking for newcomers": ["Rolig netværk for nytilkomne", "Спокійний нетворкінг для новоприбулих"],
+  "Danish work culture breakfast": [
+    "Dansk arbejdskultur-morgenmad",
+    "Сніданок про данську культуру праці",
+  ],
+  "Calm networking for newcomers": [
+    "Rolig netværk for nytilkomne",
+    "Спокійний нетворкінг для новоприбулих",
+  ],
   "Breathwork & tea": ["Åndedrætsøvelser & te", "Дихальні практики та чай"],
-  "Pitch practice evening": ["Pitch-øvelsesaften", "Вечір відпрацювання пітчів"],
+  "Pitch practice evening": [
+    "Pitch-øvelsesaften",
+    "Вечір відпрацювання пітчів",
+  ],
   "Clay & calm hands": ["Ler & rolige hænder", "Глина та спокійні руки"],
   "Danish for Ukrainians: Workplace words": [
     "Dansk for ukrainere: Ord på arbejdspladsen",
     "Данська для українців: слова на робочому місці",
   ],
-  "International supper salon": ["Internationalt middagssalon", "Міжнародний вечірній салон"],
+  "International supper salon": [
+    "Internationalt middagssalon",
+    "Міжнародний вечірній салон",
+  ],
 };
 
-function expandedEventDescriptions(titleEn: string, titleDa: string, titleUk: string) {
+function expandedEventDescriptions(
+  titleEn: string,
+  titleDa: string,
+  titleUk: string,
+) {
   return {
     shortDescription: triText(
       `${titleEn} is an intimate RORUM gathering shaped for a warm Copenhagen room.`,
@@ -2045,23 +2513,66 @@ function expandedEventDescriptions(titleEn: string, titleDa: string, titleUk: st
 }
 
 const expandedIncluded = [
-  triBullet("i0", "Hosted arrival", "Værtsledet ankomst", "Організоване прибуття"),
-  triBullet("i1", "Coffee, tea or seasonal drink", "Kaffe, te eller sæsondrik", "Кава, чай або сезонний напій"),
-  triBullet("i2", "Small-group format", "Format for mindre grupper", "Формат невеликої групи"),
-  triBullet("i3", "Room setup by RORUM", "Rumindretning af RORUM", "Облаштування простору від RORUM"),
+  triBullet(
+    "i0",
+    "Hosted arrival",
+    "Værtsledet ankomst",
+    "Організоване прибуття",
+  ),
+  triBullet(
+    "i1",
+    "Coffee, tea or seasonal drink",
+    "Kaffe, te eller sæsondrik",
+    "Кава, чай або сезонний напій",
+  ),
+  triBullet(
+    "i2",
+    "Small-group format",
+    "Format for mindre grupper",
+    "Формат невеликої групи",
+  ),
+  triBullet(
+    "i3",
+    "Room setup by RORUM",
+    "Rumindretning af RORUM",
+    "Облаштування простору від RORUM",
+  ),
 ];
 
 // One entry per language, same 5 bullets in order — joined with "\n" at each
 // call site to match `whatToExpect`'s new one-multiline-field-per-language
 // shape (sanity/schemaTypes/documents/event.ts).
-const expandedWhatToExpectEn = ["Small group format", "Guided experience", "Warm RORUM atmosphere", "Tea & refreshments", "Time for conversation"];
-const expandedWhatToExpectDa = ["Format for mindre grupper", "Guidet oplevelse", "Varm RORUM-atmosfære", "Te & forfriskninger", "Tid til samtale"];
-const expandedWhatToExpectUk = ["Формат невеликої групи", "Керований досвід", "Тепла атмосфера RORUM", "Чай і закуски", "Час для розмови"];
+const expandedWhatToExpectEn = [
+  "Small group format",
+  "Guided experience",
+  "Warm RORUM atmosphere",
+  "Tea & refreshments",
+  "Time for conversation",
+];
+const expandedWhatToExpectDa = [
+  "Format for mindre grupper",
+  "Guidet oplevelse",
+  "Varm RORUM-atmosfære",
+  "Te & forfriskninger",
+  "Tid til samtale",
+];
+const expandedWhatToExpectUk = [
+  "Формат невеликої групи",
+  "Керований досвід",
+  "Тепла атмосфера RORUM",
+  "Чай і закуски",
+  "Час для розмови",
+];
 
 // Featured (bespoke) events — full custom translations
 const featuredEventTranslations: Record<
   string,
-  { short: [string, string]; long: [string, string]; included: [string, string][]; whatToExpect: [string, string][] }
+  {
+    short: [string, string];
+    long: [string, string];
+    included: [string, string][];
+    whatToExpect: [string, string][];
+  }
 > = {
   "copenhagen-makers-dinner": {
     short: [
@@ -2096,7 +2607,10 @@ const featuredEventTranslations: Record<
       "Практичний воркшоп для ведучих, фасилітаторів і візуальних мислителів, які хочуть створювати гостинні столи без зайвого ускладнення простору. Ми працюємо з сезонними матеріалами, масштабом, повторенням та практичними рішеннями оформлення.",
     ],
     included: [
-      ["Materialer til bordstylingøvelser", "Матеріали для вправ із сервірування столу"],
+      [
+        "Materialer til bordstylingøvelser",
+        "Матеріали для вправ із сервірування столу",
+      ],
       ["Kaffe, te og en sød pause", "Кава, чай та солодка перерва"],
       ["Praktisk opsætningstjekliste", "Практичний чек-лист облаштування"],
       ["Vejledning i mindre grupper", "Керівництво в невеликих групах"],
@@ -2146,10 +2660,17 @@ const faqGroupTitleTranslations: Record<string, [string, string]> = {
 };
 
 // Full Q/A translations, structured per group
-const faqQA: Record<string, { q: [string, string, string]; a: [string, string, string] }[]> = {
+const faqQA: Record<
+  string,
+  { q: [string, string, string]; a: [string, string, string] }[]
+> = {
   Events: [
     {
-      q: ["How do I book a ticket?", "Hvordan booker jeg en billet?", "Як забронювати квиток?"],
+      q: [
+        "How do I book a ticket?",
+        "Hvordan booker jeg en billet?",
+        "Як забронювати квиток?",
+      ],
       a: [
         "Open the event you are interested in and follow the booking details listed there.",
         "Åbn det event, du er interesseret i, og følg bookingdetaljerne der.",
@@ -2157,7 +2678,11 @@ const faqQA: Record<string, { q: [string, string, string]; a: [string, string, s
       ],
     },
     {
-      q: ["Are events in English?", "Er events på engelsk?", "Чи проходять події англійською?"],
+      q: [
+        "Are events in English?",
+        "Er events på engelsk?",
+        "Чи проходять події англійською?",
+      ],
       a: [
         "The MVP event list includes language on every card. Most community events can be hosted in English.",
         "MVP-eventlisten viser sprog på hvert kort. De fleste fællesskabsevents kan afholdes på engelsk.",
@@ -2243,7 +2768,11 @@ const faqQA: Record<string, { q: [string, string, string]; a: [string, string, s
       ],
     },
     {
-      q: ["Is volunteering paid?", "Er frivilligt arbejde betalt?", "Чи оплачується волонтерство?"],
+      q: [
+        "Is volunteering paid?",
+        "Er frivilligt arbejde betalt?",
+        "Чи оплачується волонтерство?",
+      ],
       a: [
         "Volunteer roles are community-based. Paid work and collaborations should use the Work With Us form.",
         "Frivillige roller er fællesskabsbaserede. Betalt arbejde og samarbejder bør bruge Arbejd med os-formularen.",
@@ -2259,7 +2788,11 @@ const faqQA: Record<string, { q: [string, string, string]; a: [string, string, s
 
 const cateringCategoryTranslations: Record<
   string,
-  { title: [string, string]; navLabel: [string, string]; description: [string, string] }
+  {
+    title: [string, string];
+    navLabel: [string, string];
+    description: [string, string];
+  }
 > = {
   ukrainian: {
     title: ["Traditionelt ukrainsk køkken", "Традиційна українська кухня"],
@@ -2311,7 +2844,10 @@ const cateringCategoryTranslations: Record<
   },
 };
 
-const cateringItemTranslations: Record<string, { name: [string, string]; description: [string, string] }> = {
+const cateringItemTranslations: Record<
+  string,
+  { name: [string, string]; description: [string, string] }
+> = {
   Borscht: {
     name: ["Borsjtj", "Борщ"],
     description: [
@@ -2341,7 +2877,10 @@ const cateringItemTranslations: Record<string, { name: [string, string]; descrip
     ],
   },
   "Pork neck baked with garlic and herbs": {
-    name: ["Svinehals bagt med hvidløg og krydderurter", "Свиняча шия, запечена з часником і травами"],
+    name: [
+      "Svinehals bagt med hvidløg og krydderurter",
+      "Свиняча шия, запечена з часником і травами",
+    ],
     description: [
       "Mør ovnbagt svinehals krydret med hvidløg, rosmarin og krydderurter, serveret i skiver som en varm, gavmild hovedret.",
       "Ніжна запечена свиняча шия, приправлена часником, розмарином і травами, подається скибочками як щедра гаряча основна страва.",
@@ -2467,7 +3006,10 @@ const cateringItemTranslations: Record<string, { name: [string, string]; descrip
     ],
   },
   "Baked pumpkin with feta and honey": {
-    name: ["Bagt græskar med feta og honning", "Запечений гарбуз із фетою та медом"],
+    name: [
+      "Bagt græskar med feta og honning",
+      "Запечений гарбуз із фетою та медом",
+    ],
     description: [
       "En varm sæsonret med søde, salte og cremede nuancer.",
       "Тепла сезонна страва із солодкими, солоними та кремовими нотками.",
@@ -2481,14 +3023,20 @@ const cateringItemTranslations: Record<string, { name: [string, string]; descrip
     ],
   },
   "Varenyky with potatoes and caramelized onions": {
-    name: ["Varenyky med kartofler og karamelliserede løg", "Вареники з картоплею та карамелізованою цибулею"],
+    name: [
+      "Varenyky med kartofler og karamelliserede løg",
+      "Вареники з картоплею та карамелізованою цибулею",
+    ],
     description: [
       "Traditionelle dumplings med et trøstende vegetarisk fyld.",
       "Традиційні вареники з ситною вегетаріанською начинкою.",
     ],
   },
   "Arugula salad with beetroot, feta and nuts": {
-    name: ["Rucolasalat med rødbeder, feta og nødder", "Салат з рукколою, буряком, фетою та горіхами"],
+    name: [
+      "Rucolasalat med rødbeder, feta og nødder",
+      "Салат з рукколою, буряком, фетою та горіхами",
+    ],
     description: [
       "Frisk, farverig og afbalanceret med jordagtige og cremede smage.",
       "Свіжий, барвистий та збалансований смак із землистими й кремовими нотками.",
@@ -2496,10 +3044,16 @@ const cateringItemTranslations: Record<string, { name: [string, string]; descrip
   },
   "Hummus with seasonal vegetables": {
     name: ["Hummus med sæsongrøntsager", "Хумус із сезонними овочами"],
-    description: ["Cremet hummus serveret med sprøde sæsongrøntsager.", "Кремовий хумус подається з хрусткими сезонними овочами."],
+    description: [
+      "Cremet hummus serveret med sprøde sæsongrøntsager.",
+      "Кремовий хумус подається з хрусткими сезонними овочами.",
+    ],
   },
   "Bruschetta with tomatoes and basil": {
-    name: ["Bruschetta med tomater og basilikum", "Брускета з томатами та базиліком"],
+    name: [
+      "Bruschetta med tomater og basilikum",
+      "Брускета з томатами та базиліком",
+    ],
     description: [
       "Ristet brød toppet med modne tomater, basilikum og let krydring.",
       "Підсмажений хліб зі стиглими томатами, базиліком та легкими спеціями.",
@@ -2513,14 +3067,20 @@ const cateringItemTranslations: Record<string, { name: [string, string]; descrip
     ],
   },
   "Mini appetizers with salmon and cream cheese": {
-    name: ["Mini forretter med laks og flødeost", "Міні-закуски з лососем і вершковим сиром"],
+    name: [
+      "Mini forretter med laks og flødeost",
+      "Міні-закуски з лососем і вершковим сиром",
+    ],
     description: [
       "Lette, elegante bidder velegnet til receptioner og velkomstdrinks.",
       "Легкі, елегантні закуски, ідеальні для прийомів та вітальних напоїв.",
     ],
   },
   "Mini appetizers with avocado and shrimp": {
-    name: ["Mini forretter med avocado og rejer", "Міні-закуски з авокадо та креветками"],
+    name: [
+      "Mini forretter med avocado og rejer",
+      "Міні-закуски з авокадо та креветками",
+    ],
     description: [
       "Frisk og delikat fingermad til et moderne eventbord.",
       "Свіжі й вишукані закуски для сучасного святкового столу.",
@@ -2535,7 +3095,10 @@ const cateringItemTranslations: Record<string, { name: [string, string]; descrip
   },
   "Vegetable platter": {
     name: ["Grøntsagsfad", "Овочева тарілка"],
-    description: ["Friske grøntsager, syltede grøntsager og lette sæsonsnacks.", "Свіжі овочі, соління та легкі сезонні закуски."],
+    description: [
+      "Friske grøntsager, syltede grøntsager og lette sæsonsnacks.",
+      "Свіжі овочі, соління та легкі сезонні закуски.",
+    ],
   },
   Canapés: {
     name: ["Kanapéer", "Канапе"],
@@ -2567,7 +3130,10 @@ const cateringItemTranslations: Record<string, { name: [string, string]; descrip
   },
   Shashlyk: {
     name: ["Shashlyk", "Шашлик"],
-    description: ["Grillet marineret kød, serveret varmt med tilbehør og saucer.", "Смажене на грилі маринове м'ясо, подається гарячим із гарніром та соусами."],
+    description: [
+      "Grillet marineret kød, serveret varmt med tilbehør og saucer.",
+      "Смажене на грилі маринове м'ясо, подається гарячим із гарніром та соусами.",
+    ],
   },
   "Grilled salmon": {
     name: ["Grillet laks", "Лосось на грилі"],
@@ -2578,11 +3144,17 @@ const cateringItemTranslations: Record<string, { name: [string, string]; descrip
   },
   "Grilled vegetables": {
     name: ["Grillede grøntsager", "Овочі на грилі"],
-    description: ["Farverige sæsongrøntsager med røget grillsmag.", "Барвисті сезонні овочі з димним смаком гриля."],
+    description: [
+      "Farverige sæsongrøntsager med røget grillsmag.",
+      "Барвисті сезонні овочі з димним смаком гриля.",
+    ],
   },
   "Homemade sauces": {
     name: ["Hjemmelavede saucer", "Домашні соуси"],
-    description: ["Saucer tilberedt in-house til at supplere grillmenuen.", "Соуси, приготовані власноруч на доповнення до гриль-меню."],
+    description: [
+      "Saucer tilberedt in-house til at supplere grillmenuen.",
+      "Соуси, приготовані власноруч на доповнення до гриль-меню.",
+    ],
   },
   Steaks: {
     name: ["Steaks", "Стейки"],
@@ -2614,7 +3186,10 @@ const cateringItemTranslations: Record<string, { name: [string, string]; descrip
   },
   "Napoleon cake": {
     name: ["Napoleonkage", "Торт «Наполеон»"],
-    description: ["Lagdelt tærtekage med cremet fyld.", "Шаруватий торт із вершковою начинкою."],
+    description: [
+      "Lagdelt tærtekage med cremet fyld.",
+      "Шаруватий торт із вершковою начинкою.",
+    ],
   },
   "Chocolate fountain": {
     name: ["Chokoladefontæne", "Шоколадний фонтан"],
@@ -2625,7 +3200,10 @@ const cateringItemTranslations: Record<string, { name: [string, string]; descrip
   },
   "Ice cream with toppings": {
     name: ["Is med toppings", "Морозиво з топінгами"],
-    description: ["Is serveret med bær, chokolade og toppings.", "Морозиво з ягодами, шоколадом та топінгами."],
+    description: [
+      "Is serveret med bær, chokolade og toppings.",
+      "Морозиво з ягодами, шоколадом та топінгами.",
+    ],
   },
   Medivnyk: {
     name: ["Medivnyk", "Медівник"],
@@ -2674,12 +3252,18 @@ async function main() {
   patches.push({ id: "homePage", fields: homePageFields });
   patches.push({ id: "aboutPage", fields: aboutPageFields });
   patches.push({ id: "cateringPage", fields: cateringPageFields });
-  patches.push({ id: "eventDecorationPage", fields: eventDecorationPageFields });
+  patches.push({
+    id: "eventDecorationPage",
+    fields: eventDecorationPageFields,
+  });
   patches.push({
     id: "hostAtRorumPage",
     fields: { ...hostAtRorumPageFields, packages: hostAtRorumPackages },
   });
-  patches.push({ id: "communityMembershipPage", fields: communityMembershipPageFields });
+  patches.push({
+    id: "communityMembershipPage",
+    fields: communityMembershipPageFields,
+  });
   patches.push({ id: "contactPage", fields: contactPageFields });
   patches.push({ id: "eventsPage", fields: eventsPageFields });
   patches.push({ id: "faqPage", fields: faqPageFields });
@@ -2728,9 +3312,18 @@ async function main() {
         id: deterministicId("event", event.slug),
         fields: {
           title: tri(event.title, titleDa, titleUk),
-          longDescription: triText(event.longDescription, featured.long[0], featured.long[1]),
+          longDescription: triText(
+            event.longDescription,
+            featured.long[0],
+            featured.long[1],
+          ),
           included: event.included.map((text, i) =>
-            triBullet(`i${i}`, text, featured.included[i]![0], featured.included[i]![1]),
+            triBullet(
+              `i${i}`,
+              text,
+              featured.included[i]![0],
+              featured.included[i]![1],
+            ),
           ),
           // `whatToExpect` is now one multiline internationalizedArrayText
           // field per language (sanity/schemaTypes/documents/event.ts), not
@@ -2744,7 +3337,11 @@ async function main() {
         },
       });
     } else {
-      const { longDescription } = expandedEventDescriptions(event.title, titleDa, titleUk);
+      const { longDescription } = expandedEventDescriptions(
+        event.title,
+        titleDa,
+        titleUk,
+      );
       patches.push({
         id: deterministicId("event", event.slug),
         fields: {
@@ -2790,7 +3387,9 @@ async function main() {
   for (const category of menuCategories) {
     const catTr = cateringCategoryTranslations[category.id];
     if (!catTr) {
-      console.warn(`No translation for catering category "${category.id}" — skipping.`);
+      console.warn(
+        `No translation for catering category "${category.id}" — skipping.`,
+      );
       continue;
     }
     patches.push({
@@ -2798,23 +3397,37 @@ async function main() {
       fields: {
         title: tri(category.title, catTr.title[0], catTr.title[1]),
         navLabel: tri(category.navLabel, catTr.navLabel[0], catTr.navLabel[1]),
-        description: triText(category.description, catTr.description[0], catTr.description[1]),
+        description: triText(
+          category.description,
+          catTr.description[0],
+          catTr.description[1],
+        ),
         featuredItems: category.featuredItems.map((item, i) => {
           const itemTr = cateringItemTranslations[item.name];
           if (!itemTr) {
-            console.warn(`No translation for catering item "${item.name}" — leaving en-only.`);
+            console.warn(
+              `No translation for catering item "${item.name}" — leaving en-only.`,
+            );
             return {
               _key: `f${i}`,
               _type: "cateringMenuItem",
               name: tri(item.name, item.name, item.name),
-              description: triText(item.description, item.description, item.description),
+              description: triText(
+                item.description,
+                item.description,
+                item.description,
+              ),
             };
           }
           return {
             _key: `f${i}`,
             _type: "cateringMenuItem",
             name: tri(item.name, itemTr.name[0], itemTr.name[1]),
-            description: triText(item.description, itemTr.description[0], itemTr.description[1]),
+            description: triText(
+              item.description,
+              itemTr.description[0],
+              itemTr.description[1],
+            ),
           };
         }),
       },
@@ -2826,7 +3439,10 @@ async function main() {
     id: "socialLinks",
     fields: {
       links: socialLinksData.map((link) => {
-        const labelTr = socialLinkLabelTranslations[link.icon] ?? [link.label, link.label];
+        const labelTr = socialLinkLabelTranslations[link.icon] ?? [
+          link.label,
+          link.label,
+        ];
         return {
           _key: slugify(link.icon),
           icon: link.icon,
@@ -2838,12 +3454,18 @@ async function main() {
     },
   });
 
-  console.log(`Import summary (${DRY_RUN ? "DRY RUN — nothing will be written" : "LIVE RUN"}):`);
-  console.log(`  ${patches.length} documents to patch with da/uk translations.`);
+  console.log(
+    `Import summary (${DRY_RUN ? "DRY RUN — nothing will be written" : "LIVE RUN"}):`,
+  );
+  console.log(
+    `  ${patches.length} documents to patch with da/uk translations.`,
+  );
   for (const p of patches) console.log(`    ${p.id}`);
 
   if (DRY_RUN) {
-    console.log("\nDry run complete. Re-run with SANITY_API_WRITE_TOKEN set (and without --dry-run) to write.");
+    console.log(
+      "\nDry run complete. Re-run with SANITY_API_WRITE_TOKEN set (and without --dry-run) to write.",
+    );
     return;
   }
 
@@ -2863,7 +3485,10 @@ async function main() {
 
   let patched = 0;
   for (const p of patches) {
-    await client.patch(p.id).set(p.fields).commit({ autoGenerateArrayKeys: false });
+    await client
+      .patch(p.id)
+      .set(p.fields)
+      .commit({ autoGenerateArrayKeys: false });
     patched++;
   }
   console.log(`\nPatched ${patched} documents with da/uk translations.`);
@@ -2871,6 +3496,9 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("Translation import failed:", error instanceof Error ? error.message : error);
+  console.error(
+    "Translation import failed:",
+    error instanceof Error ? error.message : error,
+  );
   process.exitCode = 1;
 });

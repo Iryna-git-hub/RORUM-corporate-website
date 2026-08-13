@@ -1,4 +1,5 @@
 import { defineArrayMember, defineField, defineType, type SanityDocument } from "sanity";
+import { ACTION_ICONS } from "@/sanity/components/actionIcons";
 
 // Field names deliberately mirror `RorumEvent` in `lib/data.ts` so the
 // import script's mapping is a near 1:1 transcription, not a redesign.
@@ -22,6 +23,7 @@ import { defineArrayMember, defineField, defineType, type SanityDocument } from 
 // existing events' data into the new fields (after which these are only a
 // safety net, not the primary source).
 const SHARE_ACTION_TYPES = [
+  { title: "Share", value: "share" },
   { title: "Copy link", value: "copyLink" },
   { title: "WhatsApp", value: "whatsapp" },
   { title: "Email", value: "email" },
@@ -312,7 +314,11 @@ export default defineType({
                 (v) => v.language === "en" || v._key === "en",
               );
               const typeTitle = SHARE_ACTION_TYPES.find((t) => t.value === type)?.title ?? (type as string) ?? "(untitled)";
-              return { title: en?.value ?? typeTitle, subtitle: `${typeTitle} — ${enabled ? "Enabled" : "Disabled"}` };
+              return {
+                title: en?.value ?? typeTitle,
+                subtitle: `${typeTitle} — ${enabled ? "Enabled" : "Disabled"}`,
+                media: typeof type === "string" ? ACTION_ICONS[type] : undefined,
+              };
             },
           },
         }),
@@ -323,6 +329,7 @@ export default defineType({
           return new Set(types).size === types.length ? true : "Each share action can only be used once per event.";
         }),
       initialValue: [
+        shareActionInitialValue("share", "Share", "Del", "Поділитися"),
         shareActionInitialValue("copyLink", "Copy link", "Kopiér link", "Копіювати посилання"),
         shareActionInitialValue("whatsapp", "WhatsApp", "WhatsApp", "WhatsApp"),
         shareActionInitialValue("email", "Email", "E-mail", "Електронна пошта"),

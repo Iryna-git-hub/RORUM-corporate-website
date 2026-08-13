@@ -61,7 +61,7 @@ function getLegacyDetail(doc: SanityEventLike, label: string): string | undefine
   return entry ? pickLocalized(entry.value, "en") : undefined;
 }
 
-const SHARE_ACTION_TYPES: ShareActionType[] = ["copyLink", "whatsapp", "email", "linkedin", "facebook", "instagram"];
+const SHARE_ACTION_TYPES: ShareActionType[] = ["share", "copyLink", "whatsapp", "email", "linkedin", "facebook", "instagram"];
 
 function isShareActionType(value: string | null | undefined): value is ShareActionType {
   return !!value && (SHARE_ACTION_TYPES as string[]).includes(value);

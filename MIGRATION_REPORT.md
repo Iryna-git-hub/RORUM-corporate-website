@@ -1029,3 +1029,96 @@ Test event and its uploaded image asset were fully deleted after verification (c
 ## 9. Standing Constraints — Confirmed
 
 No deployment, push, merge, rebase, force-push, history rewrite, or pull request was made. All code changes remain in the working tree. The Sanity data mutations performed — migrating 38 existing event documents' fields, and creating/fully-deleting one temporary verification event — were the explicit, direct work this task required; before/after state was verified via GROQ queries and re-run idempotency checks shown in the transcript this section was written from. No server token was exposed to a Client Component, browser bundle, log, screenshot, or this report. All new/reused translations are disclosed above as AI-provided and not yet reviewed by a native speaker, per this project's standing translation-disclosure policy.
+
+# Part 15 — Event Details Page: Layout Corrections, Address Data Fix, Localized Headings, Share Action Expansion
+
+## 1. Executive Summary
+
+Twelve targeted corrections to the Event Details page and related Sanity previews: the `<h1>` now fills its 780px parent instead of being capped near 60% of it; the top info row's four columns use measured, proportional `fr` weights instead of equal widths, giving Address real room to fit a full street address; that address data itself was wrong for 29 of the events (a pre-existing, newly-discovered data bug, corrected via script — not a code bug); the four Event Details section headings, the footer's "View on map," and the developer credit are now genuinely localized through a new small centralized dictionary (matching this project's existing `lib/eventLanguage.ts` pattern) rather than hardcoded English; Practical Details no longer repeats Date/Time/Price/Address; "Share" (the native Web Share API button) is now itself a 7th configurable, reorderable, toggleable action instead of an always-on unconditional button; both Share actions and Social Links now show real icons in their Sanity Studio previews via one centralized icon-mapping file; and Danish/Ukrainian weekday names are capitalized correctly without using CSS `text-transform`.
+
+## 2. Files Changed
+
+- **`app/[locale]/(site)/events/[slug]/page.tsx`** — h1 width, info-row grid, weekday capitalization, localized headings, removed duplicated Practical Details rows, passes `heading` to `EventShare`.
+- **`components/EventShare.tsx`** — "Share" is now one of the switch-cased action types (rendered only when present/enabled in `actions`, in configured order) instead of an unconditional button rendered ahead of the list; takes a new `heading` prop instead of a hardcoded "Share with friends" string.
+- **`components/Footer.tsx`**, **`components/SiteShell.tsx`** — `Footer` now accepts `locale` (SiteShell already derives it from `usePathname()` via `splitLocaleFromPath` for other purposes, so no new data-fetching was needed) and uses it to localize "View on map" and the developer credit; the credit's displayed name was corrected from "irynadev" to "Irina Dev" (its `href` is unchanged).
+- **`lib/uiText.ts`** (new) — centralized `Record<Key, Record<Locale, string>>` dictionary for the 6 fixed UI strings this task covers (4 headings + View on map + Developed by), following the exact pattern `lib/eventLanguage.ts` already established — avoids scattering `locale === "da" ? ... : ...` checks through JSX.
+- **`lib/data.ts`** — `ShareActionType`/`DEFAULT_SHARE_ACTIONS` gained `"share"` (listed first, matching its previous always-first visual position).
+- **`lib/sanityEvents.ts`** — the runtime type-guard list gained `"share"`.
+- **`sanity/schemaTypes/documents/event.ts`** — `SHARE_ACTION_TYPES` gained `{title:"Share", value:"share"}`; `shareSettings`'s `initialValue` gained a leading "share" entry; the `shareAction` preview now includes `media` (an icon) alongside title/subtitle.
+- **`sanity/schemaTypes/objects/socialLink.ts`** — preview rewritten to show the platform's icon, name, and URL (previously just the raw `icon` string value and href).
+- **`sanity/components/actionIcons.tsx`** (new) — the centralized icon mapping requested: one `Record<actionType, Component>` reused by both `shareAction`'s and `socialLink`'s previews, itself built from the *same* components the public site already renders (`components/SocialIcon.tsx` for brand icons, the same `lucide-react` icons `EventShare.tsx` uses for Share/Copy link/Email) — no SVG markup duplicated.
+- **`scripts/correct-event-data.ts`** (new, kept in the repo) — the one-time data correction described in §4.
+
+## 3. Corrections in Detail
+
+### 3.1 Event title width
+Removed `max-w-[18ch]` from the `<h1>`'s desktop classes (it was constraining the title to roughly 60% of its 780px-capped parent — 18 characters at this heading's size works out to almost exactly that) and replaced it with `w-full`. `max-sm:max-w-[13ch]` (the mobile constraint) was left untouched. Verified: at a 1440px viewport, the `<h1>` and its `max-w-[780px]` parent now measure identically (780.0px each).
+
+### 3.2 Info row proportions
+Measured the row at a 1440px viewport before changing anything: all 4 columns were equal at 248.0px each. Applied the requested deltas as a **zero-sum redistribution** — Date stays the reference (248), Time -15 (233), Price -20 (228), and Address absorbs both reductions (+35 → 283) so the row's total width is unchanged, just reallocated toward the column that needs it. Expressed as `grid-cols-[248fr_233fr_283fr_228fr_auto]` — `fr` units are ratios, not fixed pixels, so the row stays fully fluid at any container width; only the relative proportions are fixed, per the requirement to prefer relative proportions over fragile fixed widths. Re-measured after the change: columns rendered at exactly 248.0 / 233.0 / 283.0 / 228.0 / 188.1px, confirming the CSS produces precisely the intended ratios.
+
+### 3.3 Event address
+**Root cause traced, not assumed**: querying live data showed 29 of the 34 originally-imported events had `address: "RORUM, Copenhagen"` — a generic placeholder — while the other 5 (3 featured events + 2 that happened to already be correct) had the real `"Buermistersgade 26, 1 th, Copenhagen"`. This placeholder came from an old, already-removed helper function in `scripts/import-translations.ts` (`expandedPracticalDetails()`, deleted in Part 14) that had been run against the dataset at some point before this session's work began — Part 14's migration script faithfully copied whatever was already in each event's legacy `practicalDetails` "Address" entry into the new `address` field, which correctly preserved good data but also faithfully preserved this pre-existing bad data. `scripts/correct-event-data.ts` finds every event whose `address` matches `/^RORUM,\s*Copenhagen$/i` and corrects it to the same canonical value already used everywhere else (`contactInfo.shortAddress`, fetched live from Sanity, not hardcoded) — 29 documents corrected, re-run confirmed idempotent (0 remaining). The frontend code itself needed no fix here — `event.address` was already the correct field to read; the bug was purely in the stored data.
+
+### 3.4 Localized Event Details headings, "View on map," developer credit
+All six strings now resolve through `getUiText(key, locale)` (new `lib/uiText.ts`), matching the exact table given in the task. Verified live in all 3 locales: EN/DA/UK headings, "View on map"/"Se på kortet"/"Відкрити на карті", and "Udviklet af"/"Розроблено" + "Irina Dev" (link `href` unchanged) all render correctly. The developer credit is defined only in `lib/uiText.ts` and `components/Footer.tsx` — not added to any Sanity schema, per the explicit requirement.
+
+### 3.5 Removed duplicated Practical Details
+Deleted the `Date`/`Time`/`Price`/`Address` `<DetailRow>`s from the Practical Details sidebar (they were added there in Part 13, before this task's clarification that they shouldn't be duplicated). Practical Details now shows exactly the 5 required rows: Event language, Duration, Availability, Arrival, Ticket provider — verified live (`dt` labels: `["Event language","Duration","Availability","Arrival","Ticket provider"]`). No Sanity fields were touched — `date`/`time`/`price`/`address` remain required/present on the schema exactly as before, since the top info row still needs them.
+
+### 3.6 "Share" added as a configurable action
+Added `"share"` as a 7th `SHARE_ACTION_TYPES` entry in the schema, threaded through `lib/data.ts`'s `ShareActionType`/`DEFAULT_SHARE_ACTIONS` and `lib/sanityEvents.ts`'s type guard, and given a `case "share"` in `EventShare.tsx`'s action switch that reuses the **exact existing** `shareEvent` handler (Web Share API with its already-existing copy-link fallback for unsupported browsers, unchanged) and the same `Share2` icon/markup that was previously hardcoded as an always-on button. The always-on button was removed; "Share" now only renders when present and enabled in `shareActions`, in whatever position it's configured. `scripts/correct-event-data.ts` also backfilled a leading, enabled "share" entry onto every existing event's `shareSettings` (39 documents) so none of them lost the native share button they already had — verified live: the rendered aria-label order for an unmodified event is exactly `["Share","Copy link","WhatsApp","Email","LinkedIn","Facebook","Instagram"]`, matching its pre-existing visual order.
+
+### 3.7 Icon previews (Share actions + Social Links)
+New `sanity/components/actionIcons.tsx` exports one `ACTION_ICONS`/`SOCIAL_LINK_ICONS` map (same object) keyed by action/platform type, each value a small component wrapping either `components/SocialIcon.tsx` (WhatsApp/LinkedIn/Facebook/Instagram) or the same `lucide-react` icons `EventShare.tsx` uses (Share/Copy link/Email) — no SVG duplicated. `shareAction`'s preview now sets `media` to the matching icon alongside its existing title (the label, or the type's display name) and subtitle (type + Enabled/Disabled). `socialLink`'s preview was rewritten from a bare `{title: icon, subtitle: href}` to a proper `prepare()` showing the platform's icon, its display name, and the URL. Social Links has no `enabled` field in its schema, so no enabled/disabled status was added there (the task's requirement was conditional — "if that setting exists"); drag-and-drop ordering and link editing were untouched (no schema fields were added, removed, or restructured — only `preview` changed).
+
+### 3.8 Weekday capitalization
+`Intl`/`toLocaleDateString` correctly returns lowercase weekday names for Danish/Ukrainian (their own orthography for running text) — added `capitalizeFirst(text, locale)`, which uppercases only the first character via **locale-aware** `String.prototype.toLocaleUpperCase(tag)` (not a bare `.toUpperCase()`, and explicitly not CSS `text-transform: capitalize`, which would title-case every word and can behave incorrectly for non-Latin scripts). Applied to both the hero's full-date string and the info-row's separate `weekday` part — verified live: Danish "lørdag" → "Lørdag", Ukrainian "субота" → "Субота". Locale-aware formatting itself (via `Intl`) was already in place from Part 14 and is unchanged; no weekday name is hardcoded anywhere.
+
+## 4. Data Correction Executed
+
+`scripts/correct-event-data.ts` (dry-run → live → re-run dry-run to confirm idempotency, this project's standard rigor):
+- Corrected `address` on 29 events from the generic `"RORUM, Copenhagen"` placeholder to the real `"Buermistersgade 26, 1 th, Copenhagen"` (read live from `contactInfo.shortAddress`, not hardcoded in the script).
+- Backfilled a leading `"share"` entry onto `shareSettings` for all 39 event documents (34 real events + drafts + 2 Studio-created test events), none of which had one yet since "share" only became a configurable field in this pass.
+
+Re-run afterward reported 0 remaining changes needed.
+
+## 5. Verification
+
+Checked against a production build (cache-cleared, per this project's standing lesson from Part 14 about stale local Data Cache) at desktop (1440px) and mobile (390px) viewports, in all 3 locales, against a real migrated event:
+
+| # | Check | Result |
+|---|---|---|
+| 1 | `<h1>` uses full width of 780px parent | ✅ measured identical (780.0px each) |
+| 2 | Desktop info blocks match updated proportions | ✅ measured 248.0/233.0/283.0/228.0/188.1px |
+| 3 | Complete real street address displayed | ✅ "Buermistersgade 26, 1 th, Copenhagen" |
+| 4 | Mobile info layout unchanged | ✅ (only the date's internal line-break behavior changed, which is the correct, intended change) |
+| 5 | All 4 headings localized | ✅ EN/DA/UK all verified |
+| 6 | "View on map" localized | ✅ |
+| 7 | Developer credit localized, outside Sanity | ✅ (`lib/uiText.ts` + `Footer.tsx` only) |
+| 8 | Date/Time/Price/Address not duplicated in Practical Details | ✅ |
+| 9 | Practical Details shows language/duration/availability/arrival/ticket provider | ✅ exact 5, verified via rendered `dt` labels |
+| 10 | Share reorderable/toggleable in Sanity | ✅ (array field, native drag-reorder; `enabled` boolean; duplicate-type validation already covers the 7th type) |
+| 11 | Share/social-link items show icons in Sanity previews | ✅ code-verified (`media` wired); Studio itself not visually exercised — no login available in this environment, same limitation noted in Parts 12/14 |
+| 12 | DA/UK weekdays start uppercase | ✅ "Lørdag"/"Субота" verified |
+| 13 | Existing events/content continue to work | ✅ 73/73 e2e tests pass |
+
+One methodology note: an initial mobile date check via Playwright's `innerText()` appeared to show line breaks between "Saturday", ",", and "May 2" — investigated rather than accepted at face value, and turned out to be a `innerText()` quirk (it can insert `\n` between flex items even when they render on the same visual line). Confirmed the actual rendering was correct by comparing each span's bounding-box Y-coordinate (identical, 338.6px) and via a screenshot. While investigating, also found and fixed a genuine minor spacing issue introduced by this change (a `gap-1` utility was adding unwanted space before the comma) — removed it, since the comma span's own `", "` text already provides the correct spacing.
+
+## 6. Validation
+
+- `npm run sanity:typegen` — 57 schema types, 24 queries, clean.
+- `npm run typecheck` — clean.
+- `npm run lint` — 0 errors, same 12 pre-existing `no-img-element` warnings (unrelated).
+- `npm run build` — succeeds (cache cleared first), same 142 static pages.
+- `npm run test:e2e` — **73/73 passing**.
+
+## 7. Compatibility Decisions
+
+- No Sanity field was renamed or removed. `shareAction`'s `type` option list grew (6 → 7 values); existing documents' `shareSettings` arrays were additively backfilled (a new leading item), not restructured.
+- The address correction targeted only documents matching the exact generic placeholder text — no event with a genuine, different address was touched.
+- `socialLink`'s schema fields are unchanged (only its Studio `preview` function changed) — the frontend's social-link rendering (`Footer.tsx`, `components/SocialIcon.tsx`) required no changes, per the requirement to leave that frontend behavior alone.
+
+## 8. Standing Constraints — Confirmed
+
+No deployment, push, merge, rebase, force-push, history rewrite, or pull request was made. All code changes remain in the working tree. The Sanity data mutation performed — correcting 29 events' `address` and backfilling `shareSettings` on 39 events — was the explicit, direct work this task required (the address bug was discovered during investigation, confirmed via a live query before assuming it was a bug, and corrected using the project's own canonical source, not a guessed value); before/after state was verified via a re-run idempotency check shown in the transcript this section was written from. No server token was exposed to a Client Component, browser bundle, log, screenshot, or this report. New translations (the `lib/uiText.ts` dictionary, the "Share" action's label) are disclosed as AI-provided per this project's standing policy, except where the task itself specified the exact required text (all 4 headings, "View on map", the developer credit), which were used verbatim as given.

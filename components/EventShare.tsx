@@ -28,22 +28,31 @@ interface ShareLinks {
   facebook: string;
 }
 
-// One button/link per configurable action type (Copy link, WhatsApp, Email,
-// LinkedIn, Facebook, Instagram) — the exact markup, CSS classes and click
-// behavior each already had before this became Sanity-configurable, just
-// keyed off `action.type` now instead of being unconditionally inlined.
+// One button/link per configurable action type (Share, Copy link, WhatsApp,
+// Email, LinkedIn, Facebook, Instagram) — the exact markup, CSS classes and
+// click behavior each already had before this became Sanity-configurable,
+// just keyed off `action.type` now instead of being unconditionally inlined
+// (or, for "share", unconditionally rendered ahead of the list).
 function ShareActionButton({
   action,
   links,
+  onShare,
   onCopyLink,
   onShareInstagram,
 }: {
   action: ShareAction;
   links: ShareLinks;
+  onShare: () => void;
   onCopyLink: () => void;
   onShareInstagram: () => void;
 }) {
   switch (action.type) {
+    case "share":
+      return (
+        <button className="event-share-utility-link" type="button" aria-label={action.label} onClick={onShare}>
+          <Share2 aria-hidden="true" strokeWidth={1.8} />
+        </button>
+      );
     case "copyLink":
       return (
         <button className="event-share-utility-link" type="button" aria-label={action.label} onClick={onCopyLink}>
@@ -117,12 +126,15 @@ export function EventShare({
   text,
   url,
   actions,
+  heading,
 }: {
   title: string;
   text?: string;
   url: string;
   /** Already resolved to the current locale, in the order configured in Sanity — this component renders only the `enabled` ones. */
   actions: ShareAction[];
+  /** Localized "Share with Friends" heading — resolved by the caller (see lib/uiText.ts). */
+  heading: string;
 }) {
   const [feedback, setFeedback] = useState("");
   const shareText = text || "Join this event at RORUM";
@@ -231,7 +243,7 @@ export function EventShare({
   return (
     <div className="grid gap-2 w-fit max-w-full mt-1 pt-2 border-0 bg-transparent">
       <p className="m-0 text-dark-green text-xs font-[850] tracking-[0.08em] leading-[1.2] uppercase">
-        Share with friends
+        {heading}
       </p>
       {/*
         Kept as the legacy `.event-share-actions` class: globals.css scopes
@@ -244,16 +256,15 @@ export function EventShare({
         without touching those other files.
       */}
       <div className="event-share-actions">
-        <button
-          className="event-share-utility-link"
-          type="button"
-          aria-label="Share this event"
-          onClick={shareEvent}
-        >
-          <Share2 aria-hidden="true" strokeWidth={1.8} />
-        </button>
         {enabledActions.map((action) => (
-          <ShareActionButton key={action.type} action={action} links={links} onCopyLink={copyLink} onShareInstagram={shareInstagram} />
+          <ShareActionButton
+            key={action.type}
+            action={action}
+            links={links}
+            onShare={shareEvent}
+            onCopyLink={copyLink}
+            onShareInstagram={shareInstagram}
+          />
         ))}
       </div>
       <span

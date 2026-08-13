@@ -731,7 +731,13 @@ export type Event = {
   };
   shareSettings?: Array<{
     type?:
-      "copyLink" | "whatsapp" | "email" | "linkedin" | "facebook" | "instagram";
+      | "share"
+      | "copyLink"
+      | "whatsapp"
+      | "email"
+      | "linkedin"
+      | "facebook"
+      | "instagram";
     label?: InternationalizedArrayString;
     enabled?: boolean;
     _type: "shareAction";
@@ -1114,7 +1120,13 @@ export type AllEventsQueryResult = Array<{
   };
   shareSettings?: Array<{
     type?:
-      "copyLink" | "email" | "facebook" | "instagram" | "linkedin" | "whatsapp";
+      | "copyLink"
+      | "email"
+      | "facebook"
+      | "instagram"
+      | "linkedin"
+      | "share"
+      | "whatsapp";
     label?: InternationalizedArrayString;
     enabled?: boolean;
     _type: "shareAction";
@@ -1171,7 +1183,13 @@ export type EventBySlugQueryResult = {
   };
   shareSettings?: Array<{
     type?:
-      "copyLink" | "email" | "facebook" | "instagram" | "linkedin" | "whatsapp";
+      | "copyLink"
+      | "email"
+      | "facebook"
+      | "instagram"
+      | "linkedin"
+      | "share"
+      | "whatsapp";
     label?: InternationalizedArrayString;
     enabled?: boolean;
     _type: "shareAction";

@@ -12,6 +12,7 @@ import { isLocale, localeTags, type Locale } from "@/lib/i18n";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
 import { formatDuration, type EventDuration } from "@/lib/eventDuration";
 import { getEventLanguageLabel } from "@/lib/eventLanguage";
+import { getUiText } from "@/lib/uiText";
 import { compact } from "@/lib/sanity-i18n";
 import { isSanityConfigured } from "@/sanity/env";
 import { sanityFetch } from "@/sanity/lib/live";
@@ -37,9 +38,22 @@ async function getEvent(slug: string, locale: Locale): Promise<RorumEvent | unde
     return sanityEventToRorumEvent(doc as SanityEventLike, locale);
 }
 
+// Danish and Ukrainian weekday/date strings come back lowercase from
+// `Intl`/`toLocaleDateString` (correct for those languages' own
+// orthography in running text, but wrong as a standalone label here) — this
+// uppercases only the first character, using locale-aware case mapping
+// (`toLocaleUpperCase`, not a plain `.toUpperCase()`), rather than CSS
+// `text-transform: capitalize` (which would title-case every word and can
+// mishandle non-Latin scripts).
+function capitalizeFirst(text: string, locale: Locale): string {
+    if (!text) return text;
+    return text.charAt(0).toLocaleUpperCase(localeTags[locale]) + text.slice(1);
+}
+
 function formatFullDate(dateValue: string, locale: Locale): string {
     const date = new Date(`${dateValue}T12:00:00`);
-    return date.toLocaleDateString(localeTags[locale], { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+    const formatted = date.toLocaleDateString(localeTags[locale], { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+    return capitalizeFirst(formatted, locale);
 }
 
 /** Weekday and month/day as separate strings, locale-aware — used by `EventDateDisplay` to control exactly where the responsive line break falls. */
@@ -47,7 +61,7 @@ function formatDateParts(dateValue: string, locale: Locale): { weekday: string; 
     const date = new Date(`${dateValue}T12:00:00`);
     const tag = localeTags[locale];
     return {
-        weekday: date.toLocaleDateString(tag, { weekday: "long" }),
+        weekday: capitalizeFirst(date.toLocaleDateString(tag, { weekday: "long" }), locale),
         monthDay: date.toLocaleDateString(tag, { month: "long", day: "numeric" }),
     };
 }
@@ -118,7 +132,7 @@ function DetailRow({ label, value }: { label: string; value?: ReactNode }) {
 function EventDateDisplay({ dateValue, locale }: { dateValue: string; locale: Locale }) {
     const { weekday, monthDay } = formatDateParts(dateValue, locale);
     return (
-      <span className="grid leading-tight max-sm:flex max-sm:flex-row max-sm:flex-nowrap max-sm:items-baseline max-sm:gap-1">
+      <span className="grid leading-tight max-sm:flex max-sm:flex-row max-sm:flex-nowrap max-sm:items-baseline">
         <span>{weekday}</span>
         <span className="hidden max-sm:inline">, </span>
         <span>{monthDay}</span>
@@ -251,7 +265,7 @@ export default async function EventDetailPage({
               >
                 {fullDate}
               </time>
-              <h1 className="font-heading font-medium text-white m-0 max-w-[18ch] text-5xl leading-[1.3] tracking-normal max-sm:max-w-[13ch] max-sm:text-[clamp(1.9rem,8vw,2.6rem)]">
+              <h1 className="font-heading font-medium text-white m-0 w-full text-5xl leading-[1.3] tracking-normal max-sm:max-w-[13ch] max-sm:text-[clamp(1.9rem,8vw,2.6rem)]">
                 {event.title}
               </h1>
             </div>
@@ -260,7 +274,19 @@ export default async function EventDetailPage({
 
         <section className="relative z-2 -mt-11 p-0 max-sm:-mt-7" aria-label="Event information">
           <Container>
-            <div className="grid grid-cols-[repeat(4,minmax(0,1fr))_auto] items-stretch gap-0 m-0 border-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] max-lg:grid-cols-1 max-sm:p-3.25 max-sm:border-x-0 max-sm:shadow-[0_8px_20px_rgba(var(--rgb-brown),0.06)]">
+            {/*
+              Relative fr proportions, not fixed px — measured each column
+              at ~248px when all 4 were equal (1fr each) at a 1440px
+              viewport, then applied the requested deltas as a zero-sum
+              redistribution so the row's total width is unchanged: Date
+              stays ~248 (reference), Time -15 (233), Price -20 (228), and
+              Address absorbs both reductions (+35 → 283) so the full
+              street address has room to fit. Because these are `fr` units
+              (ratios, not px), the row stays fully fluid at any container
+              width — only the *proportions* are fixed, matching what was
+              asked for over fragile fixed widths.
+            */}
+            <div className="grid grid-cols-[248fr_233fr_283fr_228fr_auto] items-stretch gap-0 m-0 border-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] max-lg:grid-cols-1 max-sm:p-3.25 max-sm:border-x-0 max-sm:shadow-[0_8px_20px_rgba(var(--rgb-brown),0.06)]">
               <InfoGridItem icon={CalendarDays} label="Date" value={<EventDateDisplay dateValue={event.date} locale={locale} />} />
               <InfoGridItem icon={Clock} label="Time" value={time} />
               <InfoGridItem icon={MapPin} label="Location" value={location} />
@@ -277,13 +303,19 @@ export default async function EventDetailPage({
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(280px,340px)] gap-[clamp(28px,5vw,58px)] items-start max-lg:grid-cols-1">
               <article className="grid gap-[clamp(30px,4vw,46px)] min-w-0">
                 <section className="grid gap-4 pb-[clamp(28px,4vw,38px)] border-b border-[rgba(var(--rgb-beige),0.48)] last:border-b-0 last:pb-0">
-                  <h2 className="m-0 text-[clamp(26px,3vw,38px)] leading-[1.08] font-light">Event overview</h2>
+                  <h2 className="m-0 text-[clamp(26px,3vw,38px)] leading-[1.08] font-light">{getUiText("eventOverviewHeading", locale)}</h2>
                   <p className="max-w-[68ch] m-0 text-text-primary text-[17px] leading-[1.75]">{description}</p>
-                  <EventShare title={event.title} text={event.longDescription || "Join this event at RORUM"} url={`${siteUrl}/events/${event.slug}`} actions={event.shareActions} />
+                  <EventShare
+                    title={event.title}
+                    text={event.longDescription || "Join this event at RORUM"}
+                    url={`${siteUrl}/events/${event.slug}`}
+                    actions={event.shareActions}
+                    heading={getUiText("shareWithFriendsHeading", locale)}
+                  />
                 </section>
 
                 <section className="grid gap-4 pb-[clamp(28px,4vw,38px)] border-b border-[rgba(var(--rgb-beige),0.48)] last:border-b-0 last:pb-0">
-                  <h2 className="m-0 text-[clamp(26px,3vw,38px)] leading-[1.08] font-light">What to expect</h2>
+                  <h2 className="m-0 text-[clamp(26px,3vw,38px)] leading-[1.08] font-light">{getUiText("whatToExpectHeading", locale)}</h2>
                   <ul className="grid gap-4 m-0 p-0 list-none">
                     {expectations.map((item) => (
                       <li key={item} className="grid grid-cols-[25px_minmax(0,1fr)] gap-3.25 items-start text-text-primary font-normal leading-[1.65]">
@@ -300,13 +332,10 @@ export default async function EventDetailPage({
                 aria-label="Practical details"
               >
                 <h2 className="m-0 pb-3 border-b border-[rgba(var(--rgb-beige),0.34)] text-text-primary font-body text-[17px] font-extrabold tracking-normal leading-tight uppercase">
-                  Practical details
+                  {getUiText("practicalDetailsHeading", locale)}
                 </h2>
+                {/* Date/Time/Price/Address deliberately NOT repeated here — they already appear in the info row above; this block covers what that row doesn't. */}
                 <dl className="grid gap-0 mt-2">
-                  <DetailRow label="Date" value={<EventDateDisplay dateValue={event.date} locale={locale} />} />
-                  <DetailRow label="Time" value={time} />
-                  <DetailRow label="Price" value={event.price} />
-                  <DetailRow label="Address" value={location} />
                   <DetailRow label="Event language" value={language} />
                   <DetailRow label="Duration" value={duration} />
                   <DetailRow label="Availability" value={availability} />

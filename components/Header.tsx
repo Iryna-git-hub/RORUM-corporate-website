@@ -154,7 +154,7 @@ function MobileLanguageSwitcher({
 }) {
   return (
     <div
-      className="inline-flex items-center gap-3 rounded-full text-dark-brown bg-transparent backdrop-blur-[10px]"
+      className="inline-flex items-center flex-none gap-1.5 rounded-full text-dark-brown bg-transparent backdrop-blur-[10px]"
       role="group"
       aria-label="Language selector"
       data-testid="mobile-language-switcher"
@@ -385,13 +385,22 @@ export function Header({
         className={`fixed top-0 right-0 z-[60] h-[100svh] max-h-[100dvh] w-screen grid grid-rows-[auto_auto_auto] content-start gap-6 pt-6 px-8 pb-8 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] bg-white text-text-primary shadow-[-18px_0_44px_rgba(var(--rgb-brown),0.16)] transition-transform duration-300 ease-[ease] ${menuOpen ? "translate-x-0" : "translate-x-full"}`}
         aria-label="Mobile menu"
       >
-        <div className="flex items-center justify-start gap-9.5 min-h-17 -mt-6 -mx-8 px-6.5 bg-cream border-b border-border max-[360px]:gap-2 max-[360px]:px-4">
+        <div className="flex items-center justify-start gap-2 min-h-17 -mt-6 -mx-8 px-4 bg-cream border-b border-border">
           <Link
-            // `!important` on the color utilities: `.btn`'s own deferred,
-            // still-unlayered CSS sets `background`/`border-color` too, and
-            // unlayered CSS always beats a layered Tailwind utility
-            // regardless of specificity.
-            className="btn flex-none min-h-9.5 px-3.5 border-cta-red! bg-cta-red! text-white! text-[11px] whitespace-nowrap hover:border-cta-red-hover! hover:bg-cta-red-hover! hover:text-white! focus-visible:border-cta-red-hover! focus-visible:bg-cta-red-hover! focus-visible:text-white! max-sm:min-h-10 max-sm:py-0 max-sm:text-xs max-[360px]:px-2.5 max-[360px]:text-[10px]"
+            // `!important` on every overridden `.btn` property (colors,
+            // padding, font-size): `.btn`'s own deferred, still-unlayered
+            // CSS sets `padding: 0 24px` and `font-size: 12.5px` as well as
+            // background/border-color, and unlayered CSS always beats a
+            // layered Tailwind utility regardless of specificity or source
+            // order — so a plain (non-`!`) padding/text-size override here
+            // is silently ignored. This is a real, findable bug: the
+            // previous `max-[360px]:px-2.5 max-[360px]:text-[10px]` looked
+            // like a narrow-screen fix but never actually applied, which is
+            // why this row still overflowed. Sized once, unconditionally —
+            // this row only ever renders inside the mobile menu (opened via
+            // the `max-lg:` hamburger), so there's no wider viewport where a
+            // roomier size would ever actually be seen.
+            className="btn flex-none min-w-0 shrink min-h-9 px-2.5! py-0! text-[10px]! border-cta-red! bg-cta-red! text-white! whitespace-nowrap hover:border-cta-red-hover! hover:bg-cta-red-hover! hover:text-white! focus-visible:border-cta-red-hover! focus-visible:bg-cta-red-hover! focus-visible:text-white!"
             href="/contact"
             onClick={closeMenus}
           >
@@ -399,7 +408,7 @@ export function Header({
           </Link>
           <MobileLanguageSwitcher currentLanguage={currentLanguage} onLanguageChange={changeLanguage} />
           <button
-            className="inline-flex items-center justify-center w-10.5 h-10.5 border-0 rounded-full bg-transparent text-dark-brown cursor-pointer transition-[color,background-color] duration-180 ease-[ease] ml-auto hover:bg-[rgba(var(--rgb-dark-green),0.1)] hover:text-white hover:outline-none focus-visible:bg-[rgba(var(--rgb-dark-green),0.1)] focus-visible:text-white focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-beige)]"
+            className="inline-flex items-center justify-center flex-none w-10.5 h-10.5 border-0 rounded-full bg-transparent text-dark-brown cursor-pointer transition-[color,background-color] duration-180 ease-[ease] ml-auto hover:bg-[rgba(var(--rgb-dark-green),0.1)] hover:text-white hover:outline-none focus-visible:bg-[rgba(var(--rgb-dark-green),0.1)] focus-visible:text-white focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-beige)]"
             type="button"
             aria-label="Close menu"
             onClick={closeMenus}

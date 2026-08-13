@@ -28,7 +28,7 @@ export function SiteShell({
   const pathname = usePathname();
   // Locale-neutral path — on a `/da/...`/`/uk/...` URL, raw `pathname`
   // would never match "/" or the event-detail pattern below.
-  const { path } = splitLocaleFromPath(pathname);
+  const { path, locale } = splitLocaleFromPath(pathname);
   const isHome = path === "/";
   const shellClass = `site-shell ${isHome ? "site-shell-home" : "site-shell-inner"}`;
 
@@ -112,6 +112,7 @@ export function SiteShell({
         legalLinks={footerLegalLinks}
         copyrightText={footerCopyrightText}
         contactDetailsLabel={contactDetailsLabel}
+        locale={locale}
       />
     </div>
   );

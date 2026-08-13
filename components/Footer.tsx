@@ -4,6 +4,8 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import { Container } from "@/components/ui";
 import { SocialIcon } from "@/components/SocialIcon";
 import { contactDetails, socialLinks } from "@/lib/siteConfig";
+import { getUiText } from "@/lib/uiText";
+import type { Locale } from "@/lib/i18n";
 
 type BrandColorStyle = CSSProperties & { "--social-brand-color": string };
 
@@ -75,11 +77,13 @@ export function Footer({
   legalLinks = legalLinksFallback,
   copyrightText = "© 2026 RORUM. All rights reserved.",
   contactDetailsLabel = "Contact details",
+  locale = "en",
 }: {
   columns?: { title: string; links: FooterLink[] }[];
   legalLinks?: FooterLink[];
   copyrightText?: string;
   contactDetailsLabel?: string;
+  locale?: Locale;
 }) {
   return (
     <footer className="border-t border-t-[rgba(var(--rgb-beige),0.48)] bg-white text-text-primary font-medium pt-[clamp(44px,6vw,72px)] pb-7 max-sm:pb-6">
@@ -98,7 +102,7 @@ export function Footer({
                 className="flex items-center gap-2.25 w-fit mt-0.5 ml-[43px] text-light-green text-sm leading-[1.35] hover:text-red focus-visible:text-red hover:no-underline focus-visible:no-underline"
                 href={contactDetails.mapHref}
               >
-                View on map
+                {getUiText("viewOnMap", locale)}
               </Link>
               <p className={footerContactRowClass}>
                 <span className={footerContactIconWrapClass} aria-hidden="true">
@@ -155,14 +159,14 @@ export function Footer({
           </nav>
 
           <span>
-            Developed by{" "}
+            {getUiText("developedBy", locale)}{" "}
             <a
               className="text-text-primary no-underline hover:text-red focus-visible:text-red"
               href="https://irynadev.netlify.app"
               target="_blank"
               rel="noreferrer"
             >
-              irynadev
+              Irina Dev
             </a>
           </span>
         </div>

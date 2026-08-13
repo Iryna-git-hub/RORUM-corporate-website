@@ -105,7 +105,9 @@
       "Bash(powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 3200 -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty OwningProcess\")",
       "Bash(tee build_retry.log)",
       "Bash(curl -s -o /dev/null -w \"port 3001 status: %{http_code}\\\\n\" http://localhost:3001/ --max-time 5)",
-      "Bash(rm -f pre_migration_check.html pre_migration_da.html)"
+      "Bash(rm -f pre_migration_check.html pre_migration_da.html)",
+      "Bash(npx --yes tsx --env-file=.env.local scripts/correct-event-data.ts --dry-run)",
+      "Bash(curl -s -o /dev/null -w \"port 3000: %{http_code}\\\\n\" http://localhost:3000/ --max-time 8)"
     ]
   }
 }
