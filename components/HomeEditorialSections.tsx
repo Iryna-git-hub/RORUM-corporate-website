@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import Link from "next/link";
+import { LocaleLink as Link } from "@/components/LocaleLink";
 import { ArrowRight, Wrench } from "lucide-react";
 import {
   Container,
@@ -116,14 +116,19 @@ export interface ServiceTeaser {
   image: string;
 }
 
-export function ServicesTeaserSection({ services }: { services: ServiceTeaser[] }) {
+export function ServicesTeaserSection({
+  services,
+  label = "Services",
+  title = "Services for thoughtful gatherings",
+}: {
+  services: ServiceTeaser[];
+  label?: string;
+  title?: string;
+}) {
   return (
     <Section>
       <Container>
-        <SectionHeader
-          label="Services"
-          title="Services for thoughtful gatherings"
-        />
+        <SectionHeader label={label} title={title} />
         <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-[22px]">
           {services.map((service) => (
             <Link
@@ -161,29 +166,42 @@ export function ServicesTeaserSection({ services }: { services: ServiceTeaser[] 
   );
 }
 
-export function CommunityTeaserSection() {
-  const links = [
-    { href: "/community-membership", label: "WECODA membership" },
-    { href: "/work-with-us", label: "Work with us" },
-    { href: "/volunteer", label: "Volunteer with us" },
-  ];
+export interface CommunityLink {
+  href: string;
+  label: string;
+}
 
+const fallbackCommunityLinks: CommunityLink[] = [
+  { href: "/community-membership", label: "WECODA membership" },
+  { href: "/work-with-us", label: "Work with us" },
+  { href: "/volunteer", label: "Volunteer with us" },
+];
+
+export function CommunityTeaserSection({
+  label = "Community",
+  title = "More than a space",
+  text = "RORUM is a place for events, ideas and meaningful connections. Join our community, collaborate with us or become part of the team behind the experiences.",
+  links = fallbackCommunityLinks,
+}: {
+  label?: string;
+  title?: string;
+  text?: string;
+  links?: CommunityLink[];
+}) {
   return (
     <section className="py-[clamp(40px,6vw,76px)] relative isolate overflow-hidden bg-dark-green bg-[url('/images/catering/community-catering-bg.png')] bg-position-[center_45%] bg-cover bg-no-repeat before:content-[''] before:absolute before:inset-0 before:z-0 before:bg-[linear-gradient(90deg,rgb(0_0_0/58%)_0%,rgb(0_0_0/38%)_52%,rgb(0_0_0/16%)_100%)]">
       <Container>
         <div className="grid grid-cols-[minmax(220px,0.62fr)_minmax(0,1fr)_auto] max-lg:grid-cols-1 gap-[clamp(20px,4vw,48px)] relative z-1 items-center py-[clamp(34px,5vw,64px)]">
           <div className="grid gap-2">
             <SectionLabel className="text-gold! border-b-[rgba(var(--rgb-gold),0.72)]!">
-              Community
+              {label}
             </SectionLabel>
             <h2 className="font-heading font-medium leading-tight text-cream m-0 text-[clamp(1.85rem,2.6vw,2.3rem)]">
-              More than a space
+              {title}
             </h2>
           </div>
           <p className="m-0 text-[rgba(var(--rgb-cream),0.9)] leading-[1.65]">
-            RORUM is a place for events, ideas and meaningful connections. Join
-            our community, collaborate with us or become part of the team behind
-            the experiences.
+            {text}
           </p>
           <div className="flex flex-wrap justify-end max-lg:justify-start gap-2.5">
             {links.map((link) => (

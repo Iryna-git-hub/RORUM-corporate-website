@@ -9,12 +9,15 @@ export default defineType({
   name: "galleryCollection",
   title: "Image gallery",
   type: "document",
+  description:
+    "One image gallery shown on a page (catering, event decoration, or host-at-rorum). Add, remove or reorder images here — changes go live immediately, no code changes needed. / Одна фотогалерея на сторінці (кейтеринг, декор подій або проведення подій у RORUM). Додавайте, видаляйте чи змінюйте порядок зображень тут — зміни з'являються на сайті одразу, без потреби в змінах коду.",
   fields: [
     defineField({
       name: "key",
       title: "Gallery key",
       type: "slug",
-      description: "Stable identifier the website uses to find this gallery. Do not change after publishing.",
+      description:
+        "Stable identifier the website uses to find this gallery. Do not change after publishing. / Стабільний ідентифікатор, за яким сайт знаходить цю галерею. Не змінюйте після публікації.",
       options: { source: "title" },
       validation: (rule) => rule.required(),
     }),
@@ -22,7 +25,8 @@ export default defineType({
       name: "title",
       title: "Internal title",
       type: "string",
-      description: "For finding this gallery in the Studio — not shown on the website.",
+      description:
+        "For finding this gallery in the Studio — not shown on the website. / Для пошуку цієї галереї в адмін-панелі — не показується на сайті.",
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -30,6 +34,7 @@ export default defineType({
       title: "Images",
       type: "array",
       of: [defineArrayMember({ type: "imageWithAlt" })],
+      description: "The photos shown in this gallery, in order. / Фото в цій галереї, у порядку показу.",
       validation: (rule) => rule.min(1),
     }),
   ],

@@ -26,7 +26,7 @@ export type WorkWithUsPage = {
   heroParagraphs?: Array<
     {
       _key: string;
-    } & InternationalizedArrayText
+    } & BulletParagraph
   >;
   cvUploadCta?: InternationalizedArrayString;
   heroImage?: ImageWithAlt;
@@ -80,7 +80,7 @@ export type VolunteerPage = {
   heroParagraphs?: Array<
     {
       _key: string;
-    } & InternationalizedArrayText
+    } & BulletParagraph
   >;
   highlights?: Array<
     {
@@ -90,7 +90,7 @@ export type VolunteerPage = {
   closingParagraphs?: Array<
     {
       _key: string;
-    } & InternationalizedArrayText
+    } & BulletParagraph
   >;
   applyCta?: CtaLink;
   heroImage?: ImageWithAlt;
@@ -145,6 +145,7 @@ export type Navigation = {
     } & NavItem
   >;
   languageSwitcherLabel?: InternationalizedArrayString;
+  contactCtaLabel?: InternationalizedArrayString;
 };
 
 export type LegalPage = {
@@ -186,13 +187,13 @@ export type HostAtRorumPage = {
   includedItems?: Array<
     {
       _key: string;
-    } & InternationalizedArrayString
+    } & BulletText
   >;
   optionalLabel?: InternationalizedArrayString;
   optionalItems?: Array<
     {
       _key: string;
-    } & InternationalizedArrayString
+    } & BulletText
   >;
   packagesLabel?: InternationalizedArrayString;
   packagesTitle?: InternationalizedArrayString;
@@ -206,7 +207,7 @@ export type HostAtRorumPage = {
   cancellationItems?: Array<
     {
       _key: string;
-    } & InternationalizedArrayString
+    } & BulletText
   >;
   stepsTitle?: InternationalizedArrayString;
   steps?: Array<
@@ -215,6 +216,10 @@ export type HostAtRorumPage = {
     } & TitledText
   >;
   inquiryIntro?: InternationalizedArrayText;
+  inquiryTitle?: InternationalizedArrayString;
+  inquirySubmitLabel?: InternationalizedArrayString;
+  messagePlaceholder?: InternationalizedArrayString;
+  successMessage?: InternationalizedArrayText;
   seo?: Seo;
 };
 
@@ -239,7 +244,7 @@ export type HomePage = {
   heroTrustItems?: Array<
     {
       _key: string;
-    } & InternationalizedArrayString
+    } & BulletText
   >;
   heroImage?: ImageWithAlt;
   heroVideoUrl?: string;
@@ -257,6 +262,25 @@ export type HomePage = {
   eventsTitle?: InternationalizedArrayString;
   attendEventsFeature?: EditorialFeature;
   hostAtRorumFeature?: EditorialFeature;
+  servicesLabel?: InternationalizedArrayString;
+  servicesTitle?: InternationalizedArrayString;
+  services?: Array<{
+    title?: InternationalizedArrayString;
+    text?: InternationalizedArrayText;
+    cta?: InternationalizedArrayString;
+    href?: string;
+    _type: "serviceTeaser";
+    _key: string;
+  }>;
+  communityLabel?: InternationalizedArrayString;
+  communityTitle?: InternationalizedArrayString;
+  communityText?: InternationalizedArrayText;
+  communityLinks?: Array<{
+    label?: InternationalizedArrayString;
+    href?: string;
+    _type: "communityLink";
+    _key: string;
+  }>;
   closingSection?: NextStepSection;
   seo?: Seo;
 };
@@ -285,7 +309,7 @@ export type EditorialFeature = {
   features?: Array<
     {
       _key: string;
-    } & InternationalizedArrayString
+    } & BulletText
   >;
   cta?: CtaLink;
   image?: ImageWithAlt;
@@ -301,7 +325,26 @@ export type FormMessages = {
   requiredFieldTemplate?: InternationalizedArrayString;
   invalidEmailMessage?: InternationalizedArrayString;
   privacyConsentRequiredMessage?: InternationalizedArrayString;
-  privacyConsentLabel?: InternationalizedArrayText;
+  privacyConsentPrefixText?: InternationalizedArrayString;
+  faqQuestion?: InternationalizedArrayString;
+  faqLabel?: InternationalizedArrayString;
+  fullNameLabel?: InternationalizedArrayString;
+  phoneLabel?: InternationalizedArrayString;
+  emailLabel?: InternationalizedArrayString;
+  messageLabel?: InternationalizedArrayString;
+  eventDateLabel?: InternationalizedArrayString;
+  agreeButtonLabel?: InternationalizedArrayString;
+  closeLabel?: InternationalizedArrayString;
+  copyLabel?: InternationalizedArrayString;
+  copiedLabel?: InternationalizedArrayString;
+  packageLabel?: InternationalizedArrayString;
+  selectPackagePlaceholder?: InternationalizedArrayString;
+  eventTimeLabel?: InternationalizedArrayString;
+  numberOfPeopleLabel?: InternationalizedArrayString;
+  guestsPlaceholder?: InternationalizedArrayString;
+  additionalServicesLabel?: InternationalizedArrayString;
+  commentLabel?: InternationalizedArrayString;
+  guestsRangeMessage?: InternationalizedArrayString;
 };
 
 export type Footer = {
@@ -310,6 +353,7 @@ export type Footer = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  contactDetailsLabel?: InternationalizedArrayString;
   columns?: Array<{
     title?: InternationalizedArrayString;
     links?: Array<
@@ -347,6 +391,20 @@ export type EventsPage = {
   _updatedAt: string;
   _rev: string;
   title?: InternationalizedArrayString;
+  filters?: {
+    dateLabel?: InternationalizedArrayString;
+    languageLabel?: InternationalizedArrayString;
+    priceLabel?: InternationalizedArrayString;
+    availabilityLabel?: InternationalizedArrayString;
+    soonestLabel?: InternationalizedArrayString;
+    weekLabel?: InternationalizedArrayString;
+    monthLabel?: InternationalizedArrayString;
+    priceAscLabel?: InternationalizedArrayString;
+    priceDescLabel?: InternationalizedArrayString;
+    availableLabel?: InternationalizedArrayString;
+    soldOutLabel?: InternationalizedArrayString;
+    clearFiltersLabel?: InternationalizedArrayString;
+  };
   closingSection?: NextStepSection;
   seo?: Seo;
 };
@@ -363,7 +421,7 @@ export type EventDecorationPage = {
   stylingIntro?: Array<
     {
       _key: string;
-    } & InternationalizedArrayText
+    } & BulletParagraph
   >;
   formats?: Array<
     {
@@ -385,6 +443,10 @@ export type EventDecorationPage = {
     } & TitledText
   >;
   inquiryIntro?: InternationalizedArrayText;
+  inquiryTitle?: InternationalizedArrayString;
+  inquirySubmitLabel?: InternationalizedArrayString;
+  messagePlaceholder?: InternationalizedArrayString;
+  successMessage?: InternationalizedArrayText;
   seo?: Seo;
 };
 
@@ -406,6 +468,7 @@ export type ContactPage = {
   followUsTitle?: InternationalizedArrayString;
   formTitle?: InternationalizedArrayString;
   successMessage?: InternationalizedArrayText;
+  submitLabel?: InternationalizedArrayString;
   seo?: Seo;
 };
 
@@ -435,17 +498,32 @@ export type CommunityMembershipPage = {
   heroIntro?: Array<
     {
       _key: string;
-    } & InternationalizedArrayText
+    } & BulletParagraph
   >;
   logo?: ImageWithAlt;
   supportCta?: CtaLink;
   externalSiteCta?: CtaLink;
+  donation?: {
+    label?: InternationalizedArrayString;
+    title?: InternationalizedArrayString;
+    text?: InternationalizedArrayText;
+    scanText?: InternationalizedArrayString;
+    scanSubtext?: InternationalizedArrayString;
+    orText?: InternationalizedArrayString;
+    bankTransferText?: InternationalizedArrayString;
+    bankDetailsTitle?: InternationalizedArrayString;
+    supportText?: InternationalizedArrayText;
+  };
   priceStripText?: InternationalizedArrayString;
+  galleryLabel?: InternationalizedArrayString;
+  galleryTitle?: InternationalizedArrayString;
   gallery?: Array<
     {
       _key: string;
     } & ImageWithAlt
   >;
+  introSectionLabel?: InternationalizedArrayString;
+  introSectionTitle?: InternationalizedArrayString;
   introColumns?: Array<
     {
       _key: string;
@@ -455,13 +533,13 @@ export type CommunityMembershipPage = {
   benefits?: Array<
     {
       _key: string;
-    } & InternationalizedArrayString
+    } & BulletText
   >;
   audiencesTitle?: InternationalizedArrayString;
   audiences?: Array<
     {
       _key: string;
-    } & InternationalizedArrayString
+    } & BulletText
   >;
   applicationTitle?: InternationalizedArrayString;
   applicationSteps?: Array<
@@ -484,7 +562,13 @@ export type CateringPage = {
   menuFormats?: Array<{
     title?: InternationalizedArrayString;
     description?: InternationalizedArrayText;
-    image?: ImageWithAlt;
+    image?: {
+      asset?: SanityImageAssetReference;
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      _type: "image";
+    };
     _type: "menuFormatCard";
     _key: string;
   }>;
@@ -503,6 +587,21 @@ export type CateringPage = {
   philosophyText?: InternationalizedArrayText;
   philosophyImage?: ImageWithAlt;
   tailoredNote?: TitledText;
+  menuOverlay?: {
+    triggerLabel?: InternationalizedArrayString;
+    title?: InternationalizedArrayString;
+    intro?: Array<
+      {
+        _key: string;
+      } & BulletParagraph
+    >;
+    requestCta?: InternationalizedArrayString;
+    featuredDishesLabel?: InternationalizedArrayString;
+    disclaimerNote?: InternationalizedArrayText;
+    customMenuTitle?: InternationalizedArrayString;
+    customMenuText?: InternationalizedArrayText;
+    backToCateringCta?: InternationalizedArrayString;
+  };
   stepsTitle?: InternationalizedArrayString;
   steps?: Array<
     {
@@ -510,7 +609,28 @@ export type CateringPage = {
     } & TitledText
   >;
   inquiryIntro?: InternationalizedArrayText;
+  inquiryTitle?: InternationalizedArrayString;
+  inquirySubmitLabel?: InternationalizedArrayString;
+  messagePlaceholder?: InternationalizedArrayString;
+  successMessage?: InternationalizedArrayText;
+  footerNote?: InternationalizedArrayString;
   seo?: Seo;
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x?: number;
+  y?: number;
+  height?: number;
+  width?: number;
 };
 
 export type AboutPage = {
@@ -538,6 +658,7 @@ export type AboutPage = {
   locationTitle?: InternationalizedArrayString;
   locationText?: InternationalizedArrayText;
   locationImage?: ImageWithAlt;
+  closingSection?: NextStepSection;
   seo?: Seo;
 };
 
@@ -578,20 +699,6 @@ export type FaqGroup = {
   }>;
 };
 
-export type EventCategoryReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "eventCategory";
-};
-
-export type EventReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "event";
-};
-
 export type Event = {
   _id: string;
   _type: "event";
@@ -600,26 +707,23 @@ export type Event = {
   _rev: string;
   title?: InternationalizedArrayString;
   slug?: Slug;
+  shortDescription?: InternationalizedArrayText;
   image?: ImageWithAlt;
-  category?: EventCategoryReference;
+  longDescription?: InternationalizedArrayText;
+  whatToExpect?: Array<
+    {
+      _key: string;
+    } & BulletText
+  >;
+  included?: Array<
+    {
+      _key: string;
+    } & BulletText
+  >;
   date?: string;
   time?: string;
   price?: string;
   language?: "English" | "Danish" | "Ukrainian";
-  host?: string;
-  isSoldOut?: boolean;
-  shortDescription?: InternationalizedArrayText;
-  longDescription?: InternationalizedArrayText;
-  included?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
-  whatToExpect?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
   practicalDetails?: Array<
     {
       _key: string;
@@ -627,25 +731,12 @@ export type Event = {
   >;
   ticketProvider?: string;
   ticketUrl?: string;
+  ticketButtonLabel?: InternationalizedArrayString;
   calendarUrl?: string;
   waitlistUrl?: string;
   ticketsLeft?: number;
-  relatedEvents?: Array<
-    {
-      _key: string;
-    } & EventReference
-  >;
+  isSoldOut?: boolean;
   seo?: Seo;
-};
-
-export type EventCategory = {
-  _id: string;
-  _type: "eventCategory";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: InternationalizedArrayString;
-  slug?: Slug;
 };
 
 export type CateringMenuCategory = {
@@ -674,22 +765,6 @@ export type SocialLink = {
   brandColor?: string;
 };
 
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top?: number;
-  bottom?: number;
-  left?: number;
-  right?: number;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x?: number;
-  y?: number;
-  height?: number;
-  width?: number;
-};
-
 export type PracticalDetail = {
   _type: "practicalDetail";
   label?: InternationalizedArrayString;
@@ -703,7 +778,7 @@ export type PackageTier = {
   items?: Array<
     {
       _key: string;
-    } & InternationalizedArrayString
+    } & BulletText
   >;
 };
 
@@ -726,31 +801,7 @@ export type NavChild = {
 
 export type IconCard = {
   _type: "iconCard";
-  icon?:
-    | "UtensilsCrossed"
-    | "Flower"
-    | "Balloon"
-    | "Flame"
-    | "BadgeCheck"
-    | "ChefHat"
-    | "HandPlatter"
-    | "ClipboardList"
-    | "CookingPot"
-    | "ConciergeBell"
-    | "CalendarCheck"
-    | "Gem"
-    | "PartyPopper"
-    | "Lightbulb"
-    | "Sparkles"
-    | "Flower2"
-    | "CircleEllipsis"
-    | "Presentation"
-    | "Handshake"
-    | "BriefcaseBusiness"
-    | "Cake"
-    | "Landmark"
-    | "Building2"
-    | "Users";
+  icon?: string;
   title?: InternationalizedArrayString;
   text?: InternationalizedArrayText;
 };
@@ -760,6 +811,16 @@ export type CateringMenuItem = {
   name?: InternationalizedArrayString;
   description?: InternationalizedArrayText;
   image?: ImageWithAlt;
+};
+
+export type BulletText = {
+  _type: "bulletText";
+  text?: InternationalizedArrayString;
+};
+
+export type BulletParagraph = {
+  _type: "bulletParagraph";
+  text?: InternationalizedArrayText;
 };
 
 export type BodyPortableText = Array<{
@@ -925,24 +986,23 @@ export type AllSanitySchemaTypes =
   | ContactInfo
   | CommunityMembershipPage
   | CateringPage
+  | SanityImageCrop
+  | SanityImageHotspot
   | AboutPage
   | GalleryCollection
   | Slug
   | FaqGroup
-  | EventCategoryReference
-  | EventReference
   | Event
-  | EventCategory
   | CateringMenuCategory
   | SocialLink
-  | SanityImageCrop
-  | SanityImageHotspot
   | PracticalDetail
   | PackageTier
   | NavItem
   | NavChild
   | IconCard
   | CateringMenuItem
+  | BulletText
+  | BulletParagraph
   | BodyPortableText
   | InternationalizedArrayBodyPortableTextValue
   | InternationalizedArrayTextValue
@@ -956,6 +1016,27 @@ export type AllSanitySchemaTypes =
   | SanityImageAsset
   | Geopoint;
 
+// Source: sanity/queries/cateringMenu.ts
+// Variable: cateringMenuCategoriesQuery
+// Query: *[_type == "cateringMenuCategory"] | order(order asc)
+export type CateringMenuCategoriesQueryResult = Array<{
+  _id: string;
+  _type: "cateringMenuCategory";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: InternationalizedArrayString;
+  navLabel?: InternationalizedArrayString;
+  slug?: Slug;
+  description?: InternationalizedArrayText;
+  order?: number;
+  featuredItems?: Array<
+    {
+      _key: string;
+    } & CateringMenuItem
+  >;
+}>;
+
 // Source: sanity/queries/events.ts
 // Variable: eventsPageQuery
 // Query: *[_type == "eventsPage"][0]
@@ -966,13 +1047,27 @@ export type EventsPageQueryResult = {
   _updatedAt: string;
   _rev: string;
   title?: InternationalizedArrayString;
+  filters?: {
+    dateLabel?: InternationalizedArrayString;
+    languageLabel?: InternationalizedArrayString;
+    priceLabel?: InternationalizedArrayString;
+    availabilityLabel?: InternationalizedArrayString;
+    soonestLabel?: InternationalizedArrayString;
+    weekLabel?: InternationalizedArrayString;
+    monthLabel?: InternationalizedArrayString;
+    priceAscLabel?: InternationalizedArrayString;
+    priceDescLabel?: InternationalizedArrayString;
+    availableLabel?: InternationalizedArrayString;
+    soldOutLabel?: InternationalizedArrayString;
+    clearFiltersLabel?: InternationalizedArrayString;
+  };
   closingSection?: NextStepSection;
   seo?: Seo;
 } | null;
 
 // Source: sanity/queries/events.ts
 // Variable: allEventsQuery
-// Query: *[_type == "event"] | order(date asc){ ..., "categoryTitle": category->title }
+// Query: *[_type == "event"] | order(date asc)
 export type AllEventsQueryResult = Array<{
   _id: string;
   _type: "event";
@@ -981,26 +1076,23 @@ export type AllEventsQueryResult = Array<{
   _rev: string;
   title?: InternationalizedArrayString;
   slug?: Slug;
+  shortDescription?: InternationalizedArrayText;
   image?: ImageWithAlt;
-  category?: EventCategoryReference;
+  longDescription?: InternationalizedArrayText;
+  whatToExpect?: Array<
+    {
+      _key: string;
+    } & BulletText
+  >;
+  included?: Array<
+    {
+      _key: string;
+    } & BulletText
+  >;
   date?: string;
   time?: string;
   price?: string;
   language?: "Danish" | "English" | "Ukrainian";
-  host?: string;
-  isSoldOut?: boolean;
-  shortDescription?: InternationalizedArrayText;
-  longDescription?: InternationalizedArrayText;
-  included?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
-  whatToExpect?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
   practicalDetails?: Array<
     {
       _key: string;
@@ -1008,21 +1100,17 @@ export type AllEventsQueryResult = Array<{
   >;
   ticketProvider?: string;
   ticketUrl?: string;
+  ticketButtonLabel?: InternationalizedArrayString;
   calendarUrl?: string;
   waitlistUrl?: string;
   ticketsLeft?: number;
-  relatedEvents?: Array<
-    {
-      _key: string;
-    } & EventReference
-  >;
+  isSoldOut?: boolean;
   seo?: Seo;
-  categoryTitle: InternationalizedArrayString | null;
 }>;
 
 // Source: sanity/queries/events.ts
 // Variable: eventBySlugQuery
-// Query: *[_type == "event" && slug.current == $slug][0]{    ...,    "categoryTitle": category->title,    relatedEvents[]->{ _id, title, slug, image, date }  }
+// Query: *[_type == "event" && slug.current == $slug][0]
 export type EventBySlugQueryResult = {
   _id: string;
   _type: "event";
@@ -1031,26 +1119,23 @@ export type EventBySlugQueryResult = {
   _rev: string;
   title?: InternationalizedArrayString;
   slug?: Slug;
+  shortDescription?: InternationalizedArrayText;
   image?: ImageWithAlt;
-  category?: EventCategoryReference;
+  longDescription?: InternationalizedArrayText;
+  whatToExpect?: Array<
+    {
+      _key: string;
+    } & BulletText
+  >;
+  included?: Array<
+    {
+      _key: string;
+    } & BulletText
+  >;
   date?: string;
   time?: string;
   price?: string;
   language?: "Danish" | "English" | "Ukrainian";
-  host?: string;
-  isSoldOut?: boolean;
-  shortDescription?: InternationalizedArrayText;
-  longDescription?: InternationalizedArrayText;
-  included?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
-  whatToExpect?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
   practicalDetails?: Array<
     {
       _key: string;
@@ -1058,18 +1143,12 @@ export type EventBySlugQueryResult = {
   >;
   ticketProvider?: string;
   ticketUrl?: string;
+  ticketButtonLabel?: InternationalizedArrayString;
   calendarUrl?: string;
   waitlistUrl?: string;
   ticketsLeft?: number;
-  relatedEvents: Array<{
-    _id: string;
-    title: InternationalizedArrayString | null;
-    slug: Slug | null;
-    image: ImageWithAlt | null;
-    date: string | null;
-  }> | null;
+  isSoldOut?: boolean;
   seo?: Seo;
-  categoryTitle: InternationalizedArrayString | null;
 } | null;
 
 // Source: sanity/queries/events.ts
@@ -1106,6 +1185,24 @@ export type FaqGroupsQueryResult = Array<{
     _key: string;
   }> | null;
 }>;
+
+// Source: sanity/queries/gallery.ts
+// Variable: galleryCollectionQuery
+// Query: *[_type == "galleryCollection" && key.current == $key][0]
+export type GalleryCollectionQueryResult = {
+  _id: string;
+  _type: "galleryCollection";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  key?: Slug;
+  title?: string;
+  images?: Array<
+    {
+      _key: string;
+    } & ImageWithAlt
+  >;
+} | null;
 
 // Source: sanity/queries/globals.ts
 // Variable: siteSettingsQuery
@@ -1175,6 +1272,7 @@ export type NavigationQueryResult = {
     } & NavItem
   >;
   languageSwitcherLabel?: InternationalizedArrayString;
+  contactCtaLabel?: InternationalizedArrayString;
 } | null;
 
 // Source: sanity/queries/globals.ts
@@ -1186,6 +1284,7 @@ export type FooterQueryResult = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  contactDetailsLabel?: InternationalizedArrayString;
   columns?: Array<{
     title?: InternationalizedArrayString;
     links?: Array<
@@ -1216,24 +1315,463 @@ export type FormMessagesQueryResult = {
   requiredFieldTemplate?: InternationalizedArrayString;
   invalidEmailMessage?: InternationalizedArrayString;
   privacyConsentRequiredMessage?: InternationalizedArrayString;
-  privacyConsentLabel?: InternationalizedArrayText;
+  privacyConsentPrefixText?: InternationalizedArrayString;
+  faqQuestion?: InternationalizedArrayString;
+  faqLabel?: InternationalizedArrayString;
+  fullNameLabel?: InternationalizedArrayString;
+  phoneLabel?: InternationalizedArrayString;
+  emailLabel?: InternationalizedArrayString;
+  messageLabel?: InternationalizedArrayString;
+  eventDateLabel?: InternationalizedArrayString;
+  agreeButtonLabel?: InternationalizedArrayString;
+  closeLabel?: InternationalizedArrayString;
+  copyLabel?: InternationalizedArrayString;
+  copiedLabel?: InternationalizedArrayString;
+  packageLabel?: InternationalizedArrayString;
+  selectPackagePlaceholder?: InternationalizedArrayString;
+  eventTimeLabel?: InternationalizedArrayString;
+  numberOfPeopleLabel?: InternationalizedArrayString;
+  guestsPlaceholder?: InternationalizedArrayString;
+  additionalServicesLabel?: InternationalizedArrayString;
+  commentLabel?: InternationalizedArrayString;
+  guestsRangeMessage?: InternationalizedArrayString;
+} | null;
+
+// Source: sanity/queries/pages.ts
+// Variable: homePageQuery
+// Query: *[_type == "homePage"][0]
+export type HomePageQueryResult = {
+  _id: string;
+  _type: "homePage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  heroLabel?: InternationalizedArrayString;
+  heroTitle?: InternationalizedArrayString;
+  heroText?: InternationalizedArrayText;
+  heroTrustItems?: Array<
+    {
+      _key: string;
+    } & BulletText
+  >;
+  heroImage?: ImageWithAlt;
+  heroVideoUrl?: string;
+  heroPrimaryCta?: CtaLink;
+  heroSecondaryCta?: CtaLink;
+  quickPaths?: Array<{
+    title?: InternationalizedArrayString;
+    text?: InternationalizedArrayText;
+    href?: string;
+    image?: ImageWithAlt;
+    _type: "quickPath";
+    _key: string;
+  }>;
+  eventsLabel?: InternationalizedArrayString;
+  eventsTitle?: InternationalizedArrayString;
+  attendEventsFeature?: EditorialFeature;
+  hostAtRorumFeature?: EditorialFeature;
+  servicesLabel?: InternationalizedArrayString;
+  servicesTitle?: InternationalizedArrayString;
+  services?: Array<{
+    title?: InternationalizedArrayString;
+    text?: InternationalizedArrayText;
+    cta?: InternationalizedArrayString;
+    href?: string;
+    _type: "serviceTeaser";
+    _key: string;
+  }>;
+  communityLabel?: InternationalizedArrayString;
+  communityTitle?: InternationalizedArrayString;
+  communityText?: InternationalizedArrayText;
+  communityLinks?: Array<{
+    label?: InternationalizedArrayString;
+    href?: string;
+    _type: "communityLink";
+    _key: string;
+  }>;
+  closingSection?: NextStepSection;
+  seo?: Seo;
+} | null;
+
+// Source: sanity/queries/pages.ts
+// Variable: aboutPageQuery
+// Query: *[_type == "aboutPage"][0]
+export type AboutPageQueryResult = {
+  _id: string;
+  _type: "aboutPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  heroLabel?: InternationalizedArrayString;
+  heroTitle?: InternationalizedArrayString;
+  heroLead?: InternationalizedArrayText;
+  statementTitle?: InternationalizedArrayString;
+  statementText?: InternationalizedArrayText;
+  values?: Array<
+    {
+      _key: string;
+    } & TitledText
+  >;
+  pillarsLabel?: InternationalizedArrayString;
+  pillars?: Array<
+    {
+      _key: string;
+    } & TitledText
+  >;
+  locationTitle?: InternationalizedArrayString;
+  locationText?: InternationalizedArrayText;
+  locationImage?: ImageWithAlt;
+  closingSection?: NextStepSection;
+  seo?: Seo;
+} | null;
+
+// Source: sanity/queries/pages.ts
+// Variable: cateringPageQuery
+// Query: *[_type == "cateringPage"][0]
+export type CateringPageQueryResult = {
+  _id: string;
+  _type: "cateringPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  hero?: ServiceHero;
+  menuFormatsTitle?: InternationalizedArrayString;
+  menuFormats?: Array<{
+    title?: InternationalizedArrayString;
+    description?: InternationalizedArrayText;
+    image?: {
+      asset?: SanityImageAssetReference;
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      _type: "image";
+    };
+    _type: "menuFormatCard";
+    _key: string;
+  }>;
+  formats?: Array<
+    {
+      _key: string;
+    } & IconCard
+  >;
+  suitableForLabel?: InternationalizedArrayString;
+  suitableFor?: Array<
+    {
+      _key: string;
+    } & IconCard
+  >;
+  philosophyTitle?: InternationalizedArrayString;
+  philosophyText?: InternationalizedArrayText;
+  philosophyImage?: ImageWithAlt;
+  tailoredNote?: TitledText;
+  menuOverlay?: {
+    triggerLabel?: InternationalizedArrayString;
+    title?: InternationalizedArrayString;
+    intro?: Array<
+      {
+        _key: string;
+      } & BulletParagraph
+    >;
+    requestCta?: InternationalizedArrayString;
+    featuredDishesLabel?: InternationalizedArrayString;
+    disclaimerNote?: InternationalizedArrayText;
+    customMenuTitle?: InternationalizedArrayString;
+    customMenuText?: InternationalizedArrayText;
+    backToCateringCta?: InternationalizedArrayString;
+  };
+  stepsTitle?: InternationalizedArrayString;
+  steps?: Array<
+    {
+      _key: string;
+    } & TitledText
+  >;
+  inquiryIntro?: InternationalizedArrayText;
+  inquiryTitle?: InternationalizedArrayString;
+  inquirySubmitLabel?: InternationalizedArrayString;
+  messagePlaceholder?: InternationalizedArrayString;
+  successMessage?: InternationalizedArrayText;
+  footerNote?: InternationalizedArrayString;
+  seo?: Seo;
+} | null;
+
+// Source: sanity/queries/pages.ts
+// Variable: eventDecorationPageQuery
+// Query: *[_type == "eventDecorationPage"][0]
+export type EventDecorationPageQueryResult = {
+  _id: string;
+  _type: "eventDecorationPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  hero?: ServiceHero;
+  stylingLabel?: InternationalizedArrayString;
+  stylingTitle?: InternationalizedArrayString;
+  stylingIntro?: Array<
+    {
+      _key: string;
+    } & BulletParagraph
+  >;
+  formats?: Array<
+    {
+      _key: string;
+    } & IconCard
+  >;
+  stylingImage?: ImageWithAlt;
+  suitableForLabel?: InternationalizedArrayString;
+  suitableFor?: Array<
+    {
+      _key: string;
+    } & IconCard
+  >;
+  tailoredNote?: TitledText;
+  stepsTitle?: InternationalizedArrayString;
+  steps?: Array<
+    {
+      _key: string;
+    } & TitledText
+  >;
+  inquiryIntro?: InternationalizedArrayText;
+  inquiryTitle?: InternationalizedArrayString;
+  inquirySubmitLabel?: InternationalizedArrayString;
+  messagePlaceholder?: InternationalizedArrayString;
+  successMessage?: InternationalizedArrayText;
+  seo?: Seo;
+} | null;
+
+// Source: sanity/queries/pages.ts
+// Variable: hostAtRorumPageQuery
+// Query: *[_type == "hostAtRorumPage"][0]
+export type HostAtRorumPageQueryResult = {
+  _id: string;
+  _type: "hostAtRorumPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  hero?: ServiceHero;
+  sessionLabel?: InternationalizedArrayString;
+  sessionTitle?: InternationalizedArrayString;
+  sessionImage?: ImageWithAlt;
+  includedItems?: Array<
+    {
+      _key: string;
+    } & BulletText
+  >;
+  optionalLabel?: InternationalizedArrayString;
+  optionalItems?: Array<
+    {
+      _key: string;
+    } & BulletText
+  >;
+  packagesLabel?: InternationalizedArrayString;
+  packagesTitle?: InternationalizedArrayString;
+  packagesIntro?: InternationalizedArrayText;
+  packages?: Array<
+    {
+      _key: string;
+    } & PackageTier
+  >;
+  cancellationTitle?: InternationalizedArrayString;
+  cancellationItems?: Array<
+    {
+      _key: string;
+    } & BulletText
+  >;
+  stepsTitle?: InternationalizedArrayString;
+  steps?: Array<
+    {
+      _key: string;
+    } & TitledText
+  >;
+  inquiryIntro?: InternationalizedArrayText;
+  inquiryTitle?: InternationalizedArrayString;
+  inquirySubmitLabel?: InternationalizedArrayString;
+  messagePlaceholder?: InternationalizedArrayString;
+  successMessage?: InternationalizedArrayText;
+  seo?: Seo;
+} | null;
+
+// Source: sanity/queries/pages.ts
+// Variable: communityMembershipPageQuery
+// Query: *[_type == "communityMembershipPage"][0]
+export type CommunityMembershipPageQueryResult = {
+  _id: string;
+  _type: "communityMembershipPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  heroLabel?: InternationalizedArrayString;
+  heroTitle?: InternationalizedArrayString;
+  heroIntro?: Array<
+    {
+      _key: string;
+    } & BulletParagraph
+  >;
+  logo?: ImageWithAlt;
+  supportCta?: CtaLink;
+  externalSiteCta?: CtaLink;
+  donation?: {
+    label?: InternationalizedArrayString;
+    title?: InternationalizedArrayString;
+    text?: InternationalizedArrayText;
+    scanText?: InternationalizedArrayString;
+    scanSubtext?: InternationalizedArrayString;
+    orText?: InternationalizedArrayString;
+    bankTransferText?: InternationalizedArrayString;
+    bankDetailsTitle?: InternationalizedArrayString;
+    supportText?: InternationalizedArrayText;
+  };
+  priceStripText?: InternationalizedArrayString;
+  galleryLabel?: InternationalizedArrayString;
+  galleryTitle?: InternationalizedArrayString;
+  gallery?: Array<
+    {
+      _key: string;
+    } & ImageWithAlt
+  >;
+  introSectionLabel?: InternationalizedArrayString;
+  introSectionTitle?: InternationalizedArrayString;
+  introColumns?: Array<
+    {
+      _key: string;
+    } & TitledText
+  >;
+  benefitsTitle?: InternationalizedArrayString;
+  benefits?: Array<
+    {
+      _key: string;
+    } & BulletText
+  >;
+  audiencesTitle?: InternationalizedArrayString;
+  audiences?: Array<
+    {
+      _key: string;
+    } & BulletText
+  >;
+  applicationTitle?: InternationalizedArrayString;
+  applicationSteps?: Array<
+    {
+      _key: string;
+    } & TitledText
+  >;
+  applicationCta?: CtaLink;
+  seo?: Seo;
+} | null;
+
+// Source: sanity/queries/pages.ts
+// Variable: contactPageQuery
+// Query: *[_type == "contactPage"][0]
+export type ContactPageQueryResult = {
+  _id: string;
+  _type: "contactPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  heroLabel?: InternationalizedArrayString;
+  introTitle?: InternationalizedArrayString;
+  introText?: InternationalizedArrayText;
+  followUsTitle?: InternationalizedArrayString;
+  formTitle?: InternationalizedArrayString;
+  successMessage?: InternationalizedArrayText;
+  submitLabel?: InternationalizedArrayString;
+  seo?: Seo;
+} | null;
+
+// Source: sanity/queries/pages.ts
+// Variable: volunteerPageQuery
+// Query: *[_type == "volunteerPage"][0]
+export type VolunteerPageQueryResult = {
+  _id: string;
+  _type: "volunteerPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  heroLabel?: InternationalizedArrayString;
+  heroTitle?: InternationalizedArrayString;
+  heroParagraphs?: Array<
+    {
+      _key: string;
+    } & BulletParagraph
+  >;
+  highlights?: Array<
+    {
+      _key: string;
+    } & IconCard
+  >;
+  closingParagraphs?: Array<
+    {
+      _key: string;
+    } & BulletParagraph
+  >;
+  applyCta?: CtaLink;
+  heroImage?: ImageWithAlt;
+  seo?: Seo;
+} | null;
+
+// Source: sanity/queries/pages.ts
+// Variable: workWithUsPageQuery
+// Query: *[_type == "workWithUsPage"][0]
+export type WorkWithUsPageQueryResult = {
+  _id: string;
+  _type: "workWithUsPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  heroLabel?: InternationalizedArrayString;
+  heroTitle?: InternationalizedArrayString;
+  heroParagraphs?: Array<
+    {
+      _key: string;
+    } & BulletParagraph
+  >;
+  cvUploadCta?: InternationalizedArrayString;
+  heroImage?: ImageWithAlt;
+  seo?: Seo;
+} | null;
+
+// Source: sanity/queries/pages.ts
+// Variable: legalPageQuery
+// Query: *[_type == "legalPage" && pageKey == $pageKey][0]
+export type LegalPageQueryResult = {
+  _id: string;
+  _type: "legalPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  pageKey?: "cookie-policy" | "privacy-policy" | "terms";
+  title?: InternationalizedArrayString;
+  subtitle?: InternationalizedArrayText;
+  lastUpdated?: string;
+  body?: InternationalizedArrayBodyPortableText;
+  seo?: Seo;
 } | null;
 
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
+    '*[_type == "cateringMenuCategory"] | order(order asc)': CateringMenuCategoriesQueryResult;
     '*[_type == "eventsPage"][0]': EventsPageQueryResult;
-    '*[_type == "event"] | order(date asc){ ..., "categoryTitle": category->title }': AllEventsQueryResult;
-    '*[_type == "event" && slug.current == $slug][0]{\n    ...,\n    "categoryTitle": category->title,\n    relatedEvents[]->{ _id, title, slug, image, date }\n  }': EventBySlugQueryResult;
+    '*[_type == "event"] | order(date asc)': AllEventsQueryResult;
+    '*[_type == "event" && slug.current == $slug][0]': EventBySlugQueryResult;
     '*[_type == "event"].slug.current': AllEventSlugsQueryResult;
     '*[_type == "faqPage"][0]': FaqPageQueryResult;
     '*[_type == "faqGroup"] | order(order asc){ _id, title, order, items }': FaqGroupsQueryResult;
+    '*[_type == "galleryCollection" && key.current == $key][0]': GalleryCollectionQueryResult;
     '*[_type == "siteSettings"][0]': SiteSettingsQueryResult;
     '*[_type == "contactInfo"][0]': ContactInfoQueryResult;
     '*[_type == "socialLinks"][0]': SocialLinksQueryResult;
     '*[_type == "navigation"][0]': NavigationQueryResult;
     '*[_type == "footer"][0]': FooterQueryResult;
     '*[_type == "formMessages"][0]': FormMessagesQueryResult;
+    '*[_type == "homePage"][0]': HomePageQueryResult;
+    '*[_type == "aboutPage"][0]': AboutPageQueryResult;
+    '*[_type == "cateringPage"][0]': CateringPageQueryResult;
+    '*[_type == "eventDecorationPage"][0]': EventDecorationPageQueryResult;
+    '*[_type == "hostAtRorumPage"][0]': HostAtRorumPageQueryResult;
+    '*[_type == "communityMembershipPage"][0]': CommunityMembershipPageQueryResult;
+    '*[_type == "contactPage"][0]': ContactPageQueryResult;
+    '*[_type == "volunteerPage"][0]': VolunteerPageQueryResult;
+    '*[_type == "workWithUsPage"][0]': WorkWithUsPageQueryResult;
+    '*[_type == "legalPage" && pageKey == $pageKey][0]': LegalPageQueryResult;
   }
 }

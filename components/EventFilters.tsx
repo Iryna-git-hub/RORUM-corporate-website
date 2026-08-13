@@ -1,10 +1,12 @@
 "use client";
 
 import type { FocusEvent } from "react";
-import Link from "next/link";
+import { LocaleLink as Link } from "@/components/LocaleLink";
 import { ChevronDown } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLayoutEffect, useRef, useState } from "react";
+import { localizedHref } from "@/lib/i18n";
+import { useLocale } from "@/lib/useLocale";
 
 export type EventDateFilter = "soonest" | "week" | "month" | "all";
 export type EventPriceFilter = "price-asc" | "price-desc" | "all";
@@ -15,24 +17,35 @@ interface FilterOption {
   label: string;
 }
 
-const dateOptions: { value: Exclude<EventDateFilter, "all">; label: string }[] = [
-  { value: "soonest", label: "Soonest first" },
-  { value: "week", label: "This week" },
-  { value: "month", label: "This month" },
-];
+export interface EventFilterLabels {
+  dateLabel: string;
+  languageLabel: string;
+  priceLabel: string;
+  availabilityLabel: string;
+  soonestLabel: string;
+  weekLabel: string;
+  monthLabel: string;
+  priceAscLabel: string;
+  priceDescLabel: string;
+  availableLabel: string;
+  soldOutLabel: string;
+  clearFiltersLabel: string;
+}
 
-const priceOptions: { value: Exclude<EventPriceFilter, "all">; label: string }[] = [
-  { value: "price-asc", label: "From low to high" },
-  { value: "price-desc", label: "From high to low" },
-];
-
-const availabilityOptions: {
-  value: Exclude<EventAvailabilityFilter, "all">;
-  label: string;
-}[] = [
-  { value: "available", label: "Available" },
-  { value: "sold-out", label: "Sold out" },
-];
+export const defaultEventFilterLabels: EventFilterLabels = {
+  dateLabel: "Date",
+  languageLabel: "Languages",
+  priceLabel: "Price",
+  availabilityLabel: "Availability",
+  soonestLabel: "Soonest first",
+  weekLabel: "This week",
+  monthLabel: "This month",
+  priceAscLabel: "From low to high",
+  priceDescLabel: "From high to low",
+  availableLabel: "Available",
+  soldOutLabel: "Sold out",
+  clearFiltersLabel: "Clear filters",
+};
 
 function EventFilterDropdown({
   name,
@@ -143,6 +156,7 @@ export function EventFilters({
   selectedAvailability,
   languageOptions,
   hasActiveFilters,
+  labels = defaultEventFilterLabels,
 }: {
   selectedDate: EventDateFilter;
   selectedLanguage: string;
@@ -150,21 +164,42 @@ export function EventFilters({
   selectedAvailability: EventAvailabilityFilter;
   languageOptions: string[];
   hasActiveFilters: boolean;
+  labels?: EventFilterLabels;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { locale, path } = useLocale();
 
   function selectFilter(name: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.set(name, value);
     params.delete("page");
-    router.push(`/events?${params.toString()}`);
+    router.push(`${localizedHref(path, locale)}?${params.toString()}`);
   }
 
   const languageMenuOptions = languageOptions.map((language) => ({
     value: language,
     label: language,
   }));
+
+  const dateOptions: { value: Exclude<EventDateFilter, "all">; label: string }[] = [
+    { value: "soonest", label: labels.soonestLabel },
+    { value: "week", label: labels.weekLabel },
+    { value: "month", label: labels.monthLabel },
+  ];
+
+  const priceOptions: { value: Exclude<EventPriceFilter, "all">; label: string }[] = [
+    { value: "price-asc", label: labels.priceAscLabel },
+    { value: "price-desc", label: labels.priceDescLabel },
+  ];
+
+  const availabilityOptions: {
+    value: Exclude<EventAvailabilityFilter, "all">;
+    label: string;
+  }[] = [
+    { value: "available", label: labels.availableLabel },
+    { value: "sold-out", label: labels.soldOutLabel },
+  ];
 
   return (
     <div
@@ -178,28 +213,28 @@ export function EventFilters({
       >
         <EventFilterDropdown
           name="date"
-          label="Date"
+          label={labels.dateLabel}
           value={selectedDate}
           options={dateOptions}
           onSelect={selectFilter}
         />
         <EventFilterDropdown
           name="language"
-          label="Languages"
+          label={labels.languageLabel}
           value={selectedLanguage}
           options={languageMenuOptions}
           onSelect={selectFilter}
         />
         <EventFilterDropdown
           name="price"
-          label="Price"
+          label={labels.priceLabel}
           value={selectedPrice}
           options={priceOptions}
           onSelect={selectFilter}
         />
         <EventFilterDropdown
           name="availability"
-          label="Availability"
+          label={labels.availabilityLabel}
           value={selectedAvailability}
           options={availabilityOptions}
           onSelect={selectFilter}
@@ -209,7 +244,7 @@ export function EventFilters({
             className="min-h-8.5 inline-flex items-center justify-center p-0 border-0 border-b border-b-[rgba(var(--rgb-red),0.32)] rounded-none text-red text-[13px] font-semibold uppercase tracking-[0.02em] transition-colors duration-180 ease-[ease] hover:bg-[rgba(var(--rgb-red),0.08)] hover:text-red focus-visible:bg-[rgba(var(--rgb-red),0.08)] focus-visible:text-red focus-visible:outline-none"
             href="/events"
           >
-            Clear filters
+            {labels.clearFiltersLabel}
           </Link>
         ) : null}
       </div>

@@ -16,44 +16,18 @@
  * script only ever creates content that doesn't exist yet; it deliberately
  * never overwrites, so it cannot clobber later editorial changes.
  *
- * This script has never been run against a real dataset — see
- * MIGRATION_REPORT.md's Sanity section for why (no project credentials
- * were available in this task) — but the dry-run mode below is fully
- * exercised and its output is what's reported there.
+ * See MIGRATION_REPORT.md's Sanity section for run history and results.
  */
 import { createClient } from "@sanity/client";
-import { createHash } from "node:crypto";
 
 import { events, faqs, packages, siteUrl } from "../lib/data";
 import { menuCategories } from "../lib/cateringMenu";
 import { companyDetails, contactDetails, socialLinks as socialLinksData } from "../lib/siteConfig";
+import { bullet, deterministicId, en, enText, slugify } from "./lib/sanityImportUtils";
 
 const DRY_RUN = process.argv.includes("--dry-run") || !process.env.SANITY_API_WRITE_TOKEN;
 
-function deterministicId(prefix: string, naturalKey: string): string {
-  const hash = createHash("sha1").update(naturalKey).digest("hex").slice(0, 12);
-  return `${prefix}-${hash}`;
-}
-
-function en(value: string | undefined | null) {
-  if (value === undefined || value === null) return [];
-  return [{ _key: "en", _type: "internationalizedArrayStringValue", value }];
-}
-
-function enText(value: string | undefined | null) {
-  if (value === undefined || value === null) return [];
-  return [{ _key: "en", _type: "internationalizedArrayTextValue", value }];
-}
-
 type Doc = Record<string, unknown> & { _id: string; _type: string };
-
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
 
 // ---------------------------------------------------------------------------
 // Build the document list from the existing hardcoded content sources.
@@ -96,20 +70,6 @@ function buildDocuments(): Doc[] {
     })),
   });
 
-  // --- Event categories (derived from the free-text `category` values) ----
-  const categoryTitles = [...new Set(events.map((e) => e.category))];
-  const categoryIdByTitle = new Map<string, string>();
-  for (const title of categoryTitles) {
-    const id = deterministicId("eventCategory", title);
-    categoryIdByTitle.set(title, id);
-    docs.push({
-      _id: id,
-      _type: "eventCategory",
-      title: en(title),
-      slug: { _type: "slug", current: slugify(title) },
-    });
-  }
-
   // --- Events ---------------------------------------------------------------
   for (const event of events) {
     docs.push({
@@ -117,17 +77,15 @@ function buildDocuments(): Doc[] {
       _type: "event",
       title: en(event.title),
       slug: { _type: "slug", current: event.slug },
-      category: { _type: "reference", _ref: categoryIdByTitle.get(event.category) },
       date: event.date,
       time: event.time,
       price: event.price,
       language: event.language,
-      host: event.host,
       isSoldOut: event.isSoldOut,
       shortDescription: enText(event.shortDescription),
       longDescription: enText(event.longDescription),
-      included: event.included.map((text, i) => ({ _key: `i${i}`, ...spread(en(text)) })),
-      whatToExpect: event.whatToExpect.map((text, i) => ({ _key: `i${i}`, ...spread(en(text)) })),
+      included: event.included.map((text, i) => bullet(`i${i}`, text)),
+      whatToExpect: event.whatToExpect.map((text, i) => bullet(`i${i}`, text)),
       practicalDetails: event.practicalDetails.map((d, i) => ({
         _key: `d${i}`,
         _type: "practicalDetail",
@@ -139,24 +97,11 @@ function buildDocuments(): Doc[] {
       calendarUrl: event.calendarUrl,
       waitlistUrl: event.waitlistUrl,
       ticketsLeft: event.ticketsLeft,
-      // `relatedEvents` references are wired in a second pass below, once
-      // every event's deterministic id is known.
       // NOTE: image assets are NOT uploaded by this script — see the
       // "Image assets" section of MIGRATION_REPORT.md's Sanity section for
       // why, and the manual/scripted follow-up needed once credentials
       // exist.
     });
-  }
-  // Second pass: related-event references (needs every event's id resolved first).
-  const eventIdBySlug = new Map(events.map((e) => [e.slug, deterministicId("event", e.slug)]));
-  for (const doc of docs) {
-    if (doc._type !== "event") continue;
-    const original = events.find((e) => deterministicId("event", e.slug) === doc._id);
-    if (!original) continue;
-    doc.relatedEvents = original.relatedEventSlugs
-      .map((slug) => eventIdBySlug.get(slug))
-      .filter((id): id is string => Boolean(id))
-      .map((id, i) => ({ _key: `r${i}`, _type: "reference", _ref: id }));
   }
 
   // --- FAQ groups -------------------------------------------------------------
@@ -203,20 +148,11 @@ function buildDocuments(): Doc[] {
       _type: "packageTier",
       title: en(tier.title),
       price: en(tier.price),
-      items: tier.items.map((text, j) => ({ _key: `i${j}`, ...spread(en(text)) })),
+      items: tier.items.map((text, j) => bullet(`i${j}`, text)),
     })),
   });
 
   return docs;
-}
-
-function spread<T extends { _key: string }[]>(arr: T) {
-  // `en()` returns a 1-element internationalized-array; unwrap its single
-  // value's fields (minus `_key`, supplied by the caller) for array members
-  // that are themselves internationalizedArrayString, not an object wrapping one.
-  const [{ _key: _drop, ...rest }] = arr as unknown as [{ _key: string; [k: string]: unknown }];
-  void _drop;
-  return rest;
 }
 
 // ---------------------------------------------------------------------------
@@ -262,17 +198,17 @@ async function main() {
     useCdn: false,
   });
 
-  let created = 0;
-  let skipped = 0;
   for (const doc of docs) {
     // `createIfNotExists` is what makes this script idempotent and safe to
     // re-run: an existing document (including one an editor has since
-    // edited) is never touched.
-    const result = await client.createIfNotExists(doc as never);
-    if (result._rev) created++;
-    else skipped++;
+    // edited) is never touched. Its response doesn't distinguish "just
+    // created" from "already existed" (both return the current document),
+    // so this script doesn't claim a created/skipped split it can't
+    // actually observe — re-running is simply always safe.
+    await client.createIfNotExists(doc as never);
   }
-  console.log(`\nDone. ${created} documents created, ${skipped} already existed and were left untouched.`);
+  console.log(`\nProcessed ${docs.length} documents (existing ones were left untouched).`);
+  console.log("\nDone.");
 }
 
 main().catch((error) => {

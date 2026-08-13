@@ -6,7 +6,15 @@ import {
   PrivacyConsent,
   validatePrivacyConsent,
 } from "@/components/PrivacyConsent";
+import { useFormContent } from "@/components/FormContentProvider";
 
+// Deliberately left as fixed English identifiers, not localized: this form
+// has no real backend (`onSubmit` only ever calls `form.reset()` — see
+// below), but `getInitialPackage()` still matches these values against a
+// `?package=` URL query param that PackageGrid's CTA links build from the
+// (localized) package tier titles elsewhere on the page. Translating these
+// labels without also making that matching locale-aware would silently break
+// deep-linking a package selection from the pricing table.
 const bookingPackageOptions = [
   "Morning session",
   "Afternoon session",
@@ -41,11 +49,13 @@ function validateField(
   name: string,
   value: FormDataEntryValue | null,
   label: string,
+  requiredFieldTemplate: string,
+  invalidEmailMessage: string,
 ): string {
   const stringValue = String(value ?? "");
-  if (!stringValue.trim()) return `${label} is required.`;
+  if (!stringValue.trim()) return requiredFieldTemplate.replace("{field}", label);
   if (name === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
-    return "Please enter a valid email address.";
+    return invalidEmailMessage;
   }
   return "";
 }
@@ -72,17 +82,34 @@ export function InquiryForm({
   title,
   intro,
   submitLabel = "Send inquiry",
+  successMessage,
+  messagePlaceholder,
 }: {
   type?: InquiryFormType;
   title: ReactNode;
   intro?: string;
   submitLabel?: string;
+  successMessage?: string;
+  messagePlaceholder?: string;
 }) {
+  const { messages } = useFormContent();
   const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedPackage, setSelectedPackage] = useState("");
   const isBooking = type === "booking";
   const isDecoration = type === "decoration";
+  const resolvedSuccessMessage =
+    successMessage ??
+    (isBooking
+      ? "Thank you. Your Host at RORUM request is ready for the RORUM team."
+      : "Thank you. Your request is ready for the RORUM team.");
+  const resolvedMessagePlaceholder =
+    messagePlaceholder ??
+    (isBooking
+      ? "Tell us about your meeting format, timing and preferences."
+      : isDecoration
+        ? "Describe your event, location and desired visual setup."
+        : "Tell us a little about your request.");
 
   useEffect(() => {
     if (!isBooking || typeof window === "undefined") return undefined;
@@ -102,7 +129,7 @@ export function InquiryForm({
     const nextErrors: Record<string, string> = {};
 
     requiredFields.forEach(([name, label]) => {
-      const error = validateField(name, formData.get(name), label);
+      const error = validateField(name, formData.get(name), label, messages.requiredFieldTemplate, messages.invalidEmailMessage);
       if (error) nextErrors[name] = error;
     });
 
@@ -115,18 +142,18 @@ export function InquiryForm({
     const formData = new FormData(form);
     const requiredFields: [string, string][] = isBooking
       ? [
-          ["package", "Package"],
-          ["phone", "Phone number"],
-          ["email", "Email"],
-          ["name", "Full Name"],
-          ["message", "Comment"],
+          ["package", messages.packageLabel],
+          ["phone", messages.phoneLabel],
+          ["email", messages.emailLabel],
+          ["name", messages.fullNameLabel],
+          ["message", messages.commentLabel],
         ]
       : [
-          ["name", "Full Name"],
-          ["phone", "Phone number"],
-          ["email", "Email"],
-          ["eventDate", "Event date"],
-          ["message", "Message"],
+          ["name", messages.fullNameLabel],
+          ["phone", messages.phoneLabel],
+          ["email", messages.emailLabel],
+          ["eventDate", messages.eventDateLabel],
+          ["message", messages.messageLabel],
         ];
     const nextErrors = validateRequired(formData, requiredFields);
     if (isBooking) {
@@ -134,11 +161,11 @@ export function InquiryForm({
       if (guests) {
         const guestCount = Number(guests);
         if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > 30) {
-          nextErrors.guests = "Please enter a whole number between 1 and 30.";
+          nextErrors.guests = messages.guestsRangeMessage;
         }
       }
     } else {
-      const privacyError = validatePrivacyConsent(formData);
+      const privacyError = validatePrivacyConsent(formData, messages.privacyConsentRequiredMessage);
       if (privacyError) nextErrors.privacyConsent = privacyError;
     }
 
@@ -162,18 +189,18 @@ export function InquiryForm({
         </div>
         {sent ? (
           <div className={SUCCESS_CLASS} role="status">
-            Thank you. Your Host at RORUM request is ready for the RORUM team.
+            {resolvedSuccessMessage}
           </div>
         ) : null}
 
         <label htmlFor="booking-name" className={LABEL_CLASS}>
-          Full Name<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+          {messages.fullNameLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id="booking-name"
             name="name"
             type="text"
             autoComplete="name"
-            placeholder="Full Name"
+            placeholder={messages.fullNameLabel}
             required
             aria-required="true"
             aria-invalid={Boolean(errors.name)}
@@ -184,7 +211,7 @@ export function InquiryForm({
         </label>
         <div className={FORM_GRID_CLASS}>
           <label htmlFor="booking-phone" className={LABEL_CLASS}>
-            Phone number<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+            {messages.phoneLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
             <input
               id="booking-phone"
               name="phone"
@@ -202,7 +229,7 @@ export function InquiryForm({
             <FieldError id="booking-phone-error" message={errors.phone} />
           </label>
           <label htmlFor="booking-email" className={LABEL_CLASS}>
-            Email<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+            {messages.emailLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
             <input
               id="booking-email"
               name="email"
@@ -223,7 +250,7 @@ export function InquiryForm({
 
         <div className={FORM_GRID_CLASS}>
           <label htmlFor="booking-package" className={LABEL_CLASS}>
-            Package<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+            {messages.packageLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
             <select
               id="booking-package"
               name="package"
@@ -238,7 +265,7 @@ export function InquiryForm({
               className={SELECT_CLASS}
             >
               <option value="" disabled className={OPTION_CLASS}>
-                Select package
+                {messages.selectPackagePlaceholder}
               </option>
               {bookingPackageOptions.map((option) => (
                 <option key={option} className={OPTION_CLASS}>
@@ -249,7 +276,7 @@ export function InquiryForm({
             <FieldError id="booking-package-error" message={errors.package} />
           </label>
           <label htmlFor="booking-date" className={LABEL_CLASS}>
-            Event date
+            {messages.eventDateLabel}
             <input
               id="booking-date"
               name="eventDate"
@@ -261,7 +288,7 @@ export function InquiryForm({
 
         <div className={FORM_GRID_CLASS}>
           <label htmlFor="booking-time" className={LABEL_CLASS}>
-            Event time
+            {messages.eventTimeLabel}
             <input
               id="booking-time"
               name="eventTime"
@@ -270,7 +297,7 @@ export function InquiryForm({
             />
           </label>
           <label htmlFor="booking-guests" className={LABEL_CLASS}>
-            Number of people
+            {messages.numberOfPeopleLabel}
             <input
               id="booking-guests"
               name="guests"
@@ -278,7 +305,7 @@ export function InquiryForm({
               min="1"
               max="30"
               inputMode="numeric"
-              placeholder="Approx. number"
+              placeholder={messages.guestsPlaceholder}
               aria-invalid={Boolean(errors.guests)}
               aria-describedby={
                 errors.guests ? "booking-guests-error" : undefined
@@ -291,7 +318,7 @@ export function InquiryForm({
 
         <fieldset className="grid grid-cols-2 gap-x-3 gap-y-2.5 m-0 p-0 border-0 max-sm:grid-cols-1">
           <legend className="col-span-full mb-0.5 text-[rgba(var(--rgb-dark-brown),0.5)] text-[0.82rem] font-semibold">
-            Additional services
+            {messages.additionalServicesLabel}
           </legend>
           {bookingServiceOptions.map((service) => (
             <label
@@ -312,12 +339,12 @@ export function InquiryForm({
         </fieldset>
 
         <label htmlFor="booking-message" className={LABEL_CLASS}>
-          Comment<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+          {messages.commentLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <textarea
             id="booking-message"
             name="message"
             rows={5}
-            placeholder="Tell us about your meeting format, timing and preferences."
+            placeholder={resolvedMessagePlaceholder}
             required
             aria-required="true"
             aria-invalid={Boolean(errors.message)}
@@ -346,18 +373,18 @@ export function InquiryForm({
       </div>
       {sent ? (
         <div className={SUCCESS_CLASS} role="status">
-          Thank you. Your request is ready for the RORUM team.
+          {resolvedSuccessMessage}
         </div>
       ) : null}
 
       <label htmlFor={`${type}-name`} className={LABEL_CLASS}>
-        Full Name<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+        {messages.fullNameLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
         <input
           id={`${type}-name`}
           name="name"
           type="text"
           autoComplete="name"
-          placeholder="Full Name"
+          placeholder={messages.fullNameLabel}
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? `${type}-name-error` : undefined}
           className={INPUT_CLASS}
@@ -366,7 +393,7 @@ export function InquiryForm({
       </label>
       <div className={FORM_GRID_CLASS}>
         <label htmlFor={`${type}-phone`} className={LABEL_CLASS}>
-          Phone number<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+          {messages.phoneLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id={`${type}-phone`}
             name="phone"
@@ -380,7 +407,7 @@ export function InquiryForm({
           <FieldError id={`${type}-phone-error`} message={errors.phone} />
         </label>
         <label htmlFor={`${type}-email`} className={LABEL_CLASS}>
-          Email<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+          {messages.emailLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id={`${type}-email`}
             name="email"
@@ -396,7 +423,7 @@ export function InquiryForm({
       </div>
       <div className={FORM_GRID_CLASS}>
         <label htmlFor={`${type}-date`} className={LABEL_CLASS}>
-          Event date<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+          {messages.eventDateLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id={`${type}-date`}
             name="eventDate"
@@ -412,16 +439,12 @@ export function InquiryForm({
       </div>
 
       <label htmlFor={`${type}-message`} className={LABEL_CLASS}>
-        Message<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+        {messages.messageLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
         <textarea
           id={`${type}-message`}
           name="message"
           rows={5}
-          placeholder={
-            isDecoration
-              ? "Describe your event, location and desired visual setup."
-              : "Tell us a little about your request."
-          }
+          placeholder={resolvedMessagePlaceholder}
           aria-invalid={Boolean(errors.message)}
           aria-describedby={
             errors.message ? `${type}-message-error` : undefined

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+import { LocaleLink as Link } from "@/components/LocaleLink";
 import { Card } from "@/components/ui";
 import { ArrowRight, CircleCheckBig } from "lucide-react";
 

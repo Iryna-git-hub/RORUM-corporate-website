@@ -5,6 +5,7 @@ import {
   EventFilters,
   type EventAvailabilityFilter,
   type EventDateFilter,
+  type EventFilterLabels,
   type EventPriceFilter,
 } from "@/components/EventFilters";
 import { EventsPaginatedList } from "@/components/EventsPaginatedList";
@@ -79,7 +80,13 @@ function getDateWindow(
 // with Next.js output: 'export'.
 // ---------------------------------------------------------------------------
 
-export function EventsClientPage({ events }: { events: RorumEvent[] }) {
+export function EventsClientPage({
+  events,
+  filters,
+}: {
+  events: RorumEvent[];
+  filters?: EventFilterLabels;
+}) {
   const searchParams = useSearchParams();
 
   const rawDate = searchParams.get("date");
@@ -162,6 +169,7 @@ export function EventsClientPage({ events }: { events: RorumEvent[] }) {
         selectedAvailability={selectedAvailability}
         languageOptions={languageOptions}
         hasActiveFilters={hasActiveFilters}
+        labels={filters}
       />
       <EventsPaginatedList
         events={visibleEvents}

@@ -70,9 +70,6 @@ export const structure: StructureResolver = (S) =>
         .title("Events")
         .child(S.documentTypeList("event").title("Events")),
       S.listItem()
-        .title("Event categories")
-        .child(S.documentTypeList("eventCategory").title("Event categories")),
-      S.listItem()
         .title("FAQ groups")
         .child(S.documentTypeList("faqGroup").title("FAQ groups")),
       S.listItem()

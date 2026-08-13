@@ -10,14 +10,17 @@ export default defineType({
   name: "cateringMenuItem",
   title: "Menu item",
   type: "object",
+  description:
+    "One dish shown in the catering menu examples popup. / Одна страва, що показується у спливному вікні прикладів меню кейтерингу.",
   fields: [
     defineField({
       name: "name",
       title: "Dish name",
       type: "internationalizedArrayString",
+      description: "The dish's name (English required). / Назва страви (обов'язково англійською).",
       validation: (rule) =>
         rule.custom((value) =>
-          (value as { _key: string; value?: string }[] | undefined)?.find((v) => v._key === "en")
+          (value as { _key: string; language?: string; value?: string }[] | undefined)?.find((v) => v.language === "en" || v._key === "en")
             ?.value
             ? true
             : "English dish name is required.",
@@ -27,18 +30,20 @@ export default defineType({
       name: "description",
       title: "Description",
       type: "internationalizedArrayText",
+      description: "Short description of the dish. / Короткий опис страви.",
     }),
     defineField({
       name: "image",
       title: "Photo",
       type: "imageWithAlt",
+      description: "Photo of the dish. / Фото страви.",
     }),
   ],
   preview: {
     select: { name: "name", media: "image" },
     prepare({ name, media }) {
-      const en = (name as { _key: string; value?: string }[] | undefined)?.find(
-        (v) => v._key === "en",
+      const en = (name as { _key: string; language?: string; value?: string }[] | undefined)?.find(
+        (v) => v.language === "en" || v._key === "en",
       );
       return { title: en?.value ?? "(untitled dish)", media };
     },

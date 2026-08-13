@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import Link from "next/link";
+import { LocaleLink as Link } from "@/components/LocaleLink";
 import { ArrowRight, Balloon, CalendarDays, ConciergeBell, Presentation } from "lucide-react";
 
 export type QuickPathHref = "/events" | "/host-at-rorum" | "/catering" | "/event-decoration";

@@ -4,22 +4,28 @@ import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { faqs } from "@/lib/data";
 
-export function FAQAccordion({
-  categories = Object.keys(faqs),
-}: {
-  categories?: string[];
-}) {
+export interface FaqGroupData {
+  title: string;
+  items: { question: string; answer: string }[];
+}
+
+const staticGroups: FaqGroupData[] = Object.entries(faqs).map(([title, entries]) => ({
+  title,
+  items: entries.map(([question, answer]) => ({ question, answer })),
+}));
+
+export function FAQAccordion({ groups = staticGroups }: { groups?: FaqGroupData[] }) {
   const [openItem, setOpenItem] = useState<string | null>(null);
 
   return (
     <div className="grid gap-17.5 max-lg:gap-10.5">
-      {categories.map((category) => (
-        <section className="grid gap-0" key={category}>
+      {groups.map(({ title, items }) => (
+        <section className="grid gap-0" key={title}>
           <h2 className="mb-3 text-red font-body text-[clamp(15px,1.4vw,18px)] leading-tight font-black tracking-[0.03em]">
-            {category}
+            {title}
           </h2>
-          {(faqs[category] ?? []).map(([question, answer]) => {
-            const id = `${category}-${question}`;
+          {items.map(({ question, answer }) => {
+            const id = `${title}-${question}`;
             const isOpen = openItem === id;
 
             return (

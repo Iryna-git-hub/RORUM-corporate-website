@@ -6,24 +6,19 @@ import {
   PrivacyConsent,
   validatePrivacyConsent,
 } from "@/components/PrivacyConsent";
-
-const requiredFields: [name: string, label: string][] = [
-  ["name", "Full Name"],
-  ["phone", "Phone number"],
-  ["email", "Email"],
-  ["eventDate", "Event date"],
-  ["message", "Message"],
-];
+import { useFormContent } from "@/components/FormContentProvider";
 
 function validateField(
   name: string,
   value: FormDataEntryValue | null,
   label: string,
+  requiredFieldTemplate: string,
+  invalidEmailMessage: string,
 ): string {
   const stringValue = String(value ?? "");
-  if (!stringValue.trim()) return `${label} is required.`;
+  if (!stringValue.trim()) return requiredFieldTemplate.replace("{field}", label);
   if (name === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
-    return "Please enter a valid email address.";
+    return invalidEmailMessage;
   }
   return "";
 }
@@ -36,9 +31,30 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   ) : null;
 }
 
-export function CateringInquiryForm() {
+export function CateringInquiryForm({
+  title = "Request catering",
+  successMessage = "Thank you. We've received your catering request and will contact you soon.",
+  submitLabel = "Request Catering",
+  messagePlaceholder = "Describe your event, timing and catering wishes.",
+  footerNote = "We'll only use your details to respond to your catering request.",
+}: {
+  title?: string;
+  successMessage?: string;
+  submitLabel?: string;
+  messagePlaceholder?: string;
+  footerNote?: string;
+}) {
+  const { messages } = useFormContent();
   const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const requiredFields: [name: string, label: string][] = [
+    ["name", messages.fullNameLabel],
+    ["phone", messages.phoneLabel],
+    ["email", messages.emailLabel],
+    ["eventDate", messages.eventDateLabel],
+    ["message", messages.messageLabel],
+  ];
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -47,10 +63,10 @@ export function CateringInquiryForm() {
     const nextErrors: Record<string, string> = {};
 
     requiredFields.forEach(([name, label]) => {
-      const error = validateField(name, formData.get(name), label);
+      const error = validateField(name, formData.get(name), label, messages.requiredFieldTemplate, messages.invalidEmailMessage);
       if (error) nextErrors[name] = error;
     });
-    const privacyError = validatePrivacyConsent(formData);
+    const privacyError = validatePrivacyConsent(formData, messages.privacyConsentRequiredMessage);
     if (privacyError) nextErrors.privacyConsent = privacyError;
 
     setErrors(nextErrors);
@@ -77,7 +93,7 @@ export function CateringInquiryForm() {
     >
       <div className="grid gap-2 mb-1">
         <h2 className="m-0 font-body text-[clamp(17px,1.35vw,20px)] leading-tight font-black tracking-normal normal-case text-text-primary">
-          Request catering
+          {title}
         </h2>
       </div>
       {sent ? (
@@ -85,19 +101,18 @@ export function CateringInquiryForm() {
           className="border border-[rgba(var(--rgb-light-green),0.28)] rounded-none bg-[rgba(var(--rgb-beige),0.24)] p-3.5 text-primary-dark font-bold"
           role="status"
         >
-          Thank you. We&apos;ve received your catering request and will contact
-          you soon.
+          {successMessage}
         </div>
       ) : null}
 
       <label htmlFor="catering-name" className={labelClasses}>
-        Full Name<span aria-hidden="true" className={requiredMarkClasses}>*</span>
+        {messages.fullNameLabel}<span aria-hidden="true" className={requiredMarkClasses}>*</span>
         <input
           id="catering-name"
           name="name"
           type="text"
           autoComplete="name"
-          placeholder="Full Name"
+          placeholder={messages.fullNameLabel}
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? "catering-name-error" : undefined}
           className={inputClasses}
@@ -106,7 +121,7 @@ export function CateringInquiryForm() {
       </label>
       <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
         <label htmlFor="catering-phone" className={labelClasses}>
-          Phone number<span aria-hidden="true" className={requiredMarkClasses}>*</span>
+          {messages.phoneLabel}<span aria-hidden="true" className={requiredMarkClasses}>*</span>
           <input
             id="catering-phone"
             name="phone"
@@ -120,7 +135,7 @@ export function CateringInquiryForm() {
           <FieldError id="catering-phone-error" message={errors.phone} />
         </label>
         <label htmlFor="catering-email" className={labelClasses}>
-          Email<span aria-hidden="true" className={requiredMarkClasses}>*</span>
+          {messages.emailLabel}<span aria-hidden="true" className={requiredMarkClasses}>*</span>
           <input
             id="catering-email"
             name="email"
@@ -136,7 +151,7 @@ export function CateringInquiryForm() {
       </div>
       <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
         <label htmlFor="catering-date" className={labelClasses}>
-          Event date<span aria-hidden="true" className={requiredMarkClasses}>*</span>
+          {messages.eventDateLabel}<span aria-hidden="true" className={requiredMarkClasses}>*</span>
           <input
             id="catering-date"
             name="eventDate"
@@ -152,12 +167,12 @@ export function CateringInquiryForm() {
       </div>
 
       <label htmlFor="catering-message" className={labelClasses}>
-        Message<span aria-hidden="true" className={requiredMarkClasses}>*</span>
+        {messages.messageLabel}<span aria-hidden="true" className={requiredMarkClasses}>*</span>
         <textarea
           id="catering-message"
           name="message"
           rows={5}
-          placeholder="Describe your event, timing and catering wishes."
+          placeholder={messagePlaceholder}
           aria-invalid={Boolean(errors.message)}
           aria-describedby={
             errors.message ? "catering-message-error" : undefined
@@ -173,10 +188,10 @@ export function CateringInquiryForm() {
         className="inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] lg:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker disabled:cursor-not-allowed disabled:opacity-[0.62] disabled:transform-none"
         type="submit"
       >
-        Request Catering
+        {submitLabel}
       </button>
       <p className="m-0 -mt-1 text-text-muted text-xs font-bold">
-        We&apos;ll only use your details to respond to your catering request.
+        {footerNote}
       </p>
     </form>
   );

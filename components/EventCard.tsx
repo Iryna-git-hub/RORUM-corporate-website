@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { LocaleLink as Link } from "@/components/LocaleLink";
 import { CalendarDays, Clock, TicketCheck, TicketX } from "lucide-react";
 import { Card } from "@/components/ui";
 import type { RorumEvent } from "@/lib/data";

@@ -2,11 +2,18 @@
 
 import { useRef, useState } from "react";
 import { PrivacyPolicyModal } from "@/components/PrivacyPolicyModal";
+import { useFormContent } from "@/components/FormContentProvider";
+import { defaultFormMessages } from "@/lib/sanityForms";
 
-export function validatePrivacyConsent(formData: FormData): string {
-  return formData.get("privacyConsent") === "on"
-    ? ""
-    : "Please agree to the Privacy policy before submitting.";
+// `message` defaults to the English fallback because this runs inside a
+// plain event handler, not a component — callers that already read
+// `useFormContent()` for their field labels should pass
+// `messages.privacyConsentRequiredMessage` through so the error is localized.
+export function validatePrivacyConsent(
+  formData: FormData,
+  message: string = defaultFormMessages.privacyConsentRequiredMessage,
+): string {
+  return formData.get("privacyConsent") === "on" ? "" : message;
 }
 
 export function PrivacyConsent({
@@ -18,6 +25,7 @@ export function PrivacyConsent({
   id?: string;
   required?: boolean;
 }) {
+  const { messages, privacyPolicy } = useFormContent();
   const [policyOpen, setPolicyOpen] = useState(false);
   const checkboxRef = useRef<HTMLInputElement | null>(null);
   const policyButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -48,7 +56,7 @@ export function PrivacyConsent({
         />
         <span className="text-text-primary text-sm font-semibold leading-[1.45]">
           <label htmlFor={id} className="inline text-text-primary text-sm font-semibold leading-[1.45] cursor-pointer">
-            I have read and agree to the
+            {messages.privacyConsentPrefixText}
           </label>{" "}
           <button
             ref={policyButtonRef}
@@ -58,7 +66,7 @@ export function PrivacyConsent({
             aria-expanded={policyOpen}
             onClick={() => setPolicyOpen(true)}
           >
-            Privacy Policy
+            {privacyPolicy.title}
           </button>
           .
         </span>

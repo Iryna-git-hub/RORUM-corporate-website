@@ -144,10 +144,8 @@ export interface RorumEvent {
   title: string;
   date: string;
   time: string;
-  category: string;
   price: string;
   language: string;
-  host: string;
   shortDescription: string;
   longDescription: string;
   included: string[];
@@ -158,8 +156,14 @@ export interface RorumEvent {
   calendarUrl: string;
   waitlistUrl: string;
   isSoldOut: boolean;
-  relatedEventSlugs: string[];
   image: string;
+  // Real Sanity alt text for `image`, when available. Optional because the
+  // hardcoded static events below have no Sanity asset to read alt text
+  // from — consumers fall back to a generated string when this is unset.
+  imageAlt?: string;
+  // Optional override for the ticket button's label — defaults to "Buy
+  // Ticket" in the UI when unset.
+  ticketButtonLabel?: string;
   // Never populated by the data below, but read defensively by consumers
   // (app/events/[slug]/page.jsx, components/EventCard.jsx) as forward-compat
   // fallbacks in case a future/partial event omits ticketsLeft or supplies a
@@ -181,10 +185,8 @@ const featuredEvents: RorumEvent[] = [
     title: "Copenhagen makers dinner",
     date: "2026-05-02",
     time: "18:30-21:30",
-    category: "Community Dinner",
     price: "295 kr.",
     language: "English",
-    host: "RORUM Community Table",
     shortDescription:
       "A slow evening of seasonal food, local stories and new creative connections around one long table.",
     longDescription:
@@ -218,10 +220,6 @@ const featuredEvents: RorumEvent[] = [
     waitlistUrl: `mailto:${contactDetails.email}?subject=Copenhagen%20Makers%20Dinner%20waitlist`,
     isSoldOut: false,
     ticketsLeft: 10,
-    relatedEventSlugs: [
-      "botanical-table-styling-workshop",
-      "freelance-morning-salon",
-    ],
     image: "/images/events/banners/copenhagen-makers-dinner.png",
   },
   {
@@ -229,10 +227,8 @@ const featuredEvents: RorumEvent[] = [
     title: "Botanical table styling workshop",
     date: "2026-05-03",
     time: "17:00-19:30",
-    category: "Workshop",
     price: "425 kr.",
     language: "English",
-    host: "RORUM Styling Studio",
     shortDescription:
       "Learn approachable floral gestures, candle placement and calm table composition for intimate hosting.",
     longDescription:
@@ -266,7 +262,6 @@ const featuredEvents: RorumEvent[] = [
     waitlistUrl: `mailto:${contactDetails.email}?subject=Botanical%20Table%20Styling%20Workshop%20waitlist`,
     isSoldOut: false,
     ticketsLeft: 8,
-    relatedEventSlugs: ["copenhagen-makers-dinner", "freelance-morning-salon"],
     image: "/images/events/banners/botanical-table-styling-workshop.png",
   },
   {
@@ -274,10 +269,8 @@ const featuredEvents: RorumEvent[] = [
     title: "Freelance morning salon",
     date: "2026-05-04",
     time: "09:00-11:00",
-    category: "Salon",
     price: "125 kr.",
     language: "English",
-    host: "RORUM Work Circle",
     shortDescription:
       "Coffee, prompts and gentle accountability for independent creatives building work in Copenhagen.",
     longDescription:
@@ -310,10 +303,6 @@ const featuredEvents: RorumEvent[] = [
     calendarUrl: "https://calendar.google.com/",
     waitlistUrl: `mailto:${contactDetails.email}?subject=Freelance%20Morning%20Salon%20waitlist`,
     isSoldOut: true,
-    relatedEventSlugs: [
-      "copenhagen-makers-dinner",
-      "botanical-table-styling-workshop",
-    ],
     image: "/images/events/banners/freelance-morning-salon.png",
   },
 ];
@@ -323,7 +312,6 @@ interface EventAddition {
   title: string;
   date: string;
   time: string;
-  category: string;
   price: string;
   language?: string;
   ticketsLeft?: number;
@@ -337,7 +325,6 @@ const eventAdditions: EventAddition[] = [
     title: "Soft launch breakfast",
     date: "2026-05-05",
     time: "09:00-11:00",
-    category: "Breakfast",
     price: "165 kr.",
     ticketsLeft: 6,
     image: "/images/events/banners/soft-launch-breakfast.png",
@@ -347,7 +334,6 @@ const eventAdditions: EventAddition[] = [
     title: "Candlelit listening room",
     date: "2026-05-07",
     time: "19:00-21:00",
-    category: "Culture",
     price: "185 kr.",
     ticketsLeft: 4,
     image: "/images/events/banners/candlelit-listening-room.png",
@@ -357,7 +343,6 @@ const eventAdditions: EventAddition[] = [
     title: "Summer table lab",
     date: "2026-05-12",
     time: "17:30-20:00",
-    category: "Workshop",
     price: "345 kr.",
     ticketsLeft: 9,
     image: "/images/events/banners/summer-table-lab.png",
@@ -367,7 +352,6 @@ const eventAdditions: EventAddition[] = [
     title: "Creative hosts circle",
     date: "2026-05-15",
     time: "18:00-20:00",
-    category: "Community",
     price: "95 kr.",
     ticketsLeft: 12,
     image: "/images/events/banners/creative-hosts-circle.png",
@@ -377,7 +361,6 @@ const eventAdditions: EventAddition[] = [
     title: "Nordic brunch club",
     date: "2026-05-17",
     time: "10:00-12:30",
-    category: "Food",
     price: "245 kr.",
     ticketsLeft: 5,
     image: "/images/events/banners/nordic-brunch-club.png",
@@ -387,7 +370,6 @@ const eventAdditions: EventAddition[] = [
     title: "Tiny talks evening",
     date: "2026-05-21",
     time: "18:30-21:00",
-    category: "Talks",
     price: "145 kr.",
     ticketsLeft: 7,
     image: "/images/events/banners/tiny-talks-evening.png",
@@ -397,7 +379,6 @@ const eventAdditions: EventAddition[] = [
     title: "Floral mood workshop",
     date: "2026-05-24",
     time: "17:00-19:30",
-    category: "Styling",
     price: "375 kr.",
     ticketsLeft: 3,
     image: "/images/events/banners/floral-mood-workshop.png",
@@ -407,7 +388,6 @@ const eventAdditions: EventAddition[] = [
     title: "Independent work morning",
     date: "2026-05-28",
     time: "09:00-11:30",
-    category: "Salon",
     price: "115 kr.",
     ticketsLeft: 11,
     image: "/images/events/banners/independent-work-morning.png",
@@ -417,7 +397,6 @@ const eventAdditions: EventAddition[] = [
     title: "Seasonal supper preview",
     date: "2026-05-31",
     time: "18:30-21:30",
-    category: "Dinner",
     price: "325 kr.",
     ticketsLeft: 8,
     image: "/images/events/banners/seasonal-supper-preview.png",
@@ -427,7 +406,6 @@ const eventAdditions: EventAddition[] = [
     title: "Community reset night",
     date: "2026-06-04",
     time: "18:00-20:30",
-    category: "Community",
     price: "135 kr.",
     ticketsLeft: 12,
     image: "/images/events/banners/community-reset-night.png",
@@ -437,7 +415,6 @@ const eventAdditions: EventAddition[] = [
     title: "Business breakfast Copenhagen",
     date: "2026-06-08",
     time: "08:30-10:30",
-    category: "Business Breakfast",
     price: "185 kr.",
     language: "English",
     ticketsLeft: 12,
@@ -448,7 +425,6 @@ const eventAdditions: EventAddition[] = [
     title: "Networking for international founders",
     date: "2026-06-10",
     time: "18:00-20:30",
-    category: "Networking",
     price: "145 kr.",
     language: "English",
     ticketsLeft: 12,
@@ -459,7 +435,6 @@ const eventAdditions: EventAddition[] = [
     title: "Danish for Ukrainians: Everyday basics",
     date: "2026-06-12",
     time: "17:30-19:00",
-    category: "Language",
     price: "Free",
     language: "Ukrainian",
     ticketsLeft: 12,
@@ -470,7 +445,6 @@ const eventAdditions: EventAddition[] = [
     title: "Yoga after work reset",
     date: "2026-06-14",
     time: "18:00-19:15",
-    category: "Yoga",
     price: "125 kr.",
     language: "English",
     ticketsLeft: 10,
@@ -481,7 +455,6 @@ const eventAdditions: EventAddition[] = [
     title: "Present yourself with confidence",
     date: "2026-06-16",
     time: "18:00-20:00",
-    category: "Self Improvement",
     price: "225 kr.",
     language: "English",
     ticketsLeft: 12,
@@ -492,7 +465,6 @@ const eventAdditions: EventAddition[] = [
     title: "Slow art evening",
     date: "2026-06-18",
     time: "18:30-20:30",
-    category: "Art",
     price: "165 kr.",
     language: "English",
     ticketsLeft: 9,
@@ -503,7 +475,6 @@ const eventAdditions: EventAddition[] = [
     title: "Danish conversation cafe",
     date: "2026-06-20",
     time: "10:00-12:00",
-    category: "Language",
     price: "75 kr.",
     language: "Danish",
     ticketsLeft: 12,
@@ -514,7 +485,6 @@ const eventAdditions: EventAddition[] = [
     title: "Creative business roundtable",
     date: "2026-06-23",
     time: "17:30-20:00",
-    category: "Business",
     price: "195 kr.",
     language: "English",
     ticketsLeft: 11,
@@ -525,7 +495,6 @@ const eventAdditions: EventAddition[] = [
     title: "Mindful morning yoga",
     date: "2026-06-25",
     time: "08:00-09:15",
-    category: "Yoga",
     price: "110 kr.",
     language: "English",
     ticketsLeft: 8,
@@ -536,7 +505,6 @@ const eventAdditions: EventAddition[] = [
     title: "LinkedIn profile lab",
     date: "2026-06-27",
     time: "10:00-12:30",
-    category: "Business",
     price: "245 kr.",
     language: "English",
     ticketsLeft: 12,
@@ -547,7 +515,6 @@ const eventAdditions: EventAddition[] = [
     title: "Ukrainian-Danish community night",
     date: "2026-06-30",
     time: "18:00-20:30",
-    category: "Community",
     price: "95 kr.",
     language: "Ukrainian",
     ticketsLeft: 12,
@@ -558,7 +525,6 @@ const eventAdditions: EventAddition[] = [
     title: "Watercolor & wine",
     date: "2026-07-02",
     time: "19:00-21:00",
-    category: "Art",
     price: "195 kr.",
     language: "English",
     ticketsLeft: 7,
@@ -569,7 +535,6 @@ const eventAdditions: EventAddition[] = [
     title: "Danish work culture breakfast",
     date: "2026-07-04",
     time: "09:00-11:00",
-    category: "Business Breakfast",
     price: "175 kr.",
     language: "Danish",
     ticketsLeft: 12,
@@ -580,7 +545,6 @@ const eventAdditions: EventAddition[] = [
     title: "Calm networking for newcomers",
     date: "2026-07-07",
     time: "18:00-20:00",
-    category: "Networking",
     price: "135 kr.",
     language: "English",
     ticketsLeft: 12,
@@ -591,7 +555,6 @@ const eventAdditions: EventAddition[] = [
     title: "Breathwork & tea",
     date: "2026-07-09",
     time: "18:30-20:00",
-    category: "Relaxation",
     price: "115 kr.",
     language: "English",
     ticketsLeft: 10,
@@ -602,7 +565,6 @@ const eventAdditions: EventAddition[] = [
     title: "Pitch practice evening",
     date: "2026-07-11",
     time: "17:30-20:00",
-    category: "Presentation",
     price: "215 kr.",
     language: "English",
     ticketsLeft: 9,
@@ -613,7 +575,6 @@ const eventAdditions: EventAddition[] = [
     title: "Clay & calm hands",
     date: "2026-07-14",
     time: "18:00-20:30",
-    category: "Art",
     price: "285 kr.",
     language: "English",
     isSoldOut: true,
@@ -624,7 +585,6 @@ const eventAdditions: EventAddition[] = [
     title: "Danish for Ukrainians: Workplace words",
     date: "2026-07-16",
     time: "17:30-19:00",
-    category: "Language",
     price: "Free",
     language: "Ukrainian",
     ticketsLeft: 12,
@@ -635,7 +595,6 @@ const eventAdditions: EventAddition[] = [
     title: "International supper salon",
     date: "2026-07-18",
     time: "18:30-21:30",
-    category: "Community Dinner",
     price: "325 kr.",
     language: "English",
     ticketsLeft: 12,
@@ -646,7 +605,6 @@ const eventAdditions: EventAddition[] = [
 const expandedEvents: RorumEvent[] = eventAdditions.map((event) => ({
   ...event,
   language: event.language ?? "English",
-  host: "RORUM",
   shortDescription: `${event.title} is an intimate RORUM gathering shaped for a warm Copenhagen room.`,
   longDescription: `${event.title} brings people together around a simple hosted format with thoughtful pacing, a calm room setup and space for useful conversation.`,
   included: [
@@ -677,10 +635,6 @@ const expandedEvents: RorumEvent[] = eventAdditions.map((event) => ({
   calendarUrl: "https://calendar.google.com/",
   waitlistUrl: `mailto:${contactDetails.email}?subject=${encodeURIComponent(`${event.title} waitlist`)}`,
   isSoldOut: event.isSoldOut ?? false,
-  relatedEventSlugs: [
-    "copenhagen-makers-dinner",
-    "botanical-table-styling-workshop",
-  ],
 }));
 
 export const events: RorumEvent[] = [...featuredEvents, ...expandedEvents];

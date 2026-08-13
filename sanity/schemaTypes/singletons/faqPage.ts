@@ -6,15 +6,14 @@ export default defineType({
   name: "faqPage",
   title: "FAQ page",
   type: "document",
-  groups: [
-    { name: "hero", title: "Hero", default: true },
-    { name: "seo", title: "SEO" },
-  ],
+  description:
+    "The FAQ page's own heading — the questions/answers themselves are separate FAQ group documents. / Заголовок сторінки поширених запитань — самі запитання та відповіді є окремими документами (групами FAQ).",
+  // No `groups`/tabs: all fields render on one continuous page.
   fields: [
-    defineField({ name: "heroLabel", title: "Hero label", type: "internationalizedArrayString", group: "hero" }),
-    defineField({ name: "heroTitle", title: "Hero title", type: "internationalizedArrayString", group: "hero" }),
-    defineField({ name: "heroText", title: "Hero text", type: "internationalizedArrayText", group: "hero" }),
-    defineField({ name: "seo", title: "SEO", type: "seo", group: "seo" }),
+    defineField({ name: "heroLabel", title: "Hero label", type: "internationalizedArrayString", description: "Small label above the title. / Невеликий напис над заголовком." }),
+    defineField({ name: "heroTitle", title: "Hero title", type: "internationalizedArrayString", description: 'E.g. "Frequently asked questions". / Напр. «Поширені запитання».' }),
+    defineField({ name: "heroText", title: "Hero text", type: "internationalizedArrayText", description: "Intro text under the page title. / Вступний текст під заголовком сторінки." }),
+    defineField({ name: "seo", title: "SEO", type: "seo" }),
   ],
   preview: {
     prepare() {

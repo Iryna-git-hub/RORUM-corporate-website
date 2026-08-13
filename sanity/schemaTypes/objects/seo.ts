@@ -9,16 +9,19 @@ export default defineType({
   name: "seo",
   title: "SEO",
   type: "object",
+  description:
+    "Search-engine and social-sharing metadata for this page. / Метадані для пошукових систем і соцмереж для цієї сторінки.",
   fields: [
     defineField({
       name: "title",
       title: "SEO title",
       type: "internationalizedArrayString",
-      description: "Shown in the browser tab and search results. Keep under ~60 characters.",
+      description:
+        "Shown in the browser tab and search results. Keep under ~60 characters. / Показується у вкладці браузера та в результатах пошуку. Не більше ~60 символів.",
       validation: (rule) =>
         rule.custom((value) => {
-          const en = (value as { _key: string; value?: string }[] | undefined)?.find(
-            (v) => v._key === "en",
+          const en = (value as { _key: string; language?: string; value?: string }[] | undefined)?.find(
+            (v) => v.language === "en" || v._key === "en",
           );
           if (en?.value && en.value.length > 70) {
             return "English SEO title is longer than 70 characters — it may be truncated in search results.";
@@ -30,11 +33,12 @@ export default defineType({
       name: "description",
       title: "SEO description",
       type: "internationalizedArrayText",
-      description: "Shown under the title in search results. Keep under ~160 characters.",
+      description:
+        "Shown under the title in search results. Keep under ~160 characters. / Показується під заголовком у результатах пошуку. Не більше ~160 символів.",
       validation: (rule) =>
         rule.custom((value) => {
-          const en = (value as { _key: string; value?: string }[] | undefined)?.find(
-            (v) => v._key === "en",
+          const en = (value as { _key: string; language?: string; value?: string }[] | undefined)?.find(
+            (v) => v.language === "en" || v._key === "en",
           );
           if (en?.value && en.value.length > 180) {
             return "English SEO description is longer than 180 characters — it may be truncated in search results.";
@@ -46,13 +50,15 @@ export default defineType({
       name: "ogImage",
       title: "Open Graph image",
       type: "image",
-      description: "Shared across languages unless this page's translations show genuinely different imagery.",
+      description:
+        "Shared across languages unless this page's translations show genuinely different imagery. / Спільне для всіх мов, якщо переклади цієї сторінки не потребують іншого зображення.",
       options: { hotspot: true },
       fields: [
         defineField({
           name: "alt",
           title: "Alt text",
           type: "internationalizedArrayString",
+          description: "Alt text for the Open Graph image. / Альтернативний текст для зображення Open Graph.",
         }),
       ],
     }),

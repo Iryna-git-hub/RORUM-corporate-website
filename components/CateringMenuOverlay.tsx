@@ -2,6 +2,7 @@
 
 import type { MouseEvent, ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { FAQInlinePrompt } from "@/components/FAQInlinePrompt";
 import {
   ArrowRight,
   Dessert,
@@ -16,25 +17,59 @@ import {
   X,
 } from "lucide-react";
 import {
-  menuCategories,
+  menuCategories as fallbackMenuCategories,
   type CateringMenuCategory,
   type CateringMenuItem,
 } from "@/lib/cateringMenu";
+import { useFormContent } from "@/components/FormContentProvider";
 
 type MenuCategoryWithIcon = CateringMenuCategory & { icon: LucideIcon };
 
-function getCategory(id: string): CateringMenuCategory | undefined {
-  return menuCategories.find((category) => category.id === id);
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  ukrainian: Soup,
+  danish: Sandwich,
+  vegetarian: Leaf,
+  "finger-food": HandPlatter,
+  grill: Flame,
+  desserts: Dessert,
+};
+
+// Categories arrive already in display order (Sanity's `order` field, or —
+// when Sanity is unreachable — `fallbackMenuCategories`' own array order),
+// so no per-id reordering is needed here; only the icon is looked up by id.
+function withIcons(categories: CateringMenuCategory[]): MenuCategoryWithIcon[] {
+  return categories.map((category) => ({
+    ...category,
+    icon: CATEGORY_ICONS[category.id] ?? Soup,
+  }));
 }
 
-const orderedMenuCategories: MenuCategoryWithIcon[] = [
-  { ...getCategory("ukrainian"), icon: Soup },
-  { ...getCategory("danish"), icon: Sandwich },
-  { ...getCategory("vegetarian"), navLabel: "Vegetarian", icon: Leaf },
-  { ...getCategory("finger-food"), icon: HandPlatter },
-  { ...getCategory("grill"), icon: Flame },
-  { ...getCategory("desserts"), navLabel: "Desserts", icon: Dessert },
-].filter((category): category is MenuCategoryWithIcon => Boolean(category.id));
+export interface CateringMenuOverlayText {
+  title: string;
+  intro: string[];
+  requestCta: string;
+  featuredDishesLabel: string;
+  disclaimerNote: string;
+  customMenuTitle: string;
+  customMenuText: string;
+  backToCateringCta: string;
+}
+
+const defaultOverlayText: CateringMenuOverlayText = {
+  title: "Catering menu",
+  intro: [
+    "Traditional Ukrainian hospitality, Danish classics, and European-style service for hosted meetings, celebrations, and special gatherings.",
+    "Each menu is created individually based on your event format, number of guests, season, and dietary preferences.",
+  ],
+  requestCta: "Request custom menu",
+  featuredDishesLabel: "Featured Dishes",
+  disclaimerNote:
+    "The dishes shown are examples of what we can offer. We'll be happy to create a menu tailored to your event, preferences, and guests.",
+  customMenuTitle: "Create your custom menu",
+  customMenuText:
+    "Tell us about your event, number of guests, preferred cuisine, and dietary needs. We will help create a menu that fits your occasion and makes your guests feel welcome.",
+  backToCateringCta: "Back to Catering",
+};
 
 // Shared scroll-offset constants used by both scrollToCategory and
 // updateActiveCategory. OVERLAY_ACTIVE_THRESHOLD must be >= OVERLAY_SCROLL_GAP
@@ -113,11 +148,17 @@ function CateringMenuOverlay({
   open,
   onClose,
   onRequestMenu,
+  categories = fallbackMenuCategories,
+  text = defaultOverlayText,
 }: {
   open: boolean;
   onClose: () => void;
   onRequestMenu: () => void;
+  categories?: CateringMenuCategory[];
+  text?: CateringMenuOverlayText;
 }) {
+  const { messages } = useFormContent();
+  const orderedMenuCategories = withIcons(categories);
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -133,7 +174,7 @@ function CateringMenuOverlay({
   // lifetime without being torn down every time activeCategory changes.
   const updateActiveCategoryRef = useRef<(() => void) | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-  const [activeCategory, setActiveCategory] = useState("ukrainian");
+  const [activeCategory, setActiveCategory] = useState(orderedMenuCategories[0]?.id ?? "");
 
   // ---------------------------------------------------------------------------
   // Helper: return the actual scroll container for the overlay.
@@ -404,7 +445,7 @@ function CateringMenuOverlay({
             ref={closeButtonRef}
             className="pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(var(--rgb-brown),0.16)] bg-white text-dark-brown shadow-[0_10px_22px_rgba(var(--rgb-brown),0.08)] transition-[transform,border-color,color] duration-180 ease-out hover:-translate-y-px hover:border-red hover:text-red hover:outline-none focus-visible:-translate-y-px focus-visible:border-red focus-visible:text-red focus-visible:outline-none max-sm:h-10 max-sm:w-10"
             type="button"
-            aria-label="Close catering menu"
+            aria-label={`${messages.closeLabel} ${text.title}`}
             onClick={onClose}
           >
             <X aria-hidden="true" strokeWidth={1.8} className="h-5 w-5" />
@@ -430,25 +471,24 @@ function CateringMenuOverlay({
                 id="catering-menu-title"
                 className="heading m-0 max-w-[12ch] text-[clamp(2.2rem,4vw,3rem)] leading-[0.98]! font-medium tracking-normal! max-sm:max-w-[10ch] max-sm:text-[clamp(2.6rem,14vw,4rem)] lg:col-start-1 lg:row-start-1"
               >
-                Catering menu
+                {text.title}
               </h2>
               <div className="grid gap-2.5 min-w-0 max-w-[680px] lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-end">
-                <p className="m-0 max-w-[640px] text-text-primary text-[clamp(14px,1vw,16px)] leading-[1.55] max-sm:text-base">
-                  Traditional Ukrainian hospitality, Danish classics, and
-                  European-style service for hosted meetings, celebrations, and
-                  special gatherings.
-                </p>
-                <p className="m-0 max-w-[640px] text-text-primary text-[clamp(14px,1vw,16px)] leading-[1.55] max-sm:text-base">
-                  Each menu is created individually based on your event format,
-                  number of guests, season, and dietary preferences.
-                </p>
+                {text.intro.map((paragraph) => (
+                  <p
+                    key={paragraph}
+                    className="m-0 max-w-[640px] text-text-primary text-[clamp(14px,1vw,16px)] leading-[1.55] max-sm:text-base"
+                  >
+                    {paragraph}
+                  </p>
+                ))}
               </div>
               <button
                 className="btn group justify-self-end mt-0 gap-2 whitespace-nowrap lg:col-start-1 lg:row-start-2 lg:justify-self-start lg:justify-start lg:mt-[clamp(6px,1vw,12px)] max-sm:w-full"
                 type="button"
                 onClick={handleRequestMenu}
               >
-                Request custom menu
+                {text.requestCta}
                 <ArrowRight
                   className="button-arrow w-3.75 h-3.75 shrink-0 transition-transform duration-180 ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1"
                   aria-hidden="true"
@@ -538,7 +578,7 @@ function CateringMenuOverlay({
                       {category.featuredItems?.length ? (
                         <div className="grid gap-4">
                           <h3 className="m-0 font-body text-[13px] font-black leading-[1.2] tracking-widest uppercase text-red">
-                            Featured Dishes
+                            {text.featuredDishesLabel}
                           </h3>
                           <div className="grid grid-cols-[repeat(auto-fit,minmax(156px,210px))] justify-start gap-3.5 max-lg:grid-cols-[repeat(auto-fit,minmax(126px,168px))] max-sm:grid-cols-2 max-sm:gap-2">
                             {category.featuredItems.map((item) => (
@@ -549,9 +589,7 @@ function CateringMenuOverlay({
                       ) : null}
 
                       <p className="m-0 text-red text-[0.9rem] leading-[1.55] z-10 max-w-180 py-3.5 px-4 border-l-[3px] border-l-red italic">
-                        The dishes shown are <strong>examples</strong> of what we
-                        can offer. We’ll be happy to create a menu tailored to
-                        your event, preferences, and guests.
+                        {text.disclaimerNote}
                       </p>
                     </div>
                   </div>
@@ -568,12 +606,10 @@ function CateringMenuOverlay({
             {/* `!important` on leading/tracking: see the catering-menu-hero
                 h2 above - same still-deferred `heading` conflict. */}
             <h2 className="heading relative z-1 max-w-[760px] m-0 pb-0 text-[clamp(1.65rem,3vw,2.45rem)] leading-[1.02]! font-medium tracking-normal! max-sm:pb-3.5 max-sm:text-[clamp(1.8rem,9vw,2.6rem)] lg:col-start-1 lg:row-start-1">
-              Create your custom menu
+              {text.customMenuTitle}
             </h2>
             <p className="relative z-10 max-w-[760px] m-0 text-text-primary text-[clamp(14px,1vw,16px)] leading-[1.55] max-sm:text-base lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-end">
-              Tell us about your event, number of guests, preferred cuisine,
-              and dietary needs. We will help create a menu that fits your
-              occasion and makes your guests feel welcome.
+              {text.customMenuText}
             </p>
             <div className="relative z-1 flex flex-wrap justify-end gap-3 max-lg:justify-start max-sm:grid max-sm:w-full lg:col-start-1 lg:row-start-2 lg:justify-self-start lg:justify-start lg:mt-[clamp(6px,1vw,12px)]">
               <button
@@ -581,14 +617,14 @@ function CateringMenuOverlay({
                 type="button"
                 onClick={handleRequestMenu}
               >
-                Request custom menu
+                {text.requestCta}
               </button>
               <button
                 className="btn secondary group gap-2 max-sm:w-full"
                 type="button"
                 onClick={onClose}
               >
-                Back to Catering
+                {text.backToCateringCta}
                 <ArrowRight
                   className="button-arrow w-3.75 h-3.75 shrink-0 transition-transform duration-180 ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1"
                   aria-hidden="true"
@@ -596,20 +632,9 @@ function CateringMenuOverlay({
                 />
               </button>
             </div>
-            <p className="relative z-1 flex flex-wrap items-center gap-x-2 gap-y-1 mt-2.5 text-[0.8125rem] font-medium text-[rgba(var(--rgb-dark-brown),0.62)] leading-[1.4] max-sm:justify-center max-sm:text-center lg:col-span-2 lg:row-start-3">
-              <span>Questions?</span>
-              <a
-                href="/faq"
-                className="group inline-flex items-center gap-1 text-red font-semibold no-underline transition-opacity duration-160 hover:opacity-75"
-              >
-                <span>Read our FAQs</span>
-                <ArrowRight
-                  className="button-arrow w-3.25 h-3.25 shrink-0 transition-transform duration-180 ease-[ease] group-hover:translate-x-1"
-                  aria-hidden="true"
-                  strokeWidth={1.9}
-                />
-              </a>
-            </p>
+            <FAQInlinePrompt
+              className="relative z-1 mt-2.5 text-[rgba(var(--rgb-dark-brown),0.62)]! lg:col-span-2 lg:row-start-3"
+            />
           </section>
         </main>
       </div>
@@ -622,11 +647,15 @@ export function CateringMenuButton({
   variant = "primary",
   requestTargetId = "request-private-meeting",
   className: extraClassName = "",
+  categories,
+  overlayText,
 }: {
   children?: ReactNode;
   variant?: "primary" | "secondary";
   requestTargetId?: string;
   className?: string;
+  categories?: CateringMenuCategory[];
+  overlayText?: CateringMenuOverlayText;
 }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -673,6 +702,8 @@ export function CateringMenuButton({
         open={open}
         onClose={closeOverlay}
         onRequestMenu={requestMenu}
+        categories={categories}
+        text={overlayText}
       />
     </>
   );

@@ -5,14 +5,35 @@ import { useEffect, useLayoutEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { splitLocaleFromPath } from "@/lib/i18n";
+import type { NavItem } from "@/lib/data";
 
-export function SiteShell({ children }: { children: ReactNode }) {
+export function SiteShell({
+  children,
+  navItems,
+  footerColumns,
+  footerLegalLinks,
+  footerCopyrightText,
+  contactCtaLabel,
+  contactDetailsLabel,
+}: {
+  children: ReactNode;
+  navItems?: NavItem[];
+  footerColumns?: { title: string; links: { href: string; label: string }[] }[];
+  footerLegalLinks?: { href: string; label: string }[];
+  footerCopyrightText?: string;
+  contactCtaLabel?: string;
+  contactDetailsLabel?: string;
+}) {
   const pathname = usePathname();
-  const isHome = pathname === "/";
+  // Locale-neutral path — on a `/da/...`/`/uk/...` URL, raw `pathname`
+  // would never match "/" or the event-detail pattern below.
+  const { path } = splitLocaleFromPath(pathname);
+  const isHome = path === "/";
   const shellClass = `site-shell ${isHome ? "site-shell-home" : "site-shell-inner"}`;
 
   useLayoutEffect(() => {
-    const isEventDetail = /^\/events\/[^/]+$/.test(pathname);
+    const isEventDetail = /^\/events\/[^/]+$/.test(path);
 
     // Preserve deliberate anchor navigation; ordinary event links are hash-free.
     if (!isEventDetail || window.location.hash) return;
@@ -26,7 +47,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     root.getClientRects();
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     root.style.scrollBehavior = previousScrollBehavior;
-  }, [pathname]);
+  }, [path]);
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia(
@@ -84,9 +105,14 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
   return (
     <div className={shellClass}>
-      <Header />
+      <Header navItems={navItems} contactCtaLabel={contactCtaLabel} />
       <main>{children}</main>
-      <Footer />
+      <Footer
+        columns={footerColumns}
+        legalLinks={footerLegalLinks}
+        copyrightText={footerCopyrightText}
+        contactDetailsLabel={contactDetailsLabel}
+      />
     </div>
   );
 }

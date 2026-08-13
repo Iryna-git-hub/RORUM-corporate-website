@@ -1,25 +1,8 @@
-import { companyDetails, contactDetails } from "@/lib/siteConfig";
+import { contactDetails } from "@/lib/siteConfig";
 
 export function PrivacyPolicyContent() {
   return (
     <>
-      <h2>1. Company details</h2>
-      <p>
-        RORUM is a Copenhagen-based business connected to events, private
-        meetings, catering, event decoration and community experiences.
-      </p>
-      <p>
-        <strong>{companyDetails.name}</strong>
-        <br />
-        Address: {contactDetails.shortAddress}
-        <br />
-        CVR: {companyDetails.cvr}
-        <br />
-        Contact: <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a>
-        <br />
-        Website: {companyDetails.website}
-      </p>
-
       <h2>2. Information you submit</h2>
       <p>
         When you contact RORUM through a form or email, you may provide

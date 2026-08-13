@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Check, ChevronDown, Copy, Landmark } from "lucide-react";
 import { Container, SectionLabel } from "@/components/ui";
+import { useFormContent } from "@/components/FormContentProvider";
 
 interface BankField {
   label: string;
@@ -31,30 +32,57 @@ function CopyButton({
   value,
   isCopied,
   onCopy,
+  copyLabel,
+  copiedLabel,
 }: {
   label: string;
   value: string;
   isCopied: boolean;
   onCopy: (label: string, value: string) => void;
+  copyLabel: string;
+  copiedLabel: string;
 }) {
   return (
     <button
       type="button"
       className="inline-flex items-center gap-1.25 shrink-0 py-1.25 px-2.5 rounded-pill bg-white text-red text-[0.72rem] font-semibold cursor-pointer transition-[background,color,border-color] duration-160 ease-[ease] hover:bg-red hover:border-red hover:text-white focus-visible:outline-1 focus-visible:outline-[rgba(var(--rgb-red),0.45)] focus-visible:outline-offset-[3px]"
       onClick={() => onCopy(label, value)}
-      aria-label={isCopied ? `${label} copied` : `Copy ${label}`}
+      aria-label={isCopied ? `${label} ${copiedLabel.toLowerCase()}` : `${copyLabel} ${label}`}
     >
       {isCopied ? (
         <Check size={14} aria-hidden="true" strokeWidth={2} />
       ) : (
         <Copy size={14} aria-hidden="true" strokeWidth={1.9} />
       )}
-      <span aria-live="polite">{isCopied ? "Copied" : "Copy"}</span>
+      <span aria-live="polite">{isCopied ? copiedLabel : copyLabel}</span>
     </button>
   );
 }
 
-export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
+export function WecodaDonationSection({
+  qrSrc,
+  label = "Donation",
+  title = "Support the WECODA Community",
+  text = "Your support helps WECODA organise educational programmes, community events, international collaborations, and new opportunities for women.",
+  scanText = "Scan to donate",
+  scanSubtext = "Fast, secure and easy.",
+  orText = "OR",
+  bankTransferText = "Prefer bank transfer? See our bank details on the right.",
+  bankDetailsTitle = "Bank Details",
+  supportText = "RORUM proudly supports WECODA by providing a welcoming space for community events, learning, and collaboration.",
+}: {
+  qrSrc: string;
+  label?: string;
+  title?: string;
+  text?: string;
+  scanText?: string;
+  scanSubtext?: string;
+  orText?: string;
+  bankTransferText?: string;
+  bankDetailsTitle?: string;
+  supportText?: string;
+}) {
+  const { messages } = useFormContent();
   const [bankOpen, setBankOpen] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -84,14 +112,12 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
       <Container>
         <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-[clamp(32px,5vw,64px)] max-lg:gap-8 items-start">
           <div className="grid gap-[18px] min-w-0">
-            <SectionLabel>Donation</SectionLabel>
+            <SectionLabel>{label}</SectionLabel>
             <h2 className="font-heading font-medium leading-tight tracking-[-0.03em] text-text-primary m-0 text-[clamp(1.7rem,2.6vw,2.15rem)]">
-              Support the WECODA Community
+              {title}
             </h2>
             <p className="m-0 max-w-[52ch] text-text-primary text-base leading-[1.62]">
-              Your support helps WECODA organise educational programmes,
-              community events, international collaborations, and new
-              opportunities for women.
+              {text}
             </p>
 
             <div className="grid justify-items-center gap-1 max-w-full mt-[6px] p-[clamp(24px,3vw,32px)] bg-white max-sm:w-full max-sm:max-w-[420px] max-sm:mx-auto">
@@ -104,9 +130,9 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
                   className="h-full w-full object-contain"
                 />
               </div>
-              <p className="m-0 text-red font-bold text-base">Scan to donate</p>
+              <p className="m-0 text-red font-bold text-base">{scanText}</p>
               <p className="m-0 text-[rgba(var(--rgb-dark-brown),0.6)] text-[0.82rem]">
-                Fast, secure and easy.
+                {scanSubtext}
               </p>
             </div>
 
@@ -114,7 +140,7 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
               className="flex items-center gap-3.5 w-full mt-2.5 text-[rgba(var(--rgb-dark-brown),0.45)] text-[0.72rem] font-bold tracking-[0.1em] before:content-[''] before:flex-1 before:h-px before:bg-[rgba(var(--rgb-brown),0.18)] after:content-[''] after:flex-1 after:h-px after:bg-[rgba(var(--rgb-brown),0.18)]"
               role="separator"
             >
-              <span>OR</span>
+              <span>{orText}</span>
             </div>
 
             <p className="flex items-center justify-center gap-[10px] mx-auto my-0 text-text-primary text-base leading-[1.55] text-center max-lg:hidden">
@@ -124,7 +150,7 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
                 strokeWidth={1.8}
                 className="shrink-0 w-[30px] h-[30px] text-red"
               />
-              Prefer bank transfer? See our bank details on the right.
+              {bankTransferText}
             </p>
           </div>
 
@@ -138,7 +164,7 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
                 onClick={() => setBankOpen((open) => !open)}
               >
                 <span className="font-heading font-medium leading-tight tracking-[-0.03em] text-text-primary m-0 text-[clamp(1.3rem,2vw,1.5rem)]">
-                  Bank Details
+                  {bankDetailsTitle}
                 </span>
                 <ChevronDown
                   className={`hidden shrink-0 text-red transition-transform duration-300 ease-[ease] max-lg:block ${bankOpen ? "rotate-180" : ""}`}
@@ -173,6 +199,8 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
                               value={field.value}
                               isCopied={copiedField === field.label}
                               onCopy={handleCopy}
+                              copyLabel={messages.copyLabel}
+                              copiedLabel={messages.copiedLabel}
                             />
                           ) : null}
                         </dd>
@@ -184,8 +212,7 @@ export function WecodaDonationSection({ qrSrc }: { qrSrc: string }) {
             </div>
 
             <p className="mt-[clamp(32px,4vw,48px)] mx-0 mb-0 max-w-[68ch] pl-4 border-l-[3px] border-red text-[rgba(var(--rgb-dark-brown),0.68)] text-[0.9rem] leading-[1.55]">
-              RORUM proudly supports WECODA by providing a welcoming space for
-              community events, learning, and collaboration.
+              {supportText}
             </p>
           </div>
         </div>

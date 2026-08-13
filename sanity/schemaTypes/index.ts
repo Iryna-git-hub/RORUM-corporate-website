@@ -2,6 +2,8 @@ import type { SchemaTypeDefinition } from "sanity";
 
 // Objects (reusable field shapes)
 import bodyPortableText from "./objects/bodyPortableText";
+import bulletParagraph from "./objects/bulletParagraph";
+import bulletText from "./objects/bulletText";
 import cateringMenuItem from "./objects/cateringMenuItem";
 import ctaLink from "./objects/ctaLink";
 import editorialFeature from "./objects/editorialFeature";
@@ -20,7 +22,6 @@ import titledText from "./objects/titledText";
 // Structured documents
 import cateringMenuCategory from "./documents/cateringMenuCategory";
 import event from "./documents/event";
-import eventCategory from "./documents/eventCategory";
 import faqGroup from "./documents/faqGroup";
 import galleryCollection from "./documents/galleryCollection";
 
@@ -47,6 +48,8 @@ import workWithUsPage from "./singletons/workWithUsPage";
 export const schemaTypes: SchemaTypeDefinition[] = [
   // Objects
   bodyPortableText,
+  bulletParagraph,
+  bulletText,
   cateringMenuItem,
   ctaLink,
   editorialFeature,
@@ -64,7 +67,6 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   // Structured documents
   cateringMenuCategory,
   event,
-  eventCategory,
   faqGroup,
   galleryCollection,
   // Singletons

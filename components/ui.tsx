@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+import { LocaleLink as Link } from "@/components/LocaleLink";
+import { FAQInlinePrompt } from "@/components/FAQInlinePrompt";
 import {
-  ArrowRight,
   MapPin,
   MessageCircle,
   MessagesSquare,
@@ -229,17 +229,16 @@ export function Card({
   );
 }
 
-function TrustIcon({ item }: { item: string }) {
-  const normalized = item.toLowerCase();
-  const Icon = normalized.includes("guest")
-    ? Users
-    : normalized.includes("copenhagen")
-      ? MapPin
-      : normalized.includes("support")
-        ? Smile
-        : normalized.includes("catering")
-          ? Wine
-          : Sparkles;
+// Fixed by position, not by sniffing English keywords out of the item text
+// (the previous approach broke for every non-English trust item, since
+// translated text never contains "guest"/"copenhagen"/"support"/"catering" —
+// every item silently fell through to the same fallback icon in da/uk).
+// `heroTrustItems` is always the same 4 facts in the same order regardless
+// of locale, so a fixed index→icon map is both simpler and locale-safe.
+const TRUST_ICONS = [Users, MapPin, Smile, Wine];
+
+function TrustIcon({ index }: { index: number }) {
+  const Icon = TRUST_ICONS[index] ?? Sparkles;
   return (
     <Icon
       className="w-[22px] h-[22px] text-gold shrink-0"
@@ -310,9 +309,9 @@ export function HomeHero({
           className="home-hero-trust absolute inset-x-0 bottom-0 z-[2] grid grid-cols-4 gap-[18px] w-full m-0 py-[18px] px-[max(16px,calc((100vw_-_1180px)/2))] list-none bg-[rgba(var(--rgb-cream),0.14)] backdrop-blur-[12px] max-sm:grid-cols-1"
           aria-label="RORUM highlights"
         >
-          {trustItems.map((item) => (
+          {trustItems.map((item, index) => (
             <li key={item}>
-              <TrustIcon item={item} />
+              <TrustIcon index={index} />
               <span>{item}</span>
             </li>
           ))}
@@ -322,50 +321,11 @@ export function HomeHero({
   );
 }
 
-export function FAQInlinePrompt({
-  href = "/faq",
-  question,
-  label,
-  questionClassName = "",
-  className = "",
-  linkClassName = "",
-}: {
-  href?: string;
-  question?: string;
-  label?: string;
-  questionClassName?: string;
-  className?: string;
-  linkClassName?: string;
-}) {
-  return (
-    // `faq-inline-prompt`/`faq-inline-prompt-link` are kept (deferred, like
-    // `section-head`): several other, not-yet-converted pages
-    // (catering, community-membership, forms) reach into them with their
-    // own `.some-wrapper .faq-inline-prompt(-link)` color overrides. The
-    // base declarations themselves are gone (fully replaced by the
-    // Tailwind utilities below); only the class names still need to exist
-    // for those external selectors to keep matching.
-    // The `p.faq-inline-prompt` tag+class rule (more specific than the
-    // class-only base rule) set font-size to 0.95rem, not the base rule's
-    // 0.8125rem - that's the actual effective value reflected below.
-    <p
-      className={`faq-inline-prompt flex flex-wrap items-center gap-x-2 gap-y-1 m-0 text-[0.95rem] font-medium leading-[1.4] text-[rgba(var(--rgb-dark-brown),0.62)] max-sm:justify-center max-sm:text-center ${className}`.trim()}
-    >
-      <span className={questionClassName}>{question || "Questions?"}</span>
-      <Link
-        className={`faq-inline-prompt-link group inline-flex items-center gap-1 text-red font-semibold no-underline transition-opacity duration-[160ms] ease-[ease] hover:opacity-75 ${linkClassName}`.trim()}
-        href={href}
-      >
-        <span>{label || "Read our FAQs"}</span>
-        <ArrowRight
-          className="w-[13px] h-[13px] shrink-0 transition-transform duration-[180ms] ease-[ease] group-hover:translate-x-1"
-          aria-hidden="true"
-          strokeWidth={1.9}
-        />
-      </Link>
-    </p>
-  );
-}
+// Lives in its own "use client" file (needs `useFormContent()` for its
+// default question/label text), imported above and re-exported here so
+// every existing `import { FAQInlinePrompt } from "@/components/ui"` keeps
+// working.
+export { FAQInlinePrompt };
 
 export interface CTALink {
   href: string;

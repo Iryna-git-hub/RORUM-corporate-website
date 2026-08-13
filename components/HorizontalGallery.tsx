@@ -4,7 +4,12 @@ import type { MouseEvent, TouchEvent, WheelEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-export function HorizontalGallery({ images }: { images: string[] }) {
+export interface HorizontalGalleryImage {
+  src: string;
+  alt: string;
+}
+
+export function HorizontalGallery({ images }: { images: HorizontalGalleryImage[] }) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const dragStartRef = useRef<number | null>(null);
   const openerRef = useRef<HTMLButtonElement | null>(null);
@@ -14,7 +19,7 @@ export function HorizontalGallery({ images }: { images: string[] }) {
   const availableImages = useMemo(
     () =>
       images.filter(
-        (image) => typeof image === "string" && image.trim() && !brokenImages.has(image),
+        (image) => typeof image.src === "string" && image.src.trim() && !brokenImages.has(image.src),
       ),
     [brokenImages, images],
   );
@@ -195,7 +200,7 @@ export function HorizontalGallery({ images }: { images: string[] }) {
           <div className="horizontal-gallery-track" ref={trackRef}>
             {availableImages.map((image, index) => (
               <button
-                key={`${image}-${index}`}
+                key={`${image.src}-${index}`}
                 className="horizontal-gallery-item"
                 type="button"
                 onClick={(event) => {
@@ -205,10 +210,10 @@ export function HorizontalGallery({ images }: { images: string[] }) {
                 aria-label={`Open gallery image ${index + 1}`}
               >
                 <img
-                  src={image}
-                  alt=""
+                  src={image.src}
+                  alt={image.alt}
                   draggable="false"
-                  onError={() => removeUnavailableImage(image)}
+                  onError={() => removeUnavailableImage(image.src)}
                 />
               </button>
             ))}
@@ -278,30 +283,35 @@ export function HorizontalGallery({ images }: { images: string[] }) {
                     availableImages[
                       (safeLightboxIndex - 1 + availableImages.length) %
                         availableImages.length
-                    ]
+                    ]!.src
                   }
-                  alt=""
+                  alt={
+                    availableImages[
+                      (safeLightboxIndex - 1 + availableImages.length) %
+                        availableImages.length
+                    ]!.alt
+                  }
                   draggable="false"
                   onError={() =>
                     removeUnavailableImage(
                       availableImages[
                         (safeLightboxIndex - 1 + availableImages.length) %
                           availableImages.length
-                      ]!,
+                      ]!.src,
                     )
                   }
                 />
               </div>
               <div
                 className="gallery-lightbox-slide gallery-lightbox-slide-active"
-                key={availableImages[safeLightboxIndex]}
+                key={availableImages[safeLightboxIndex]!.src}
               >
                 <img
-                  src={availableImages[safeLightboxIndex]}
-                  alt=""
+                  src={availableImages[safeLightboxIndex]!.src}
+                  alt={availableImages[safeLightboxIndex]!.alt}
                   draggable="false"
                   onError={() =>
-                    removeUnavailableImage(availableImages[safeLightboxIndex]!)
+                    removeUnavailableImage(availableImages[safeLightboxIndex]!.src)
                   }
                 />
               </div>
@@ -310,15 +320,19 @@ export function HorizontalGallery({ images }: { images: string[] }) {
                   src={
                     availableImages[
                       (safeLightboxIndex + 1) % availableImages.length
-                    ]
+                    ]!.src
                   }
-                  alt=""
+                  alt={
+                    availableImages[
+                      (safeLightboxIndex + 1) % availableImages.length
+                    ]!.alt
+                  }
                   draggable="false"
                   onError={() =>
                     removeUnavailableImage(
                       availableImages[
                         (safeLightboxIndex + 1) % availableImages.length
-                      ]!,
+                      ]!.src,
                     )
                   }
                 />
