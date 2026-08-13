@@ -104,7 +104,8 @@
       "Bash(powershell -NoProfile -Command 'Get-Process -Name node -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne __TRACKED_VAR__ } | Select-Object Id,StartTime')",
       "Bash(powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 3200 -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty OwningProcess\")",
       "Bash(tee build_retry.log)",
-      "Bash(curl -s -o /dev/null -w \"port 3001 status: %{http_code}\\\\n\" http://localhost:3001/ --max-time 5)"
+      "Bash(curl -s -o /dev/null -w \"port 3001 status: %{http_code}\\\\n\" http://localhost:3001/ --max-time 5)",
+      "Bash(rm -f pre_migration_check.html pre_migration_da.html)"
     ]
   }
 }

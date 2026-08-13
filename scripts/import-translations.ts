@@ -2051,25 +2051,12 @@ const expandedIncluded = [
   triBullet("i3", "Room setup by RORUM", "Rumindretning af RORUM", "Облаштування простору від RORUM"),
 ];
 
-const expandedWhatToExpect = [
-  triBullet("i0", "Small group format", "Format for mindre grupper", "Формат невеликої групи"),
-  triBullet("i1", "Guided experience", "Guidet oplevelse", "Керований досвід"),
-  triBullet("i2", "Warm RORUM atmosphere", "Varm RORUM-atmosfære", "Тепла атмосфера RORUM"),
-  triBullet("i3", "Tea & refreshments", "Te & forfriskninger", "Чай і закуски"),
-  triBullet("i4", "Time for conversation", "Tid til samtale", "Час для розмови"),
-];
-
-function expandedPracticalDetails(durationEn: string, languageEn: "English" | "Danish" | "Ukrainian") {
-  const languageValue: Tri =
-    languageEn === "English" ? T.english : languageEn === "Danish" ? T.danish : T.ukrainian;
-  return [
-    { _key: "d0", label: tri(...T.address), value: tri("RORUM, Copenhagen", "RORUM, København", "RORUM, Копенгаген") },
-    { _key: "d1", label: tri(...T.arrival), value: tri(...T.arrivalNote) },
-    { _key: "d2", label: tri(...T.duration), value: tri(durationEn, durationEn, durationEn) },
-    { _key: "d3", label: tri(...T.language), value: tri(...languageValue) },
-    { _key: "d4", label: tri(...T.tickets), value: tri(...T.ticketsExternal) },
-  ];
-}
+// One entry per language, same 5 bullets in order — joined with "\n" at each
+// call site to match `whatToExpect`'s new one-multiline-field-per-language
+// shape (sanity/schemaTypes/documents/event.ts).
+const expandedWhatToExpectEn = ["Small group format", "Guided experience", "Warm RORUM atmosphere", "Tea & refreshments", "Time for conversation"];
+const expandedWhatToExpectDa = ["Format for mindre grupper", "Guidet oplevelse", "Varm RORUM-atmosfære", "Te & forfriskninger", "Tid til samtale"];
+const expandedWhatToExpectUk = ["Формат невеликої групи", "Керований досвід", "Тепла атмосфера RORUM", "Чай і закуски", "Час для розмови"];
 
 // Featured (bespoke) events — full custom translations
 const featuredEventTranslations: Record<
@@ -2741,29 +2728,33 @@ async function main() {
         id: deterministicId("event", event.slug),
         fields: {
           title: tri(event.title, titleDa, titleUk),
-          shortDescription: triText(event.shortDescription, featured.short[0], featured.short[1]),
           longDescription: triText(event.longDescription, featured.long[0], featured.long[1]),
           included: event.included.map((text, i) =>
             triBullet(`i${i}`, text, featured.included[i]![0], featured.included[i]![1]),
           ),
-          whatToExpect: event.whatToExpect.map((text, i) =>
-            triBullet(`i${i}`, text, featured.whatToExpect[i]![0], featured.whatToExpect[i]![1]),
+          // `whatToExpect` is now one multiline internationalizedArrayText
+          // field per language (sanity/schemaTypes/documents/event.ts), not
+          // an array of per-bullet objects — join each language's 5 bullet
+          // translations with newlines so the stored shape matches.
+          whatToExpect: triText(
+            event.whatToExpect.join("\n"),
+            featured.whatToExpect.map(([da]) => da).join("\n"),
+            featured.whatToExpect.map(([, uk]) => uk).join("\n"),
           ),
         },
       });
     } else {
-      const { shortDescription, longDescription } = expandedEventDescriptions(event.title, titleDa, titleUk);
+      const { longDescription } = expandedEventDescriptions(event.title, titleDa, titleUk);
       patches.push({
         id: deterministicId("event", event.slug),
         fields: {
           title: tri(event.title, titleDa, titleUk),
-          shortDescription,
           longDescription,
           included: expandedIncluded,
-          whatToExpect: expandedWhatToExpect,
-          practicalDetails: expandedPracticalDetails(
-            event.time,
-            (event.language as "English" | "Danish" | "Ukrainian") ?? "English",
+          whatToExpect: triText(
+            expandedWhatToExpectEn.join("\n"),
+            expandedWhatToExpectDa.join("\n"),
+            expandedWhatToExpectUk.join("\n"),
           ),
         },
       });

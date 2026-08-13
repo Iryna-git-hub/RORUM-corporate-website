@@ -6,9 +6,12 @@ import Image from "next/image";
 import { Container } from "@/components/ui";
 import { EventShare } from "@/components/EventShare";
 import { events as staticEvents, siteUrl, type RorumEvent } from "@/lib/data";
+import { contactDetails } from "@/lib/siteConfig";
 import { localizedPageMetadata } from "@/lib/seo";
-import { isLocale, type Locale } from "@/lib/i18n";
+import { isLocale, localeTags, type Locale } from "@/lib/i18n";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
+import { formatDuration, type EventDuration } from "@/lib/eventDuration";
+import { getEventLanguageLabel } from "@/lib/eventLanguage";
 import { compact } from "@/lib/sanity-i18n";
 import { isSanityConfigured } from "@/sanity/env";
 import { sanityFetch } from "@/sanity/lib/live";
@@ -16,7 +19,6 @@ import { allEventSlugsQuery, eventBySlugQuery } from "@/sanity/queries/events";
 import { ArrowRight, CalendarDays, CircleCheckBig, Clock, MapPin, Ticket } from "lucide-react";
 
 const fallbackDescription = "Join us for an intimate gathering at RORUM, designed for people who enjoy thoughtful details, warm atmosphere and meaningful conversation.";
-const fallbackLocation = "Buermistersgade 26, Copenhagen";
 const fallbackExpectations = [
     "A small and welcoming group format",
     "A calm, thoughtfully prepared room",
@@ -24,6 +26,7 @@ const fallbackExpectations = [
     "Time for conversation and questions",
     "Tea, water or simple refreshments"
 ];
+const DEFAULT_DURATION: EventDuration = { value: 2.5, unit: "hours" };
 
 async function getEvent(slug: string, locale: Locale): Promise<RorumEvent | undefined> {
     if (!isSanityConfigured) {
@@ -34,58 +37,23 @@ async function getEvent(slug: string, locale: Locale): Promise<RorumEvent | unde
     return sanityEventToRorumEvent(doc as SanityEventLike, locale);
 }
 
-function formatFullDate(dateValue: string): string {
+function formatFullDate(dateValue: string, locale: Locale): string {
     const date = new Date(`${dateValue}T12:00:00`);
-    return date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+    return date.toLocaleDateString(localeTags[locale], { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 }
 
-function formatShortDate(dateValue: string): string {
+/** Weekday and month/day as separate strings, locale-aware — used by `EventDateDisplay` to control exactly where the responsive line break falls. */
+function formatDateParts(dateValue: string, locale: Locale): { weekday: string; monthDay: string } {
     const date = new Date(`${dateValue}T12:00:00`);
-    return date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+    const tag = localeTags[locale];
+    return {
+        weekday: date.toLocaleDateString(tag, { weekday: "long" }),
+        monthDay: date.toLocaleDateString(tag, { month: "long", day: "numeric" }),
+    };
 }
 
 function formatTime(time: string | undefined): string {
     return time?.replace("-", "–") ?? "Time to be announced";
-}
-
-function formatDurationFromHours(hours: number): string | null {
-    if (!Number.isFinite(hours) || hours <= 0) return null;
-    const rounded = Math.round(hours * 2) / 2;
-    if (rounded === 1) return "1 hour";
-    return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)} hours`;
-}
-
-function parseTimeToMinutes(timeValue: string | undefined): number | null {
-    const match = timeValue?.trim().match(/^(\d{1,2}):(\d{2})$/);
-    if (!match) return null;
-    const hours = Number(match[1]);
-    const minutes = Number(match[2]);
-    if (hours > 23 || minutes > 59) return null;
-    return hours * 60 + minutes;
-}
-
-function calculateDuration(startTime: string | undefined, endTime: string | undefined): string | null {
-    const start = parseTimeToMinutes(startTime);
-    const end = parseTimeToMinutes(endTime);
-    if (start === null || end === null || end <= start) return null;
-    return formatDurationFromHours((end - start) / 60);
-}
-
-function getDurationFromTimeRange(timeRange: string | undefined): string | null {
-    const [startTime, endTime] = timeRange?.split(/\s*[-–]\s*/) ?? [];
-    return calculateDuration(startTime, endTime);
-}
-
-function getEventDuration(event: RorumEvent): string {
-    return event.duration
-        ?? calculateDuration(event.startTime, event.endTime)
-        ?? getDurationFromTimeRange(event.time)
-        ?? getPracticalDetail(event, "Duration")
-        ?? "2.5 hours";
-}
-
-function getPracticalDetail(event: RorumEvent, label: string): string | undefined {
-    return event.practicalDetails?.find((detail) => detail.label === label)?.value;
 }
 
 const ticketButtonBase =
@@ -138,6 +106,23 @@ function DetailRow({ label, value }: { label: string; value?: ReactNode }) {
         <dt className="text-light-green text-[11px] leading-[1.35] font-[850] tracking-[0.08em] uppercase">{label}</dt>
         <dd className="m-0 text-text-primary text-sm font-medium leading-[1.5]">{value}</dd>
       </div>
+    );
+}
+
+// Desktop (default): `grid` stacks each child on its own row, so weekday and
+// month/day render as two intentional lines with no in-between text — the
+// comma stays `hidden` so nothing appears where the break is. Mobile
+// (`max-sm:`): the container becomes a `flex` row instead, and the comma
+// switches to `inline`, joining everything back onto one line ("Wednesday,
+// August 19"). Same two strings either way — only the CSS layout changes.
+function EventDateDisplay({ dateValue, locale }: { dateValue: string; locale: Locale }) {
+    const { weekday, monthDay } = formatDateParts(dateValue, locale);
+    return (
+      <span className="grid leading-tight max-sm:flex max-sm:flex-row max-sm:flex-nowrap max-sm:items-baseline max-sm:gap-1">
+        <span>{weekday}</span>
+        <span className="hidden max-sm:inline">, </span>
+        <span>{monthDay}</span>
+      </span>
     );
 }
 
@@ -207,7 +192,7 @@ export async function generateMetadata({
     const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
     const event = await getEvent(slug, locale);
     if (!event) return {};
-    const description = event.shortDescription ?? fallbackDescription;
+    const description = event.longDescription || fallbackDescription;
     const image = event.image ?? "/images/hero.jpg";
     return localizedPageMetadata({
         path: `/events/${event.slug}`,
@@ -228,13 +213,11 @@ export default async function EventDetailPage({
     const event = await getEvent(slug, locale);
     if (!event) notFound();
 
-    const fullDate = formatFullDate(event.date);
-    const shortDate = formatShortDate(event.date);
+    const fullDate = formatFullDate(event.date, locale);
     const time = formatTime(event.time);
-    const location = event.location ?? getPracticalDetail(event, "Address") ?? fallbackLocation;
-    const duration = getEventDuration(event);
-    const language = event.language ?? getPracticalDetail(event, "Language") ?? "English";
-    const arrival = getPracticalDetail(event, "Arrival") ?? "Please arrive 5-10 minutes before the event begins.";
+    const location = event.address || contactDetails.shortAddress;
+    const duration = formatDuration(event.duration, locale) ?? formatDuration(DEFAULT_DURATION, locale);
+    const language = getEventLanguageLabel(event.language, locale) ?? event.language;
     const description = event.longDescription ?? event.fullDescription ?? event.description ?? fallbackDescription;
     const expectations = event.whatToExpect?.length ? event.whatToExpect : fallbackExpectations;
     const imageAlt = event.imageAlt ?? `${event.title} event atmosphere`;
@@ -278,7 +261,7 @@ export default async function EventDetailPage({
         <section className="relative z-2 -mt-11 p-0 max-sm:-mt-7" aria-label="Event information">
           <Container>
             <div className="grid grid-cols-[repeat(4,minmax(0,1fr))_auto] items-stretch gap-0 m-0 border-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] max-lg:grid-cols-1 max-sm:p-3.25 max-sm:border-x-0 max-sm:shadow-[0_8px_20px_rgba(var(--rgb-brown),0.06)]">
-              <InfoGridItem icon={CalendarDays} label="Date" value={shortDate} />
+              <InfoGridItem icon={CalendarDays} label="Date" value={<EventDateDisplay dateValue={event.date} locale={locale} />} />
               <InfoGridItem icon={Clock} label="Time" value={time} />
               <InfoGridItem icon={MapPin} label="Location" value={location} />
               <InfoGridItem icon={Ticket} label="Price" value={event.price} prominent />
@@ -296,7 +279,7 @@ export default async function EventDetailPage({
                 <section className="grid gap-4 pb-[clamp(28px,4vw,38px)] border-b border-[rgba(var(--rgb-beige),0.48)] last:border-b-0 last:pb-0">
                   <h2 className="m-0 text-[clamp(26px,3vw,38px)] leading-[1.08] font-light">Event overview</h2>
                   <p className="max-w-[68ch] m-0 text-text-primary text-[17px] leading-[1.75]">{description}</p>
-                  <EventShare title={event.title} text={event.shortDescription ?? "Join this event at RORUM"} url={`${siteUrl}/events/${event.slug}`} />
+                  <EventShare title={event.title} text={event.longDescription || "Join this event at RORUM"} url={`${siteUrl}/events/${event.slug}`} actions={event.shareActions} />
                 </section>
 
                 <section className="grid gap-4 pb-[clamp(28px,4vw,38px)] border-b border-[rgba(var(--rgb-beige),0.48)] last:border-b-0 last:pb-0">
@@ -320,15 +303,15 @@ export default async function EventDetailPage({
                   Practical details
                 </h2>
                 <dl className="grid gap-0 mt-2">
-                  <DetailRow label="Date" value={shortDate} />
+                  <DetailRow label="Date" value={<EventDateDisplay dateValue={event.date} locale={locale} />} />
                   <DetailRow label="Time" value={time} />
                   <DetailRow label="Price" value={event.price} />
                   <DetailRow label="Address" value={location} />
                   <DetailRow label="Event language" value={language} />
                   <DetailRow label="Duration" value={duration} />
                   <DetailRow label="Availability" value={availability} />
-                  <DetailRow label="Arrival" value={arrival} />
-                  <DetailRow label="Ticket provider" value={event.ticketProvider ?? "Billetto"} />
+                  <DetailRow label="Arrival" value={event.arrival} />
+                  <DetailRow label={event.ticketProviderInfo.label} value={event.ticketProviderInfo.value} />
                 </dl>
               </aside>
             </div>

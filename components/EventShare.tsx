@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
 import { Link2, Mail, Share2 } from "lucide-react";
 import { SocialIcon } from "@/components/SocialIcon";
+import type { ShareAction } from "@/lib/data";
 
 const INSTAGRAM_COPY_MESSAGE =
   "Event link copied! You can now paste it into Instagram Stories, DMs, or your bio.";
@@ -13,14 +14,115 @@ const INSTAGRAM_COPY_MESSAGE =
 // properties by default, so this narrow augmentation documents the one we use.
 type BrandColorStyle = CSSProperties & { "--social-brand-color": string };
 
+const BRAND_COLORS: Record<"whatsapp" | "linkedin" | "facebook" | "instagram", string> = {
+  whatsapp: "#25D366",
+  linkedin: "#0A66C2",
+  facebook: "#1877F2",
+  instagram: "#E1306C",
+};
+
+interface ShareLinks {
+  whatsapp: string;
+  email: string;
+  linkedin: string;
+  facebook: string;
+}
+
+// One button/link per configurable action type (Copy link, WhatsApp, Email,
+// LinkedIn, Facebook, Instagram) — the exact markup, CSS classes and click
+// behavior each already had before this became Sanity-configurable, just
+// keyed off `action.type` now instead of being unconditionally inlined.
+function ShareActionButton({
+  action,
+  links,
+  onCopyLink,
+  onShareInstagram,
+}: {
+  action: ShareAction;
+  links: ShareLinks;
+  onCopyLink: () => void;
+  onShareInstagram: () => void;
+}) {
+  switch (action.type) {
+    case "copyLink":
+      return (
+        <button className="event-share-utility-link" type="button" aria-label={action.label} onClick={onCopyLink}>
+          <Link2 aria-hidden="true" strokeWidth={1.8} />
+        </button>
+      );
+    case "whatsapp":
+      return (
+        <a
+          className="event-share-brand-link"
+          aria-label={action.label}
+          href={links.whatsapp}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ "--social-brand-color": BRAND_COLORS.whatsapp } as BrandColorStyle}
+        >
+          <SocialIcon icon="whatsapp" />
+        </a>
+      );
+    case "email":
+      return (
+        <a className="event-share-email-link" aria-label={action.label} href={links.email}>
+          <Mail aria-hidden="true" strokeWidth={1.8} />
+        </a>
+      );
+    case "linkedin":
+      return (
+        <a
+          className="event-share-brand-link"
+          aria-label={action.label}
+          href={links.linkedin}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ "--social-brand-color": BRAND_COLORS.linkedin } as BrandColorStyle}
+        >
+          <SocialIcon icon="linkedin" />
+        </a>
+      );
+    case "facebook":
+      return (
+        <a
+          className="event-share-brand-link"
+          aria-label={action.label}
+          href={links.facebook}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ "--social-brand-color": BRAND_COLORS.facebook } as BrandColorStyle}
+        >
+          <SocialIcon icon="facebook" />
+        </a>
+      );
+    case "instagram":
+      return (
+        <button
+          className="event-share-brand-link"
+          type="button"
+          aria-label={action.label}
+          onClick={onShareInstagram}
+          style={{ "--social-brand-color": BRAND_COLORS.instagram } as BrandColorStyle}
+        >
+          <SocialIcon icon="instagram" />
+        </button>
+      );
+    default:
+      return null;
+  }
+}
+
 export function EventShare({
   title,
   text,
   url,
+  actions,
 }: {
   title: string;
   text?: string;
   url: string;
+  /** Already resolved to the current locale, in the order configured in Sanity — this component renders only the `enabled` ones. */
+  actions: ShareAction[];
 }) {
   const [feedback, setFeedback] = useState("");
   const shareText = text || "Join this event at RORUM";
@@ -29,7 +131,7 @@ export function EventShare({
     return typeof window === "undefined" ? url : window.location.href;
   }
 
-  const links = useMemo(() => {
+  const links = useMemo<ShareLinks>(() => {
     const encodedUrl = encodeURIComponent(url);
     const encodedTitle = encodeURIComponent(title);
     return {
@@ -124,6 +226,8 @@ export function EventShare({
     window.location.href = "instagram://app";
   }
 
+  const enabledActions = actions.filter((action) => action.enabled);
+
   return (
     <div className="grid gap-2 w-fit max-w-full mt-1 pt-2 border-0 bg-transparent">
       <p className="m-0 text-dark-green text-xs font-[850] tracking-[0.08em] leading-[1.2] uppercase">
@@ -148,60 +252,9 @@ export function EventShare({
         >
           <Share2 aria-hidden="true" strokeWidth={1.8} />
         </button>
-        <button
-          className="event-share-utility-link"
-          type="button"
-          aria-label="Copy event link"
-          onClick={copyLink}
-        >
-          <Link2 aria-hidden="true" strokeWidth={1.8} />
-        </button>
-        <a
-          className="event-share-brand-link"
-          aria-label="Share on WhatsApp"
-          href={links.whatsapp}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ "--social-brand-color": "#25D366" } as BrandColorStyle}
-        >
-          <SocialIcon icon="whatsapp" />
-        </a>
-        <a
-          className="event-share-email-link"
-          aria-label="Share by email"
-          href={links.email}
-        >
-          <Mail aria-hidden="true" strokeWidth={1.8} />
-        </a>
-        <a
-          className="event-share-brand-link"
-          aria-label="Share on LinkedIn"
-          href={links.linkedin}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ "--social-brand-color": "#0A66C2" } as BrandColorStyle}
-        >
-          <SocialIcon icon="linkedin" />
-        </a>
-        <a
-          className="event-share-brand-link"
-          aria-label="Share on Facebook"
-          href={links.facebook}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ "--social-brand-color": "#1877F2" } as BrandColorStyle}
-        >
-          <SocialIcon icon="facebook" />
-        </a>
-        <button
-          className="event-share-brand-link"
-          type="button"
-          aria-label="Share on Instagram"
-          onClick={shareInstagram}
-          style={{ "--social-brand-color": "#E1306C" } as BrandColorStyle}
-        >
-          <SocialIcon icon="instagram" />
-        </button>
+        {enabledActions.map((action) => (
+          <ShareActionButton key={action.type} action={action} links={links} onCopyLink={copyLink} onShareInstagram={shareInstagram} />
+        ))}
       </div>
       <span
         className={`min-h-2 text-light-green text-xs font-extrabold transition-opacity duration-180 ease-[ease] ${

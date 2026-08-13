@@ -1,4 +1,5 @@
 import { contactDetails } from "@/lib/siteConfig";
+import { computeDurationFromTimeRange, type EventDuration } from "@/lib/eventDuration";
 
 export interface NavChild {
   href: string;
@@ -127,10 +128,31 @@ export const pages: PageMeta[] = [
   },
 ];
 
-export interface PracticalDetail {
+export type ShareActionType = "copyLink" | "whatsapp" | "email" | "linkedin" | "facebook" | "instagram";
+
+export interface ShareAction {
+  type: ShareActionType;
+  label: string;
+  enabled: boolean;
+}
+
+export interface TicketProviderInfo {
   label: string;
   value: string;
 }
+
+// Same 6 actions, same order and labels as the schema's `shareSettings`
+// `initialValue` (sanity/schemaTypes/documents/event.ts) — used below as
+// every static event's default, and reused by lib/sanityEvents.ts as the
+// runtime fallback for any Sanity event document that predates this field.
+export const DEFAULT_SHARE_ACTIONS: ShareAction[] = [
+  { type: "copyLink", label: "Copy link", enabled: true },
+  { type: "whatsapp", label: "WhatsApp", enabled: true },
+  { type: "email", label: "Email", enabled: true },
+  { type: "linkedin", label: "LinkedIn", enabled: true },
+  { type: "facebook", label: "Facebook", enabled: true },
+  { type: "instagram", label: "Instagram", enabled: true },
+];
 
 // SINGLE IMAGE SOURCE OF TRUTH
 // Every event has exactly one `image` field. This field is used by:
@@ -145,13 +167,23 @@ export interface RorumEvent {
   date: string;
   time: string;
   price: string;
+  // The event's venue address — defaults to the site's contact address for
+  // new Sanity events (see sanity/schemaTypes/documents/event.ts's
+  // `address` field), overridable per event. Not localized (a street
+  // address is the same fact regardless of display language).
+  address: string;
   language: string;
-  shortDescription: string;
   longDescription: string;
   included: string[];
+  // Derived by splitting the Sanity `whatToExpect` field's per-language text
+  // on line breaks (lib/sanityEvents.ts) — one non-empty line per bullet.
   whatToExpect: string[];
-  practicalDetails: PracticalDetail[];
-  ticketProvider: string;
+  duration?: EventDuration;
+  arrival: string;
+  ticketProviderInfo: TicketProviderInfo;
+  // Ordered, already filtered to `enabled` actions the caller should render —
+  // see components/EventShare.tsx.
+  shareActions: ShareAction[];
   ticketUrl: string;
   calendarUrl: string;
   waitlistUrl: string;
@@ -171,10 +203,8 @@ export interface RorumEvent {
   // a stricter type the actual consumer code doesn't rely on.
   ticketsLeft?: number;
   spotsLeft?: number;
-  duration?: string;
   startTime?: string;
   endTime?: string;
-  location?: string;
   fullDescription?: string;
   description?: string;
 }
@@ -187,8 +217,7 @@ const featuredEvents: RorumEvent[] = [
     time: "18:30-21:30",
     price: "295 kr.",
     language: "English",
-    shortDescription:
-      "A slow evening of seasonal food, local stories and new creative connections around one long table.",
+    address: contactDetails.shortAddress,
     longDescription:
       "An intimate dinner for Copenhagen makers, hosts and independent creatives who want to meet in a setting that feels calm, useful and generous. Expect a seasonal shared table, gentle prompts and enough space for real conversation.",
     included: [
@@ -204,17 +233,10 @@ const featuredEvents: RorumEvent[] = [
       "Facilitated introductions",
       "Time for conversation",
     ],
-    practicalDetails: [
-      { label: "Address", value: contactDetails.shortAddress },
-      {
-        label: "Arrival",
-        value: "Please arrive 5-10 minutes before the event begins.",
-      },
-      { label: "Duration", value: "3 hours" },
-      { label: "Language", value: "English" },
-      { label: "Tickets", value: "Purchased externally via Billetto" },
-    ],
-    ticketProvider: "Billetto",
+    duration: { value: 3, unit: "hours" },
+    arrival: "Please arrive 5-10 minutes before the event begins.",
+    ticketProviderInfo: { label: "Ticket provider", value: "Billetto" },
+    shareActions: DEFAULT_SHARE_ACTIONS,
     ticketUrl: "https://billetto.dk/",
     calendarUrl: "https://calendar.google.com/",
     waitlistUrl: `mailto:${contactDetails.email}?subject=Copenhagen%20Makers%20Dinner%20waitlist`,
@@ -229,8 +251,7 @@ const featuredEvents: RorumEvent[] = [
     time: "17:00-19:30",
     price: "425 kr.",
     language: "English",
-    shortDescription:
-      "Learn approachable floral gestures, candle placement and calm table composition for intimate hosting.",
+    address: contactDetails.shortAddress,
     longDescription:
       "A hands-on workshop for hosts, facilitators and visual thinkers who want to create welcoming tables without overcomplicating the room. We work with seasonal materials, scale, repetition and practical setup choices.",
     included: [
@@ -246,17 +267,10 @@ const featuredEvents: RorumEvent[] = [
       "Small-group format",
       "Practical setup ideas",
     ],
-    practicalDetails: [
-      { label: "Address", value: contactDetails.shortAddress },
-      {
-        label: "Arrival",
-        value: "Please arrive 5-10 minutes before the event begins.",
-      },
-      { label: "Duration", value: "2.5 hours" },
-      { label: "Language", value: "English" },
-      { label: "Tickets", value: "Purchased externally via Billetto" },
-    ],
-    ticketProvider: "Billetto",
+    duration: { value: 2.5, unit: "hours" },
+    arrival: "Please arrive 5-10 minutes before the event begins.",
+    ticketProviderInfo: { label: "Ticket provider", value: "Billetto" },
+    shareActions: DEFAULT_SHARE_ACTIONS,
     ticketUrl: "https://billetto.dk/",
     calendarUrl: "https://calendar.google.com/",
     waitlistUrl: `mailto:${contactDetails.email}?subject=Botanical%20Table%20Styling%20Workshop%20waitlist`,
@@ -271,8 +285,7 @@ const featuredEvents: RorumEvent[] = [
     time: "09:00-11:00",
     price: "125 kr.",
     language: "English",
-    shortDescription:
-      "Coffee, prompts and gentle accountability for independent creatives building work in Copenhagen.",
+    address: contactDetails.shortAddress,
     longDescription:
       "A focused morning for freelancers and small creative businesses who want a calmer way to begin the day. Bring a current question, a practical task or a project that needs quiet momentum.",
     included: [
@@ -288,17 +301,10 @@ const featuredEvents: RorumEvent[] = [
       "Small-group reflection",
       "Calm morning rhythm",
     ],
-    practicalDetails: [
-      { label: "Address", value: contactDetails.shortAddress },
-      {
-        label: "Arrival",
-        value: "Please arrive 5-10 minutes before the event begins.",
-      },
-      { label: "Duration", value: "2 hours" },
-      { label: "Language", value: "English" },
-      { label: "Tickets", value: "Join the waitlist for updates" },
-    ],
-    ticketProvider: "Billetto",
+    duration: { value: 2, unit: "hours" },
+    arrival: "Please arrive 5-10 minutes before the event begins.",
+    ticketProviderInfo: { label: "Ticket provider", value: "Billetto" },
+    shareActions: DEFAULT_SHARE_ACTIONS,
     ticketUrl: "https://billetto.dk/",
     calendarUrl: "https://calendar.google.com/",
     waitlistUrl: `mailto:${contactDetails.email}?subject=Freelance%20Morning%20Salon%20waitlist`,
@@ -605,7 +611,7 @@ const eventAdditions: EventAddition[] = [
 const expandedEvents: RorumEvent[] = eventAdditions.map((event) => ({
   ...event,
   language: event.language ?? "English",
-  shortDescription: `${event.title} is an intimate RORUM gathering shaped for a warm Copenhagen room.`,
+  address: contactDetails.shortAddress,
   longDescription: `${event.title} brings people together around a simple hosted format with thoughtful pacing, a calm room setup and space for useful conversation.`,
   included: [
     "Hosted arrival",
@@ -620,17 +626,13 @@ const expandedEvents: RorumEvent[] = eventAdditions.map((event) => ({
     "Tea & refreshments",
     "Time for conversation",
   ],
-  practicalDetails: [
-    { label: "Address", value: contactDetails.shortAddress },
-    {
-      label: "Arrival",
-      value: "Please arrive 5-10 minutes before the event begins.",
-    },
-    { label: "Duration", value: event.time },
-    { label: "Language", value: event.language ?? "English" },
-    { label: "Tickets", value: "Purchased externally via Billetto" },
-  ],
-  ticketProvider: "Billetto",
+  // Computed from the event's actual time range rather than hardcoded —
+  // the previous version of this template set "Duration" to `event.time`
+  // itself (e.g. "18:30-21:30"), which was never a real duration.
+  duration: computeDurationFromTimeRange(event.time),
+  arrival: "Please arrive 5-10 minutes before the event begins.",
+  ticketProviderInfo: { label: "Ticket provider", value: "Billetto" },
+  shareActions: DEFAULT_SHARE_ACTIONS,
   ticketUrl: "https://billetto.dk/",
   calendarUrl: "https://calendar.google.com/",
   waitlistUrl: `mailto:${contactDetails.email}?subject=${encodeURIComponent(`${event.title} waitlist`)}`,

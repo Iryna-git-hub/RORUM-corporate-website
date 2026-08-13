@@ -902,3 +902,130 @@ Fixed by adding `images.remotePatterns` to `next.config.js`, scoped to `https://
 **Verified**: `npm run build` succeeds (all 34 event pages statically render with real `cdn.sanity.io` `<Image>` srcs — a production build renders every page during static generation, so it would have failed here if the host still weren't allowed). Also checked directly against a running dev server on an existing event page via a headless browser: the hero image now loads through `/_next/image?url=https://cdn.sanity.io/...` with zero console/page errors. `npm run typecheck` and `npm run lint` both clean (same 12 pre-existing `no-img-element` warnings, unrelated).
 
 Separately: the "hydration mismatch" / `data-castreader-bad-case-command-bridge` console warning reported alongside this is not a code issue — that attribute doesn't appear anywhere in this codebase (confirmed via search) and matches the signature of a browser extension (a text-to-speech/reader tool) injecting DOM attributes before React hydrates, which React's own warning message explicitly lists as a cause. No fix applicable or needed in the app.
+
+# Part 14 — Event Details Schema Redesign: Primary Facts, Practical Details, Share Actions, What to Expect, Responsive Date
+
+## 1. Executive Summary
+
+Reworked the event schema and its individual Event Details page around a clearer content model: **Primary event facts** (Date/Time/Price/Address) as independent fields; **Practical Details** narrowed to exactly Event language / Duration / Arrival / Ticket provider (all now genuinely structured and localized, not a generic free-text list); a configurable, reorderable, per-event **Share with Friends** block; **What to Expect** rebuilt as one multiline text field per language instead of a repeatable array-of-objects; **Short Description** removed (confirmed unused by event cards, superseded by Event Overview); and a responsive two-line/one-line date display driven by locale-aware `Intl` formatting, not hardcoded English strings.
+
+All 34 pre-existing events (plus 2 minimal events created directly in Studio during earlier testing) were migrated onto the new fields via a one-time, dry-run-verified, idempotent script — preserving their real, already-approved Danish/Ukrainian translations rather than discarding them. Verified end-to-end against both a migrated existing event and a newly created one covering every new field.
+
+## 2. Files Changed
+
+- **`sanity/schemaTypes/documents/event.ts`** — full rewrite: new `address`, `duration` ({value, unit}), `arrival`, `ticketProviderInfo` ({label, value}), `shareSettings` (array of `shareAction`) fields; `whatToExpect` changed from an array of `bulletText` objects to a plain `internationalizedArrayText` (one multiline field per language); `shortDescription`/`practicalDetails`/`ticketProvider` kept in the schema but `hidden: () => true` (legacy, not deleted); fields reordered into fieldsets matching the page's visual order (no tabs, consistent with Part 12/13).
+- **`lib/eventDuration.ts`** (new) — structured-duration type, `formatDuration()` (locale-aware unit words via `Intl.PluralRules`), and the legacy-data fallback parsers (`parseDurationText`, `computeDurationFromTimeRange`).
+- **`lib/eventLanguage.ts`** (new) — maps an event's `language` value ("English"/"Danish"/"Ukrainian" — unchanged stored values) to its name in the site's *current display locale*.
+- **`lib/sanityEvents.ts`** — `SanityEventLike` and `sanityEventToRorumEvent()` rewritten for every new/changed field, each with a legacy-data fallback chain (new field → old `practicalDetails`/`ticketProvider` entry → static data → hardcoded default) so a document that hasn't been touched since before this change still renders correctly.
+- **`lib/data.ts`** — `RorumEvent` interface updated (removed `shortDescription`/`practicalDetails`/`ticketProvider`/`location`; added `address`, `duration`, `arrival`, `ticketProviderInfo`, `shareActions`); all 34 static fallback events updated to the new shape; `DEFAULT_SHARE_ACTIONS` constant added (shared by the static data, the runtime mapping fallback, and the migration script).
+- **`components/EventShare.tsx`** — now takes an `actions: ShareAction[]` prop and renders only the enabled ones, in the given order, via a `ShareActionButton` switch keyed on action type. Exact same markup/CSS classes/click behavior per action as before (WhatsApp/LinkedIn/Facebook hrefs, Email mailto, Instagram's copy-or-handoff-to-app logic, Copy link's clipboard logic) — none of that changed, only how the set of rendered actions is determined. The always-on native "Share this event" button (Web Share API) is unchanged and un-configurable — it isn't one of the 6 named actions in the requirements.
+- **`app/[locale]/(site)/events/[slug]/page.tsx`** — consumes all the new fields directly (no more in-page `getPracticalDetail()`/duration-parsing helpers — that logic now lives once in `lib/eventDuration.ts`/`lib/sanityEvents.ts`); `shortDescription` replaced by `longDescription` for both the SEO meta description and `EventShare`'s share text; new `EventDateDisplay` component for the responsive date; `Address`/`Date`/`Time`/`Price` added as additional rows in the "Practical details" sidebar (alongside the narrowed Language/Duration/Availability/Arrival/Ticket provider) so all primary facts are visible together there too, without removing the existing top summary strip.
+- **`next.config.js`** — untouched by this part (already fixed in Part 13 §10).
+- **`scripts/migrate-event-fields.ts`** (new, kept in the repo like the project's other one-time migration scripts) — the migration described in §4.
+- **`scripts/import-content.ts`**, **`scripts/import-translations.ts`** — updated so future from-scratch imports/translation patches build the new field shapes instead of the retired ones (both scripts are otherwise idempotent/`createIfNotExists`-based, so this only affects hypothetical future runs, not already-imported data).
+
+## 3. Schema/Frontend Changes in Detail
+
+### 3.1 Basic event fields
+Kept exactly as required: Title (en/da/uk), Slug (unchanged generation logic from Part 13), Event image + alt text (`imageWithAlt`, unchanged). **Short Description removed** from the schema's active fields (now hidden/legacy) after confirming via a repo-wide search that `EventCard.tsx` never reads it — its only 2 consumers (SEO meta description, `EventShare`'s share message text) were switched to `longDescription` (Event Overview), which is always present and a strictly better source for both.
+
+### 3.2 Share with Friends
+New `shareSettings` array field, one `shareAction` object per action: fixed `type` (dropdown: Copy link / WhatsApp / Email / LinkedIn / Facebook / Instagram), localized `label` (en/da/uk — used as each button's accessible name, since none of these render visible text), `enabled` boolean. Array-level `validation` rejects duplicate action types. `initialValue` prepopulates all 6, enabled, in the listed order, for new events. Sanity array items are natively drag-reorderable — no extra config needed. **Verified empirically**: created a test event with a custom order (Facebook first) and 3 of the 6 actions disabled — the rendered page showed exactly Facebook → Copy link → WhatsApp, in that order, with Instagram/Email/LinkedIn correctly absent.
+
+### 3.3 What to Expect
+Changed from an array of repeatable `bulletText` objects to a single `internationalizedArrayText` field — Studio already renders that type as one multiline textarea per configured language (it's the same field type `shortDescription`/`longDescription` already used), so this was a type change, not new plumbing. The frontend now does `pickLocalized(...).split(/\r?\n/).map(trim).filter(Boolean)`. Verified a blank line between two bullets is correctly ignored.
+
+**Exact default text reused for new events** (English only — see §5 for why):
+> A small and welcoming group format
+> A calm, thoughtfully prepared room
+> Practical inspiration and hands-on guidance
+> Time for conversation and questions
+> Tea, water or simple refreshments
+
+This is the verbatim `fallbackExpectations` constant that already lived in the event detail page component — i.e. exactly what a new event was already effectively showing site visitors before this change, located by reading the actual current code rather than guessed.
+
+### 3.4 Primary event facts
+Date/Time/Price were already independent fields; **Address is new** (`string`, not localized — a street address doesn't change per language) with `initialValue` resolving asynchronously via `context.getClient({apiVersion}).fetch('*[_id == "contactInfo"][0]{shortAddress}')` — i.e. pulled live from the *same* `contactInfo` singleton the Contact page and footer already use (its `shortAddress` field's own description already says "used in event practical details," confirming this was the intended shared source). This only ever fires for genuinely new documents (Sanity's `initialValue` mechanism never touches existing documents), and the field remains freely editable/overridable afterward. On the frontend, the one hardcoded address fallback that existed in the event detail page (`fallbackLocation`, which had drifted slightly out of sync with the real address) was replaced with `contactDetails.shortAddress` from `lib/siteConfig.ts` — the same static source `lib/siteContent.ts`'s `getCompanyContactFacts()` already uses elsewhere — so there is exactly one hardcoded address in the whole frontend, not several.
+
+### 3.5 Practical Details
+Narrowed to Event language, Duration, Arrival, Ticket provider; Date/Time/Price/Address are no longer part of this array (they're the independent primary facts above) — displayed together with the practical details in the sidebar box as additional rows, per §3 above.
+
+- **Event language**: already a controlled dropdown (`options.list`), unchanged. Added `lib/eventLanguage.ts` so the *displayed* language name now reflects the site's current locale (e.g. an event held in English shows "Engelsk" on the Danish site) rather than always showing the English word.
+- **Duration**: new `{ value: number; unit: "minutes" | "hours" }` object. `value` has `validation: required().greaterThan(0)`; `unit` is a 2-option list. Sanity's number field is a native `<input type="number">`, which has built-in browser increment/decrement controls. Rendering uses `Intl.PluralRules` per locale so Ukrainian's 1/2-4/5+ plural forms are handled correctly (not a naive singular/plural toggle) — verified "45 minutes" / "45 minutter" / "45 хвилин" all render correctly for the same stored value.
+- **Arrival**: new `internationalizedArrayString`. Default text is exactly what the task specified (`Please arrive 5-10 minutes before the event begins.` — using the existing approved hyphen punctuation from `scripts/import-translations.ts`'s `T.arrivalNote`, not the en-dash variant, to stay byte-identical with already-live content); Danish/Ukrainian defaults use that same already-approved translation (see §5 — these already existed in the codebase, not newly written for this task).
+- **Ticket provider**: new `ticketProviderInfo` object with independently localized `label` and `value` — an editor can change both what the field is called and what it says, per event. Kept fully separate from `ticketUrl`/`ticketButtonLabel`, which remain the actual external purchase link and its button text.
+
+### 3.6 Studio field order
+`event.ts` now uses the same no-tabs-with-`fieldsets` pattern as every other schema this project has touched (Parts 12/13): Basic info → Event image → Date/Time/Price/Address → Event Overview → What to Expect → Practical Details → Share with Friends → Ticket link/button → SEO — matching the page's own top-to-bottom order.
+
+### 3.7 Responsive event date
+New `EventDateDisplay` component (used both in the top info-strip and the "Practical details" sidebar's Date row) renders the weekday and month/day as two separate `<span>`s inside one `display:grid` container — each becomes its own row by default (desktop: two intentional lines, no comma, since the comma span is `hidden`), and at `max-sm:` the container switches to `flex flex-row` with the comma switching to `inline`, joining everything onto one line ("Wednesday, August 19"). Same two strings, same underlying `event.date` — only CSS layout changes, per the requirement not to duplicate the underlying data. Both `weekday` and `month/day` come from `Date.prototype.toLocaleDateString(localeTags[locale], {...})` (existing `lib/i18n.ts` locale-tag map) — no hardcoded English month/weekday names; verified Danish and Ukrainian weekday/month names render correctly.
+
+## 4. Migration of Existing Event Data
+
+`scripts/migrate-event-fields.ts` (dry-run first, then live, then re-ran dry-run to confirm 0 remaining — standard idempotency check this project always applies):
+
+- `whatToExpect`: for the old array-of-`bulletText` shape, joined each language's bullets with `\n` and wrote the new `internationalizedArrayText` shape — preserving the real, already-translated Danish/Ukrainian bullet text rather than losing it. **This was necessary, not optional**: verified empirically that *before* migrating, a Danish visitor viewing an existing event's page saw the *English* fallback text (the legacy array shape doesn't match what the new locale-lookup expects, and the mapping's fallback chain silently fell through to the English static data) — after migration, the real Danish translation renders correctly.
+- `address`/`arrival`: extracted from the old generic `practicalDetails` array's "Address"/"Arrival" entries. For Arrival specifically, the already-approved Danish/Ukrainian translation was attached *only* when the legacy English text matched the standard arrival wording (a regex check), to avoid mis-attributing a translation to some differently-worded value on an unexpected document.
+- `duration`: parsed from the legacy "Duration" text where it looked like a real duration (e.g. "3 hours"), and **computed from the event's actual time range otherwise** — this recovers a real bug in the original static template data (`lib/data.ts`'s `expandedEvents`, covering 29 of the 34 events), where "Duration" had mistakenly been set to the event's raw time-range string (e.g. "18:30-21:30") instead of an actual duration. The live site was never visibly affected (the old frontend code already computed the correct duration from the time range as a higher-priority fallback before ever reading that field), but the stored data itself was wrong; this migration fixes it going forward.
+- `ticketProviderInfo`: `value` set from the existing plain `ticketProvider` field ("Billetto") for en/da/uk (a brand name — not translated, just copied, matching how it was always displayed); `label` set to "Ticket provider" (English only — see §5).
+- `shareSettings`: backfilled with the same 6 default actions (enabled, in order) every new event gets automatically — existing events never received Sanity's `initialValue` (it only applies at document-creation time), so without this backfill they'd have shown *no* share actions at all, a real regression versus their previous unconditional behavior.
+
+38 documents total were touched (34 real imported events + the published/draft pair of one Studio-created test event + one further Studio-created test event) — the exact set was determined by querying, not assumed. Old `shortDescription`/`practicalDetails`/`ticketProvider` fields were left untouched (not unset) — harmless now-orphaned data, consistent with this session's "no destructive migration unless necessary" standard.
+
+## 5. Translation Status — What Was Reused vs. What's Missing
+
+| Content | Status |
+|---|---|
+| Arrival label + note (en/da/uk) | **Reused** — already-approved translations existed in `scripts/import-translations.ts`'s `T.arrival`/`T.arrivalNote`, used verbatim. |
+| What to Expect's 5 default lines | **English only — Danish/Ukrainian do not exist anywhere in this codebase for this exact text.** Searched thoroughly before concluding this; per the task's explicit instruction, left `da`/`uk` unset in the schema's `initialValue` rather than inventing them. **Flagging this for the team to provide or approve.** |
+| Ticket provider field *label* ("Ticket provider") | AI-provided English default only; no existing Danish/Ukrainian translation found for this exact phrase (a *different* word, "Tickets" → "Billetter"/"Квитки", already existed for the old, now-retired generic field — not reused here since it's a different phrase). Flagging as needing translation/review, consistent with this project's standing disclosure policy for AI-provided text. |
+| Share action labels ("Copy link", "Email", etc.) | AI-provided da/uk (WhatsApp/LinkedIn/Facebook/Instagram are brand names, unchanged across languages; "Copy link"/"Email" were translated by me). Not covered by the task's explicit "reuse-or-report" instruction the way Arrival/What-to-Expect were, so — consistent with this project's established practice — provided directly rather than left blank, but disclosed here as AI-generated and not yet reviewed. |
+| Event language names (Engelsk/Dansk/Ukrainsk, Англійська/Данська/Українська) | AI-provided; low-ambiguity (standard language names), but still disclosed as unreviewed per policy. |
+
+## 6. Compatibility Decisions for Existing Event Data
+
+- **No stored field was deleted.** `shortDescription`, `practicalDetails`, `ticketProvider` remain declared in the schema with `hidden: () => true` — invisible in Studio, but still readable (both by GROQ/the frontend's fallback chain, and by a human reading the schema file's comment explaining why) rather than silently vanishing.
+- **`whatToExpect`'s stored shape did change** (array-of-objects → per-language multiline text) under the same field name — the one place this session judged that reusing the name with a migrated shape was safer than either (a) silently losing real per-event, real-translated content behind a generic fallback, or (b) introducing yet another field name. This is flagged explicitly here per the task's instruction to document such decisions.
+- **`RorumEvent.location` (TypeScript-only, never a Sanity field) was renamed to `address`** — pure code-side cleanup, zero effect on stored Sanity data.
+- Two events created directly in Studio during earlier testing (`a-new-event-at-the-rorom`, `one-more-event-test`) had no legacy data to migrate from; they received only a computed `duration` (derived from their own `time` field, not invented) and the default `shareSettings` backfill, and otherwise rely on the same runtime fallback chain any event without explicit data does.
+
+## 7. Verification (Requirement 9)
+
+Tested one existing (migrated) event and one newly created test event (unique title/slug, freshly uploaded image, full Practical Details, Event Overview, multiline What to Expect with a deliberate blank line, ticket URL, and a deliberately reordered/partially-disabled share list) — against production builds, following this project's standing rule of testing via `next build && next start`, not `next dev` (which bypasses the static-generation/caching behavior being tested).
+
+| # | Check | Result |
+|---|---|---|
+| 1 | Titles work in en/da/uk | ✅ |
+| 2 | Slug + route still work | ✅ (200 on all 3 locales) |
+| 3 | Uploaded image + alt render | ✅ (served via `cdn.sanity.io`, correct alt text) |
+| 4 | Short Description removed without breaking cards | ✅ (`EventCard.tsx` never referenced it) |
+| 5 | Event Overview editable/visible | ✅ |
+| 6 | What to Expect starts with the 5 default lines for a new event | ✅ (verified against the exact fallback constant) |
+| 7 | Each non-empty line = one bullet, blank lines ignored | ✅ (3 bullets from 4 lines incl. 1 blank, exact count) |
+| 8 | Date/Time/Price/Address independent, not duplicated *inside* the old generic list | ✅ (the generic list no longer exists; they appear once each, in both the summary strip and the sidebar, by design) |
+| 9 | New event gets Contact address by default, override works | ✅ code-verified (schema `initialValue`) + ✅ empirically verified the override path (a custom test address rendered correctly) — the Studio-only `initialValue` UI itself couldn't be exercised live (no Studio login in this environment, same limitation as Part 12) |
+| 10 | Duration: positive number + minutes/hours | ✅ (tested 45 minutes; migrated data tested 3 hours) |
+| 11 | Arrival: correct default, editable | ✅ (default text confirmed; custom per-event text also confirmed, including a locale where only English was set, correctly falling back to English rather than the generic default) |
+| 12 | Ticket Provider label/value editable, localized | ✅ |
+| 13 | Share actions reorderable/independently enabled | ✅ (schema supports it; verified via a live document) |
+| 14 | Only enabled actions appear, in configured order | ✅ (exact order confirmed: Facebook → Copy link → WhatsApp, Instagram/Email/LinkedIn correctly absent) |
+| 15 | Desktop date: two intentional lines | ✅ (verified markup structure; grid-stacked spans) |
+| 16 | Mobile date: one line | ✅ (verified `max-sm:flex` responsive override) |
+| 17 | Existing events render without runtime errors | ✅ (73/73 e2e tests pass; migrated event spot-checked directly) |
+
+**One real issue found and resolved during verification** (not a code bug): while testing, an *existing* migrated event briefly appeared to still show pre-migration English content on the Danish locale despite multiple rebuilds. Isolated the mapping function and confirmed it was correct in isolation; the actual cause was Next.js's persistent build-to-build Data Cache (`.next/cache`) serving a stale fetch response from earlier in this session's own iterative local rebuild-without-clearing-cache testing pattern — clearing `.next/cache` and rebuilding resolved it immediately and completely. This is specific to this local testing workflow, not a concern for a real deployment (where `revalidate = 60`, set in Part 13, naturally refreshes content via live production traffic rather than repeated from-scratch local rebuilds).
+
+Test event and its uploaded image asset were fully deleted after verification (confirmed via a follow-up query returning zero matches). All temporary scripts used for verification were deleted; the real migration script (`scripts/migrate-event-fields.ts`) was kept, matching this project's convention of retaining one-time migration scripts for the historical record.
+
+## 8. Validation
+
+- `npm run sanity:typegen` — 57 schema types, 24 queries, clean.
+- `npm run typecheck` — clean.
+- `npm run lint` — 0 errors, same 12 pre-existing `no-img-element` warnings (unrelated).
+- `npm run build` — succeeds, same 142 static pages.
+- `npm run test:e2e` — **73/73 passing**.
+
+## 9. Standing Constraints — Confirmed
+
+No deployment, push, merge, rebase, force-push, history rewrite, or pull request was made. All code changes remain in the working tree. The Sanity data mutations performed — migrating 38 existing event documents' fields, and creating/fully-deleting one temporary verification event — were the explicit, direct work this task required; before/after state was verified via GROQ queries and re-run idempotency checks shown in the transcript this section was written from. No server token was exposed to a Client Component, browser bundle, log, screenshot, or this report. All new/reused translations are disclosed above as AI-provided and not yet reviewed by a native speaker, per this project's standing translation-disclosure policy.

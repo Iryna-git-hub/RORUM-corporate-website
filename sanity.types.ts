@@ -707,29 +707,36 @@ export type Event = {
   _rev: string;
   title?: InternationalizedArrayString;
   slug?: Slug;
-  shortDescription?: InternationalizedArrayText;
   image?: ImageWithAlt;
+  date?: string;
+  time?: string;
+  price?: string;
+  address?: string;
   longDescription?: InternationalizedArrayText;
-  whatToExpect?: Array<
-    {
-      _key: string;
-    } & BulletText
-  >;
+  whatToExpect?: InternationalizedArrayText;
   included?: Array<
     {
       _key: string;
     } & BulletText
   >;
-  date?: string;
-  time?: string;
-  price?: string;
   language?: "English" | "Danish" | "Ukrainian";
-  practicalDetails?: Array<
-    {
-      _key: string;
-    } & PracticalDetail
-  >;
-  ticketProvider?: string;
+  duration?: {
+    value?: number;
+    unit?: "minutes" | "hours";
+  };
+  arrival?: InternationalizedArrayString;
+  ticketProviderInfo?: {
+    label?: InternationalizedArrayString;
+    value?: InternationalizedArrayString;
+  };
+  shareSettings?: Array<{
+    type?:
+      "copyLink" | "whatsapp" | "email" | "linkedin" | "facebook" | "instagram";
+    label?: InternationalizedArrayString;
+    enabled?: boolean;
+    _type: "shareAction";
+    _key: string;
+  }>;
   ticketUrl?: string;
   ticketButtonLabel?: InternationalizedArrayString;
   calendarUrl?: string;
@@ -737,6 +744,13 @@ export type Event = {
   ticketsLeft?: number;
   isSoldOut?: boolean;
   seo?: Seo;
+  shortDescription?: InternationalizedArrayText;
+  practicalDetails?: Array<
+    {
+      _key: string;
+    } & PracticalDetail
+  >;
+  ticketProvider?: string;
 };
 
 export type CateringMenuCategory = {
@@ -1076,29 +1090,36 @@ export type AllEventsQueryResult = Array<{
   _rev: string;
   title?: InternationalizedArrayString;
   slug?: Slug;
-  shortDescription?: InternationalizedArrayText;
   image?: ImageWithAlt;
+  date?: string;
+  time?: string;
+  price?: string;
+  address?: string;
   longDescription?: InternationalizedArrayText;
-  whatToExpect?: Array<
-    {
-      _key: string;
-    } & BulletText
-  >;
+  whatToExpect?: InternationalizedArrayText;
   included?: Array<
     {
       _key: string;
     } & BulletText
   >;
-  date?: string;
-  time?: string;
-  price?: string;
   language?: "Danish" | "English" | "Ukrainian";
-  practicalDetails?: Array<
-    {
-      _key: string;
-    } & PracticalDetail
-  >;
-  ticketProvider?: string;
+  duration?: {
+    value?: number;
+    unit?: "hours" | "minutes";
+  };
+  arrival?: InternationalizedArrayString;
+  ticketProviderInfo?: {
+    label?: InternationalizedArrayString;
+    value?: InternationalizedArrayString;
+  };
+  shareSettings?: Array<{
+    type?:
+      "copyLink" | "email" | "facebook" | "instagram" | "linkedin" | "whatsapp";
+    label?: InternationalizedArrayString;
+    enabled?: boolean;
+    _type: "shareAction";
+    _key: string;
+  }>;
   ticketUrl?: string;
   ticketButtonLabel?: InternationalizedArrayString;
   calendarUrl?: string;
@@ -1106,6 +1127,13 @@ export type AllEventsQueryResult = Array<{
   ticketsLeft?: number;
   isSoldOut?: boolean;
   seo?: Seo;
+  shortDescription?: InternationalizedArrayText;
+  practicalDetails?: Array<
+    {
+      _key: string;
+    } & PracticalDetail
+  >;
+  ticketProvider?: string;
 }>;
 
 // Source: sanity/queries/events.ts
@@ -1119,29 +1147,36 @@ export type EventBySlugQueryResult = {
   _rev: string;
   title?: InternationalizedArrayString;
   slug?: Slug;
-  shortDescription?: InternationalizedArrayText;
   image?: ImageWithAlt;
+  date?: string;
+  time?: string;
+  price?: string;
+  address?: string;
   longDescription?: InternationalizedArrayText;
-  whatToExpect?: Array<
-    {
-      _key: string;
-    } & BulletText
-  >;
+  whatToExpect?: InternationalizedArrayText;
   included?: Array<
     {
       _key: string;
     } & BulletText
   >;
-  date?: string;
-  time?: string;
-  price?: string;
   language?: "Danish" | "English" | "Ukrainian";
-  practicalDetails?: Array<
-    {
-      _key: string;
-    } & PracticalDetail
-  >;
-  ticketProvider?: string;
+  duration?: {
+    value?: number;
+    unit?: "hours" | "minutes";
+  };
+  arrival?: InternationalizedArrayString;
+  ticketProviderInfo?: {
+    label?: InternationalizedArrayString;
+    value?: InternationalizedArrayString;
+  };
+  shareSettings?: Array<{
+    type?:
+      "copyLink" | "email" | "facebook" | "instagram" | "linkedin" | "whatsapp";
+    label?: InternationalizedArrayString;
+    enabled?: boolean;
+    _type: "shareAction";
+    _key: string;
+  }>;
   ticketUrl?: string;
   ticketButtonLabel?: InternationalizedArrayString;
   calendarUrl?: string;
@@ -1149,6 +1184,13 @@ export type EventBySlugQueryResult = {
   ticketsLeft?: number;
   isSoldOut?: boolean;
   seo?: Seo;
+  shortDescription?: InternationalizedArrayText;
+  practicalDetails?: Array<
+    {
+      _key: string;
+    } & PracticalDetail
+  >;
+  ticketProvider?: string;
 } | null;
 
 // Source: sanity/queries/events.ts
