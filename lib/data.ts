@@ -128,7 +128,7 @@ export const pages: PageMeta[] = [
   },
 ];
 
-export type ShareActionType = "copyLink" | "whatsapp" | "email" | "linkedin" | "facebook" | "instagram";
+export type ShareActionType = "share" | "copyLink" | "whatsapp" | "email" | "linkedin" | "facebook" | "instagram";
 
 export interface ShareAction {
   type: ShareActionType;
@@ -146,6 +146,7 @@ export interface TicketProviderInfo {
 // every static event's default, and reused by lib/sanityEvents.ts as the
 // runtime fallback for any Sanity event document that predates this field.
 export const DEFAULT_SHARE_ACTIONS: ShareAction[] = [
+  { type: "share", label: "Share", enabled: true },
   { type: "copyLink", label: "Copy link", enabled: true },
   { type: "whatsapp", label: "WhatsApp", enabled: true },
   { type: "email", label: "Email", enabled: true },

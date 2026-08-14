@@ -15,11 +15,9 @@ import { useLocale } from "@/lib/useLocale";
 
 type BrandColorStyle = CSSProperties & { "--social-brand-color": string };
 
-// Visible switcher labels — deliberately NOT `locale.toUpperCase()`:
-// Ukrainian's ISO/URL locale code is "uk" (correct for hreflang/URLs), but
-// the site's existing convention displays "UA" for it, matching domain
-// convention rather than the ISO code.
-const localeLabels: Record<Locale, string> = { en: "EN", da: "DA", uk: "UA" };
+// Visible switcher labels — `uk`'s label mirrors its ISO/URL locale code
+// (correct for hreflang/URLs) exactly, so no separate mapping is needed here.
+const localeLabels: Record<Locale, string> = { en: "EN", da: "DA", uk: "UK" };
 const languages = locales.map((locale) => localeLabels[locale]);
 const localeByLabel: Record<string, Locale> = Object.fromEntries(
   locales.map((locale) => [localeLabels[locale], locale]),
@@ -154,7 +152,7 @@ function MobileLanguageSwitcher({
 }) {
   return (
     <div
-      className="inline-flex items-center flex-none gap-1.5 rounded-full text-dark-brown bg-transparent backdrop-blur-[10px]"
+      className="inline-flex items-center flex-none gap-2.5 rounded-full text-dark-brown bg-transparent backdrop-blur-[10px]"
       role="group"
       aria-label="Language selector"
       data-testid="mobile-language-switcher"
@@ -385,7 +383,7 @@ export function Header({
         className={`fixed top-0 right-0 z-[60] h-[100svh] max-h-[100dvh] w-screen grid grid-rows-[auto_auto_auto] content-start gap-6 pt-6 px-8 pb-8 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] bg-white text-text-primary shadow-[-18px_0_44px_rgba(var(--rgb-brown),0.16)] transition-transform duration-300 ease-[ease] ${menuOpen ? "translate-x-0" : "translate-x-full"}`}
         aria-label="Mobile menu"
       >
-        <div className="flex items-center justify-start gap-2 min-h-17 -mt-6 -mx-8 px-4 bg-cream border-b border-border">
+        <div className="flex items-center justify-start gap-4 min-h-17 -mt-6 -mx-8 px-4 bg-cream border-b border-border">
           <Link
             // `!important` on every overridden `.btn` property (colors,
             // padding, font-size): `.btn`'s own deferred, still-unlayered
@@ -393,14 +391,11 @@ export function Header({
             // background/border-color, and unlayered CSS always beats a
             // layered Tailwind utility regardless of specificity or source
             // order — so a plain (non-`!`) padding/text-size override here
-            // is silently ignored. This is a real, findable bug: the
-            // previous `max-[360px]:px-2.5 max-[360px]:text-[10px]` looked
-            // like a narrow-screen fix but never actually applied, which is
-            // why this row still overflowed. Sized once, unconditionally —
-            // this row only ever renders inside the mobile menu (opened via
-            // the `max-lg:` hamburger), so there's no wider viewport where a
+            // is silently ignored. Sized once, unconditionally — this row
+            // only ever renders inside the mobile menu (opened via the
+            // `max-lg:` hamburger), so there's no wider viewport where a
             // roomier size would ever actually be seen.
-            className="btn flex-none min-w-0 shrink min-h-9 px-2.5! py-0! text-[10px]! border-cta-red! bg-cta-red! text-white! whitespace-nowrap hover:border-cta-red-hover! hover:bg-cta-red-hover! hover:text-white! focus-visible:border-cta-red-hover! focus-visible:bg-cta-red-hover! focus-visible:text-white!"
+            className="btn flex-none min-w-0 shrink min-h-9 px-5! py-0! text-[11px]! border-cta-red! bg-cta-red! text-white! whitespace-nowrap hover:border-cta-red-hover! hover:bg-cta-red-hover! hover:text-white! focus-visible:border-cta-red-hover! focus-visible:bg-cta-red-hover! focus-visible:text-white!"
             href="/contact"
             onClick={closeMenus}
           >
