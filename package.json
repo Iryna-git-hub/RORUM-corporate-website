@@ -32,7 +32,17 @@
     "sanity:remove-event-categories:dry-run": "tsx --env-file=.env.local scripts/remove-event-categories.ts --dry-run",
     "sanity:remove-event-categories": "tsx --env-file=.env.local scripts/remove-event-categories.ts",
     "sanity:remove-related-events:dry-run": "tsx --env-file=.env.local scripts/remove-related-events.ts --dry-run",
-    "sanity:remove-related-events": "tsx --env-file=.env.local scripts/remove-related-events.ts"
+    "sanity:remove-related-events": "tsx --env-file=.env.local scripts/remove-related-events.ts",
+    "sanity:migrate-content-to-pages:dry-run": "tsx --env-file=.env.local scripts/migrate-content-to-pages.ts --dry-run",
+    "sanity:migrate-content-to-pages": "tsx --env-file=.env.local scripts/migrate-content-to-pages.ts",
+    "sanity:migrate-phase2:dry-run": "tsx --env-file=.env.local scripts/migrate-phase2-content.ts --dry-run",
+    "sanity:migrate-phase2": "tsx --env-file=.env.local scripts/migrate-phase2-content.ts",
+    "sanity:migrate-phase3a:dry-run": "tsx --env-file=.env.local scripts/migrate-phase3a-content.ts --dry-run",
+    "sanity:migrate-phase3a": "tsx --env-file=.env.local scripts/migrate-phase3a-content.ts",
+    "sanity:delete-orphaned-legacy:dry-run": "tsx --env-file=.env.local scripts/delete-orphaned-legacy-docs.ts --dry-run",
+    "sanity:delete-orphaned-legacy": "tsx --env-file=.env.local scripts/delete-orphaned-legacy-docs.ts",
+    "sanity:clear-redundant-legacy:dry-run": "tsx --env-file=.env.local scripts/clear-redundant-legacy-fields.ts --dry-run",
+    "sanity:clear-redundant-legacy": "tsx --env-file=.env.local scripts/clear-redundant-legacy-fields.ts"
   },
   "dependencies": {
     "@portabletext/react": "^7.0.1",

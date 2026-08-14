@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { EventsClientPage } from "@/components/EventsClientPage";
+import { defaultEventCardMessages, type EventCardMessages } from "@/components/EventCard";
+import { defaultEventsEmptyStateText, type EventsEmptyStateText } from "@/components/EventsPaginatedList";
 import { Container, CTASection, SectionHeader } from "@/components/ui";
 import { events as staticEvents } from "@/lib/data";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
-import { pickLocalized } from "@/lib/sanity-i18n";
+import { pickLabel, pickLocalized } from "@/lib/sanity-i18n";
 import { defaultFormMessages, resolveFormMessages } from "@/lib/sanityForms";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
 import { isSanityConfigured } from "@/sanity/env";
 import { sanityFetch } from "@/sanity/lib/live";
 import { allEventsQuery, eventsPageQuery } from "@/sanity/queries/events";
-import { formMessagesQuery } from "@/sanity/queries/globals";
+import { eventMessagesQuery, formMessagesQuery } from "@/sanity/queries/globals";
 
 // NOTE: this page IS an async Server Component that fetches from Sanity —
 // that's fine for static generation (data isn't request-dependent, just
@@ -56,13 +58,22 @@ const fallbackFilters = {
 
 async function getData(locale: Locale) {
   if (!isSanityConfigured) {
-    return { ...fallback, events: staticEvents, filters: fallbackFilters, faqQuestion: defaultFormMessages.faqQuestion, faqLabel: defaultFormMessages.faqLabel };
+    return {
+      ...fallback,
+      events: staticEvents,
+      filters: fallbackFilters,
+      faqQuestion: defaultFormMessages.faqQuestion,
+      faqLabel: defaultFormMessages.faqLabel,
+      eventCardMessages: defaultEventCardMessages,
+      emptyState: defaultEventsEmptyStateText,
+    };
   }
 
-  const [{ data: page }, { data: eventDocs }, { data: formMessagesDoc }] = await Promise.all([
+  const [{ data: page }, { data: eventDocs }, { data: formMessagesDoc }, { data: eventMessagesDoc }] = await Promise.all([
     sanityFetch({ query: eventsPageQuery }),
     sanityFetch({ query: allEventsQuery }),
     sanityFetch({ query: formMessagesQuery }),
+    sanityFetch({ query: eventMessagesQuery }),
   ]);
 
   const events = eventDocs?.length
@@ -86,6 +97,29 @@ async function getData(locale: Locale) {
     clearFiltersLabel: pickLocalized(page?.filters?.clearFiltersLabel, locale) ?? fallbackFilters.clearFiltersLabel,
   };
 
+  const eventCardMessages: EventCardMessages = {
+    soldOutLabel: pickLabel(eventMessagesDoc?.labels, "soldOutLabel", locale, defaultEventCardMessages.soldOutLabel),
+    spotsLeftOne: pickLabel(eventMessagesDoc?.labels, "spotsLeftOne", locale, defaultEventCardMessages.spotsLeftOne),
+    spotsLeftOther: pickLabel(eventMessagesDoc?.labels, "spotsLeftOther", locale, defaultEventCardMessages.spotsLeftOther),
+    timeToBeAnnouncedLabel: pickLabel(
+      eventMessagesDoc?.labels,
+      "timeToBeAnnouncedLabel",
+      locale,
+      defaultEventCardMessages.timeToBeAnnouncedLabel,
+    ),
+    viewEventAriaPrefix: pickLabel(
+      eventMessagesDoc?.labels,
+      "viewEventAriaPrefix",
+      locale,
+      defaultEventCardMessages.viewEventAriaPrefix,
+    ),
+  };
+
+  const emptyState: EventsEmptyStateText = {
+    title: pickLabel(page?.labels, "emptyStateTitle", locale, defaultEventsEmptyStateText.title),
+    text: pickLabel(page?.labels, "emptyStateText", locale, defaultEventsEmptyStateText.text),
+  };
+
   return {
     title: pickLocalized(page?.title, locale) ?? fallback.title,
     closingEyebrow: pickLocalized(page?.closingSection?.eyebrow, locale) ?? fallback.closingEyebrow,
@@ -97,6 +131,8 @@ async function getData(locale: Locale) {
     faqLabel: messages.faqLabel,
     events,
     filters,
+    eventCardMessages,
+    emptyState,
   };
 }
 
@@ -122,7 +158,12 @@ export default async function EventsPage({ params }: { params: Promise<{ locale:
         <Container>
           <SectionHeader title={data.title} level={1} />
           <Suspense fallback={null}>
-            <EventsClientPage events={data.events} filters={data.filters} />
+            <EventsClientPage
+              events={data.events}
+              filters={data.filters}
+              eventCardMessages={data.eventCardMessages}
+              emptyState={data.emptyState}
+            />
           </Suspense>
         </Container>
       </section>

@@ -38,11 +38,13 @@ function QuickPathCard({
   text,
   href,
   image,
+  cta,
 }: {
   title: string;
   text: string;
   href: QuickPathHref;
   image: string;
+  cta?: string;
 }) {
   const meta = quickPathMeta[href];
   const Icon = meta.icon;
@@ -61,7 +63,7 @@ function QuickPathCard({
       </span>
       <span className="absolute left-[clamp(18px,2.4vw,26px)] right-[clamp(18px,2.4vw,26px)] bottom-5.5 z-2 grid justify-items-center gap-3">
         <span className="quick-card-cta">
-          <span>{meta.cta}</span>
+          <span>{cta ?? meta.cta}</span>
           <ArrowRight aria-hidden="true" strokeWidth={1.9} />
         </span>
       </span>
@@ -78,12 +80,12 @@ function QuickPathCard({
 export function QuickPathsGrid({
   items,
 }: {
-  items: [title: string, text: string, href: QuickPathHref, image: string][];
+  items: [title: string, text: string, href: QuickPathHref, image: string, cta?: string][];
 }) {
   return (
     <div className="grid grid-cols-4 gap-[18px] items-stretch max-sm:grid-cols-1 sm:max-xl:grid-cols-2">
-      {items.map(([title, text, href, image]) => (
-        <QuickPathCard key={title} title={title} text={text} href={href} image={image} />
+      {items.map(([title, text, href, image, cta]) => (
+        <QuickPathCard key={title} title={title} text={text} href={href} image={image} cta={cta} />
       ))}
     </div>
   );

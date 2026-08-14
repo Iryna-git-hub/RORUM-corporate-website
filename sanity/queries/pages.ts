@@ -8,6 +8,7 @@ import { defineQuery } from "next-sanity";
 export const homePageQuery = defineQuery(`*[_type == "homePage"][0]`);
 export const aboutPageQuery = defineQuery(`*[_type == "aboutPage"][0]`);
 export const cateringPageQuery = defineQuery(`*[_type == "cateringPage"][0]`);
+export const cateringMenuExamplesPageQuery = defineQuery(`*[_type == "cateringMenuExamplesPage"][0]`);
 export const eventDecorationPageQuery = defineQuery(`*[_type == "eventDecorationPage"][0]`);
 export const hostAtRorumPageQuery = defineQuery(`*[_type == "hostAtRorumPage"][0]`);
 export const communityMembershipPageQuery = defineQuery(`*[_type == "communityMembershipPage"][0]`);

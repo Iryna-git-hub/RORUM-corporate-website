@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useLayoutEffect, useRef, useState } from "react";
 import { localizedHref } from "@/lib/i18n";
 import { useLocale } from "@/lib/useLocale";
+import { getEventLanguageLabel } from "@/lib/eventLanguage";
 
 export type EventDateFilter = "soonest" | "week" | "month" | "all";
 export type EventPriceFilter = "price-asc" | "price-desc" | "all";
@@ -179,7 +180,7 @@ export function EventFilters({
 
   const languageMenuOptions = languageOptions.map((language) => ({
     value: language,
-    label: language,
+    label: getEventLanguageLabel(language, locale) ?? language,
   }));
 
   const dateOptions: { value: Exclude<EventDateFilter, "all">; label: string }[] = [

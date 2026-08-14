@@ -8,63 +8,38 @@ import {
   Handshake,
   Users,
   WandSparkles,
+  type LucideIcon,
 } from "lucide-react";
 import { Container, CTASection, Section, SectionLabel } from "@/components/ui";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/sanity-i18n";
+import { getIconCardIcon } from "@/lib/iconCardIcons";
 import { isSanityConfigured } from "@/sanity/env";
+import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { aboutPageQuery } from "@/sanity/queries/pages";
 
-// These 3 in-page sub-navigation link groups (icon + label + href) have no
-// matching schema field on aboutPage — only their surrounding prose is
-// modeled — so their labels are translated here directly rather than left
-// English-only, since they duplicate labels already used in `navigation`.
-const linkLabels: Record<Locale, Record<string, string>> = {
-  en: {
-    "Host at RORUM": "Host at RORUM",
-    "Attend Events": "Attend Events",
-    Catering: "Catering",
-    "Event Decoration": "Event Decoration",
-    "WECODA membership": "WECODA membership",
-    "Work with us": "Work with us",
-    "Volunteer with us": "Volunteer with us",
-  },
-  da: {
-    "Host at RORUM": "Vær vært hos RORUM",
-    "Attend Events": "Deltag i events",
-    Catering: "Catering",
-    "Event Decoration": "Eventdekoration",
-    "WECODA membership": "WECODA-medlemskab",
-    "Work with us": "Arbejd med os",
-    "Volunteer with us": "Bliv frivillig hos os",
-  },
-  uk: {
-    "Host at RORUM": "Проведіть подію в RORUM",
-    "Attend Events": "Відвідати події",
-    Catering: "Кейтеринг",
-    "Event Decoration": "Декор подій",
-    "WECODA membership": "Членство у WECODA",
-    "Work with us": "Працюйте з нами",
-    "Volunteer with us": "Станьте волонтером",
-  },
-};
-
-const introLinks = [
+const fallbackIntroLinks: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/host-at-rorum", label: "Host at RORUM", icon: CalendarPlus },
   { href: "/events", label: "Attend Events", icon: CalendarCheck },
 ];
 
-const serviceLinks = [
+const fallbackServiceLinks: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/catering", label: "Catering", icon: ChefHat },
   { href: "/event-decoration", label: "Event Decoration", icon: WandSparkles },
 ];
 
-const communityLinks = [
+const fallbackCommunityQuickLinks: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/community-membership", label: "WECODA membership", icon: Users },
   { href: "/work-with-us", label: "Work with us", icon: Handshake },
   { href: "/volunteer", label: "Volunteer with us", icon: HandHeart },
+];
+
+const fallbackAtmosphereImages = [
+  { image: "/images/about/about-room-borscht.png", alt: "Ukrainian borscht with pampushky prepared for a RORUM gathering" },
+  { image: "/images/space/space-about-room.png", alt: "Warm RORUM room prepared for a meeting" },
+  { image: "/images/decoration/decoration-floral-table.png", alt: "Decorated table with flowers and place settings" },
 ];
 
 const INLINE_LINK_CLASS =
@@ -115,11 +90,38 @@ async function getData(locale: Locale) {
       ...fallback,
       pillars: fallbackPillars.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text })),
       closingLinks: closingLinksFallback,
+      introLinks: fallbackIntroLinks.map(({ href, label, icon }) => ({ href, label, Icon: icon })),
+      serviceLinks: fallbackServiceLinks.map(({ href, label, icon }) => ({ href, label, Icon: icon })),
+      communityQuickLinks: fallbackCommunityQuickLinks.map(({ href, label, icon }) => ({ href, label, Icon: icon })),
+      atmosphereImages: fallbackAtmosphereImages,
     };
   }
 
   const { data: page } = await sanityFetch({ query: aboutPageQuery });
-  const community = page?.values?.[0];
+
+  function resolveIconLinks(
+    links: typeof page extends null | undefined ? never : NonNullable<typeof page>["introLinks"],
+    fb: { href: string; label: string; icon: LucideIcon }[],
+  ) {
+    return links?.length
+      ? links.map((l, i) => ({
+          href: l?.href ?? fb[i]?.href ?? "/",
+          label: pickLocalized(l?.label, locale) ?? fb[i]?.label ?? "",
+          Icon: l?.icon ? getIconCardIcon(l.icon) : (fb[i]?.icon ?? CalendarPlus),
+        }))
+      : fb.map(({ href, label, icon }) => ({ href, label, Icon: icon }));
+  }
+
+  const atmosphereImages = page?.atmosphereImages?.length
+    ? page.atmosphereImages.map((img, i) => ({
+        image:
+          urlForImage(img as unknown as Parameters<typeof urlForImage>[0])
+            ?.width(700)
+            .url() ?? fallbackAtmosphereImages[i]?.image ?? "",
+        alt: pickLocalized(img?.alt, locale) ?? fallbackAtmosphereImages[i]?.alt ?? "",
+      }))
+    : fallbackAtmosphereImages;
+
   const pillars = page?.pillars?.length
     ? page.pillars.map((p, i) => ({
         number: String(i + 1).padStart(2, "0"),
@@ -141,8 +143,8 @@ async function getData(locale: Locale) {
     heroLead: pickLocalized(page?.heroLead, locale) ?? fallback.heroLead,
     statementTitle: pickLocalized(page?.statementTitle, locale) ?? fallback.statementTitle,
     statementText: pickLocalized(page?.statementText, locale) ?? fallback.statementText,
-    communityTitle: pickLocalized(community?.title, locale) ?? fallback.communityTitle,
-    communityText: pickLocalized(community?.text, locale) ?? fallback.communityText,
+    communityTitle: pickLocalized(page?.communityTitle, locale) ?? fallback.communityTitle,
+    communityText: pickLocalized(page?.communityText, locale) ?? fallback.communityText,
     pillarsLabel: pickLocalized(page?.pillarsLabel, locale) ?? fallback.pillarsLabel,
     locationTitle: pickLocalized(page?.locationTitle, locale) ?? fallback.locationTitle,
     locationText: pickLocalized(page?.locationText, locale) ?? fallback.locationText,
@@ -155,6 +157,10 @@ async function getData(locale: Locale) {
     closingFaqLabel: pickLocalized(page?.closingSection?.faqLabel, locale) ?? fallback.closingFaqLabel,
     pillars,
     closingLinks,
+    introLinks: resolveIconLinks(page?.introLinks, fallbackIntroLinks),
+    serviceLinks: resolveIconLinks(page?.serviceLinks, fallbackServiceLinks),
+    communityQuickLinks: resolveIconLinks(page?.communityLinks, fallbackCommunityQuickLinks),
+    atmosphereImages,
   };
 }
 
@@ -191,8 +197,11 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     closingFaqQuestion,
     closingFaqLabel,
     closingLinks,
+    introLinks,
+    serviceLinks,
+    communityQuickLinks,
+    atmosphereImages,
   } = await getData(locale);
-  const t = (label: string) => linkLabels[locale][label] ?? label;
 
   return (
     <>
@@ -211,14 +220,14 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 className="flex flex-wrap gap-2.5 mt-1.5"
                 aria-label="RORUM event paths"
               >
-                {introLinks.map(({ href, label, icon: Icon }) => (
+                {introLinks.map(({ href, label, Icon }) => (
                   <Link className={INLINE_LINK_CLASS} href={href} key={href}>
                     <Icon
                       className="w-4 h-4 text-red"
                       aria-hidden="true"
                       strokeWidth={1.8}
                     />
-                    {t(label)}
+                    {label}
                   </Link>
                 ))}
               </div>
@@ -233,14 +242,14 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                   className="flex flex-wrap gap-2.5 mt-1.5"
                   aria-label="RORUM service paths"
                 >
-                  {serviceLinks.map(({ href, label, icon: Icon }) => (
+                  {serviceLinks.map(({ href, label, Icon }) => (
                     <Link className={INLINE_LINK_CLASS} href={href} key={href}>
                       <Icon
                         className="w-4 h-4 text-red"
                         aria-hidden="true"
                         strokeWidth={1.8}
                       />
-                      {t(label)}
+                      {label}
                     </Link>
                   ))}
                 </div>
@@ -256,14 +265,14 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                   className="flex flex-wrap gap-2.5 mt-0"
                   aria-label="Community paths"
                 >
-                  {communityLinks.map(({ href, label, icon: Icon }) => (
+                  {communityQuickLinks.map(({ href, label, Icon }) => (
                     <Link className={INLINE_LINK_CLASS} href={href} key={href}>
                       <Icon
                         className="w-4 h-4 text-red"
                         aria-hidden="true"
                         strokeWidth={1.8}
                       />
-                      {t(label)}
+                      {label}
                     </Link>
                   ))}
                 </div>
@@ -273,21 +282,14 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
               className="grid grid-cols-[minmax(0,1fr)_minmax(0,0.72fr)] grid-rows-[repeat(2,minmax(170px,1fr))] gap-3 min-h-[clamp(380px,43vw,560px)] max-lg:min-h-auto max-lg:grid-rows-[auto] max-sm:grid-cols-1"
               aria-label="RORUM atmosphere"
             >
-              <img
-                className={`${VISUAL_IMG_CLASS} row-span-2 max-sm:[grid-row:auto]`}
-                src="/images/about/about-room-borscht.png"
-                alt="Ukrainian borscht with pampushky prepared for a RORUM gathering"
-              />
-              <img
-                className={VISUAL_IMG_CLASS}
-                src="/images/space/space-about-room.png"
-                alt="Warm RORUM room prepared for a meeting"
-              />
-              <img
-                className={VISUAL_IMG_CLASS}
-                src="/images/decoration/decoration-floral-table.png"
-                alt="Decorated table with flowers and place settings"
-              />
+              {atmosphereImages.map(({ image, alt }, i) => (
+                <img
+                  className={`${VISUAL_IMG_CLASS} ${i === 0 ? "row-span-2 max-sm:[grid-row:auto]" : ""}`}
+                  src={image}
+                  alt={alt}
+                  key={image}
+                />
+              ))}
             </div>
           </div>
         </Container>

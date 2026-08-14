@@ -8,12 +8,22 @@ export default defineType({
   // No `groups`/tabs: all fields render on one continuous page, in the same
   // top-to-bottom order the corresponding sections appear on the site.
   fieldsets: [
+    { name: "heroSection", title: "Hero", options: { collapsible: true, collapsed: false } },
     { name: "sessionSection", title: "Session details", options: { collapsible: true, collapsed: false } },
     { name: "packagesSection", title: "Packages", options: { collapsible: true, collapsed: false } },
     { name: "inquirySection", title: "Inquiry section", options: { collapsible: true, collapsed: false } },
+    { name: "seoSection", title: "SEO", options: { collapsible: true, collapsed: true } },
   ],
   fields: [
-    defineField({ name: "hero", title: "Hero", type: "serviceHero" }),
+    defineField({ name: "hero", title: "Hero", type: "serviceHero", fieldset: "heroSection" }),
+    defineField({
+      name: "gallery",
+      title: "Gallery images",
+      type: "array",
+      fieldset: "heroSection",
+      of: [defineArrayMember({ type: "imageWithAlt" })],
+      description: "The photos shown in the hero gallery, in order. / Фото в галереї на початку сторінки, у порядку показу.",
+    }),
     defineField({
       name: "sessionLabel",
       title: "Session details label",
@@ -87,6 +97,13 @@ export default defineType({
       of: [defineArrayMember({ type: "packageTier" })],
       description: "The pricing tiers (morning/afternoon/full-day session). / Тарифні плани (ранкова/денна/повноденна сесія).",
     }),
+    // packagesFooterCtaLabel, packagesFooterText, selectPackageCta and
+    // requestProcessAriaLabel below are modeled as `labels` (an array of
+    // {key, value} pairs, see objects/keyedString.ts) instead of 4 named
+    // fields — this project is close to Sanity's Content Lake cap on total
+    // distinct attribute paths a schema can register; consolidating several
+    // small strings into one reusable array field costs far fewer paths
+    // than one named field each.
     defineField({
       name: "cancellationTitle",
       title: "Cancellation policy title",
@@ -153,7 +170,15 @@ export default defineType({
       fieldset: "inquirySection",
       description: "Shown after the form is submitted successfully. / Показується після успішної відправки форми.",
     }),
-    defineField({ name: "seo", title: "SEO", type: "seo" }),
+    defineField({
+      name: "labels",
+      title: "Additional labels",
+      type: "array",
+      of: [defineArrayMember({ type: "keyedString" })],
+      description:
+        "Small shared strings: the package-card button, the \"get in touch\" note under the intro (keys packagesFooterCtaLabel/packagesFooterText), and the numbered-steps accessible label (key requestProcessAriaLabel). / Невеликі спільні написи: кнопка картки пакета, примітка «зв'яжіться з нами» під вступним текстом (ключі packagesFooterCtaLabel/packagesFooterText) і напис для програм читання з екрана для пронумерованих кроків (ключ requestProcessAriaLabel).",
+    }),
+    defineField({ name: "seo", title: "SEO", type: "seo", fieldset: "seoSection" }),
   ],
   preview: {
     prepare() {

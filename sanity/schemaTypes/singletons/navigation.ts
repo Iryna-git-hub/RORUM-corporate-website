@@ -32,6 +32,14 @@ export default defineType({
       description:
         'E.g. "Let\'s Talk" — the button always visible in the header, links to /contact. / Напр. «Поговорімо» — кнопка, що завжди видима в шапці сайту, веде на сторінку /contact.',
     }),
+    defineField({
+      name: "labels",
+      title: "Additional labels",
+      type: "array",
+      of: [defineArrayMember({ type: "keyedString" })],
+      description:
+        "Small shared strings: the mobile menu's \"Home\" link (key homeLabel) and the hamburger open/close accessible labels (keys openMenuLabel/closeMenuLabel). / Невеликі спільні написи: посилання «Головна» в мобільному меню (ключ homeLabel) і написи для програм читання з екрана для відкриття/закриття меню (ключі openMenuLabel/closeMenuLabel).",
+    }),
   ],
   preview: {
     prepare() {

@@ -1,4 +1,4 @@
-import { defineArrayMember, defineField, defineType } from "sanity";
+import { defineField, defineType } from "sanity";
 
 // FAQ entries are inline objects within a group, not their own top-level
 // documents: they're always displayed as part of exactly one group's
@@ -38,35 +38,7 @@ export default defineType({
       title: "Questions",
       type: "array",
       description: "The questions and answers in this group. / Запитання та відповіді в цій групі.",
-      of: [
-        defineArrayMember({
-          type: "object",
-          name: "faqItem",
-          fields: [
-            defineField({
-              name: "question",
-              title: "Question",
-              type: "internationalizedArrayString",
-              description: "The question text. / Текст запитання.",
-            }),
-            defineField({
-              name: "answer",
-              title: "Answer",
-              type: "internationalizedArrayText",
-              description: "The answer text. / Текст відповіді.",
-            }),
-          ],
-          preview: {
-            select: { question: "question" },
-            prepare({ question }) {
-              const en = (question as { _key: string; language?: string; value?: string }[] | undefined)?.find(
-                (v) => v.language === "en" || v._key === "en",
-              );
-              return { title: en?.value ?? "(untitled question)" };
-            },
-          },
-        }),
-      ],
+      of: [{ type: "faqItem" }],
     }),
   ],
   preview: {

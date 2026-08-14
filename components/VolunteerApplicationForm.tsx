@@ -7,14 +7,23 @@ import {
   PrivacyConsent,
   validatePrivacyConsent,
 } from "@/components/PrivacyConsent";
+import { useFormContent } from "@/components/FormContentProvider";
 import { formspreeConfig, submitToFormspree } from "@/lib/formspree";
 
-const requiredFields: [name: string, label: string][] = [
-  ["name", "Full Name"],
-  ["email", "Email"],
-  ["phone", "Phone number"],
-  ["message", "Message"],
-];
+export interface VolunteerFormContent {
+  modalTitle: string;
+  messagePlaceholder: string;
+  successMessage: string;
+  errorMessage: string;
+}
+
+const defaultVolunteerFormContent: VolunteerFormContent = {
+  modalTitle: "Volunteer With Us",
+  messagePlaceholder:
+    "Tell us what kinds of activities you would be interested in helping with and how you would like to contribute.",
+  successMessage: "Thank you. Your volunteer application has been sent to the RORUM team.",
+  errorMessage: "We could not send your application. Please check your connection and try again.",
+};
 
 // Matches InquiryForm.tsx's field styling exactly: both forms render the
 // same visual design, just from a different starting cascade (this one used
@@ -32,15 +41,18 @@ function validateField(
   name: string,
   value: FormDataEntryValue | null,
   label: string,
+  requiredFieldTemplate: string,
+  invalidEmailMessage: string,
+  invalidPhoneMessage: string,
 ): string {
   const stringValue = String(value ?? "").trim();
 
-  if (!stringValue) return `${label} is required.`;
+  if (!stringValue) return requiredFieldTemplate.replace("{field}", label);
   if (name === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
-    return "Please enter a valid email address.";
+    return invalidEmailMessage;
   }
   if (name === "phone" && !/^[+()\d\s.-]{7,20}$/.test(stringValue)) {
-    return "Please enter a valid phone number.";
+    return invalidPhoneMessage;
   }
 
   return "";
@@ -54,7 +66,20 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   ) : null;
 }
 
-function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
+function VolunteerApplicationDialog({
+  onClose,
+  content = defaultVolunteerFormContent,
+}: {
+  onClose: () => void;
+  content?: VolunteerFormContent;
+}) {
+  const { messages } = useFormContent();
+  const requiredFields: [name: string, label: string][] = [
+    ["name", messages.fullNameLabel],
+    ["email", messages.emailLabel],
+    ["phone", messages.phoneLabel],
+    ["message", messages.messageLabel],
+  ];
   const submissionLock = useRef(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,7 +95,14 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
     const nextErrors: Record<string, string> = {};
 
     requiredFields.forEach(([name, label]) => {
-      const error = validateField(name, formData.get(name), label);
+      const error = validateField(
+        name,
+        formData.get(name),
+        label,
+        messages.requiredFieldTemplate,
+        messages.invalidEmailMessage,
+        messages.invalidPhoneMessage,
+      );
       if (error) nextErrors[name] = error;
     });
 
@@ -91,8 +123,8 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
     } catch (error: unknown) {
       setSubmitError(
         error instanceof Error && error.message === "FORMSPREE_NOT_CONFIGURED"
-          ? "Applications are temporarily unavailable because Formspree has not been configured yet. Please try again later."
-          : "We could not send your application. Please check your connection and try again.",
+          ? messages.formNotConfiguredMessage
+          : content.errorMessage,
       );
     } finally {
       submissionLock.current = false;
@@ -125,7 +157,7 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
           id="volunteer-modal-title"
           className="m-0 text-text-primary font-body text-[clamp(17px,1.35vw,20px)] leading-tight font-black tracking-normal normal-case"
         >
-          Volunteer With Us
+          {content.modalTitle}
         </h2>
       </div>
 
@@ -134,8 +166,7 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
           className="border border-[rgba(var(--rgb-light-green),0.28)] rounded-none bg-[rgba(var(--rgb-beige),0.24)] p-3.5 text-primary-dark font-bold"
           role="status"
         >
-          Thank you. Your volunteer application has been sent to the RORUM
-          team.
+          {content.successMessage}
         </div>
       ) : null}
 
@@ -149,13 +180,13 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
       ) : null}
 
       <label htmlFor="volunteer-name" className={LABEL_CLASS}>
-        Full Name<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+        {messages.fullNameLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
         <input
           id="volunteer-name"
           name="name"
           type="text"
           autoComplete="name"
-          placeholder="Full Name"
+          placeholder={messages.fullNameLabel}
           required
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? "volunteer-name-error" : undefined}
@@ -166,7 +197,7 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
 
       <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
         <label htmlFor="volunteer-email" className={LABEL_CLASS}>
-          Email<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+          {messages.emailLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id="volunteer-email"
             name="email"
@@ -184,7 +215,7 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
         </label>
 
         <label htmlFor="volunteer-phone" className={LABEL_CLASS}>
-          Phone number<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+          {messages.phoneLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id="volunteer-phone"
             name="phone"
@@ -204,12 +235,12 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
       </div>
 
       <label htmlFor="volunteer-message" className={LABEL_CLASS}>
-        Message<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+        {messages.messageLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
         <textarea
           id="volunteer-message"
           name="message"
           rows={6}
-          placeholder="Tell us what kinds of activities you would be interested in helping with and how you would like to contribute."
+          placeholder={content.messagePlaceholder}
           required
           aria-invalid={Boolean(errors.message)}
           aria-describedby={
@@ -231,10 +262,10 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
         disabled={isSubmitting || sent}
       >
         {isSubmitting
-          ? "Sending..."
+          ? messages.sendingLabel
           : sent
-            ? "Application Sent"
-            : "Send Application"}
+            ? messages.applicationSentLabel
+            : messages.sendApplicationLabel}
       </button>
     </form>
     </ApplicationModal>
@@ -244,9 +275,11 @@ function VolunteerApplicationDialog({ onClose }: { onClose: () => void }) {
 export function VolunteerApplicationButton({
   children = "Apply to volunteer",
   className = "btn",
+  content,
 }: {
   children?: ReactNode;
   className?: string;
+  content?: VolunteerFormContent;
 }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -268,7 +301,7 @@ export function VolunteerApplicationButton({
       >
         {children}
       </button>
-      {open ? <VolunteerApplicationDialog onClose={closeModal} /> : null}
+      {open ? <VolunteerApplicationDialog onClose={closeModal} content={content} /> : null}
     </>
   );
 }

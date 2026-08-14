@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { ArrowRight, HandHeart, Rocket, Users } from "lucide-react";
 import { Container, SectionLabel } from "@/components/ui";
-import { VolunteerApplicationButton } from "@/components/VolunteerApplicationForm";
+import { VolunteerApplicationButton, type VolunteerFormContent } from "@/components/VolunteerApplicationForm";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { compact, pickLocalized } from "@/lib/sanity-i18n";
 import { getIconCardIcon } from "@/lib/iconCardIcons";
 import { isSanityConfigured } from "@/sanity/env";
+import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { volunteerPageQuery } from "@/sanity/queries/pages";
 
@@ -28,6 +29,17 @@ const fallbackHighlights = [
   { text: "Build something together.", icon: Rocket },
 ];
 
+const fallbackHeroImage = "/images/events/volunteer-with-us.png";
+const fallbackHeroImageAlt = "RORUM volunteers welcoming guests and preparing a gathering";
+
+const fallbackApplicationForm: VolunteerFormContent = {
+  modalTitle: "Volunteer With Us",
+  messagePlaceholder:
+    "Tell us what kinds of activities you would be interested in helping with and how you would like to contribute.",
+  successMessage: "Thank you. Your volunteer application has been sent to the RORUM team.",
+  errorMessage: "We could not send your application. Please check your connection and try again.",
+};
+
 const fallback = {
   heroLabel: "Volunteer with us",
   heroTitle: "Volunteer at RORUM",
@@ -42,6 +54,9 @@ async function getData(locale: Locale) {
       heroParagraphs: fallbackHeroParagraphs,
       closingParagraphs: fallbackClosingParagraphs,
       highlights: fallbackHighlights.map((h) => ({ text: h.text, Icon: h.icon })),
+      heroImage: fallbackHeroImage,
+      heroImageAlt: fallbackHeroImageAlt,
+      applicationForm: fallbackApplicationForm,
     };
   }
 
@@ -59,6 +74,15 @@ async function getData(locale: Locale) {
       }))
     : fallbackHighlights.map((h) => ({ text: h.text, Icon: h.icon }));
 
+  const applicationForm: VolunteerFormContent = {
+    modalTitle: pickLocalized(page?.applicationForm?.modalTitle, locale) ?? fallbackApplicationForm.modalTitle,
+    messagePlaceholder:
+      pickLocalized(page?.applicationForm?.messagePlaceholder, locale) ?? fallbackApplicationForm.messagePlaceholder,
+    successMessage:
+      pickLocalized(page?.applicationForm?.successMessage, locale) ?? fallbackApplicationForm.successMessage,
+    errorMessage: pickLocalized(page?.applicationForm?.errorMessage, locale) ?? fallbackApplicationForm.errorMessage,
+  };
+
   return {
     heroLabel: pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
     heroTitle: pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
@@ -67,6 +91,12 @@ async function getData(locale: Locale) {
     heroParagraphs,
     closingParagraphs,
     highlights,
+    heroImage:
+      urlForImage(page?.heroImage as unknown as Parameters<typeof urlForImage>[0])
+        ?.width(900)
+        .url() ?? fallbackHeroImage,
+    heroImageAlt: pickLocalized(page?.heroImage?.alt, locale) ?? fallbackHeroImageAlt,
+    applicationForm,
   };
 }
 
@@ -84,7 +114,8 @@ export async function generateMetadata({
 export default async function VolunteerPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { heroLabel, heroTitle, applyCta, heroParagraphs, closingParagraphs, highlights } = await getData(locale);
+  const { heroLabel, heroTitle, applyCta, heroParagraphs, closingParagraphs, highlights, heroImage, heroImageAlt, applicationForm } =
+    await getData(locale);
 
   return (
     <div>
@@ -127,7 +158,10 @@ export default async function VolunteerPage({ params }: { params: Promise<{ loca
                   </p>
                 ))}
               </div>
-              <VolunteerApplicationButton className="btn group min-h-[46px]! px-[clamp(20px,3vw,30px)]! max-sm:w-full!">
+              <VolunteerApplicationButton
+                className="btn group min-h-[46px]! px-[clamp(20px,3vw,30px)]! max-sm:w-full!"
+                content={applicationForm}
+              >
                 <span>{applyCta}</span>
                 <ArrowRight
                   className="button-arrow w-3.75 h-3.75 shrink-0 transition-transform duration-180 ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1"
@@ -138,8 +172,8 @@ export default async function VolunteerPage({ params }: { params: Promise<{ loca
             </div>
             <div className="relative min-h-[clamp(520px,56vw,720px)] overflow-hidden bg-beige lg:sticky lg:top-24 lg:self-start max-lg:min-h-[clamp(300px,48vw,440px)] max-sm:min-h-[280px]">
               <Image
-                src="/images/events/volunteer-with-us.png"
-                alt="RORUM volunteers welcoming guests and preparing a gathering"
+                src={heroImage}
+                alt={heroImageAlt}
                 fill
                 priority
                 sizes="(max-width: 980px) 100vw, 50vw"

@@ -1,4 +1,4 @@
-import { defineField, defineType } from "sanity";
+import { defineArrayMember, defineField, defineType } from "sanity";
 
 // The events LISTING page's own heading + closing CTA content. The events
 // themselves are separate `event` documents (see documents/event.ts).
@@ -47,6 +47,14 @@ export default defineType({
           description: "Link that resets all filters. / Посилання, що скидає всі фільтри.",
         }),
       ],
+    }),
+    defineField({
+      name: "labels",
+      title: "Additional labels",
+      type: "array",
+      of: [defineArrayMember({ type: "keyedString" })],
+      description:
+        "Shown when no events match the current filters (keys emptyStateTitle/emptyStateText). / Показується, коли жодна подія не відповідає фільтрам (ключі emptyStateTitle/emptyStateText).",
     }),
     defineField({ name: "closingSection", title: "Closing section", type: "nextStepSection" }),
     defineField({ name: "seo", title: "SEO", type: "seo" }),

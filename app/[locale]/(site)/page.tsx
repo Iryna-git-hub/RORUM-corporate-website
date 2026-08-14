@@ -22,6 +22,7 @@ import { isLocale, type Locale } from "@/lib/i18n";
 import { compact, pickLocalized } from "@/lib/sanity-i18n";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
 import { isSanityConfigured } from "@/sanity/env";
+import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { allEventsQuery } from "@/sanity/queries/events";
 import { homePageQuery } from "@/sanity/queries/pages";
@@ -35,9 +36,7 @@ import {
   Users,
 } from "lucide-react";
 
-// No `image` field on `homePage.services` (see schema comment there) — the 2
-// cards' images are matched by array index against Sanity's `services`
-// entries, same convention as `quickPathMeta` below.
+// Fallback only, used when Sanity has no `services[i].image` set yet.
 const serviceImages = ["/images/catering/catering-1.png", "/images/decoration/decoration-1.png"];
 
 const fallbackServices: ServiceTeaser[] = [
@@ -78,14 +77,19 @@ const fallbackQuickPaths: [title: string, text: string][] = [
 ];
 
 const fallback = {
+  heroImageUrl: "/images/hero.jpg",
+  heroVideoUrl: "/videos/home-hero.mp4",
   heroLabel: "Copenhagen event space",
   heroTitle: "A Copenhagen space for meaningful gatherings",
   heroText: "Attend events or host your own gathering in a calm, thoughtfully prepared space with support from the RORUM team.",
   heroTrustItems: ["Up to 12 guests", "Central Copenhagen", "On-site support", "Catering & decoration available"],
   hostAtRorumCta: "Host at RORUM",
   attendEventsCta: "Attend Events",
+  quickPathsLabel: "Quick paths",
+  quickPathsTitle: "Start with what you need.",
   eventsLabel: "What's on",
   eventsTitle: "Upcoming events at RORUM",
+  eventsViewAllLabel: "View all events",
   attendFeature: {
     eyebrow: "Meaningful Gatherings",
     title: "Attend Events",
@@ -93,6 +97,8 @@ const fallback = {
     description: "Discover workshops, conversations, and community experiences in the heart of Copenhagen.",
     features: ["Small-group experiences", "Up to 12 participants", "Central Copenhagen", "Community-focused"],
     cta: "Attend Events",
+    image: "/images/events/host-event-workshop-quickpath.png",
+    imageAlt: "Workshop gathering around a table at RORUM",
   },
   hostFeature: {
     eyebrow: "Your Gathering",
@@ -101,6 +107,8 @@ const fallback = {
     description: "A warm and flexible Copenhagen venue for workshops, meetings, and community gatherings of up to 12 guests.",
     features: ["Up to 12 guests", "Flexible room setup", "Central Copenhagen", "On-site support"],
     cta: "Host at RORUM",
+    image: "/images/events/private-meetings.png",
+    imageAlt: "Small hosted meeting in the RORUM room",
   },
   closingEyebrow: "Not sure where to start?",
   closingTitle: "Let's shape your idea together",
@@ -126,7 +134,7 @@ async function getData(locale: Locale) {
   if (!isSanityConfigured) {
     return {
       ...fallback,
-      quickPaths: fallbackQuickPaths.map(([title, text], i) => ({ title, text, ...quickPathMeta[i]! })),
+      quickPaths: fallbackQuickPaths.map(([title, text], i) => ({ title, text, ...quickPathMeta[i]!, cta: undefined as string | undefined })),
       services: fallbackServices,
       communityLinks: fallbackCommunityLinks,
       events: await eventsPromise,
@@ -139,9 +147,14 @@ async function getData(locale: Locale) {
     ? page.quickPaths.map((p, i) => ({
         title: pickLocalized(p?.title, locale) ?? fallbackQuickPaths[i]?.[0] ?? "",
         text: pickLocalized(p?.text, locale) ?? fallbackQuickPaths[i]?.[1] ?? "",
-        ...(quickPathMeta[i] ?? quickPathMeta[0]!),
+        href: (quickPathMeta[i] ?? quickPathMeta[0]!).href,
+        image:
+          urlForImage(p?.image as unknown as Parameters<typeof urlForImage>[0])
+            ?.width(700)
+            .url() ?? (quickPathMeta[i] ?? quickPathMeta[0]!).image,
+        cta: pickLocalized(p?.cta, locale),
       }))
-    : fallbackQuickPaths.map(([title, text], i) => ({ title, text, ...quickPathMeta[i]! }));
+    : fallbackQuickPaths.map(([title, text], i) => ({ title, text, ...quickPathMeta[i]!, cta: undefined }));
 
   const heroTrustItems = page?.heroTrustItems?.length
     ? compact(page.heroTrustItems.map((b) => pickLocalized(b?.text, locale)))
@@ -160,6 +173,11 @@ async function getData(locale: Locale) {
         ? compact(feature.features.map((b) => pickLocalized(b?.text, locale)))
         : fb.features,
       cta: pickLocalized(feature?.cta?.label, locale) ?? fb.cta,
+      image:
+        urlForImage(feature?.image as unknown as Parameters<typeof urlForImage>[0])
+          ?.width(900)
+          .url() ?? fb.image,
+      imageAlt: pickLocalized(feature?.image?.alt, locale) ?? fb.imageAlt,
     };
   }
 
@@ -169,7 +187,10 @@ async function getData(locale: Locale) {
         text: pickLocalized(s?.text, locale) ?? fallbackServices[i]?.text ?? "",
         cta: pickLocalized(s?.cta, locale) ?? fallbackServices[i]?.cta,
         href: s?.href ?? fallbackServices[i]?.href ?? "/",
-        image: serviceImages[i] ?? serviceImages[0]!,
+        image:
+          urlForImage(s?.image as unknown as Parameters<typeof urlForImage>[0])
+            ?.width(700)
+            .url() ?? serviceImages[i] ?? serviceImages[0]!,
       }))
     : fallbackServices;
 
@@ -200,9 +221,12 @@ async function getData(locale: Locale) {
     heroTrustItems,
     hostAtRorumCta: pickLocalized(page?.heroPrimaryCta?.label, locale) ?? fallback.hostAtRorumCta,
     attendEventsCta: pickLocalized(page?.heroSecondaryCta?.label, locale) ?? fallback.attendEventsCta,
+    quickPathsLabel: pickLocalized(page?.quickPathsLabel, locale) ?? fallback.quickPathsLabel,
+    quickPathsTitle: pickLocalized(page?.quickPathsTitle, locale) ?? fallback.quickPathsTitle,
     quickPaths,
     eventsLabel: pickLocalized(page?.eventsLabel, locale) ?? fallback.eventsLabel,
     eventsTitle: pickLocalized(page?.eventsTitle, locale) ?? fallback.eventsTitle,
+    eventsViewAllLabel: pickLocalized(page?.eventsViewAllLabel, locale) ?? fallback.eventsViewAllLabel,
     attendFeature: resolveFeature(page?.attendEventsFeature, fallback.attendFeature),
     hostFeature: resolveFeature(page?.hostAtRorumFeature, fallback.hostFeature),
     closingEyebrow: pickLocalized(page?.closingSection?.eyebrow, locale) ?? fallback.closingEyebrow,
@@ -218,6 +242,14 @@ async function getData(locale: Locale) {
     communityLabel: pickLocalized(page?.communityLabel, locale) ?? fallback.communityLabel,
     communityTitle: pickLocalized(page?.communityTitle, locale) ?? fallback.communityTitle,
     communityText: pickLocalized(page?.communityText, locale) ?? fallback.communityText,
+    communityImageUrl: urlForImage(page?.communityImage as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1600)
+      .url(),
+    heroImageUrl:
+      urlForImage(page?.heroImage as unknown as Parameters<typeof urlForImage>[0])
+        ?.width(1600)
+        .url() ?? fallback.heroImageUrl,
+    heroVideoUrl: page?.heroVideoUrl || fallback.heroVideoUrl,
     services,
     communityLinks,
     events,
@@ -252,8 +284,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         title={data.heroTitle}
         text={data.heroText}
         trustItems={data.heroTrustItems}
-        image="/images/hero.jpg"
-        video="/videos/home-hero.mp4"
+        image={data.heroImageUrl}
+        video={data.heroVideoUrl}
         actions={
           <>
             {/* `!important`: Button's own `.btn` base (deferred, still-
@@ -290,11 +322,11 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <section className="py-[clamp(52px,8vw,104px)] bg-white">
         <Container>
           <SectionHeader
-            label="Quick paths"
-            title="Start with what you need."
+            label={data.quickPathsLabel}
+            title={data.quickPathsTitle}
           />
           <QuickPathsGrid
-            items={data.quickPaths.map(({ title, text, href, image }) => [title, text, href, image])}
+            items={data.quickPaths.map(({ title, text, href, image, cta }) => [title, text, href, image, cta])}
           />
         </Container>
       </section>
@@ -306,7 +338,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               title={data.eventsTitle}
             />
             <Button href="/events" variant="event-all">
-              <span>View all events</span>
+              <span>{data.eventsViewAllLabel}</span>
               <ArrowRight
                 className="event-all-icon w-4.5 h-4.5 bg-transparent text-current transition-transform duration-200 ease-[ease] flex-none group-hover:translate-x-1"
                 aria-hidden="true"
@@ -314,7 +346,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               />
             </Button>
           </div>
-          <EventList events={data.events} variant="scroll" />
+          <EventList events={data.events} variant="scroll" locale={locale} />
         </Container>
       </Section>
       <EditorialFeatureSection
@@ -326,8 +358,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         featureIcons={[MessagesSquare, Users, MapPin, HeartHandshake]}
         ctaLabel={data.attendFeature.cta}
         ctaHref="/events"
-        image="/images/events/host-event-workshop-quickpath.png"
-        imageAlt="Workshop gathering around a table at RORUM"
+        image={data.attendFeature.image}
+        imageAlt={data.attendFeature.imageAlt}
       />
       <EditorialFeatureSection
         eyebrow={data.hostFeature.eyebrow}
@@ -338,8 +370,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         featureIcons={[Users, SlidersHorizontal, MapPin, HandHeart]}
         ctaLabel={data.hostFeature.cta}
         ctaHref="/host-at-rorum"
-        image="/images/events/private-meetings.png"
-        imageAlt="Small hosted meeting in the RORUM room"
+        image={data.hostFeature.image}
+        imageAlt={data.hostFeature.imageAlt}
         reversed
       />
       <ServicesTeaserSection
@@ -352,6 +384,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         title={data.communityTitle}
         text={data.communityText}
         links={data.communityLinks}
+        backgroundImage={data.communityImageUrl}
       />
       <CTASection
         variant="final"

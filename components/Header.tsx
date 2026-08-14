@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, MessageCircle, X } from "lucide-react";
 import { Fragment, useEffect, useId, useRef, useState } from "react";
 import { navItems as staticNavItems, type NavItem } from "@/lib/data";
-import { socialLinks } from "@/lib/siteConfig";
+import { socialLinks as fallbackSocialLinks } from "@/lib/siteConfig";
+import type { ResolvedSocialLink } from "@/lib/sanityContact";
 import { SocialIcon } from "@/components/SocialIcon";
 import { LocaleLink as Link } from "@/components/LocaleLink";
 import { Button, Container } from "@/components/ui";
@@ -34,10 +35,12 @@ function LanguageDropdown({
   className = "",
   currentLanguage,
   onLanguageChange,
+  languageSwitcherLabel,
 }: {
   className?: string;
   currentLanguage: string;
   onLanguageChange: (language: string) => void;
+  languageSwitcherLabel: string;
 }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -106,7 +109,7 @@ function LanguageDropdown({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
-        aria-label={`Language: ${currentLanguage}`}
+        aria-label={`${languageSwitcherLabel}: ${currentLanguage}`}
         onClick={() => setOpen((isOpen) => !isOpen)}
         onKeyDown={handleTriggerKeyDown}
       >
@@ -118,7 +121,7 @@ function LanguageDropdown({
         id={menuId}
         className={`${dropdownMenuBaseClass} right-0 min-w-[92px] z-[3] ${open ? dropdownMenuOpenClass : dropdownMenuClosedClass}`}
         role="menu"
-        aria-label="Choose language"
+        aria-label={languageSwitcherLabel}
         onKeyDown={handleMenuKeyDown}
       >
         {languages.map((language) => (
@@ -146,15 +149,17 @@ function LanguageDropdown({
 function MobileLanguageSwitcher({
   currentLanguage,
   onLanguageChange,
+  languageSwitcherLabel,
 }: {
   currentLanguage: string;
   onLanguageChange: (language: string) => void;
+  languageSwitcherLabel: string;
 }) {
   return (
     <div
       className="inline-flex items-center flex-none gap-2.5 rounded-full text-dark-brown bg-transparent backdrop-blur-[10px]"
       role="group"
-      aria-label="Language selector"
+      aria-label={languageSwitcherLabel}
       data-testid="mobile-language-switcher"
     >
       {languages.map((language, index) => (
@@ -184,9 +189,19 @@ const hamburgerSpanBase =
 export function Header({
   navItems = staticNavItems,
   contactCtaLabel = "Let's Talk",
+  socialLinks = fallbackSocialLinks,
+  homeLabel = "Home",
+  openMenuLabel = "Open menu",
+  closeMenuLabel = "Close menu",
+  languageSwitcherLabel = "Choose language",
 }: {
   navItems?: NavItem[];
   contactCtaLabel?: string;
+  socialLinks?: ResolvedSocialLink[];
+  homeLabel?: string;
+  openMenuLabel?: string;
+  closeMenuLabel?: string;
+  languageSwitcherLabel?: string;
 }) {
   const { locale, path } = useLocale();
   const router = useRouter();
@@ -319,7 +334,7 @@ export function Header({
                 (`max-[1100px]:`) doesn't combine into an AND'd media query
                 in this Tailwind version - it silently drops the `lg:` part.
                 A single raw arbitrary media query is unambiguous. */}
-            <div className="inline-flex items-center gap-2 px-4 py-[5px] rounded-full text-primary-dark backdrop-blur-[10px] m-0 text-[13px] [@media(min-width:1024px)_and_(max-width:1100px)]:hidden" role="group" aria-label="Language selector" data-testid="desktop-language-switcher">
+            <div className="inline-flex items-center gap-2 px-4 py-[5px] rounded-full text-primary-dark backdrop-blur-[10px] m-0 text-[13px] [@media(min-width:1024px)_and_(max-width:1100px)]:hidden" role="group" aria-label={languageSwitcherLabel} data-testid="desktop-language-switcher">
               {languages.map((language, index) => (
                 <Fragment key={language}>
                   {index ? <i aria-hidden="true" className="not-italic opacity-35">|</i> : null}
@@ -343,6 +358,7 @@ export function Header({
               className="hidden! [@media(min-width:1024px)_and_(max-width:1100px)]:inline-flex!"
               currentLanguage={currentLanguage}
               onLanguageChange={changeLanguage}
+              languageSwitcherLabel={languageSwitcherLabel}
             />
             <div className="flex-none">
               {/* `!important` on the color utilities: Tailwind's generated
@@ -361,7 +377,7 @@ export function Header({
           <button
             className={`relative z-[62] w-11.5 h-11.5 border-0 bg-transparent text-primary-dark cursor-pointer hidden max-lg:inline-flex ${menuOpen ? "opacity-0 pointer-events-none" : ""}`}
             type="button"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-label={menuOpen ? closeMenuLabel : openMenuLabel}
             aria-expanded={menuOpen}
             tabIndex={menuOpen ? -1 : 0}
             data-testid="mobile-menu-toggle"
@@ -376,7 +392,7 @@ export function Header({
       <button
         className={`fixed inset-0 z-50 border-0 bg-[rgba(var(--rgb-dark-green),0.42)] [transition:opacity_0.24s_ease,visibility_0.24s_ease] ${menuOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
         type="button"
-        aria-label="Close menu"
+        aria-label={closeMenuLabel}
         onClick={closeMenus}
       />
       <aside
@@ -401,11 +417,15 @@ export function Header({
           >
             {contactCtaLabel}
           </Link>
-          <MobileLanguageSwitcher currentLanguage={currentLanguage} onLanguageChange={changeLanguage} />
+          <MobileLanguageSwitcher
+            currentLanguage={currentLanguage}
+            onLanguageChange={changeLanguage}
+            languageSwitcherLabel={languageSwitcherLabel}
+          />
           <button
             className="inline-flex items-center justify-center flex-none w-10.5 h-10.5 border-0 rounded-full bg-transparent text-dark-brown cursor-pointer transition-[color,background-color] duration-180 ease-[ease] ml-auto hover:bg-[rgba(var(--rgb-dark-green),0.1)] hover:text-white hover:outline-none focus-visible:bg-[rgba(var(--rgb-dark-green),0.1)] focus-visible:text-white focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-beige)]"
             type="button"
-            aria-label="Close menu"
+            aria-label={closeMenuLabel}
             onClick={closeMenus}
           >
             <X aria-hidden="true" strokeWidth={2} className="w-[23px] h-[23px]" />
@@ -419,7 +439,7 @@ export function Header({
               aria-current={path === "/" ? "page" : undefined}
               onClick={closeMenus}
             >
-              <span className="min-w-0">Home</span>
+              <span className="min-w-0">{homeLabel}</span>
             </Link>
           </div>
           {navItems.map((item) => {

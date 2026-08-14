@@ -54,7 +54,7 @@ test.describe("Locale routing", () => {
     await page.getByTestId("mobile-menu-toggle").click();
 
     const mobileSwitcher = page.getByTestId("mobile-language-switcher");
-    await mobileSwitcher.getByText("UA", { exact: true }).click();
+    await mobileSwitcher.getByText("UK", { exact: true }).click();
 
     await expect(page).toHaveURL(/\/uk\/events\?date=week$/);
   });

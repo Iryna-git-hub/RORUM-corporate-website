@@ -16,9 +16,9 @@ import { getIconCardIcon } from "@/lib/iconCardIcons";
 import { eventDecorationGalleryImages } from "@/lib/galleryImages";
 import { resolveGalleryImages } from "@/lib/sanityGallery";
 import { isSanityConfigured } from "@/sanity/env";
+import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { eventDecorationPageQuery } from "@/sanity/queries/pages";
-import { galleryCollectionQuery } from "@/sanity/queries/gallery";
 
 const fallbackFormats: { title: string; text: string; icon: string }[] = [
   { title: "Table styling", text: "Elegant table setups with flowers, candles, place details and carefully selected visual accents.", icon: "UtensilsCrossed" },
@@ -50,7 +50,11 @@ const fallback = {
   title: "Event decoration",
   text: "Flowers, table styling, candles, balloon decor and visual details for warm, memorable events at RORUM or selected external locations.",
   requestCta: "Request decoration",
+  stylingLabel: "Decoration",
   stylingTitle: "What we style",
+  stylingImage: "/images/decoration/decoration-entrance-arch.png",
+  stylingImageAlt: "",
+  suitableForAriaLabel: "Suitable decoration formats",
   stylingIntro: [
     "We create decoration concepts that bring warmth, beauty and personality to your event.",
     "Our styling can include table settings, seasonal flowers, candles, balloon accents, textiles, decorative objects, photo moments and personal details. Each element is selected to work together as one cohesive atmosphere.",
@@ -78,12 +82,9 @@ async function getData(locale: Locale) {
     };
   }
 
-  const [{ data: page }, { data: galleryDoc }] = await Promise.all([
-    sanityFetch({ query: eventDecorationPageQuery }),
-    sanityFetch({ query: galleryCollectionQuery, params: { key: "event-decoration" } }),
-  ]);
+  const { data: page } = await sanityFetch({ query: eventDecorationPageQuery });
 
-  const galleryImages = resolveGalleryImages(galleryDoc, locale, eventDecorationGalleryImages);
+  const galleryImages = resolveGalleryImages(page?.gallery, locale, eventDecorationGalleryImages);
 
   const stylingIntro = page?.stylingIntro?.length
     ? page.stylingIntro.map((p) => pickLocalized(p?.text, locale)).filter((v): v is NonNullable<typeof v> => v != null)
@@ -114,9 +115,17 @@ async function getData(locale: Locale) {
     title: pickLocalized(page?.hero?.title, locale) ?? fallback.title,
     text: pickLocalized(page?.hero?.text, locale) ?? fallback.text,
     requestCta: pickLocalized(page?.hero?.primaryCta?.label, locale) ?? fallback.requestCta,
+    stylingLabel: pickLocalized(page?.stylingLabel, locale) ?? fallback.stylingLabel,
     stylingTitle: pickLocalized(page?.stylingTitle, locale) ?? fallback.stylingTitle,
     stylingIntro,
+    stylingImage:
+      urlForImage(page?.stylingImage as unknown as Parameters<typeof urlForImage>[0])
+        ?.width(900)
+        .url() ?? fallback.stylingImage,
+    stylingImageAlt: pickLocalized(page?.stylingImage?.alt, locale) ?? fallback.stylingImageAlt,
     suitableForLabel: pickLocalized(page?.suitableForLabel, locale) ?? fallback.suitableForLabel,
+    suitableForAriaLabel:
+      pickLocalized(page?.suitableForAriaLabel, locale) ?? fallback.suitableForAriaLabel,
     tailoredTitle: pickLocalized(page?.tailoredNote?.title, locale) ?? fallback.tailoredTitle,
     tailoredText: pickLocalized(page?.tailoredNote?.text, locale) ?? fallback.tailoredText,
     stepsTitle: pickLocalized(page?.stepsTitle, locale) ?? fallback.stepsTitle,
@@ -191,12 +200,12 @@ export default async function DecorationPage({ params }: { params: Promise<{ loc
             </p>
             <div
               className="flex flex-wrap gap-2.5"
-              aria-label="Suitable decoration formats"
+              aria-label={data.suitableForAriaLabel}
             >
               {data.suitableFor.map(({ label, Icon }) => (
                 <span
                   key={label}
-                  className="inline-flex items-center gap-2 min-h-[38px] px-[13px] bg-[rgba(var(--rgb-beige),0.5)] text-red text-[13.5px] font-[850]"
+                  className="inline-flex items-center gap-2 min-h-[38px] px-[13px] bg-[rgba(var(--rgb-beige),0.5)] text-red text-[13.5px] font-[800]"
                 >
                   <Icon
                     className="w-4 h-4 text-red"
@@ -215,7 +224,7 @@ export default async function DecorationPage({ params }: { params: Promise<{ loc
         <Container>
           <div className="grid grid-cols-[minmax(0,0.95fr)_minmax(320px,0.8fr)] gap-[clamp(28px,5vw,68px)] items-start max-lg:grid-cols-1">
             <div className="grid gap-4 max-w-[820px]">
-              <SectionLabel>Decoration</SectionLabel>
+              <SectionLabel>{data.stylingLabel}</SectionLabel>
               <h2 className="font-heading font-medium text-text-primary m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] leading-[1.25] tracking-[0] normal-case">
                 {data.stylingTitle}
               </h2>
@@ -238,7 +247,7 @@ export default async function DecorationPage({ params }: { params: Promise<{ loc
                       />
                     </span>
                     <div>
-                      <h3 className="mb-1 text-text-primary font-body text-[clamp(16px,1.2vw,18px)] leading-[1.25] font-black">
+                      <h3 className="mb-1 text-text-primary font-body text-[clamp(16px,1.2vw,18px)] leading-[1.25] font-[800]">
                         {title}
                       </h3>
                       <p className="m-0 text-text-primary text-[15px] leading-[1.55]">
@@ -251,8 +260,8 @@ export default async function DecorationPage({ params }: { params: Promise<{ loc
             </div>
             <img
               className="block w-full h-[min(560px,48vw)] min-h-[360px] object-cover object-center shadow-[0_18px_40px_rgba(var(--rgb-brown),0.08)] self-start lg:sticky lg:top-24 max-sm:h-[280px] max-sm:min-h-[280px]"
-              src="/images/decoration/decoration-entrance-arch.png"
-              alt=""
+              src={data.stylingImage}
+              alt={data.stylingImageAlt}
             />
           </div>
           <div className="decoration-tailored-row">
@@ -297,7 +306,7 @@ export default async function DecorationPage({ params }: { params: Promise<{ loc
                       {number}
                     </span>
                     <div>
-                      <h3 className="mb-1 text-white font-body text-[clamp(16px,1.2vw,18px)] leading-[1.25] font-black">
+                      <h3 className="mb-1 text-white font-body text-[clamp(16px,1.2vw,18px)] leading-[1.25] font-[800]">
                         {title}
                       </h3>
                       <p className="text-[rgba(var(--rgb-cream),0.88)] text-[15px] leading-[1.55]">

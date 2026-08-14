@@ -27,18 +27,24 @@ export default defineType({
       description: "Intro paragraphs under the hero title. / Вступні абзаци під заголовком хіро-блоку.",
     }),
     defineField({ name: "logo", title: "WECODA logo", type: "imageWithAlt", fieldset: "heroSection", description: "The WECODA logo image. / Логотип WECODA." }),
+    defineField({
+      name: "membershipFormCta",
+      title: "\"Become a Member\" button (external application form)",
+      type: "ctaLink",
+      fieldset: "heroSection",
+      description: "Links to the external membership application form (e.g. a Google Form). / Посилання на зовнішню форму заявки на членство (напр. Google Форму).",
+    }),
     defineField({ name: "supportCta", title: "\"Support WECODA\" button", type: "ctaLink", fieldset: "heroSection" }),
     defineField({ name: "externalSiteCta", title: "\"WECODA website\" link", type: "ctaLink", fieldset: "heroSection" }),
     defineField({
       name: "donation",
       title: "Donation section",
       type: "object",
-      description:
-        "Bank details (Beneficiary, CVR, IBAN, etc.) are NOT localized here — they're facts, hardcoded in components/WecodaDonationSection.tsx. / Банківські реквізити (отримувач, CVR, IBAN тощо) тут НЕ перекладаються — це факти, зашиті в коді components/WecodaDonationSection.tsx.",
       fields: [
         defineField({ name: "label", title: "Section label", type: "internationalizedArrayString", description: 'E.g. "Donation". / Напр. «Пожертва».' }),
         defineField({ name: "title", title: "Section title", type: "internationalizedArrayString", description: 'E.g. "Support the WECODA Community". / Напр. «Підтримайте спільноту WECODA».' }),
         defineField({ name: "text", title: "Intro text", type: "internationalizedArrayText", description: "Paragraph explaining what the donation supports. / Абзац про те, на що йде пожертва." }),
+        defineField({ name: "qrImage", title: "Donation QR code", type: "imageWithAlt", description: "QR code image linking to the donation payment. / Зображення QR-коду для оплати пожертви." }),
         defineField({ name: "scanText", title: "\"Scan to donate\"", type: "internationalizedArrayString", description: 'E.g. "Scan to donate". / Напр. «Скануйте, щоб зробити пожертву».' }),
         defineField({ name: "scanSubtext", title: "\"Fast, secure and easy.\"", type: "internationalizedArrayString", description: 'E.g. "Fast, secure and easy." / Напр. «Швидко, безпечно та просто».' }),
         defineField({ name: "orText", title: "\"OR\" separator", type: "internationalizedArrayString", description: 'The word "OR" between QR code and bank transfer. / Слово «АБО» між QR-кодом і банківським переказом.' }),
@@ -49,6 +55,33 @@ export default defineType({
           description: 'E.g. "Prefer bank transfer? See our bank details on the right." / Напр. «Надаєте перевагу банківському переказу? Реквізити наведено праворуч».',
         }),
         defineField({ name: "bankDetailsTitle", title: "\"Bank Details\" heading", type: "internationalizedArrayString", description: 'E.g. "Bank Details". / Напр. «Банківські реквізити».' }),
+        defineField({
+          name: "bankFields",
+          title: "Bank details",
+          type: "array",
+          description:
+            "Each row shown in the bank-details list (Beneficiary, CVR, IBAN, etc). Drag to reorder. Values are facts, not translated. / Кожен рядок банківських реквізитів (отримувач, CVR, IBAN тощо). Перетягуйте, щоб змінити порядок. Значення — це факти, не перекладаються.",
+          of: [
+            defineArrayMember({
+              type: "object",
+              name: "bankField",
+              fields: [
+                defineField({ name: "label", title: "Label", type: "internationalizedArrayString", description: 'E.g. "IBAN". / Напр. «IBAN».' }),
+                defineField({ name: "value", title: "Value", type: "string", description: "The actual bank detail, e.g. an account number. / Сам реквізит, напр. номер рахунку." }),
+                defineField({ name: "copyable", title: "Show a copy button", type: "boolean", initialValue: false }),
+              ],
+              preview: {
+                select: { title: "label", subtitle: "value" },
+                prepare({ title, subtitle }) {
+                  const en = (title as { _key: string; language?: string; value?: string }[] | undefined)?.find(
+                    (v) => v.language === "en" || v._key === "en",
+                  );
+                  return { title: en?.value ?? "(untitled)", subtitle: subtitle as string | undefined };
+                },
+              },
+            }),
+          ],
+        }),
         defineField({ name: "supportText", title: "Closing support text", type: "internationalizedArrayText", description: "Closing paragraph thanking donors. / Завершальний абзац із подякою донорам." }),
       ],
     }),
@@ -75,11 +108,11 @@ export default defineType({
     }),
     defineField({
       name: "gallery",
-      title: "Gallery images",
+      title: "Gallery photos & videos",
       type: "array",
       fieldset: "gallerySection",
-      of: [defineArrayMember({ type: "imageWithAlt" })],
-      description: "Photos shown in the community gallery grid. / Фото у сітці галереї спільноти.",
+      of: [defineArrayMember({ type: "mediaGalleryItem" })],
+      description: "Photos and short videos shown in the community gallery grid. Drag to reorder. / Фото та короткі відео у сітці галереї спільноти. Перетягуйте, щоб змінити порядок.",
     }),
     defineField({
       name: "introSectionLabel",
@@ -115,8 +148,36 @@ export default defineType({
       title: "Benefits",
       type: "array",
       fieldset: "introSection",
-      of: [defineArrayMember({ type: "bulletText" })],
-      description: "Each benefit as \"Title — Description\" in one line. / Кожна перевага у форматі «Назва — опис» одним рядком.",
+      of: [
+        defineArrayMember({
+          type: "object",
+          name: "benefit",
+          fields: [
+            defineField({
+              name: "icon",
+              title: "Icon",
+              type: "image",
+              description: "Small icon image (this page uses custom artwork, not the Lucide icon set used elsewhere). / Невелике зображення-іконка (ця сторінка використовує власні зображення, а не набір іконок Lucide, що використовується деінде).",
+            }),
+            defineField({
+              name: "text",
+              title: "Benefit",
+              type: "internationalizedArrayString",
+              description: 'As "Title — Description" in one line. / Як «Назва — опис» одним рядком.',
+            }),
+          ],
+          preview: {
+            select: { title: "text", media: "icon" },
+            prepare({ title, media }) {
+              const en = (title as { _key: string; language?: string; value?: string }[] | undefined)?.find(
+                (v) => v.language === "en" || v._key === "en",
+              );
+              return { title: en?.value ?? "(untitled)", media };
+            },
+          },
+        }),
+      ],
+      description: "Each benefit with its icon, as \"Title — Description\" in one line. / Кожна перевага зі своєю іконкою, у форматі «Назва — опис» одним рядком.",
     }),
     defineField({
       name: "audiencesTitle",
@@ -132,6 +193,13 @@ export default defineType({
       fieldset: "introSection",
       of: [defineArrayMember({ type: "bulletText" })],
       description: "List of who the membership is aimed at (not currently shown on the site). / Список тих, кому призначене членство (наразі не показується на сайті).",
+    }),
+    defineField({
+      name: "statementText",
+      title: "Membership panel statement",
+      type: "internationalizedArrayString",
+      fieldset: "applicationSection",
+      description: 'Short statement shown in the dark membership panel, e.g. "Together, we are building a strong international community." / Короткий напис у темній панелі членства, напр. «Разом ми будуємо сильну міжнародну спільноту».',
     }),
     defineField({
       name: "applicationTitle",

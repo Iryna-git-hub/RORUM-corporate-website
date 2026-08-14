@@ -11,6 +11,7 @@ export default defineType({
   // don't split the form into tabs.
   fieldsets: [
     { name: "heroSection", title: "Hero", options: { collapsible: true, collapsed: false } },
+    { name: "quickPathsSection", title: "Quick paths", options: { collapsible: true, collapsed: false } },
     { name: "editorialSection", title: "Editorial sections", options: { collapsible: true, collapsed: false } },
     { name: "servicesSection", title: "Services teaser", options: { collapsible: true, collapsed: false } },
     { name: "communitySection", title: "Community teaser", options: { collapsible: true, collapsed: false } },
@@ -38,9 +39,24 @@ export default defineType({
     defineField({ name: "heroPrimaryCta", title: "Hero primary button", type: "ctaLink", fieldset: "heroSection" }),
     defineField({ name: "heroSecondaryCta", title: "Hero secondary button", type: "ctaLink", fieldset: "heroSection" }),
     defineField({
+      name: "quickPathsLabel",
+      title: "Quick paths section label",
+      type: "internationalizedArrayString",
+      fieldset: "quickPathsSection",
+      description: 'E.g. "Quick paths". / Напр. «Швидкі шляхи».',
+    }),
+    defineField({
+      name: "quickPathsTitle",
+      title: "Quick paths section title",
+      type: "internationalizedArrayString",
+      fieldset: "quickPathsSection",
+      description: 'E.g. "Start with what you need." / Напр. «Почніть з того, що вам потрібно».',
+    }),
+    defineField({
       name: "quickPaths",
       title: "Quick paths",
       type: "array",
+      fieldset: "quickPathsSection",
       description: "The 4 cards linking to Events / Host at RORUM / Catering / Event decoration. / 4 картки з посиланнями на Події / Проведення подій у RORUM / Кейтеринг / Декор подій.",
       of: [
         defineArrayMember({
@@ -50,6 +66,7 @@ export default defineType({
             defineField({ name: "title", title: "Title", type: "internationalizedArrayString", description: "Card heading. / Заголовок картки." }),
             defineField({ name: "text", title: "Text", type: "internationalizedArrayText", description: "Card text. / Текст картки." }),
             defineField({ name: "href", title: "Link", type: "string", description: "Internal path, e.g. /events. / Внутрішній шлях, напр. /events." }),
+            defineField({ name: "cta", title: "Link label", type: "internationalizedArrayString", description: 'E.g. "Explore events". / Напр. «Дізнатися про події».' }),
             defineField({ name: "image", title: "Image", type: "imageWithAlt" }),
           ],
           preview: {
@@ -78,6 +95,13 @@ export default defineType({
       type: "internationalizedArrayString",
       fieldset: "editorialSection",
       description: 'E.g. "Upcoming events at RORUM". / Напр. «Найближчі події в RORUM».',
+    }),
+    defineField({
+      name: "eventsViewAllLabel",
+      title: '"View all events" button',
+      type: "internationalizedArrayString",
+      fieldset: "editorialSection",
+      description: 'E.g. "View all events". / Напр. «Переглянути всі події».',
     }),
     defineField({
       name: "attendEventsFeature",
@@ -122,6 +146,7 @@ export default defineType({
             defineField({ name: "text", title: "Text", type: "internationalizedArrayText", description: "Card text. / Текст картки." }),
             defineField({ name: "cta", title: "Link label", type: "internationalizedArrayString", description: 'E.g. "Explore catering". / Напр. «Дізнатися про кейтеринг».' }),
             defineField({ name: "href", title: "Link", type: "string", description: "Internal path, e.g. /catering. / Внутрішній шлях, напр. /catering." }),
+            defineField({ name: "image", title: "Image", type: "imageWithAlt" }),
           ],
           preview: {
             select: { title: "title" },
@@ -156,6 +181,13 @@ export default defineType({
       type: "internationalizedArrayText",
       fieldset: "communitySection",
       description: "Paragraph inviting visitors to join the community. / Абзац із запрошенням приєднатися до спільноти.",
+    }),
+    defineField({
+      name: "communityImage",
+      title: "Community teaser background image",
+      type: "imageWithAlt",
+      fieldset: "communitySection",
+      description: "Background photo behind the community teaser section. / Фонове фото за секцією про спільноту.",
     }),
     defineField({
       name: "communityLinks",

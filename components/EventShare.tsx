@@ -6,7 +6,8 @@ import { Link2, Mail, Share2 } from "lucide-react";
 import { SocialIcon } from "@/components/SocialIcon";
 import type { ShareAction } from "@/lib/data";
 
-const INSTAGRAM_COPY_MESSAGE =
+const DEFAULT_LINK_COPIED_MESSAGE = "Link copied";
+const DEFAULT_INSTAGRAM_COPY_MESSAGE =
   "Event link copied! You can now paste it into Instagram Stories, DMs, or your bio.";
 
 // Brand-color custom property consumed by .event-share-brand-link in
@@ -127,6 +128,8 @@ export function EventShare({
   url,
   actions,
   heading,
+  linkCopiedMessage = DEFAULT_LINK_COPIED_MESSAGE,
+  instagramCopyMessage = DEFAULT_INSTAGRAM_COPY_MESSAGE,
 }: {
   title: string;
   text?: string;
@@ -135,6 +138,8 @@ export function EventShare({
   actions: ShareAction[];
   /** Localized "Share with Friends" heading — resolved by the caller (see lib/uiText.ts). */
   heading: string;
+  linkCopiedMessage?: string;
+  instagramCopyMessage?: string;
 }) {
   const [feedback, setFeedback] = useState("");
   const shareText = text || "Join this event at RORUM";
@@ -185,7 +190,7 @@ export function EventShare({
     const currentUrl = getShareUrl();
     if (!currentUrl) return;
     const didCopy = await copyToClipboard(currentUrl).catch(() => false);
-    if (didCopy) showFeedback("Link copied");
+    if (didCopy) showFeedback(linkCopiedMessage);
   }
 
   async function shareEvent() {
@@ -216,7 +221,7 @@ export function EventShare({
 
     async function copyForInstagram() {
       const didCopy = await copyToClipboard(currentUrl).catch(() => false);
-      if (didCopy) showFeedback(INSTAGRAM_COPY_MESSAGE);
+      if (didCopy) showFeedback(instagramCopyMessage);
     }
 
     if (!isMobileDevice()) {
@@ -273,7 +278,7 @@ export function EventShare({
         }`}
         aria-live="polite"
       >
-        {feedback || "Link copied"}
+        {feedback || linkCopiedMessage}
       </span>
     </div>
   );

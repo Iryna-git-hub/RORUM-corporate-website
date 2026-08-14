@@ -3,7 +3,8 @@ import { LocaleLink as Link } from "@/components/LocaleLink";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Container } from "@/components/ui";
 import { SocialIcon } from "@/components/SocialIcon";
-import { contactDetails, socialLinks } from "@/lib/siteConfig";
+import { contactDetails as fallbackContactDetails, socialLinks as fallbackSocialLinks } from "@/lib/siteConfig";
+import type { ResolvedContactDetails, ResolvedSocialLink } from "@/lib/sanityContact";
 import { getUiText } from "@/lib/uiText";
 import type { Locale } from "@/lib/i18n";
 
@@ -86,12 +87,16 @@ export function Footer({
   legalLinks = legalLinksFallback,
   copyrightText = "© 2026 RORUM. All rights reserved.",
   contactDetailsLabel = "Contact details",
+  contactDetails = fallbackContactDetails,
+  socialLinks = fallbackSocialLinks,
   locale = "en",
 }: {
   columns?: { title: string; links: FooterLink[] }[];
   legalLinks?: FooterLink[];
   copyrightText?: string;
   contactDetailsLabel?: string;
+  contactDetails?: ResolvedContactDetails;
+  socialLinks?: ResolvedSocialLink[];
   locale?: Locale;
 }) {
   return (

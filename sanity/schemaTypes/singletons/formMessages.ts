@@ -1,4 +1,4 @@
-import { defineField, defineType } from "sanity";
+import { defineArrayMember, defineField, defineType } from "sanity";
 
 // Singleton. Only the strings genuinely shared across every form on the site
 // (Contact, Catering inquiry, booking/decoration inquiry, Volunteer,
@@ -151,6 +151,26 @@ export default defineType({
       title: "Guest-count out-of-range validation message (booking form)",
       type: "internationalizedArrayString",
       description: 'E.g. "Please enter a whole number between 1 and 30." / Напр. «Будь ласка, введіть ціле число від 1 до 30».',
+    }),
+    // The fields above predate this project's Sanity Content-Lake attribute-
+    // path cap and were "cheap" when added. Everything below was added later,
+    // once the project was already close to that cap — modeled as one array
+    // of {key, value} pairs (see objects/keyedString.ts) instead of one named
+    // field per string, since a named field per label would each count
+    // separately toward the cap, while every array row here reuses the same
+    // two shared paths regardless of how many labels exist. Keys used:
+    // invalidPhoneMessage, fileRequiredMessage, fileTypeMessage,
+    // fileSizeMessage, uploadCvLabel, removeFileLabel, shortMessageLabel,
+    // sendingLabel, applicationSentLabel, sendApplicationLabel,
+    // submitCvLabel, formNotConfiguredMessage, contactFormMessagePlaceholder,
+    // contactFallbackNote.
+    defineField({
+      name: "extraLabels",
+      title: "Additional shared labels",
+      type: "array",
+      of: [defineArrayMember({ type: "keyedString" })],
+      description:
+        "More shared form text (CV upload, volunteer form button states, contact form). Each row is identified by its key — do not rename keys or add rows with new keys. / Додатковий спільний текст форм (завантаження резюме, стани кнопок форми волонтерства, форма контактів). Кожен рядок визначається своїм ключем — не перейменовуйте ключі та не додавайте рядки з новими ключами.",
     }),
   ],
   preview: {

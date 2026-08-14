@@ -4,10 +4,12 @@ import { Container, SectionLabel } from "@/components/ui";
 export function LegalPage({
   title,
   subtitle,
+  lastUpdated,
   children,
 }: {
   title: string;
   subtitle: string;
+  lastUpdated?: string;
   children: ReactNode;
 }) {
   return (
@@ -22,9 +24,11 @@ export function LegalPage({
             <p className="max-w-[720px] m-0 text-text-primary text-base leading-[1.65]">
               {subtitle}
             </p>
-            <p className="mx-0 mt-[16px] mb-0 text-light-green text-[0.9rem] font-bold">
-              Last updated: May 2026
-            </p>
+            {lastUpdated ? (
+              <p className="mx-0 mt-[16px] mb-0 text-light-green text-[0.9rem] font-bold">
+                {lastUpdated}
+              </p>
+            ) : null}
           </div>
         </Container>
       </section>

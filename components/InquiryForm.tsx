@@ -28,7 +28,7 @@ const CARD_FORM_CLASS =
   "grid gap-4 border-0 rounded-none bg-white p-[clamp(20px,3vw,4rem)] text-text-primary shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] overflow-hidden";
 const FORM_HEADING_CLASS = "grid gap-2 mb-1";
 const FORM_TITLE_CLASS =
-  "m-0 font-body text-[clamp(17px,1.35vw,20px)] font-black leading-tight tracking-normal normal-case text-text-primary";
+  "m-0 font-body text-[clamp(17px,1.35vw,20px)] font-[800] leading-tight tracking-normal normal-case text-text-primary";
 const FORM_INTRO_CLASS = "m-0 text-[15px] leading-[1.65] text-text-primary";
 const SUCCESS_CLASS =
   "border border-[rgba(var(--rgb-light-green),0.28)] rounded-none bg-[rgba(var(--rgb-beige),0.24)] p-3.5 text-primary-dark font-bold";

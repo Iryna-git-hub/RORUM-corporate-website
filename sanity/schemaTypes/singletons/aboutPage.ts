@@ -1,4 +1,39 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
+import { IconPickerInput } from "@/sanity/components/IconPickerInput";
+
+// One row of the small icon-link chips grouped under the hero (e.g. "Host at
+// RORUM", "Catering") — three separate arrays (intro/service/community) so
+// the client can edit each group in place, matching the 3 visual rows on
+// the live page.
+function iconLinksField(name: string, title: string, description: string) {
+  return defineField({
+    name,
+    title,
+    type: "array",
+    fieldset: "linksSection",
+    description,
+    of: [
+      defineArrayMember({
+        type: "object",
+        name: "iconLink",
+        fields: [
+          defineField({ name: "label", title: "Label", type: "internationalizedArrayString", description: "Link text. / Текст посилання." }),
+          defineField({ name: "href", title: "Link", type: "string", description: "Internal path, e.g. /catering. / Внутрішній шлях, напр. /catering." }),
+          defineField({ name: "icon", title: "Icon", type: "string", components: { input: IconPickerInput } }),
+        ],
+        preview: {
+          select: { title: "label" },
+          prepare({ title }) {
+            const en = (title as { _key: string; language?: string; value?: string }[] | undefined)?.find(
+              (v) => v.language === "en" || v._key === "en",
+            );
+            return { title: en?.value ?? "(untitled)" };
+          },
+        },
+      }),
+    ],
+  });
+}
 
 export default defineType({
   name: "aboutPage",
@@ -10,6 +45,7 @@ export default defineType({
   // don't split the form into tabs.
   fieldsets: [
     { name: "heroSection", title: "Hero", options: { collapsible: true, collapsed: false } },
+    { name: "linksSection", title: "Quick links", options: { collapsible: true, collapsed: false } },
     { name: "valuesSection", title: "Values", options: { collapsible: true, collapsed: false } },
     { name: "locationSection", title: "Location", options: { collapsible: true, collapsed: false } },
   ],
@@ -50,12 +86,51 @@ export default defineType({
       description: "Short text about off-site catering/decoration services. / Короткий текст про кейтеринг і декор поза RORUM.",
     }),
     defineField({
+      name: "atmosphereImages",
+      title: "Atmosphere photos",
+      type: "array",
+      fieldset: "heroSection",
+      of: [defineArrayMember({ type: "imageWithAlt" })],
+      validation: (rule) => rule.max(3),
+      description: "The 3 photos shown alongside the hero. / 3 фото поруч із хіро-блоком.",
+    }),
+    iconLinksField(
+      "introLinks",
+      "Intro links (Host at RORUM / Attend Events)",
+      "The 2 link chips shown under the hero intro. / 2 посилання-кнопки під вступним текстом хіро-блоку.",
+    ),
+    iconLinksField(
+      "serviceLinks",
+      "Service links (Catering / Event Decoration)",
+      "The 2 link chips shown under the services statement. / 2 посилання-кнопки під описом послуг.",
+    ),
+    defineField({
+      name: "communityTitle",
+      title: "Community heading",
+      type: "internationalizedArrayString",
+      fieldset: "linksSection",
+      description: 'Small heading above the community links, e.g. "Community". / Заголовок над посиланнями спільноти, напр. «Спільнота».',
+    }),
+    defineField({
+      name: "communityText",
+      title: "Community text",
+      type: "internationalizedArrayText",
+      fieldset: "linksSection",
+      description: "Short text above the community links. / Короткий текст над посиланнями спільноти.",
+    }),
+    iconLinksField(
+      "communityLinks",
+      "Community links (WECODA / Work with us / Volunteer)",
+      "The 3 link chips shown under the community text. / 3 посилання-кнопки під текстом про спільноту.",
+    ),
+    defineField({
       name: "values",
       title: "Values",
       type: "array",
       fieldset: "valuesSection",
       of: [defineArrayMember({ type: "titledText" })],
-      description: "Community paragraph shown near the hero section. / Блок про спільноту, що показується біля хіро-секції.",
+      description: "Legacy field, no longer read by the site (replaced by communityTitle/communityText above) — kept only so no historical content is lost. / Застаріле поле, сайт більше його не використовує (замінено на communityTitle/communityText вище) — залишено лише для збереження попереднього вмісту.",
+      hidden: true,
     }),
     defineField({
       name: "pillarsLabel",

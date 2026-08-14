@@ -1,6 +1,6 @@
-import { contactDetails } from "@/lib/siteConfig";
+import { contactDetails as fallbackContactDetails } from "@/lib/siteConfig";
 
-export function PrivacyPolicyContent() {
+export function PrivacyPolicyContent({ email = fallbackContactDetails.email }: { email?: string }) {
   return (
     <>
       <h2>2. Information you submit</h2>
@@ -83,7 +83,7 @@ export function PrivacyPolicyContent() {
       <h2>10. Contact</h2>
       <p>
         For privacy questions, contact{" "}
-        <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a>.
+        <a href={`mailto:${email}`}>{email}</a>.
       </p>
     </>
   );

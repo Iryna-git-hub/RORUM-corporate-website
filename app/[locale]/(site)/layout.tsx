@@ -2,12 +2,13 @@ import type { ReactNode } from "react";
 import { FormContentProvider } from "@/components/FormContentProvider";
 import { SiteShell } from "@/components/SiteShell";
 import { isLocale, type Locale } from "@/lib/i18n";
-import { pickLocalized } from "@/lib/sanity-i18n";
+import { pickLabel, pickLocalized } from "@/lib/sanity-i18n";
 import { resolveFooter, resolveNavItems } from "@/lib/sanityNav";
 import { defaultFormMessages, resolveFormMessages, resolvePrivacyPolicy } from "@/lib/sanityForms";
+import { resolveContactDetails, resolveSocialLinks } from "@/lib/sanityContact";
 import { isSanityConfigured } from "@/sanity/env";
 import { sanityFetch } from "@/sanity/lib/live";
-import { footerQuery, formMessagesQuery, navigationQuery } from "@/sanity/queries/globals";
+import { contactInfoQuery, footerQuery, formMessagesQuery, navigationQuery, socialLinksQuery } from "@/sanity/queries/globals";
 import { legalPageQuery } from "@/sanity/queries/pages";
 
 // Route-group layout: wraps every public marketing/content page (everything
@@ -49,17 +50,31 @@ export default async function SiteLayout({
     );
   }
 
-  const [{ data: navigationDoc }, { data: footerDoc }, { data: formMessagesDoc }, { data: privacyPolicyDoc }] =
-    await Promise.all([
-      sanityFetch({ query: navigationQuery }),
-      sanityFetch({ query: footerQuery }),
-      sanityFetch({ query: formMessagesQuery }),
-      sanityFetch({ query: legalPageQuery, params: { pageKey: "privacy-policy" } }),
-    ]);
+  const [
+    { data: navigationDoc },
+    { data: footerDoc },
+    { data: formMessagesDoc },
+    { data: privacyPolicyDoc },
+    { data: contactInfoDoc },
+    { data: socialLinksDoc },
+  ] = await Promise.all([
+    sanityFetch({ query: navigationQuery }),
+    sanityFetch({ query: footerQuery }),
+    sanityFetch({ query: formMessagesQuery }),
+    sanityFetch({ query: legalPageQuery, params: { pageKey: "privacy-policy" } }),
+    sanityFetch({ query: contactInfoQuery }),
+    sanityFetch({ query: socialLinksQuery, stega: false }),
+  ]);
 
   const navItems = resolveNavItems(navigationDoc?.items, locale);
   const footer = resolveFooter(footerDoc, locale);
   const contactCtaLabel = pickLocalized(navigationDoc?.contactCtaLabel, locale);
+  const footerContactDetails = resolveContactDetails(contactInfoDoc);
+  const footerSocialLinks = resolveSocialLinks(socialLinksDoc, locale);
+  const homeLabel = pickLabel(navigationDoc?.labels, "homeLabel", locale, "Home");
+  const openMenuLabel = pickLabel(navigationDoc?.labels, "openMenuLabel", locale, "Open menu");
+  const closeMenuLabel = pickLabel(navigationDoc?.labels, "closeMenuLabel", locale, "Close menu");
+  const languageSwitcherLabel = pickLocalized(navigationDoc?.languageSwitcherLabel, locale);
 
   return (
     <FormContentProvider
@@ -75,6 +90,12 @@ export default async function SiteLayout({
         footerCopyrightText={footer?.copyrightText}
         contactCtaLabel={contactCtaLabel}
         contactDetailsLabel={footer?.contactDetailsLabel}
+        footerContactDetails={footerContactDetails}
+        footerSocialLinks={footerSocialLinks}
+        homeLabel={homeLabel}
+        openMenuLabel={openMenuLabel}
+        closeMenuLabel={closeMenuLabel}
+        languageSwitcherLabel={languageSwitcherLabel}
       >
         {children}
       </SiteShell>

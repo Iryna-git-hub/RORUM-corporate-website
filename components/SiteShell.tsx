@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { splitLocaleFromPath } from "@/lib/i18n";
 import type { NavItem } from "@/lib/data";
+import type { ResolvedContactDetails, ResolvedSocialLink } from "@/lib/sanityContact";
 
 export function SiteShell({
   children,
@@ -16,6 +17,12 @@ export function SiteShell({
   footerCopyrightText,
   contactCtaLabel,
   contactDetailsLabel,
+  footerContactDetails,
+  footerSocialLinks,
+  homeLabel,
+  openMenuLabel,
+  closeMenuLabel,
+  languageSwitcherLabel,
 }: {
   children: ReactNode;
   navItems?: NavItem[];
@@ -24,6 +31,12 @@ export function SiteShell({
   footerCopyrightText?: string;
   contactCtaLabel?: string;
   contactDetailsLabel?: string;
+  footerContactDetails?: ResolvedContactDetails;
+  footerSocialLinks?: ResolvedSocialLink[];
+  homeLabel?: string;
+  openMenuLabel?: string;
+  closeMenuLabel?: string;
+  languageSwitcherLabel?: string;
 }) {
   const pathname = usePathname();
   // Locale-neutral path — on a `/da/...`/`/uk/...` URL, raw `pathname`
@@ -105,13 +118,23 @@ export function SiteShell({
 
   return (
     <div className={shellClass}>
-      <Header navItems={navItems} contactCtaLabel={contactCtaLabel} />
+      <Header
+        navItems={navItems}
+        contactCtaLabel={contactCtaLabel}
+        socialLinks={footerSocialLinks}
+        homeLabel={homeLabel}
+        openMenuLabel={openMenuLabel}
+        closeMenuLabel={closeMenuLabel}
+        languageSwitcherLabel={languageSwitcherLabel}
+      />
       <main>{children}</main>
       <Footer
         columns={footerColumns}
         legalLinks={footerLegalLinks}
         copyrightText={footerCopyrightText}
         contactDetailsLabel={contactDetailsLabel}
+        contactDetails={footerContactDetails}
+        socialLinks={footerSocialLinks}
         locale={locale}
       />
     </div>

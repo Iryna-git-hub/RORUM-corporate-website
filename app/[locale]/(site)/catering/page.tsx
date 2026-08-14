@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { ArrowRight } from "lucide-react";
 import { CateringInquiryForm } from "@/components/CateringInquiryForm";
-import { CateringMenuButton, type CateringMenuOverlayText } from "@/components/CateringMenuOverlay";
+import {
+  CateringMenuButton,
+  type CateringMenuOverlayText,
+} from "@/components/CateringMenuOverlay";
 import { HorizontalGallery } from "@/components/HorizontalGallery";
 import {
   Button,
@@ -13,35 +16,83 @@ import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { compact, pickLocalized } from "@/lib/sanity-i18n";
 import { getIconCardIcon } from "@/lib/iconCardIcons";
-import { menuCategories as fallbackMenuCategories, type CateringMenuCategory } from "@/lib/cateringMenu";
+import {
+  menuCategories as fallbackMenuCategories,
+  type CateringMenuCategory,
+} from "@/lib/cateringMenu";
 import { cateringGalleryImages } from "@/lib/galleryImages";
 import { resolveGalleryImages } from "@/lib/sanityGallery";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
-import { cateringPageQuery } from "@/sanity/queries/pages";
-import { cateringMenuCategoriesQuery } from "@/sanity/queries/cateringMenu";
-import { galleryCollectionQuery } from "@/sanity/queries/gallery";
+import {
+  cateringMenuExamplesPageQuery,
+  cateringPageQuery,
+} from "@/sanity/queries/pages";
 
 const menuFormatImages = [
-  { image: "/images/catering/european-private-dinner-menu.png", alt: "Private dinner table with modern European dishes and wine" },
-  { image: "/images/catering/european-reception-style-menu.png", alt: "Reception-style buffet with small bites and shared plates" },
-  { image: "/images/catering/european-business-meeting-menu.png", alt: "Business meeting catering buffet with wraps, salad, fruit, water and coffee" },
+  {
+    image: "/images/catering/european-private-dinner-menu.png",
+    alt: "Private dinner table with modern European dishes and wine",
+  },
+  {
+    image: "/images/catering/european-reception-style-menu.png",
+    alt: "Reception-style buffet with small bites and shared plates",
+  },
+  {
+    image: "/images/catering/european-business-meeting-menu.png",
+    alt: "Business meeting catering buffet with wraps, salad, fruit, water and coffee",
+  },
 ];
 
 const fallbackMenuFormats = [
-  { title: "Private dinner menu", description: "A seated dinner with seasonal starters, main courses, sides, and desserts." },
-  { title: "Reception-style menu", description: "Elegant light dishes, small bites, and shareable plates." },
-  { title: "Business meeting menu", description: "Balanced, easy-to-serve dishes suitable for workshops, presentations, and longer meetings." },
+  {
+    title: "Private dinner menu",
+    description:
+      "A seated dinner with seasonal starters, main courses, sides, and desserts.",
+  },
+  {
+    title: "Reception-style menu",
+    description: "Elegant light dishes, small bites, and shareable plates.",
+  },
+  {
+    title: "Business meeting menu",
+    description:
+      "Balanced, easy-to-serve dishes suitable for workshops, presentations, and longer meetings.",
+  },
 ];
 
 const fallbackFormats: { title: string; text: string; icon: string }[] = [
-  { title: "Ukrainian cuisine", text: "Traditional Ukrainian cuisine in harmony with modern European gastronomy, created with attention to taste, presentation and detail.", icon: "ChefHat" },
-  { title: "Finger food & buffet", text: "Elegant small bites, light buffet solutions and beautifully served dishes for receptions, celebrations and business events.", icon: "HandPlatter" },
-  { title: "Individual menu", text: "Each menu is tailored to your event format, number of guests, preferences and desired atmosphere.", icon: "ClipboardList" },
-  { title: "On-site cooking", text: "If needed, we can organize cooking directly at your location for a fresh, seamless and memorable experience.", icon: "CookingPot" },
-  { title: "Full event support", text: "Our professional team can support the event with preparation, serving and attentive service throughout the occasion.", icon: "ConciergeBell" },
-  { title: "Grill parties", text: "Lively grill experiences for warm, informal gatherings where food, conversation and atmosphere come together.", icon: "Flame" },
+  {
+    title: "Ukrainian cuisine",
+    text: "Traditional Ukrainian cuisine in harmony with modern European gastronomy, created with attention to taste, presentation and detail.",
+    icon: "ChefHat",
+  },
+  {
+    title: "Finger food & buffet",
+    text: "Elegant small bites, light buffet solutions and beautifully served dishes for receptions, celebrations and business events.",
+    icon: "HandPlatter",
+  },
+  {
+    title: "Individual menu",
+    text: "Each menu is tailored to your event format, number of guests, preferences and desired atmosphere.",
+    icon: "ClipboardList",
+  },
+  {
+    title: "On-site cooking",
+    text: "If needed, we can organize cooking directly at your location for a fresh, seamless and memorable experience.",
+    icon: "CookingPot",
+  },
+  {
+    title: "Full event support",
+    text: "Our professional team can support the event with preparation, serving and attentive service throughout the occasion.",
+    icon: "ConciergeBell",
+  },
+  {
+    title: "Grill parties",
+    text: "Lively grill experiences for warm, informal gatherings where food, conversation and atmosphere come together.",
+    icon: "Flame",
+  },
 ];
 
 const fallbackSuitableFor: [label: string, icon: string][] = [
@@ -60,9 +111,18 @@ const fallbackSuitableFor: [label: string, icon: string][] = [
 ];
 
 const fallbackSteps: [title: string, text: string][] = [
-  ["Tell us about your event", "Share the date, location, guest count and format."],
-  ["We suggest the right setup", "We help match the catering format to the rhythm and atmosphere of your event."],
-  ["We prepare the experience", "Food and presentation are arranged with care so your guests feel welcomed."],
+  [
+    "Tell us about your event",
+    "Share the date, location, guest count and format.",
+  ],
+  [
+    "We suggest the right setup",
+    "We help match the catering format to the rhythm and atmosphere of your event.",
+  ],
+  [
+    "We prepare the experience",
+    "Food and presentation are arranged with care so your guests feel welcomed.",
+  ],
 ];
 
 const fallback = {
@@ -76,15 +136,23 @@ const fallback = {
   philosophyTitle: "What we offer",
   philosophyText:
     "We create catering for different types of events - from elegant finger food and light buffet solutions to full menus for family celebrations, corporate events and official occasions. Each menu is developed individually, combining authentic Ukrainian recipes with a modern European approach, thoughtful presentation and attentive service.",
+  philosophyImage: "/images/catering/catering-service-team.png",
+  philosophyImageAlt: "RORUM catering team preparing food for an event",
+  suitableForAriaLabel: "Suitable catering formats",
+  inquiryIntro: "",
   tailoredTitle: "Tailored upon request",
-  tailoredText: "Every catering concept is created individually based on your event, location, guest count and wishes.",
+  tailoredText:
+    "Every catering concept is created individually based on your event, location, guest count and wishes.",
   stepsTitle: "3-step setup",
-  description: "Warm Scandinavian catering for workshops, meetings and intimate events.",
+  description:
+    "Warm Scandinavian catering for workshops, meetings and intimate events.",
   inquiryTitle: "Request catering",
   inquirySubmitLabel: "Request Catering",
   messagePlaceholder: "Describe your event, timing and catering wishes.",
-  successMessage: "Thank you. We've received your catering request and will contact you soon.",
-  footerNote: "We'll only use your details to respond to your catering request.",
+  successMessage:
+    "Thank you. We've received your catering request and will contact you soon.",
+  footerNote:
+    "We'll only use your details to respond to your catering request.",
 };
 
 const fallbackOverlayText: CateringMenuOverlayText = {
@@ -107,44 +175,72 @@ async function getData(locale: Locale) {
   if (!isSanityConfigured) {
     return {
       ...fallback,
-      menuFormats: fallbackMenuFormats.map((m, i) => ({ ...m, ...menuFormatImages[i] })),
-      formats: fallbackFormats.map((f) => ({ title: f.title, text: f.text, Icon: getIconCardIcon(f.icon) })),
-      suitableFor: fallbackSuitableFor.map(([label, icon]) => ({ label, Icon: getIconCardIcon(icon) })),
-      steps: fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text })),
+      menuFormats: fallbackMenuFormats.map((m, i) => ({
+        ...m,
+        ...menuFormatImages[i],
+      })),
+      formats: fallbackFormats.map((f) => ({
+        title: f.title,
+        text: f.text,
+        Icon: getIconCardIcon(f.icon),
+      })),
+      suitableFor: fallbackSuitableFor.map(([label, icon]) => ({
+        label,
+        Icon: getIconCardIcon(icon),
+      })),
+      steps: fallbackSteps.map(([title, text], i) => ({
+        number: String(i + 1).padStart(2, "0"),
+        title,
+        text,
+      })),
       menuOverlayText: fallbackOverlayText,
       menuCategories: fallbackMenuCategories,
       galleryImages: cateringGalleryImages,
     };
   }
 
-  const [{ data: page }, { data: menuCategoryDocs }, { data: galleryDoc }] = await Promise.all([
+  const [{ data: page }, { data: menuPage }] = await Promise.all([
     sanityFetch({ query: cateringPageQuery }),
-    sanityFetch({ query: cateringMenuCategoriesQuery }),
-    sanityFetch({ query: galleryCollectionQuery, params: { key: "catering" } }),
+    sanityFetch({ query: cateringMenuExamplesPageQuery }),
   ]);
 
-  const galleryImages = resolveGalleryImages(galleryDoc, locale, cateringGalleryImages);
+  const galleryImages = resolveGalleryImages(
+    page?.gallery,
+    locale,
+    cateringGalleryImages,
+  );
 
-  const menuCategories: CateringMenuCategory[] = menuCategoryDocs?.length
-    ? menuCategoryDocs.map((doc, i) => {
-        const fb = fallbackMenuCategories.find((c) => c.id === doc.slug?.current) ?? fallbackMenuCategories[i];
+  const menuCategories: CateringMenuCategory[] = menuPage?.categories?.length
+    ? menuPage.categories.map((cat, i) => {
+        const fb = fallbackMenuCategories[i];
         return {
-          id: doc.slug?.current ?? fb?.id ?? "",
-          title: pickLocalized(doc.title, locale) ?? fb?.title ?? "",
-          navLabel: pickLocalized(doc.navLabel, locale) ?? fb?.navLabel ?? "",
-          description: pickLocalized(doc.description, locale) ?? fb?.description ?? "",
-          featuredItems: doc.featuredItems?.length
-            ? doc.featuredItems.map((item, j) => {
+          id: cat._key,
+          title: pickLocalized(cat.title, locale) ?? fb?.title ?? "",
+          navLabel: pickLocalized(cat.navLabel, locale) ?? fb?.navLabel ?? "",
+          description:
+            pickLocalized(cat.description, locale) ?? fb?.description ?? "",
+          featuredItems: cat.dishes?.length
+            ? cat.dishes.map((item, j) => {
                 const fbItem = fb?.featuredItems[j];
                 return {
                   name: pickLocalized(item.name, locale) ?? fbItem?.name ?? "",
-                  description: pickLocalized(item.description, locale) ?? fbItem?.description ?? "",
+                  description:
+                    pickLocalized(item.description, locale) ??
+                    fbItem?.description ??
+                    "",
                   image:
-                    urlForImage(item.image as unknown as Parameters<typeof urlForImage>[0])
+                    urlForImage(
+                      item.image as unknown as Parameters<
+                        typeof urlForImage
+                      >[0],
+                    )
                       ?.width(600)
                       .height(338)
-                      .url() ?? fbItem?.image ?? "",
-                  alt: pickLocalized(item.image?.alt, locale) ?? fbItem?.alt ?? "",
+                      .url() ??
+                    fbItem?.image ??
+                    "",
+                  alt:
+                    pickLocalized(item.image?.alt, locale) ?? fbItem?.alt ?? "",
                 };
               })
             : (fb?.featuredItems ?? []),
@@ -154,9 +250,24 @@ async function getData(locale: Locale) {
 
   const menuFormats = page?.menuFormats?.length
     ? page.menuFormats.map((m, i) => ({
-        title: pickLocalized(m?.title, locale) ?? fallbackMenuFormats[i]?.title ?? "",
-        description: pickLocalized(m?.description, locale) ?? fallbackMenuFormats[i]?.description ?? "",
-        ...(menuFormatImages[i] ?? menuFormatImages[0]!),
+        title:
+          pickLocalized(m?.title, locale) ??
+          fallbackMenuFormats[i]?.title ??
+          "",
+        description:
+          pickLocalized(m?.description, locale) ??
+          fallbackMenuFormats[i]?.description ??
+          "",
+        image:
+          urlForImage(m?.image as unknown as Parameters<typeof urlForImage>[0])
+            ?.width(800)
+            .url() ??
+          menuFormatImages[i]?.image ??
+          menuFormatImages[0]!.image,
+        alt:
+          pickLocalized(m?.image?.alt, locale) ??
+          menuFormatImages[i]?.alt ??
+          menuFormatImages[0]!.alt,
       }))
     : fallbackMenuFormats.map((m, i) => ({ ...m, ...menuFormatImages[i] }));
 
@@ -166,11 +277,21 @@ async function getData(locale: Locale) {
         text: pickLocalized(f?.text, locale) ?? "",
         Icon: getIconCardIcon(f?.icon),
       }))
-    : fallbackFormats.map((f) => ({ title: f.title, text: f.text, Icon: getIconCardIcon(f.icon) }));
+    : fallbackFormats.map((f) => ({
+        title: f.title,
+        text: f.text,
+        Icon: getIconCardIcon(f.icon),
+      }));
 
   const suitableFor = page?.suitableFor?.length
-    ? page.suitableFor.map((s) => ({ label: pickLocalized(s?.title, locale) ?? "", Icon: getIconCardIcon(s?.icon) }))
-    : fallbackSuitableFor.map(([label, icon]) => ({ label, Icon: getIconCardIcon(icon) }));
+    ? page.suitableFor.map((s) => ({
+        label: pickLocalized(s?.title, locale) ?? "",
+        Icon: getIconCardIcon(s?.icon),
+      }))
+    : fallbackSuitableFor.map(([label, icon]) => ({
+        label,
+        Icon: getIconCardIcon(icon),
+      }));
 
   const steps = page?.steps?.length
     ? page.steps.map((s, i) => ({
@@ -178,41 +299,90 @@ async function getData(locale: Locale) {
         title: pickLocalized(s?.title, locale) ?? "",
         text: pickLocalized(s?.text, locale) ?? "",
       }))
-    : fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }));
+    : fallbackSteps.map(([title, text], i) => ({
+        number: String(i + 1).padStart(2, "0"),
+        title,
+        text,
+      }));
 
   return {
     label: pickLocalized(page?.hero?.label, locale) ?? fallback.label,
     title: pickLocalized(page?.hero?.title, locale) ?? fallback.title,
     text: pickLocalized(page?.hero?.text, locale) ?? fallback.text,
-    requestCta: pickLocalized(page?.hero?.primaryCta?.label, locale) ?? fallback.requestCta,
-    suitableForLabel: pickLocalized(page?.suitableForLabel, locale) ?? fallback.suitableForLabel,
-    menuFormatsTitle: pickLocalized(page?.menuFormatsTitle, locale) ?? fallback.menuFormatsTitle,
-    philosophyTitle: pickLocalized(page?.philosophyTitle, locale) ?? fallback.philosophyTitle,
-    philosophyText: pickLocalized(page?.philosophyText, locale) ?? fallback.philosophyText,
-    tailoredTitle: pickLocalized(page?.tailoredNote?.title, locale) ?? fallback.tailoredTitle,
-    tailoredText: pickLocalized(page?.tailoredNote?.text, locale) ?? fallback.tailoredText,
+    requestCta:
+      pickLocalized(page?.hero?.primaryCta?.label, locale) ??
+      fallback.requestCta,
+    suitableForLabel:
+      pickLocalized(page?.suitableForLabel, locale) ??
+      fallback.suitableForLabel,
+    menuFormatsTitle:
+      pickLocalized(page?.menuFormatsTitle, locale) ??
+      fallback.menuFormatsTitle,
+    philosophyTitle:
+      pickLocalized(page?.philosophyTitle, locale) ?? fallback.philosophyTitle,
+    philosophyText:
+      pickLocalized(page?.philosophyText, locale) ?? fallback.philosophyText,
+    tailoredTitle:
+      pickLocalized(page?.tailoredNote?.title, locale) ??
+      fallback.tailoredTitle,
+    tailoredText:
+      pickLocalized(page?.tailoredNote?.text, locale) ?? fallback.tailoredText,
     stepsTitle: pickLocalized(page?.stepsTitle, locale) ?? fallback.stepsTitle,
-    description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
-    inquiryTitle: pickLocalized(page?.inquiryTitle, locale) ?? fallback.inquiryTitle,
-    inquirySubmitLabel: pickLocalized(page?.inquirySubmitLabel, locale) ?? fallback.inquirySubmitLabel,
-    messagePlaceholder: pickLocalized(page?.messagePlaceholder, locale) ?? fallback.messagePlaceholder,
-    successMessage: pickLocalized(page?.successMessage, locale) ?? fallback.successMessage,
+    description:
+      pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    inquiryTitle:
+      pickLocalized(page?.inquiryTitle, locale) ?? fallback.inquiryTitle,
+    inquirySubmitLabel:
+      pickLocalized(page?.inquirySubmitLabel, locale) ??
+      fallback.inquirySubmitLabel,
+    messagePlaceholder:
+      pickLocalized(page?.messagePlaceholder, locale) ??
+      fallback.messagePlaceholder,
+    successMessage:
+      pickLocalized(page?.successMessage, locale) ?? fallback.successMessage,
     footerNote: pickLocalized(page?.footerNote, locale) ?? fallback.footerNote,
-    menuExamplesCta: pickLocalized(page?.menuOverlay?.triggerLabel, locale) ?? fallback.menuExamplesCta,
+    inquiryIntro: pickLocalized(page?.inquiryIntro, locale) ?? fallback.inquiryIntro,
+    suitableForAriaLabel:
+      pickLocalized(page?.suitableForAriaLabel, locale) ?? fallback.suitableForAriaLabel,
+    philosophyImage:
+      urlForImage(page?.philosophyImage as unknown as Parameters<typeof urlForImage>[0])
+        ?.width(900)
+        .url() ?? fallback.philosophyImage,
+    philosophyImageAlt:
+      pickLocalized(page?.philosophyImage?.alt, locale) ?? fallback.philosophyImageAlt,
+    menuExamplesCta:
+      pickLocalized(page?.menuExamplesCta, locale) ?? fallback.menuExamplesCta,
     menuOverlayText: {
-      title: pickLocalized(page?.menuOverlay?.title, locale) ?? fallbackOverlayText.title,
-      intro: page?.menuOverlay?.intro?.length
-        ? compact(page.menuOverlay.intro.map((p) => pickLocalized(p?.text, locale)))
+      title:
+        pickLocalized(menuPage?.title, locale) ?? fallbackOverlayText.title,
+      intro: menuPage?.intro?.length
+        ? compact(menuPage.intro.map((p) => pickLocalized(p?.text, locale)))
         : fallbackOverlayText.intro,
-      requestCta: pickLocalized(page?.menuOverlay?.requestCta, locale) ?? fallbackOverlayText.requestCta,
+      requestCta:
+        pickLocalized(menuPage?.requestCta, locale) ??
+        fallbackOverlayText.requestCta,
       featuredDishesLabel:
-        pickLocalized(page?.menuOverlay?.featuredDishesLabel, locale) ?? fallbackOverlayText.featuredDishesLabel,
-      disclaimerNote: pickLocalized(page?.menuOverlay?.disclaimerNote, locale) ?? fallbackOverlayText.disclaimerNote,
-      customMenuTitle: pickLocalized(page?.menuOverlay?.customMenuTitle, locale) ?? fallbackOverlayText.customMenuTitle,
-      customMenuText: pickLocalized(page?.menuOverlay?.customMenuText, locale) ?? fallbackOverlayText.customMenuText,
+        pickLocalized(menuPage?.featuredDishesLabel, locale) ??
+        fallbackOverlayText.featuredDishesLabel,
+      disclaimerNote:
+        pickLocalized(menuPage?.disclaimerNote, locale) ??
+        fallbackOverlayText.disclaimerNote,
+      customMenuTitle:
+        pickLocalized(menuPage?.customMenuTitle, locale) ??
+        fallbackOverlayText.customMenuTitle,
+      customMenuText:
+        pickLocalized(menuPage?.customMenuText, locale) ??
+        fallbackOverlayText.customMenuText,
       backToCateringCta:
-        pickLocalized(page?.menuOverlay?.backToCateringCta, locale) ?? fallbackOverlayText.backToCateringCta,
+        pickLocalized(menuPage?.backToCateringCta, locale) ??
+        fallbackOverlayText.backToCateringCta,
     },
+    bannerImageUrl: urlForImage(
+      menuPage?.bannerImage as unknown as Parameters<typeof urlForImage>[0],
+    )
+      ?.width(1600)
+      .url(),
+    bannerImageAlt: pickLocalized(menuPage?.bannerImage?.alt, locale),
     menuCategories,
     menuFormats,
     formats,
@@ -230,10 +400,19 @@ export async function generateMetadata({
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
   const { description } = await getData(locale);
-  return localizedPageMetadata({ path: "/catering", locale, title: "Catering", description });
+  return localizedPageMetadata({
+    path: "/catering",
+    locale,
+    title: "Catering",
+    description,
+  });
 }
 
-export default async function CateringPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function CateringPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
   const data = await getData(locale);
@@ -271,6 +450,8 @@ export default async function CateringPage({ params }: { params: Promise<{ local
                   className="min-h-10! px-6.5! max-sm:flex-auto"
                   categories={data.menuCategories}
                   overlayText={data.menuOverlayText}
+                  bannerImageUrl={data.bannerImageUrl}
+                  bannerImageAlt={data.bannerImageAlt}
                 >
                   {data.menuExamplesCta}
                 </CateringMenuButton>
@@ -289,12 +470,12 @@ export default async function CateringPage({ params }: { params: Promise<{ local
             </p>
             <div
               className="flex flex-wrap gap-2.5"
-              aria-label="Suitable catering formats"
+              aria-label={data.suitableForAriaLabel}
             >
               {data.suitableFor.map(({ label, Icon }) => (
                 <span
                   key={label}
-                  className="inline-flex items-center gap-2 min-h-9.5 px-3.25 rounded-none bg-[rgba(var(--rgb-beige),0.5)] border-0 text-red text-[13.5px] font-[850]"
+                  className="inline-flex items-center gap-2 min-h-9.5 px-3.25 rounded-none bg-[rgba(var(--rgb-beige),0.5)] border-0 text-red text-[13.5px] font-[800]"
                 >
                   <Icon
                     aria-hidden="true"
@@ -346,8 +527,8 @@ export default async function CateringPage({ params }: { params: Promise<{ local
             <div className="block w-full h-[min(560px,48vw)] min-h-90 overflow-hidden shadow-[0_18px_40px_rgba(var(--rgb-brown),0.08)] max-lg:-order-1 max-sm:h-auto max-sm:min-h-90 max-sm:aspect-4/3 lg:sticky lg:top-24">
               <img
                 className="block w-full h-full min-h-0 object-cover object-center shadow-none"
-                src="/images/catering/catering-service-team.png"
-                alt="RORUM catering team preparing food for an event"
+                src={data.philosophyImage}
+                alt={data.philosophyImageAlt}
               />
             </div>
             <div className="grid gap-4 max-w-205">
@@ -365,10 +546,14 @@ export default async function CateringPage({ params }: { params: Promise<{ local
                     key={title}
                   >
                     <span className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-[rgba(var(--rgb-red),0.1)] text-red">
-                      <Icon aria-hidden="true" strokeWidth={1.55} className="w-5.5 h-5.5" />
+                      <Icon
+                        aria-hidden="true"
+                        strokeWidth={1.55}
+                        className="w-5.5 h-5.5"
+                      />
                     </span>
                     <div>
-                      <h3 className="mb-1 text-text-primary font-body text-[clamp(16px,1.2vw,18px)] leading-tight font-black">
+                      <h3 className="mb-1 text-text-primary font-body text-[clamp(16px,1.2vw,18px)] leading-tight font-[800]">
                         {title}
                       </h3>
                       <p className="m-0 text-text-primary text-[15px] leading-[1.55]">
@@ -392,6 +577,8 @@ export default async function CateringPage({ params }: { params: Promise<{ local
                 variant="secondary"
                 categories={data.menuCategories}
                 overlayText={data.menuOverlayText}
+                bannerImageUrl={data.bannerImageUrl}
+                bannerImageAlt={data.bannerImageAlt}
               >
                 {data.menuExamplesCta}
               </CateringMenuButton>
@@ -406,9 +593,14 @@ export default async function CateringPage({ params }: { params: Promise<{ local
           overrides are used directly below instead. */}
       <section className="section bg-light-green text-cream">
         <Container>
-          <div id="catering-inquiry" className="grid grid-cols-[minmax(260px,0.62fr)_minmax(0,1fr)] gap-24 items-start scroll-mt-24 max-lg:grid-cols-1">
+          <div
+            id="catering-inquiry"
+            className="grid grid-cols-[minmax(260px,0.62fr)_minmax(0,1fr)] gap-24 items-start scroll-mt-24 max-lg:grid-cols-1"
+          >
             <div className="grid gap-8 pt-2">
-              <SectionLabel className="text-gold! border-b-gold!">How it works</SectionLabel>
+              <SectionLabel className="text-gold! border-b-gold!">
+                How it works
+              </SectionLabel>
               <h2 className="font-heading font-medium text-white! m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] leading-tight tracking-normal normal-case">
                 {data.stepsTitle}
               </h2>
@@ -422,7 +614,7 @@ export default async function CateringPage({ params }: { params: Promise<{ local
                       {number}
                     </span>
                     <div>
-                      <h3 className="mb-1 text-white font-body text-[clamp(16px,1.2vw,18px)] leading-tight font-black">
+                      <h3 className="mb-1 text-white font-body text-[clamp(16px,1.2vw,18px)] leading-tight font-[800]">
                         {title}
                       </h3>
                       <p className="m-0 text-[rgba(var(--rgb-cream),0.88)] text-[15px] leading-[1.55]">
@@ -432,10 +624,11 @@ export default async function CateringPage({ params }: { params: Promise<{ local
                   </article>
                 ))}
               </div>
-              <FAQInlinePrompt linkClassName="text-gold!" />
+              <FAQInlinePrompt linkClassName="text-gold!" className="text-[rgba(var(--rgb-cream),0.88)]!" />
             </div>
             <CateringInquiryForm
               title={data.inquiryTitle}
+              intro={data.inquiryIntro || undefined}
               successMessage={data.successMessage}
               submitLabel={data.inquirySubmitLabel}
               messagePlaceholder={data.messagePlaceholder}

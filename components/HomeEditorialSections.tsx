@@ -177,19 +177,26 @@ const fallbackCommunityLinks: CommunityLink[] = [
   { href: "/volunteer", label: "Volunteer with us" },
 ];
 
+const DEFAULT_COMMUNITY_IMAGE = "/images/catering/community-catering-bg.png";
+
 export function CommunityTeaserSection({
   label = "Community",
   title = "More than a space",
   text = "RORUM is a place for events, ideas and meaningful connections. Join our community, collaborate with us or become part of the team behind the experiences.",
   links = fallbackCommunityLinks,
+  backgroundImage = DEFAULT_COMMUNITY_IMAGE,
 }: {
   label?: string;
   title?: string;
   text?: string;
   links?: CommunityLink[];
+  backgroundImage?: string;
 }) {
   return (
-    <section className="py-[clamp(40px,6vw,76px)] relative isolate overflow-hidden bg-dark-green bg-[url('/images/catering/community-catering-bg.png')] bg-position-[center_45%] bg-cover bg-no-repeat before:content-[''] before:absolute before:inset-0 before:z-0 before:bg-[linear-gradient(90deg,rgb(0_0_0/58%)_0%,rgb(0_0_0/38%)_52%,rgb(0_0_0/16%)_100%)]">
+    <section
+      className="py-[clamp(40px,6vw,76px)] relative isolate overflow-hidden bg-dark-green bg-position-[center_45%] bg-cover bg-no-repeat before:content-[''] before:absolute before:inset-0 before:z-0 before:bg-[linear-gradient(90deg,rgb(0_0_0/58%)_0%,rgb(0_0_0/38%)_52%,rgb(0_0_0/16%)_100%)]"
+      style={{ backgroundImage: `url('${backgroundImage}')` }}
+    >
       <Container>
         <div className="grid grid-cols-[minmax(220px,0.62fr)_minmax(0,1fr)_auto] max-lg:grid-cols-1 gap-[clamp(20px,4vw,48px)] relative z-1 items-center py-[clamp(34px,5vw,64px)]">
           <div className="grid gap-2">

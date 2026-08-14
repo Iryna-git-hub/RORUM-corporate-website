@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { EventList } from "@/components/EventCard";
+import { EventList, defaultEventCardMessages, type EventCardMessages } from "@/components/EventCard";
 import type { RorumEvent } from "@/lib/data";
+import type { Locale } from "@/lib/i18n";
 
 const ROWS_PER_PAGE = 7;
 
@@ -37,14 +38,30 @@ function useEventsPerPage(): number {
   return eventsPerPage;
 }
 
+export interface EventsEmptyStateText {
+  title: string;
+  text: string;
+}
+
+export const defaultEventsEmptyStateText: EventsEmptyStateText = {
+  title: "No events match your filters.",
+  text: "Try changing the date, language, price or availability.",
+};
+
 export function EventsPaginatedList({
   events,
   initialPage,
   queryParams,
+  locale = "en",
+  messages = defaultEventCardMessages,
+  emptyState = defaultEventsEmptyStateText,
 }: {
   events: RorumEvent[];
   initialPage: number;
   queryParams: Record<string, string>;
+  locale?: Locale;
+  messages?: EventCardMessages;
+  emptyState?: EventsEmptyStateText;
 }) {
   const eventsPerPage = useEventsPerPage();
   const totalPages = Math.max(1, Math.ceil(events.length / eventsPerPage));
@@ -77,10 +94,8 @@ export function EventsPaginatedList({
         role="status"
         aria-live="polite"
       >
-        <p className="m-0 text-text-primary">No events match your filters.</p>
-        <p className="mt-2 text-[rgba(var(--rgb-brown),0.9)]">
-          Try changing the date, language, price or availability.
-        </p>
+        <p className="m-0 text-text-primary">{emptyState.title}</p>
+        <p className="mt-2 text-[rgba(var(--rgb-brown),0.9)]">{emptyState.text}</p>
       </div>
     );
   }
@@ -96,7 +111,7 @@ export function EventsPaginatedList({
 
   return (
     <>
-      <EventList events={paginatedEvents} />
+      <EventList events={paginatedEvents} locale={locale} messages={messages} />
       {totalPages > 1 ? (
         <nav
           className="flex items-center justify-center flex-wrap gap-2 mt-[clamp(28px,4vw,46px)] w-full"

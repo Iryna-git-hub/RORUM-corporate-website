@@ -30,6 +30,7 @@ export const structure: StructureResolver = (S) =>
               singleton(S, "navigation", "Navigation", "navigation"),
               singleton(S, "footer", "Footer", "footer"),
               singleton(S, "formMessages", "Shared form messages", "formMessages"),
+              singleton(S, "eventMessages", "Shared event labels", "eventMessages"),
             ]),
         ),
       S.divider(),
@@ -43,6 +44,7 @@ export const structure: StructureResolver = (S) =>
               singleton(S, "aboutPage", "About", "aboutPage"),
               singleton(S, "eventsPage", "Attend Events (listing)", "eventsPage"),
               singleton(S, "cateringPage", "Catering", "cateringPage"),
+              singleton(S, "cateringMenuExamplesPage", "Catering Menu Examples", "cateringMenuExamplesPage"),
               singleton(S, "eventDecorationPage", "Event Decoration", "eventDecorationPage"),
               singleton(S, "hostAtRorumPage", "Host at RORUM", "hostAtRorumPage"),
               singleton(S, "communityMembershipPage", "Community Membership", "communityMembershipPage"),
@@ -69,13 +71,4 @@ export const structure: StructureResolver = (S) =>
       S.listItem()
         .title("Events")
         .child(S.documentTypeList("event").title("Events")),
-      S.listItem()
-        .title("FAQ groups")
-        .child(S.documentTypeList("faqGroup").title("FAQ groups")),
-      S.listItem()
-        .title("Catering menu categories")
-        .child(S.documentTypeList("cateringMenuCategory").title("Catering menu categories")),
-      S.listItem()
-        .title("Image galleries")
-        .child(S.documentTypeList("galleryCollection").title("Image galleries")),
     ]);

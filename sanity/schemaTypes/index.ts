@@ -7,8 +7,11 @@ import bulletText from "./objects/bulletText";
 import cateringMenuItem from "./objects/cateringMenuItem";
 import ctaLink from "./objects/ctaLink";
 import editorialFeature from "./objects/editorialFeature";
+import faqItem from "./objects/faqItem";
 import iconCard from "./objects/iconCard";
 import imageWithAlt from "./objects/imageWithAlt";
+import keyedString from "./objects/keyedString";
+import mediaGalleryItem from "./objects/mediaGalleryItem";
 import navChild from "./objects/navChild";
 import navItem from "./objects/navItem";
 import nextStepSection from "./objects/nextStepSection";
@@ -27,11 +30,13 @@ import galleryCollection from "./documents/galleryCollection";
 
 // Singletons (globals + page documents)
 import aboutPage from "./singletons/aboutPage";
+import cateringMenuExamplesPage from "./singletons/cateringMenuExamplesPage";
 import cateringPage from "./singletons/cateringPage";
 import communityMembershipPage from "./singletons/communityMembershipPage";
 import contactInfo from "./singletons/contactInfo";
 import contactPage from "./singletons/contactPage";
 import eventDecorationPage from "./singletons/eventDecorationPage";
+import eventMessages from "./singletons/eventMessages";
 import eventsPage from "./singletons/eventsPage";
 import faqPage from "./singletons/faqPage";
 import footer from "./singletons/footer";
@@ -53,8 +58,11 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   cateringMenuItem,
   ctaLink,
   editorialFeature,
+  faqItem,
   iconCard,
   imageWithAlt,
+  keyedString,
+  mediaGalleryItem,
   navChild,
   navItem,
   nextStepSection,
@@ -71,11 +79,13 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   galleryCollection,
   // Singletons
   aboutPage,
+  cateringMenuExamplesPage,
   cateringPage,
   communityMembershipPage,
   contactInfo,
   contactPage,
   eventDecorationPage,
+  eventMessages,
   eventsPage,
   faqPage,
   footer,
@@ -98,10 +108,12 @@ export const SINGLETON_TYPES = new Set([
   "navigation",
   "footer",
   "formMessages",
+  "eventMessages",
   "homePage",
   "aboutPage",
   "eventsPage",
   "cateringPage",
+  "cateringMenuExamplesPage",
   "eventDecorationPage",
   "hostAtRorumPage",
   "communityMembershipPage",

@@ -13,10 +13,11 @@ import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvent
 import { formatDuration, type EventDuration } from "@/lib/eventDuration";
 import { getEventLanguageLabel } from "@/lib/eventLanguage";
 import { getUiText } from "@/lib/uiText";
-import { compact } from "@/lib/sanity-i18n";
+import { compact, pickLabel } from "@/lib/sanity-i18n";
 import { isSanityConfigured } from "@/sanity/env";
 import { sanityFetch } from "@/sanity/lib/live";
 import { allEventSlugsQuery, eventBySlugQuery } from "@/sanity/queries/events";
+import { eventMessagesQuery } from "@/sanity/queries/globals";
 import { ArrowRight, CalendarDays, CircleCheckBig, Clock, MapPin, Ticket } from "lucide-react";
 
 const fallbackDescription = "Join us for an intimate gathering at RORUM, designed for people who enjoy thoughtful details, warm atmosphere and meaningful conversation.";
@@ -28,6 +29,91 @@ const fallbackExpectations = [
     "Tea, water or simple refreshments"
 ];
 const DEFAULT_DURATION: EventDuration = { value: 2.5, unit: "hours" };
+
+interface EventDetailMessages {
+  eventOverviewHeading: string;
+  whatToExpectHeading: string;
+  practicalDetailsHeading: string;
+  shareWithFriendsHeading: string;
+  dateLabel: string;
+  timeLabel: string;
+  locationLabel: string;
+  priceLabel: string;
+  languageRowLabel: string;
+  durationRowLabel: string;
+  availabilityRowLabel: string;
+  arrivalRowLabel: string;
+  soldOutLabel: string;
+  ticketComingSoonLabel: string;
+  buyTicketLabel: string;
+  timeToBeAnnouncedLabel: string;
+  spotsLeftOne: string;
+  spotsLeftOther: string;
+  eventImageAriaSuffix: string;
+  shareDefaultText: string;
+  linkCopiedMessage: string;
+  instagramCopyMessage: string;
+}
+
+function defaultEventDetailMessages(locale: Locale): EventDetailMessages {
+  return {
+    eventOverviewHeading: getUiText("eventOverviewHeading", locale),
+    whatToExpectHeading: getUiText("whatToExpectHeading", locale),
+    practicalDetailsHeading: getUiText("practicalDetailsHeading", locale),
+    shareWithFriendsHeading: getUiText("shareWithFriendsHeading", locale),
+    dateLabel: "Date",
+    timeLabel: "Time",
+    locationLabel: "Location",
+    priceLabel: "Price",
+    languageRowLabel: "Event language",
+    durationRowLabel: "Duration",
+    availabilityRowLabel: "Availability",
+    arrivalRowLabel: "Arrival",
+    soldOutLabel: "Sold Out",
+    ticketComingSoonLabel: "Ticket link coming soon",
+    buyTicketLabel: "Buy Ticket",
+    timeToBeAnnouncedLabel: "Time to be announced",
+    spotsLeftOne: "spot left",
+    spotsLeftOther: "spots left",
+    eventImageAriaSuffix: "event image",
+    shareDefaultText: "Join this event at RORUM",
+    linkCopiedMessage: "Link copied",
+    instagramCopyMessage:
+      "Event link copied! You can now paste it into Instagram Stories, DMs, or your bio.",
+  };
+}
+
+async function getEventMessages(locale: Locale): Promise<EventDetailMessages> {
+  const defaults = defaultEventDetailMessages(locale);
+  if (!isSanityConfigured) return defaults;
+  const { data: doc } = await sanityFetch({ query: eventMessagesQuery });
+  if (!doc) return defaults;
+  const labels = doc.labels;
+  return {
+    eventOverviewHeading: pickLabel(labels, "eventOverviewHeading", locale, defaults.eventOverviewHeading),
+    whatToExpectHeading: pickLabel(labels, "whatToExpectHeading", locale, defaults.whatToExpectHeading),
+    practicalDetailsHeading: pickLabel(labels, "practicalDetailsHeading", locale, defaults.practicalDetailsHeading),
+    shareWithFriendsHeading: pickLabel(labels, "shareWithFriendsHeading", locale, defaults.shareWithFriendsHeading),
+    dateLabel: pickLabel(labels, "dateLabel", locale, defaults.dateLabel),
+    timeLabel: pickLabel(labels, "timeLabel", locale, defaults.timeLabel),
+    locationLabel: pickLabel(labels, "locationLabel", locale, defaults.locationLabel),
+    priceLabel: pickLabel(labels, "priceLabel", locale, defaults.priceLabel),
+    languageRowLabel: pickLabel(labels, "languageRowLabel", locale, defaults.languageRowLabel),
+    durationRowLabel: pickLabel(labels, "durationRowLabel", locale, defaults.durationRowLabel),
+    availabilityRowLabel: pickLabel(labels, "availabilityRowLabel", locale, defaults.availabilityRowLabel),
+    arrivalRowLabel: pickLabel(labels, "arrivalRowLabel", locale, defaults.arrivalRowLabel),
+    soldOutLabel: pickLabel(labels, "soldOutLabel", locale, defaults.soldOutLabel),
+    ticketComingSoonLabel: pickLabel(labels, "ticketComingSoonLabel", locale, defaults.ticketComingSoonLabel),
+    buyTicketLabel: pickLabel(labels, "buyTicketLabel", locale, defaults.buyTicketLabel),
+    timeToBeAnnouncedLabel: pickLabel(labels, "timeToBeAnnouncedLabel", locale, defaults.timeToBeAnnouncedLabel),
+    spotsLeftOne: pickLabel(labels, "spotsLeftOne", locale, defaults.spotsLeftOne),
+    spotsLeftOther: pickLabel(labels, "spotsLeftOther", locale, defaults.spotsLeftOther),
+    eventImageAriaSuffix: pickLabel(labels, "eventImageAriaSuffix", locale, defaults.eventImageAriaSuffix),
+    shareDefaultText: pickLabel(labels, "shareDefaultText", locale, defaults.shareDefaultText),
+    linkCopiedMessage: pickLabel(labels, "linkCopiedMessage", locale, defaults.linkCopiedMessage),
+    instagramCopyMessage: pickLabel(labels, "instagramCopyMessage", locale, defaults.instagramCopyMessage),
+  };
+}
 
 async function getEvent(slug: string, locale: Locale): Promise<RorumEvent | undefined> {
     if (!isSanityConfigured) {
@@ -66,8 +152,8 @@ function formatDateParts(dateValue: string, locale: Locale): { weekday: string; 
     };
 }
 
-function formatTime(time: string | undefined): string {
-    return time?.replace("-", "–") ?? "Time to be announced";
+function formatTime(time: string | undefined, timeToBeAnnouncedLabel: string): string {
+    return time?.replace("-", "–") ?? timeToBeAnnouncedLabel;
 }
 
 const ticketButtonBase =
@@ -75,7 +161,7 @@ const ticketButtonBase =
 const ticketArrowClass =
     "w-3.75 h-3.75 text-current shrink-0 transition-transform duration-180 ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1";
 
-function TicketButton({ event }: { event: RorumEvent }) {
+function TicketButton({ event, messages }: { event: RorumEvent; messages: EventDetailMessages }) {
     if (event.isSoldOut) {
         return (
           <button
@@ -83,7 +169,7 @@ function TicketButton({ event }: { event: RorumEvent }) {
             type="button"
             disabled
           >
-            Sold Out
+            {messages.soldOutLabel}
           </button>
         );
     }
@@ -95,7 +181,7 @@ function TicketButton({ event }: { event: RorumEvent }) {
             type="button"
             disabled
           >
-            Ticket link coming soon
+            {messages.ticketComingSoonLabel}
           </button>
         );
     }
@@ -107,7 +193,7 @@ function TicketButton({ event }: { event: RorumEvent }) {
         target="_blank"
         rel="noopener noreferrer"
       >
-        <span>{event.ticketButtonLabel ?? "Buy Ticket"}</span>
+        <span>{event.ticketButtonLabel ?? messages.buyTicketLabel}</span>
         <ArrowRight className={ticketArrowClass} aria-hidden="true" strokeWidth={1.9} />
       </a>
     );
@@ -226,24 +312,25 @@ export default async function EventDetailPage({
     const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
     const event = await getEvent(slug, locale);
     if (!event) notFound();
+    const messages = await getEventMessages(locale);
 
     const fullDate = formatFullDate(event.date, locale);
-    const time = formatTime(event.time);
+    const time = formatTime(event.time, messages.timeToBeAnnouncedLabel);
     const location = event.address || contactDetails.shortAddress;
     const duration = formatDuration(event.duration, locale) ?? formatDuration(DEFAULT_DURATION, locale);
     const language = getEventLanguageLabel(event.language, locale) ?? event.language;
     const description = event.longDescription ?? event.fullDescription ?? event.description ?? fallbackDescription;
     const expectations = event.whatToExpect?.length ? event.whatToExpect : fallbackExpectations;
-    const imageAlt = event.imageAlt ?? `${event.title} event atmosphere`;
+    const imageAlt = event.imageAlt ?? `${event.title} ${messages.eventImageAriaSuffix}`;
     const availability = event.isSoldOut
-        ? <span className="inline-flex items-center w-fit min-h-6.5 px-2.5 py-1.25 rounded-pill text-sm leading-tight font-normal bg-[rgba(var(--rgb-red),0.1)] text-accent">Sold out</span>
+        ? <span className="inline-flex items-center w-fit min-h-6.5 px-2.5 py-1.25 rounded-pill text-sm leading-tight font-normal bg-[rgba(var(--rgb-red),0.1)] text-accent">{messages.soldOutLabel}</span>
         : typeof event.ticketsLeft === "number"
-          ? `${event.ticketsLeft} ${event.ticketsLeft === 1 ? "spot" : "spots"} left`
+          ? `${event.ticketsLeft} ${event.ticketsLeft === 1 ? messages.spotsLeftOne : messages.spotsLeftOther}`
           : null;
 
     return (
       <>
-        <section className="event-detail-hero" aria-label={`${event.title} event image`}>
+        <section className="event-detail-hero" aria-label={`${event.title} ${messages.eventImageAriaSuffix}`}>
           <Image
             className={
               event.isSoldOut
@@ -287,12 +374,12 @@ export default async function EventDetailPage({
               asked for over fragile fixed widths.
             */}
             <div className="grid grid-cols-[248fr_233fr_283fr_228fr_auto] items-stretch gap-0 m-0 border-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] max-lg:grid-cols-1 max-sm:p-3.25 max-sm:border-x-0 max-sm:shadow-[0_8px_20px_rgba(var(--rgb-brown),0.06)]">
-              <InfoGridItem icon={CalendarDays} label="Date" value={<EventDateDisplay dateValue={event.date} locale={locale} />} />
-              <InfoGridItem icon={Clock} label="Time" value={time} />
-              <InfoGridItem icon={MapPin} label="Location" value={location} />
-              <InfoGridItem icon={Ticket} label="Price" value={event.price} prominent />
+              <InfoGridItem icon={CalendarDays} label={messages.dateLabel} value={<EventDateDisplay dateValue={event.date} locale={locale} />} />
+              <InfoGridItem icon={Clock} label={messages.timeLabel} value={time} />
+              <InfoGridItem icon={MapPin} label={messages.locationLabel} value={location} />
+              <InfoGridItem icon={Ticket} label={messages.priceLabel} value={event.price} prominent />
               <div className="flex items-center justify-end min-h-23 px-5 py-4.5 border-r-0 min-w-47 max-lg:min-h-0 max-lg:border-b-0 max-sm:p-3.25">
-                <TicketButton event={event} />
+                <TicketButton event={event} messages={messages} />
               </div>
             </div>
           </Container>
@@ -303,19 +390,21 @@ export default async function EventDetailPage({
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(280px,340px)] gap-[clamp(28px,5vw,58px)] items-start max-lg:grid-cols-1">
               <article className="grid gap-[clamp(30px,4vw,46px)] min-w-0">
                 <section className="grid gap-4 pb-[clamp(28px,4vw,38px)] border-b border-[rgba(var(--rgb-beige),0.48)] last:border-b-0 last:pb-0">
-                  <h2 className="m-0 text-[clamp(26px,3vw,38px)] leading-[1.08] font-light">{getUiText("eventOverviewHeading", locale)}</h2>
+                  <h2 className="m-0 text-[clamp(26px,3vw,38px)] leading-[1.08] font-light">{messages.eventOverviewHeading}</h2>
                   <p className="max-w-[68ch] m-0 text-text-primary text-[17px] leading-[1.75]">{description}</p>
                   <EventShare
                     title={event.title}
-                    text={event.longDescription || "Join this event at RORUM"}
+                    text={event.longDescription || messages.shareDefaultText}
                     url={`${siteUrl}/events/${event.slug}`}
                     actions={event.shareActions}
-                    heading={getUiText("shareWithFriendsHeading", locale)}
+                    heading={messages.shareWithFriendsHeading}
+                    linkCopiedMessage={messages.linkCopiedMessage}
+                    instagramCopyMessage={messages.instagramCopyMessage}
                   />
                 </section>
 
                 <section className="grid gap-4 pb-[clamp(28px,4vw,38px)] border-b border-[rgba(var(--rgb-beige),0.48)] last:border-b-0 last:pb-0">
-                  <h2 className="m-0 text-[clamp(26px,3vw,38px)] leading-[1.08] font-light">{getUiText("whatToExpectHeading", locale)}</h2>
+                  <h2 className="m-0 text-[clamp(26px,3vw,38px)] leading-[1.08] font-light">{messages.whatToExpectHeading}</h2>
                   <ul className="grid gap-4 m-0 p-0 list-none">
                     {expectations.map((item) => (
                       <li key={item} className="grid grid-cols-[25px_minmax(0,1fr)] gap-3.25 items-start text-text-primary font-normal leading-[1.65]">
@@ -332,14 +421,14 @@ export default async function EventDetailPage({
                 aria-label="Practical details"
               >
                 <h2 className="m-0 pb-3 border-b border-[rgba(var(--rgb-beige),0.34)] text-text-primary font-body text-[17px] font-extrabold tracking-normal leading-tight uppercase">
-                  {getUiText("practicalDetailsHeading", locale)}
+                  {messages.practicalDetailsHeading}
                 </h2>
                 {/* Date/Time/Price/Address deliberately NOT repeated here — they already appear in the info row above; this block covers what that row doesn't. */}
                 <dl className="grid gap-0 mt-2">
-                  <DetailRow label="Event language" value={language} />
-                  <DetailRow label="Duration" value={duration} />
-                  <DetailRow label="Availability" value={availability} />
-                  <DetailRow label="Arrival" value={event.arrival} />
+                  <DetailRow label={messages.languageRowLabel} value={language} />
+                  <DetailRow label={messages.durationRowLabel} value={duration} />
+                  <DetailRow label={messages.availabilityRowLabel} value={availability} />
+                  <DetailRow label={messages.arrivalRowLabel} value={event.arrival} />
                   <DetailRow label={event.ticketProviderInfo.label} value={event.ticketProviderInfo.value} />
                 </dl>
               </aside>

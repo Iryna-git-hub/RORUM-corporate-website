@@ -8,11 +8,43 @@ export default defineType({
   // No `groups`/tabs: all fields render on one continuous page, in the same
   // top-to-bottom order the corresponding sections appear on the site.
   fieldsets: [
+    { name: "gallerySection", title: "Gallery & \"Suitable for\"", options: { collapsible: true, collapsed: false } },
     { name: "stylingSection", title: "What we style", options: { collapsible: true, collapsed: false } },
     { name: "inquirySection", title: "Inquiry section", options: { collapsible: true, collapsed: false } },
+    { name: "seoSection", title: "SEO", options: { collapsible: true, collapsed: true } },
   ],
   fields: [
     defineField({ name: "hero", title: "Hero", type: "serviceHero" }),
+    defineField({
+      name: "gallery",
+      title: "Gallery images",
+      type: "array",
+      fieldset: "gallerySection",
+      of: [defineArrayMember({ type: "imageWithAlt" })],
+      description: "The photos shown in the decoration gallery, in order. / Фото в галереї декору, у порядку показу.",
+    }),
+    defineField({
+      name: "suitableForLabel",
+      title: '"Suitable for" label',
+      type: "internationalizedArrayString",
+      fieldset: "gallerySection",
+      description: 'E.g. "Suitable for:". / Напр. «Підходить для:».',
+    }),
+    defineField({
+      name: "suitableFor",
+      title: "\"Suitable for\" chips",
+      type: "array",
+      fieldset: "gallerySection",
+      of: [defineArrayMember({ type: "iconCard" })],
+      description: "Small chips listing occasions this service suits. / Невеликі мітки з переліком подій, для яких підходить ця послуга.",
+    }),
+    defineField({
+      name: "suitableForAriaLabel",
+      title: "\"Suitable for\" chips accessible label",
+      type: "internationalizedArrayString",
+      fieldset: "gallerySection",
+      description: "Screen-reader label for the chip group (not visible). / Напис для програм читання з екрана для групи міток (не показується візуально).",
+    }),
     defineField({
       name: "stylingLabel",
       title: '"What we style" label',
@@ -49,21 +81,6 @@ export default defineType({
       type: "imageWithAlt",
       fieldset: "stylingSection",
       description: "Image shown next to the styling intro. / Зображення поруч зі вступним текстом про оформлення.",
-    }),
-    defineField({
-      name: "suitableForLabel",
-      title: '"Suitable for" label',
-      type: "internationalizedArrayString",
-      fieldset: "stylingSection",
-      description: 'E.g. "Suitable for:". / Напр. «Підходить для:».',
-    }),
-    defineField({
-      name: "suitableFor",
-      title: "\"Suitable for\" chips",
-      type: "array",
-      fieldset: "stylingSection",
-      of: [defineArrayMember({ type: "iconCard" })],
-      description: "Small chips listing occasions this service suits. / Невеликі мітки з переліком подій, для яких підходить ця послуга.",
     }),
     defineField({
       name: "tailoredNote",
@@ -123,7 +140,7 @@ export default defineType({
       fieldset: "inquirySection",
       description: "Shown after the form is submitted successfully. / Показується після успішної відправки форми.",
     }),
-    defineField({ name: "seo", title: "SEO", type: "seo" }),
+    defineField({ name: "seo", title: "SEO", type: "seo", fieldset: "seoSection" }),
   ],
   preview: {
     prepare() {

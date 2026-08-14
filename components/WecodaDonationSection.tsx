@@ -6,13 +6,13 @@ import { Check, ChevronDown, Copy, Landmark } from "lucide-react";
 import { Container, SectionLabel } from "@/components/ui";
 import { useFormContent } from "@/components/FormContentProvider";
 
-interface BankField {
+export interface BankField {
   label: string;
   value: string;
   copyable?: boolean;
 }
 
-const bankFields: BankField[] = [
+export const defaultBankFields: BankField[] = [
   {
     label: "Beneficiary",
     value: "Women Entrepreneurs Commerce & Development Association (WECODA)",
@@ -70,6 +70,7 @@ export function WecodaDonationSection({
   bankTransferText = "Prefer bank transfer? See our bank details on the right.",
   bankDetailsTitle = "Bank Details",
   supportText = "RORUM proudly supports WECODA by providing a welcoming space for community events, learning, and collaboration.",
+  bankFields = defaultBankFields,
 }: {
   qrSrc: string;
   label?: string;
@@ -81,6 +82,7 @@ export function WecodaDonationSection({
   bankTransferText?: string;
   bankDetailsTitle?: string;
   supportText?: string;
+  bankFields?: BankField[];
 }) {
   const { messages } = useFormContent();
   const [bankOpen, setBankOpen] = useState(false);

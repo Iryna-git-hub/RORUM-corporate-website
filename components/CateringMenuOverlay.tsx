@@ -144,18 +144,25 @@ function FeaturedCard({ item }: { item: CateringMenuItem }) {
   );
 }
 
+const DEFAULT_BANNER_IMAGE_URL = "/images/catering/catering-gallery-added-16.png";
+const DEFAULT_BANNER_IMAGE_ALT = "Catering menu example from RORUM catering gallery";
+
 function CateringMenuOverlay({
   open,
   onClose,
   onRequestMenu,
   categories = fallbackMenuCategories,
   text = defaultOverlayText,
+  bannerImageUrl = DEFAULT_BANNER_IMAGE_URL,
+  bannerImageAlt = DEFAULT_BANNER_IMAGE_ALT,
 }: {
   open: boolean;
   onClose: () => void;
   onRequestMenu: () => void;
   categories?: CateringMenuCategory[];
   text?: CateringMenuOverlayText;
+  bannerImageUrl?: string;
+  bannerImageAlt?: string;
 }) {
   const { messages } = useFormContent();
   const orderedMenuCategories = withIcons(categories);
@@ -456,9 +463,10 @@ function CateringMenuOverlay({
         </header>
 
         <div
-          className="h-42.5 bg-[linear-gradient(90deg,rgba(var(--rgb-white),0.14),rgba(var(--rgb-white),0)),url('/images/catering/catering-gallery-added-16.png')] bg-position-[center_54%] bg-cover bg-no-repeat max-sm:h-[clamp(112px,30vw,150px)] max-sm:bg-position-[center_52%]"
+          className="h-42.5 bg-position-[center_54%] bg-cover bg-no-repeat max-sm:h-[clamp(112px,30vw,150px)] max-sm:bg-position-[center_52%]"
+          style={{ backgroundImage: `linear-gradient(90deg,rgba(var(--rgb-white),0.14),rgba(var(--rgb-white),0)), url('${bannerImageUrl}')` }}
           role="img"
-          aria-label="Catering menu example from RORUM catering gallery"
+          aria-label={bannerImageAlt}
         />
 
         <main className="mx-auto w-full pt-10 px-[clamp(24px,4.5vw,60px)] max-lg:w-[min(calc(100%-32px),820px)] max-lg:pt-7 max-sm:w-[min(calc(100%-24px),100%)] max-sm:pt-4.5 max-sm:px-0">
@@ -649,6 +657,8 @@ export function CateringMenuButton({
   className: extraClassName = "",
   categories,
   overlayText,
+  bannerImageUrl,
+  bannerImageAlt,
 }: {
   children?: ReactNode;
   variant?: "primary" | "secondary";
@@ -656,6 +666,8 @@ export function CateringMenuButton({
   className?: string;
   categories?: CateringMenuCategory[];
   overlayText?: CateringMenuOverlayText;
+  bannerImageUrl?: string;
+  bannerImageAlt?: string;
 }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -704,6 +716,8 @@ export function CateringMenuButton({
         onRequestMenu={requestMenu}
         categories={categories}
         text={overlayText}
+        bannerImageUrl={bannerImageUrl}
+        bannerImageAlt={bannerImageAlt}
       />
     </>
   );

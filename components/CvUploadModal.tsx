@@ -5,6 +5,29 @@ import { useCallback, useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { ApplicationModal } from "@/components/ApplicationModal";
 import { PrivacyConsent, validatePrivacyConsent } from "@/components/PrivacyConsent";
+import { useFormContent } from "@/components/FormContentProvider";
+
+export interface CvUploadFormContent {
+  modalTitle: string;
+  modalTitleSent: string;
+  description: string;
+  descriptionSent: string;
+  messagePlaceholder: string;
+  dropzoneText: string;
+  errorMessage: string;
+}
+
+const defaultCvUploadFormContent: CvUploadFormContent = {
+  modalTitle: "Send your CV",
+  modalTitleSent: "Thank you — we received your CV",
+  description:
+    "We'd love to hear from you. Upload your CV and tell us a little about yourself — we'll keep your details in mind for future collaborations, roles, or opportunities at RORUM.",
+  descriptionSent:
+    "Thank you for reaching out and sharing your story with RORUM. We'll keep your details in mind for future collaborations, roles, or opportunities.",
+  messagePlaceholder: "Tell us briefly what kind of collaboration you are interested in.",
+  dropzoneText: "Choose a PDF, DOC, or DOCX file",
+  errorMessage: "Something went wrong while sending your CV. Please try again.",
+};
 
 const acceptedExtensions = [".pdf", ".doc", ".docx"];
 const acceptedMimeTypes = [
@@ -38,7 +61,14 @@ function isAcceptedFile(file: File): boolean {
   );
 }
 
-function CvUploadDialog({ onClose }: { onClose: () => void }) {
+function CvUploadDialog({
+  onClose,
+  content = defaultCvUploadFormContent,
+}: {
+  onClose: () => void;
+  content?: CvUploadFormContent;
+}) {
+  const { messages } = useFormContent();
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -51,19 +81,20 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
     const name = String(formData.get("name") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
     const phone = String(formData.get("phone") ?? "").trim();
+    const required = (field: string) => messages.requiredFieldTemplate.replace("{field}", field);
 
-    if (!name) nextErrors.name = "Full Name is required.";
+    if (!name) nextErrors.name = required(messages.fullNameLabel);
     if (!email) {
-      nextErrors.email = "Email is required.";
+      nextErrors.email = required(messages.emailLabel);
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      nextErrors.email = "Please enter a valid email address.";
+      nextErrors.email = messages.invalidEmailMessage;
     }
     if (!phone) {
-      nextErrors.phone = "Phone number is required.";
+      nextErrors.phone = required(messages.phoneLabel);
     } else if (!/^[+()\d\s.-]{7,20}$/.test(phone)) {
-      nextErrors.phone = "Please enter a valid phone number.";
+      nextErrors.phone = messages.invalidPhoneMessage;
     }
-    if (!selectedFile) nextErrors.file = "Please upload your CV.";
+    if (!selectedFile) nextErrors.file = messages.fileRequiredMessage;
     const privacyError = validatePrivacyConsent(formData);
     if (privacyError) nextErrors.privacyConsent = privacyError;
 
@@ -83,7 +114,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
       setSelectedFile(null);
       setErrors((currentErrors) => ({
         ...currentErrors,
-        file: "Please upload a PDF, DOC, or DOCX file.",
+        file: messages.fileTypeMessage,
       }));
       event.target.value = "";
       return;
@@ -93,7 +124,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
       setSelectedFile(null);
       setErrors((currentErrors) => ({
         ...currentErrors,
-        file: "Please keep your file under 10 MB.",
+        file: messages.fileSizeMessage,
       }));
       event.target.value = "";
       return;
@@ -131,9 +162,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
       form.reset();
       setSelectedFile(null);
     } catch {
-      setSubmitError(
-        "Something went wrong while sending your CV. Please try again, or contact us directly at rorum2025@gmail.com.",
-      );
+      setSubmitError(content.errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -160,19 +189,17 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
               id="cv-modal-title"
               className="m-0 text-text-primary text-[2.4rem] leading-[0.98] font-light tracking-normal"
             >
-              Thank you — we received your CV
+              {content.modalTitleSent}
             </h2>
             <p className="m-0 text-text-primary text-[15px] leading-[1.65]">
-              Thank you for reaching out and sharing your story with RORUM.
-              We’ll keep your details in mind for future collaborations, roles,
-              or opportunities.
+              {content.descriptionSent}
             </p>
             <button
               className="inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-red rounded-pill bg-red text-white text-[12.5px] lg:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker"
               type="button"
               onClick={onClose}
             >
-              Close
+              {messages.closeLabel}
             </button>
           </div>
         ) : (
@@ -185,25 +212,23 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
                 id="cv-modal-title"
                 className="font-heading m-0 text-text-primary text-[2.4rem] leading-[0.98] font-light tracking-normal"
               >
-                Send your CV
+                {content.modalTitle}
               </h2>
               <p className="m-0 text-text-primary text-[15px] leading-[1.65]" id="cv-modal-description">
-                We’d love to hear from you. Upload your CV and tell us a little
-                about yourself — we’ll keep your details in mind for future
-                collaborations, roles, or opportunities at RORUM.
+                {content.description}
               </p>
             </div>
 
             <label htmlFor="cv-name" className={CV_LABEL_CLASS}>
               <span className={CV_FIELD_LABEL_CLASS}>
-                Full Name<span aria-hidden="true" className={CV_REQUIRED_MARK_CLASS}>*</span>
+                {messages.fullNameLabel}<span aria-hidden="true" className={CV_REQUIRED_MARK_CLASS}>*</span>
               </span>
               <input
                 id="cv-name"
                 name="name"
                 type="text"
                 autoComplete="name"
-                placeholder="Full Name"
+                placeholder={messages.fullNameLabel}
                 required
                 aria-invalid={Boolean(errors.name)}
                 aria-describedby={errors.name ? "cv-name-error" : undefined}
@@ -219,7 +244,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
             <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
               <label htmlFor="cv-email" className={CV_LABEL_CLASS}>
                 <span className={CV_FIELD_LABEL_CLASS}>
-                  Email<span aria-hidden="true" className={CV_REQUIRED_MARK_CLASS}>*</span>
+                  {messages.emailLabel}<span aria-hidden="true" className={CV_REQUIRED_MARK_CLASS}>*</span>
                 </span>
                 <input
                   id="cv-email"
@@ -240,7 +265,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
 
               <label htmlFor="cv-phone" className={CV_LABEL_CLASS}>
                 <span className={CV_FIELD_LABEL_CLASS}>
-                  Phone number<span aria-hidden="true" className={CV_REQUIRED_MARK_CLASS}>*</span>
+                  {messages.phoneLabel}<span aria-hidden="true" className={CV_REQUIRED_MARK_CLASS}>*</span>
                 </span>
                 <input
                   id="cv-phone"
@@ -263,14 +288,12 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
 
             <label className={CV_LABEL_CLASS} htmlFor="cv-upload">
               <span className={CV_FIELD_LABEL_CLASS}>
-                Upload your CV<span aria-hidden="true" className={CV_REQUIRED_MARK_CLASS}>*</span>
+                {messages.uploadCvLabel}<span aria-hidden="true" className={CV_REQUIRED_MARK_CLASS}>*</span>
               </span>
               <span className="grid grid-cols-[34px_minmax(0,1fr)] items-center gap-3 min-h-18 p-4 border border-dashed border-[rgba(var(--rgb-brown),0.32)] bg-cream text-text-primary text-[15px] font-bold max-sm:grid-cols-[28px_minmax(0,1fr)] max-sm:min-h-16.5 max-sm:p-3.5">
                 <Upload className="w-7 h-7 text-red" aria-hidden="true" strokeWidth={1.7} />
                 <span>
-                  {selectedFile
-                    ? selectedFile.name
-                    : "Choose a PDF, DOC, or DOCX file"}
+                  {selectedFile ? selectedFile.name : content.dropzoneText}
                 </span>
               </span>
               <input
@@ -291,7 +314,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
                 type="button"
                 onClick={removeFile}
               >
-                Remove file
+                {messages.removeFileLabel}
               </button>
             ) : null}
             {errors.file ? (
@@ -301,12 +324,12 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
             ) : null}
 
             <label htmlFor="cv-message" className={CV_LABEL_CLASS}>
-              Short message
+              {messages.shortMessageLabel}
               <textarea
                 id="cv-message"
                 name="message"
                 rows={4}
-                placeholder="Tell us briefly what kind of collaboration you are interested in."
+                placeholder={content.messagePlaceholder}
                 className={CV_TEXTAREA_CLASS}
               />
             </label>
@@ -315,8 +338,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
 
             {submitError ? (
               <p className="m-0 py-3 px-3.5 bg-[rgba(var(--rgb-red),0.08)] text-red text-sm leading-[1.55] font-bold" role="alert">
-                Something went wrong while sending your CV. Please try again, or
-                contact us directly at{" "}
+                {submitError} {messages.contactFallbackNote}{" "}
                 <a href="mailto:rorum2025@gmail.com" className="text-inherit underline underline-offset-[3px]">rorum2025@gmail.com</a>.
               </p>
             ) : null}
@@ -326,7 +348,7 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
               type="submit"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Sending..." : "Submit CV"}
+              {isSubmitting ? messages.sendingLabel : messages.submitCvLabel}
             </button>
           </form>
         )}
@@ -338,9 +360,11 @@ function CvUploadDialog({ onClose }: { onClose: () => void }) {
 export function CvUploadButton({
   children = "Send your CV",
   className = "btn",
+  content,
 }: {
   children?: ReactNode;
   className?: string;
+  content?: CvUploadFormContent;
 }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -365,7 +389,7 @@ export function CvUploadButton({
       >
         {children}
       </button>
-      {open ? <CvUploadDialog onClose={closeModal} /> : null}
+      {open ? <CvUploadDialog onClose={closeModal} content={content} /> : null}
     </>
   );
 }

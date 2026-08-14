@@ -15,11 +15,11 @@ import { hostAtRorumGalleryImages } from "@/lib/galleryImages";
 import { resolveGalleryImages } from "@/lib/sanityGallery";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
-import { compact, pickLocalized } from "@/lib/sanity-i18n";
+import { compact, pickLabel, pickLocalized } from "@/lib/sanity-i18n";
 import { isSanityConfigured } from "@/sanity/env";
+import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { hostAtRorumPageQuery } from "@/sanity/queries/pages";
-import { galleryCollectionQuery } from "@/sanity/queries/gallery";
 import {
   ArrowRight,
   Armchair,
@@ -73,8 +73,15 @@ const fallback = {
   packagesTitle: "Hosting Packages",
   packagesIntro:
     "Every event has its own atmosphere and unique requirements, which is why the packages below are simply examples of our most popular formats. Looking for something different? We would be happy to tailor the space and arrangements to your needs.",
+  packagesFooterCtaLabel: "Get in touch",
+  packagesFooterText: "with us to discuss your event and receive a personalized proposal.",
+  selectPackageCta: "Select Package",
   cancellationTitle: "Cancellation policy:",
   stepsTitle: "3-step setup",
+  requestProcessAriaLabel: "Host at RORUM request process",
+  sessionImage: sessionDetailsImage,
+  sessionImageAlt: "Hosted meeting room setup at RORUM",
+  inquiryIntro: "",
   description: "Host workshops, meetings and intimate gatherings at RORUM.",
   inquiryTitle: "Apply to Host at RORUM",
   inquirySubmitLabel: "Submit Hosting Request",
@@ -96,12 +103,9 @@ async function getData(locale: Locale) {
     };
   }
 
-  const [{ data: page }, { data: galleryDoc }] = await Promise.all([
-    sanityFetch({ query: hostAtRorumPageQuery }),
-    sanityFetch({ query: galleryCollectionQuery, params: { key: "host-at-rorum" } }),
-  ]);
+  const { data: page } = await sanityFetch({ query: hostAtRorumPageQuery });
 
-  const galleryImages = resolveGalleryImages(galleryDoc, locale, hostAtRorumGalleryImages);
+  const galleryImages = resolveGalleryImages(page?.gallery, locale, hostAtRorumGalleryImages);
 
   const includedAll = page?.includedItems?.length
     ? compact(page.includedItems.map((b) => pickLocalized(b?.text, locale)))
@@ -147,8 +151,18 @@ async function getData(locale: Locale) {
     packagesLabel: pickLocalized(page?.packagesLabel, locale) ?? fallback.packagesLabel,
     packagesTitle: pickLocalized(page?.packagesTitle, locale) ?? fallback.packagesTitle,
     packagesIntro: pickLocalized(page?.packagesIntro, locale) ?? fallback.packagesIntro,
+    packagesFooterCtaLabel: pickLabel(page?.labels, "packagesFooterCtaLabel", locale, fallback.packagesFooterCtaLabel),
+    packagesFooterText: pickLabel(page?.labels, "packagesFooterText", locale, fallback.packagesFooterText),
+    selectPackageCta: pickLabel(page?.labels, "selectPackageCta", locale, fallback.selectPackageCta),
     cancellationTitle: pickLocalized(page?.cancellationTitle, locale) ?? fallback.cancellationTitle,
     stepsTitle: pickLocalized(page?.stepsTitle, locale) ?? fallback.stepsTitle,
+    requestProcessAriaLabel: pickLabel(page?.labels, "requestProcessAriaLabel", locale, fallback.requestProcessAriaLabel),
+    sessionImage:
+      urlForImage(page?.sessionImage as unknown as Parameters<typeof urlForImage>[0])
+        ?.width(1200)
+        .url() ?? fallback.sessionImage,
+    sessionImageAlt: pickLocalized(page?.sessionImage?.alt, locale) ?? fallback.sessionImageAlt,
+    inquiryIntro: pickLocalized(page?.inquiryIntro, locale) ?? fallback.inquiryIntro,
     description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
     inquiryTitle: pickLocalized(page?.inquiryTitle, locale) ?? fallback.inquiryTitle,
     inquirySubmitLabel: pickLocalized(page?.inquirySubmitLabel, locale) ?? fallback.inquirySubmitLabel,
@@ -238,8 +252,8 @@ export default async function HostAtRorumPage({ params }: { params: Promise<{ lo
             <div
               className="w-full min-w-0 min-h-full bg-beige bg-center bg-cover bg-no-repeat max-lg:min-h-[320px] max-sm:min-h-[clamp(280px,56vw,360px)]"
               role="img"
-              aria-label="Hosted meeting room setup at RORUM"
-              style={{ backgroundImage: `url(${sessionDetailsImage})` }}
+              aria-label={data.sessionImageAlt}
+              style={{ backgroundImage: `url(${data.sessionImage})` }}
             />
             <div className="grid gap-4.5 content-center py-[clamp(56px,8vw,96px)] pr-[max(16px,calc((100vw-1180px)/2))] pl-[clamp(42px,6vw,86px)] min-w-0 *:max-w-140 max-lg:py-11 max-lg:px-[max(16px,calc((100vw-720px)/2))]">
               <SectionHeader
@@ -363,16 +377,15 @@ export default async function HostAtRorumPage({ params }: { params: Promise<{ lo
                 href="/contact"
                 className="font-extrabold underline underline-offset-[3px] transition-colors duration-180 hover:text-white focus-visible:text-white"
               >
-                Get in touch
+                {data.packagesFooterCtaLabel}
               </Link>{" "}
-              with us to discuss your event and receive a personalized
-              proposal.
+              {data.packagesFooterText}
             </p>
           </div>
           <PackageGrid
             items={data.packageItems}
             ctaHref="#request-private-meeting"
-            ctaLabel="Select Package"
+            ctaLabel={data.selectPackageCta}
           />
           <div className="grid gap-2.5 max-w-230 mt-[clamp(26px,4vw,44px)] pt-0 border-t-0">
             <p className="m-0 text-white text-[15px] leading-[1.7] font-black">
@@ -399,7 +412,7 @@ export default async function HostAtRorumPage({ params }: { params: Promise<{ lo
               </h2>
               <div
                 className="grid gap-3"
-                aria-label="Host at RORUM request process"
+                aria-label={data.requestProcessAriaLabel}
               >
                 {data.steps.map(({ number, title, text }) => (
                   <article
@@ -428,6 +441,7 @@ export default async function HostAtRorumPage({ params }: { params: Promise<{ lo
             <InquiryForm
               type="booking"
               title={data.inquiryTitle}
+              intro={data.inquiryIntro || undefined}
               submitLabel={data.inquirySubmitLabel}
               successMessage={data.successMessage}
               messagePlaceholder={data.messagePlaceholder}

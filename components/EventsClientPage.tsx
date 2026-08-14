@@ -8,8 +8,13 @@ import {
   type EventFilterLabels,
   type EventPriceFilter,
 } from "@/components/EventFilters";
-import { EventsPaginatedList } from "@/components/EventsPaginatedList";
+import {
+  EventsPaginatedList,
+  type EventsEmptyStateText,
+} from "@/components/EventsPaginatedList";
+import type { EventCardMessages } from "@/components/EventCard";
 import type { RorumEvent } from "@/lib/data";
+import { useLocale } from "@/lib/useLocale";
 
 // ---------------------------------------------------------------------------
 // Pure helpers (same logic as before, now runs client-side)
@@ -83,11 +88,16 @@ function getDateWindow(
 export function EventsClientPage({
   events,
   filters,
+  eventCardMessages,
+  emptyState,
 }: {
   events: RorumEvent[];
   filters?: EventFilterLabels;
+  eventCardMessages?: EventCardMessages;
+  emptyState?: EventsEmptyStateText;
 }) {
   const searchParams = useSearchParams();
+  const { locale } = useLocale();
 
   const rawDate = searchParams.get("date");
   const selectedDate: EventDateFilter =
@@ -175,6 +185,9 @@ export function EventsClientPage({
         events={visibleEvents}
         initialPage={initialPage}
         queryParams={queryParams}
+        locale={locale}
+        messages={eventCardMessages}
+        emptyState={emptyState}
       />
     </>
   );

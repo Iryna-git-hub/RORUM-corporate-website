@@ -9,12 +9,11 @@ import { pickLocalized } from "@/lib/sanity-i18n";
 import { isSanityConfigured } from "@/sanity/env";
 import { sanityFetch } from "@/sanity/lib/live";
 import { contactPageQuery } from "@/sanity/queries/pages";
-import { contactDetails, socialLinks } from "@/lib/siteConfig";
+import { contactInfoQuery, socialLinksQuery } from "@/sanity/queries/globals";
+import { resolveContactDetails, resolveSocialLinks } from "@/lib/sanityContact";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 type BrandColorStyle = CSSProperties & { "--social-brand-color": string };
-
-const mapQuery = encodeURIComponent(contactDetails.mapQueryAddress);
 
 const fallback = {
   heroLabel: "Contact",
@@ -29,9 +28,16 @@ const fallback = {
 };
 
 async function getData(locale: Locale) {
-  if (!isSanityConfigured) return fallback;
+  if (!isSanityConfigured) {
+    return { ...fallback, contactDetails: resolveContactDetails(null), socialLinks: resolveSocialLinks(null, locale) };
+  }
 
-  const { data: page } = await sanityFetch({ query: contactPageQuery });
+  const [{ data: page }, { data: contactInfoDoc }, { data: socialLinksDoc }] = await Promise.all([
+    sanityFetch({ query: contactPageQuery }),
+    sanityFetch({ query: contactInfoQuery }),
+    sanityFetch({ query: socialLinksQuery, stega: false }),
+  ]);
+
   return {
     heroLabel: pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
     introTitle: pickLocalized(page?.introTitle, locale) ?? fallback.introTitle,
@@ -41,6 +47,8 @@ async function getData(locale: Locale) {
     successMessage: pickLocalized(page?.successMessage, locale) ?? fallback.successMessage,
     submitLabel: pickLocalized(page?.submitLabel, locale) ?? fallback.submitLabel,
     description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    contactDetails: resolveContactDetails(contactInfoDoc),
+    socialLinks: resolveSocialLinks(socialLinksDoc, locale),
   };
 }
 
@@ -88,7 +96,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                         strokeWidth={1.8}
                       />
                     </span>
-                    <span>{contactDetails.address}</span>
+                    <span>{data.contactDetails.address}</span>
                   </p>
                   <p className="grid grid-cols-[40px_minmax(0,1fr)] gap-3 items-center m-0 text-text-primary leading-[1.55] font-[650]">
                     <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[rgba(var(--rgb-red),0.1)] text-red leading-[1]" aria-hidden="true">
@@ -100,9 +108,9 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                     </span>
                     <a
                       className="text-text-primary hover:text-red focus-visible:text-red"
-                      href={contactDetails.phoneHref}
+                      href={data.contactDetails.phoneHref}
                     >
-                      {contactDetails.phone}
+                      {data.contactDetails.phone}
                     </a>
                   </p>
                   <p className="grid grid-cols-[40px_minmax(0,1fr)] gap-3 items-center m-0 text-text-primary leading-[1.55] font-[650]">
@@ -115,9 +123,9 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                     </span>
                     <a
                       className="text-text-primary hover:text-red focus-visible:text-red"
-                      href={`mailto:${contactDetails.email}`}
+                      href={`mailto:${data.contactDetails.email}`}
                     >
-                      {contactDetails.email}
+                      {data.contactDetails.email}
                     </a>
                   </p>
                 </div>
@@ -130,7 +138,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                   className="flex flex-wrap gap-[10px] mt-1"
                   aria-label="Social links"
                 >
-                  {socialLinks.map(({ href, label, icon, brandColor }) => (
+                  {data.socialLinks.map(({ href, label, icon, brandColor }) => (
                     <a
                       key={label}
                       href={href}
@@ -169,7 +177,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
           <iframe
             className="block w-full h-full min-h-[clamp(360px,34vw,520px)] border-0 max-lg:min-h-[clamp(320px,54vw,430px)]"
             title="RORUM location on Google Maps"
-            src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
+            src={`https://www.google.com/maps?q=${encodeURIComponent(data.contactDetails.mapQueryAddress)}&output=embed`}
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
           />

@@ -32,6 +32,18 @@ export default defineType({
     }),
     defineField({ name: "applyCta", title: "\"Apply to volunteer\" button", type: "ctaLink" }),
     defineField({ name: "heroImage", title: "Hero image", type: "imageWithAlt", description: "Main image on the page. / Основне зображення на сторінці." }),
+    defineField({
+      name: "applicationForm",
+      title: "Application pop-up",
+      type: "object",
+      description: "Text shown in the \"Apply to volunteer\" form. / Текст у формі «Подати заявку на волонтерство».",
+      fields: [
+        defineField({ name: "modalTitle", title: "Form title", type: "internationalizedArrayString", description: 'E.g. "Volunteer With Us". / Напр. «Станьте волонтером».' }),
+        defineField({ name: "messagePlaceholder", title: "\"Message\" field placeholder", type: "internationalizedArrayString" }),
+        defineField({ name: "successMessage", title: "Success message", type: "internationalizedArrayText", description: "Shown after the application is sent successfully. / Показується після успішної відправки заявки." }),
+        defineField({ name: "errorMessage", title: "Error message", type: "internationalizedArrayText", description: "Shown if the application fails to send. / Показується, якщо заявку не вдалося надіслати." }),
+      ],
+    }),
     defineField({ name: "seo", title: "SEO", type: "seo" }),
   ],
   preview: {

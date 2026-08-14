@@ -6,3 +6,4 @@ export const socialLinksQuery = defineQuery(`*[_type == "socialLinks"][0]`);
 export const navigationQuery = defineQuery(`*[_type == "navigation"][0]`);
 export const footerQuery = defineQuery(`*[_type == "footer"][0]`);
 export const formMessagesQuery = defineQuery(`*[_type == "formMessages"][0]`);
+export const eventMessagesQuery = defineQuery(`*[_type == "eventMessages"][0]`);

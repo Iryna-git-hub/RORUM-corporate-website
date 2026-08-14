@@ -11,16 +11,17 @@ import {
   type ButtonVariant,
 } from "@/components/ui";
 import { MembershipBenefitsGrid } from "@/components/MembershipBenefitsGrid";
-import { WecodaDonationSection } from "@/components/WecodaDonationSection";
+import { WecodaDonationSection, defaultBankFields, type BankField } from "@/components/WecodaDonationSection";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { compact, pickLocalized } from "@/lib/sanity-i18n";
 import { isSanityConfigured } from "@/sanity/env";
+import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { communityMembershipPageQuery } from "@/sanity/queries/pages";
 
-const wecodaFormUrl = "https://forms.gle/MpadaPTyL8YCHtAa9";
-const wecodaDonationQrSrc = "/images/membership-week/wecoda-donation-qr.jpg";
+const fallbackWecodaFormUrl = "https://forms.gle/MpadaPTyL8YCHtAa9";
+const fallbackWecodaDonationQrSrc = "/images/membership-week/wecoda-donation-qr.jpg";
 
 interface MembershipWeekMediaItem {
   type: "image" | "video";
@@ -105,9 +106,10 @@ const fallback = {
   donationBankDetailsTitle: "Bank Details",
   donationSupportText:
     "RORUM proudly supports WECODA by providing a welcoming space for community events, learning, and collaboration.",
+  statementText: "Together, we are building a strong international community.",
 };
 
-function MembershipButton({ children, variant = "primary", href = wecodaFormUrl }: { children: ReactNode; variant?: ButtonVariant; href?: string }) {
+function MembershipButton({ children, variant = "primary", href = fallbackWecodaFormUrl }: { children: ReactNode; variant?: ButtonVariant; href?: string }) {
   return (
     <Button href={href} variant={variant}>
       {children}
@@ -138,6 +140,10 @@ async function getData(locale: Locale) {
         title,
         text,
       })),
+      membershipFormHref: fallbackWecodaFormUrl,
+      donationQrSrc: fallbackWecodaDonationQrSrc,
+      bankFields: defaultBankFields,
+      gallery: membershipWeekMedia,
     };
   }
 
@@ -155,9 +161,44 @@ async function getData(locale: Locale) {
     ? page.benefits.map((b, i) => {
         const combined = pickLocalized(b?.text, locale) ?? "";
         const [title, text] = splitBenefit(combined, fallbackBenefits[i]?.[0] ?? "", fallbackBenefits[i]?.[1] ?? "");
-        return { title, text, icon: benefitIcons[i] ?? benefitIcons[0]! };
+        const icon =
+          urlForImage(b?.icon as unknown as Parameters<typeof urlForImage>[0])
+            ?.width(96)
+            .url() ?? benefitIcons[i] ?? benefitIcons[0]!;
+        return { title, text, icon };
       })
     : fallbackBenefits.map(([title, text], i) => ({ title, text, icon: benefitIcons[i]! }));
+
+  const membershipFormHref = page?.membershipFormCta?.href || fallbackWecodaFormUrl;
+
+  const donationQrSrc =
+    urlForImage(page?.donation?.qrImage as unknown as Parameters<typeof urlForImage>[0])?.width(800).url() ??
+    fallbackWecodaDonationQrSrc;
+
+  const bankFields: BankField[] = page?.donation?.bankFields?.length
+    ? page.donation.bankFields.map((f, i) => ({
+        label: pickLocalized(f?.label, locale) ?? defaultBankFields[i]?.label ?? "",
+        value: f?.value ?? defaultBankFields[i]?.value ?? "",
+        copyable: f?.copyable ?? defaultBankFields[i]?.copyable,
+      }))
+    : defaultBankFields;
+
+  const gallery: MembershipWeekMediaItem[] = page?.gallery?.length
+    ? page.gallery.map((item, i) => {
+        const fb = membershipWeekMedia[i];
+        const imageUrl = urlForImage(item?.image as unknown as Parameters<typeof urlForImage>[0])
+          ?.width(700)
+          .url();
+        return imageUrl
+          ? { type: "image" as const, src: imageUrl, alt: pickLocalized(item?.alt, locale) ?? fb?.alt, featured: fb?.featured }
+          : {
+              type: "video" as const,
+              src: item?.videoUrl || fb?.src || "",
+              label: pickLocalized(item?.alt, locale) ?? fb?.label,
+              featured: fb?.featured,
+            };
+      })
+    : membershipWeekMedia;
 
   const applicationSteps = page?.applicationSteps?.length
     ? page.applicationSteps.map((s, i) => ({
@@ -192,10 +233,15 @@ async function getData(locale: Locale) {
     donationBankDetailsTitle:
       pickLocalized(page?.donation?.bankDetailsTitle, locale) ?? fallback.donationBankDetailsTitle,
     donationSupportText: pickLocalized(page?.donation?.supportText, locale) ?? fallback.donationSupportText,
+    statementText: pickLocalized(page?.statementText, locale) ?? fallback.statementText,
     heroIntro,
     introColumns,
     benefits,
     applicationSteps,
+    membershipFormHref,
+    donationQrSrc,
+    bankFields,
+    gallery,
   };
 }
 
@@ -242,7 +288,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
               />
             </div>
             <div className="wecoda-hero-actions flex flex-wrap gap-5 items-center max-sm:w-full max-sm:mt-1">
-              <MembershipButton>{data.applicationCta}</MembershipButton>
+              <MembershipButton href={data.membershipFormHref}>{data.applicationCta}</MembershipButton>
               <Button href="#support-wecoda" variant="secondary">
                 {data.supportCta}
                 <ArrowRight
@@ -283,7 +329,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
       </section>
 
       <WecodaDonationSection
-        qrSrc={wecodaDonationQrSrc}
+        qrSrc={data.donationQrSrc}
         label={data.donationLabel}
         title={data.donationTitle}
         text={data.donationText}
@@ -308,7 +354,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
             ))}
           </div>
           <div className="wecoda-hero-actions flex flex-wrap gap-5 items-center max-sm:w-full max-sm:mt-1">
-            <MembershipButton>{data.applicationCta}</MembershipButton>
+            <MembershipButton href={data.membershipFormHref}>{data.applicationCta}</MembershipButton>
             <a
               className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
               href="https://wecoda.org"
@@ -403,7 +449,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
               <div className="wecoda-membership-content grid justify-items-center gap-5 min-w-0">
                 <h3>{data.priceStripText.replace("Annual membership price:", "Annual Membership:")}</h3>
                 <p className="wecoda-membership-statement max-w-[42ch] text-[rgba(var(--rgb-cream),0.9)] text-[clamp(1rem,1.3vw,1.12rem)] leading-[1.5]">
-                  Together, we are building a strong international community.
+                  {data.statementText}
                 </p>
                 <a
                   className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
@@ -424,7 +470,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
                 />
               </div>
               <div className="wecoda-membership-cta flex justify-center min-w-max max-lg:justify-center max-lg:min-w-0">
-                <MembershipButton variant="red">{data.applicationCta}</MembershipButton>
+                <MembershipButton variant="red" href={data.membershipFormHref}>{data.applicationCta}</MembershipButton>
               </div>
             </div>
             <div className="wecoda-application-process grid gap-[18px] pt-[clamp(24px,3vw,34px)]">
@@ -454,7 +500,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
         <Container>
           <SectionHeader label={data.galleryLabel} title={data.galleryTitle} />
           <div className="wecoda-membership-week-grid grid grid-cols-4 auto-rows-[clamp(230px,21vw,340px)] gap-[clamp(12px,1.6vw,18px)] max-lg:grid-cols-2 max-lg:auto-rows-[clamp(190px,38vw,320px)] max-[560px]:grid-cols-1 max-[560px]:auto-rows-[clamp(230px,72vw,380px)]">
-            {membershipWeekMedia.map((item) => (
+            {data.gallery.map((item) => (
               <figure
                 className={`wecoda-membership-week-item relative min-w-0 min-h-0 m-0 overflow-hidden bg-beige ${
                   item.featured

@@ -32,6 +32,29 @@ export function pickLocalizedOr<T>(entries: I18nEntry<T>[] | undefined | null, l
   return pickLocalized(entries, locale) ?? fallback;
 }
 
+interface KeyedStringEntry {
+  key?: string | null;
+  value?: I18nEntry<string>[] | null;
+}
+
+/**
+ * Looks up one row from a `keyedString[]` field (see
+ * sanity/schemaTypes/objects/keyedString.ts) by its stable `key`, resolved
+ * to the current locale. Several singletons (`eventMessages`,
+ * `formMessages.extraLabels`, and small per-page `labels` arrays) store
+ * their shared strings this way instead of one named field each, to stay
+ * under Sanity's Content Lake cap on distinct schema attribute paths.
+ */
+export function pickLabel(
+  entries: KeyedStringEntry[] | undefined | null,
+  key: string,
+  locale: Locale,
+  fallback: string,
+): string {
+  const row = entries?.find((entry) => entry.key === key);
+  return pickLocalized(row?.value, locale) ?? fallback;
+}
+
 /**
  * Drops null/undefined entries. Prefer this over
  * `.filter((v): v is string => Boolean(v))` after mapping a list of
