@@ -249,6 +249,35 @@ main {
   letter-spacing: -0.03em;
   color: var(--color-text-primary);
 }
+/* `uk` renders body/UI text in Nunito instead of Quicksand (see
+   app/fonts.ts - Quicksand has no Cyrillic glyphs), and at the same
+   font-size Nunito's glyphs sit visibly smaller than Quicksand's.
+   `font-size-adjust` corrects for that aspect-ratio difference without
+   touching the actual `font-size`/line-height/weight/letter-spacing of
+   anything, so button/nav/component geometry is unaffected. 0.54 was
+   chosen by rendering both fonts (real woff2 files, real browser layout)
+   and overlaying them at large size to compare cap-height/x-height
+   directly - 0.6 (and the whole 0.58-0.64 band initially assumed close)
+   measurably overshot, leaving Nunito visibly larger than Quicksand
+   rather than equal; 0.54 is where the two align. */
+html[lang="uk"] body {
+  font-size-adjust: 0.52;
+}
+/* `font-size-adjust` is inherited, so it would otherwise leak from `body`
+   into every Merriweather heading too - reset it everywhere Merriweather
+   (`var(--font-heading)`) is used, not just on `.heading`/`.font-heading`:
+   `.wecoda-membership-panel h3`, `.wecoda-application-process h4`,
+   `.quick-card-title`, and `.policy-content h2` all set
+   `font-family: var(--font-heading)` directly further down in this file
+   without either class. */
+html[lang="uk"] .font-heading,
+html[lang="uk"] .heading,
+html[lang="uk"] .wecoda-membership-panel h3,
+html[lang="uk"] .wecoda-application-process h4,
+html[lang="uk"] .quick-card-title,
+html[lang="uk"] .policy-content h2 {
+  font-size-adjust: none;
+}
 .section-title {
   margin: 0;
   font-size: clamp(1.85rem, 2.6vw, 2.3rem);

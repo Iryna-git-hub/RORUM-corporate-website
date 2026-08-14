@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
-import { merriweather, quicksand } from "@/app/fonts";
+import { merriweather, nunito, quicksand } from "@/app/fonts";
 import { isLocale, locales, localeTags, type Locale } from "@/lib/i18n";
 import { SanityLive } from "@/sanity/lib/live";
 import "@/app/globals.css";
@@ -49,10 +49,13 @@ export default async function LocaleLayout({
   const { locale: rawLocale } = await params;
   if (!isLocale(rawLocale)) notFound();
   const locale: Locale = rawLocale;
+  // Quicksand has no Cyrillic glyphs (see app/fonts.ts), so `uk` swaps in
+  // Nunito under the same `--font-body` variable instead.
+  const bodyFont = locale === "uk" ? nunito.variable : quicksand.variable;
 
   return (
     <html lang={localeTags[locale]} data-scroll-behavior="smooth">
-      <body className={`${merriweather.variable} ${quicksand.variable}`}>
+      <body className={`${merriweather.variable} ${bodyFont}`}>
         {children}
         <SanityLive />
       </body>
