@@ -1472,6 +1472,7 @@ button.btn,
   min-height: clamp(250px, 28vw, 360px);
   overflow: hidden;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
   padding: clamp(18px, 2.4vw, 26px);
   padding-bottom: clamp(108px, 9vw, 124px);
@@ -1546,6 +1547,7 @@ button.btn,
 .quick-card-content {
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   gap: 14px;
   text-align: center;
@@ -1556,6 +1558,7 @@ button.btn,
   position: relative;
   z-index: 1;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   gap: 36px;
   transform-origin: center top;
@@ -1582,6 +1585,8 @@ button.btn,
 }
 .quick-card-title {
   display: block;
+  max-width: 24ch;
+  overflow-wrap: break-word;
   font-family: var(--font-heading), Georgia, serif;
   color: var(--quick-card-tone);
   font-size: clamp(19px, 1.65vw, 23px);
@@ -1589,7 +1594,6 @@ button.btn,
   letter-spacing: 0;
   text-transform: none;
   font-weight: 600;
-  white-space: nowrap;
   transition: color 0.26s ease;
 }
 .quick-card-text {
