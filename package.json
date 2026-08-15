@@ -42,7 +42,19 @@
     "sanity:delete-orphaned-legacy:dry-run": "tsx --env-file=.env.local scripts/delete-orphaned-legacy-docs.ts --dry-run",
     "sanity:delete-orphaned-legacy": "tsx --env-file=.env.local scripts/delete-orphaned-legacy-docs.ts",
     "sanity:clear-redundant-legacy:dry-run": "tsx --env-file=.env.local scripts/clear-redundant-legacy-fields.ts --dry-run",
-    "sanity:clear-redundant-legacy": "tsx --env-file=.env.local scripts/clear-redundant-legacy-fields.ts"
+    "sanity:clear-redundant-legacy": "tsx --env-file=.env.local scripts/clear-redundant-legacy-fields.ts",
+    "sanity:stats": "tsx --env-file=.env.local scripts/sanity-stats.ts",
+    "sanity:audit-translations": "tsx --env-file=.env.local scripts/audit-translations.ts",
+    "sanity:migrate-to-page-sections:dry-run": "tsx --env-file=.env.local scripts/migrate-to-page-sections.ts --dry-run",
+    "sanity:migrate-to-page-sections": "tsx --env-file=.env.local scripts/migrate-to-page-sections.ts",
+    "sanity:delete-migrated-singletons:dry-run": "tsx --env-file=.env.local scripts/delete-migrated-page-singletons.ts --dry-run",
+    "sanity:delete-migrated-singletons": "tsx --env-file=.env.local scripts/delete-migrated-page-singletons.ts",
+    "sanity:migrate-trust-icons:dry-run": "tsx --env-file=.env.local scripts/migrate-trust-badge-icons.ts --dry-run",
+    "sanity:migrate-trust-icons": "tsx --env-file=.env.local scripts/migrate-trust-badge-icons.ts",
+    "sanity:migrate-page-ids:dry-run": "tsx --env-file=.env.local scripts/migrate-page-ids.ts --dry-run",
+    "sanity:migrate-page-ids": "tsx --env-file=.env.local scripts/migrate-page-ids.ts",
+    "sanity:delete-old-page-ids:dry-run": "tsx --env-file=.env.local scripts/delete-old-dotted-page-ids.ts --dry-run",
+    "sanity:delete-old-page-ids": "tsx --env-file=.env.local scripts/delete-old-dotted-page-ids.ts"
   },
   "dependencies": {
     "@portabletext/react": "^7.0.1",

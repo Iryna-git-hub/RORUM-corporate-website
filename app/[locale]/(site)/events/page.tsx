@@ -8,12 +8,14 @@ import { events as staticEvents } from "@/lib/data";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { pickLabel, pickLocalized } from "@/lib/sanity-i18n";
+import { getAction, getItem, getSection } from "@/lib/sanity-sections";
 import { defaultFormMessages, resolveFormMessages } from "@/lib/sanityForms";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
 import { isSanityConfigured } from "@/sanity/env";
 import { sanityFetch } from "@/sanity/lib/live";
 import { allEventsQuery, eventsPageQuery } from "@/sanity/queries/events";
 import { eventMessagesQuery, formMessagesQuery } from "@/sanity/queries/globals";
+import { pageByKeyQuery } from "@/sanity/queries/page";
 
 // NOTE: this page IS an async Server Component that fetches from Sanity —
 // that's fine for static generation (data isn't request-dependent, just
@@ -69,12 +71,17 @@ async function getData(locale: Locale) {
     };
   }
 
-  const [{ data: page }, { data: eventDocs }, { data: formMessagesDoc }, { data: eventMessagesDoc }] = await Promise.all([
+  const [{ data: page }, { data: newPage }, { data: eventDocs }, { data: formMessagesDoc }, { data: eventMessagesDoc }] = await Promise.all([
     sanityFetch({ query: eventsPageQuery }),
+    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "events" } }),
     sanityFetch({ query: allEventsQuery }),
     sanityFetch({ query: formMessagesQuery }),
     sanityFetch({ query: eventMessagesQuery }),
   ]);
+
+  const heroSection = getSection(newPage?.sections, "hero");
+  const filtersSection = getSection(newPage?.sections, "filters");
+  const closingCtaSection = getSection(newPage?.sections, "closingCta");
 
   const events = eventDocs?.length
     ? eventDocs.map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale))
@@ -82,19 +89,24 @@ async function getData(locale: Locale) {
 
   const messages = resolveFormMessages(formMessagesDoc, locale);
 
+  const filterField = (key: string, fallbackValue: string) =>
+    pickLocalized(getItem(filtersSection, key)?.title, locale) ??
+    pickLocalized((page?.filters as Record<string, unknown> | undefined)?.[key] as never, locale) ??
+    fallbackValue;
+
   const filters = {
-    dateLabel: pickLocalized(page?.filters?.dateLabel, locale) ?? fallbackFilters.dateLabel,
-    languageLabel: pickLocalized(page?.filters?.languageLabel, locale) ?? fallbackFilters.languageLabel,
-    priceLabel: pickLocalized(page?.filters?.priceLabel, locale) ?? fallbackFilters.priceLabel,
-    availabilityLabel: pickLocalized(page?.filters?.availabilityLabel, locale) ?? fallbackFilters.availabilityLabel,
-    soonestLabel: pickLocalized(page?.filters?.soonestLabel, locale) ?? fallbackFilters.soonestLabel,
-    weekLabel: pickLocalized(page?.filters?.weekLabel, locale) ?? fallbackFilters.weekLabel,
-    monthLabel: pickLocalized(page?.filters?.monthLabel, locale) ?? fallbackFilters.monthLabel,
-    priceAscLabel: pickLocalized(page?.filters?.priceAscLabel, locale) ?? fallbackFilters.priceAscLabel,
-    priceDescLabel: pickLocalized(page?.filters?.priceDescLabel, locale) ?? fallbackFilters.priceDescLabel,
-    availableLabel: pickLocalized(page?.filters?.availableLabel, locale) ?? fallbackFilters.availableLabel,
-    soldOutLabel: pickLocalized(page?.filters?.soldOutLabel, locale) ?? fallbackFilters.soldOutLabel,
-    clearFiltersLabel: pickLocalized(page?.filters?.clearFiltersLabel, locale) ?? fallbackFilters.clearFiltersLabel,
+    dateLabel: filterField("dateLabel", fallbackFilters.dateLabel),
+    languageLabel: filterField("languageLabel", fallbackFilters.languageLabel),
+    priceLabel: filterField("priceLabel", fallbackFilters.priceLabel),
+    availabilityLabel: filterField("availabilityLabel", fallbackFilters.availabilityLabel),
+    soonestLabel: filterField("soonestLabel", fallbackFilters.soonestLabel),
+    weekLabel: filterField("weekLabel", fallbackFilters.weekLabel),
+    monthLabel: filterField("monthLabel", fallbackFilters.monthLabel),
+    priceAscLabel: filterField("priceAscLabel", fallbackFilters.priceAscLabel),
+    priceDescLabel: filterField("priceDescLabel", fallbackFilters.priceDescLabel),
+    availableLabel: filterField("availableLabel", fallbackFilters.availableLabel),
+    soldOutLabel: filterField("soldOutLabel", fallbackFilters.soldOutLabel),
+    clearFiltersLabel: filterField("clearFiltersLabel", fallbackFilters.clearFiltersLabel),
   };
 
   const eventCardMessages: EventCardMessages = {
@@ -116,16 +128,26 @@ async function getData(locale: Locale) {
   };
 
   const emptyState: EventsEmptyStateText = {
-    title: pickLabel(page?.labels, "emptyStateTitle", locale, defaultEventsEmptyStateText.title),
-    text: pickLabel(page?.labels, "emptyStateText", locale, defaultEventsEmptyStateText.text),
+    title:
+      pickLocalized(getItem(filtersSection, "emptyStateTitle")?.title, locale) ??
+      pickLabel(page?.labels, "emptyStateTitle", locale, defaultEventsEmptyStateText.title),
+    text:
+      pickLocalized(getItem(filtersSection, "emptyStateText")?.title, locale) ??
+      pickLabel(page?.labels, "emptyStateText", locale, defaultEventsEmptyStateText.text),
   };
 
   return {
-    title: pickLocalized(page?.title, locale) ?? fallback.title,
-    closingEyebrow: pickLocalized(page?.closingSection?.eyebrow, locale) ?? fallback.closingEyebrow,
-    closingTitle: pickLocalized(page?.closingSection?.title, locale) ?? fallback.closingTitle,
-    closingText: pickLocalized(page?.closingSection?.text, locale) ?? fallback.closingText,
-    closingLabel: pickLocalized(page?.closingSection?.cta?.label, locale) ?? fallback.closingLabel,
+    title: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.title, locale) ?? fallback.title,
+    closingEyebrow:
+      pickLocalized(closingCtaSection?.label, locale) ?? pickLocalized(page?.closingSection?.eyebrow, locale) ?? fallback.closingEyebrow,
+    closingTitle:
+      pickLocalized(closingCtaSection?.title, locale) ?? pickLocalized(page?.closingSection?.title, locale) ?? fallback.closingTitle,
+    closingText:
+      pickLocalized(closingCtaSection?.text, locale) ?? pickLocalized(page?.closingSection?.text, locale) ?? fallback.closingText,
+    closingLabel:
+      pickLocalized(getAction(closingCtaSection, "main")?.label, locale) ??
+      pickLocalized(page?.closingSection?.cta?.label, locale) ??
+      fallback.closingLabel,
     description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
     faqQuestion: messages.faqQuestion,
     faqLabel: messages.faqLabel,

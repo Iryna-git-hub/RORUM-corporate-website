@@ -4,9 +4,11 @@ import { Container, Section, SectionLabel } from "@/components/ui";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/sanity-i18n";
+import { getSection } from "@/lib/sanity-sections";
 import { isSanityConfigured } from "@/sanity/env";
 import { sanityFetch } from "@/sanity/lib/live";
 import { faqPageQuery } from "@/sanity/queries/faq";
+import { pageByKeyQuery } from "@/sanity/queries/page";
 
 const fallback = {
   heroLabel: "FAQ",
@@ -18,22 +20,39 @@ const fallback = {
 async function getData(locale: Locale) {
   if (!isSanityConfigured) return { ...fallback, groups: undefined as FaqGroupData[] | undefined };
 
-  const { data: page } = await sanityFetch({ query: faqPageQuery });
+  const [{ data: page }, { data: newPage }] = await Promise.all([
+    sanityFetch({ query: faqPageQuery }),
+    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "faq" } }),
+  ]);
 
-  const groups: FaqGroupData[] | undefined = page?.groups?.length
-    ? page.groups.map((group) => ({
+  const heroSection = getSection(newPage?.sections, "hero");
+  const groupSections = (newPage?.sections ?? []).filter((s) => s.sectionKey?.startsWith("group-"));
+
+  const groupsFromSections: FaqGroupData[] | undefined = groupSections.length
+    ? groupSections.map((group) => ({
         title: pickLocalized(group.title, locale) ?? "",
         items: (group.items ?? []).map((item) => ({
-          question: pickLocalized(item?.question, locale) ?? "",
-          answer: pickLocalized(item?.answer, locale) ?? "",
+          question: pickLocalized(item.title, locale) ?? "",
+          answer: pickLocalized(item.text, locale) ?? "",
         })),
       }))
     : undefined;
+  const groups: FaqGroupData[] | undefined =
+    groupsFromSections ??
+    (page?.groups?.length
+      ? page.groups.map((group) => ({
+          title: pickLocalized(group.title, locale) ?? "",
+          items: (group.items ?? []).map((item) => ({
+            question: pickLocalized(item?.question, locale) ?? "",
+            answer: pickLocalized(item?.answer, locale) ?? "",
+          })),
+        }))
+      : undefined);
 
   return {
-    heroLabel: pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
-    heroTitle: pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
-    heroText: pickLocalized(page?.heroText, locale) ?? fallback.heroText,
+    heroLabel: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
+    heroTitle: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
+    heroText: pickLocalized(heroSection?.text, locale) ?? pickLocalized(page?.heroText, locale) ?? fallback.heroText,
     description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
     groups,
   };

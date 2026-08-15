@@ -811,6 +811,21 @@ export type AboutPage = {
   seo?: Seo;
 };
 
+export type Page = {
+  _id: string;
+  _type: "page";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  pageKey?: string;
+  sections?: Array<
+    {
+      _key: string;
+    } & PageSection
+  >;
+  seo?: Seo;
+};
+
 export type GalleryCollection = {
   _id: string;
   _type: "galleryCollection";
@@ -939,6 +954,52 @@ export type PracticalDetail = {
   value?: InternationalizedArrayString;
 };
 
+export type PageSection = {
+  _type: "pageSection";
+  sectionKey?: string;
+  sectionKind?:
+    | "hero"
+    | "gallery"
+    | "iconGrid"
+    | "split"
+    | "steps"
+    | "cta"
+    | "form"
+    | "quickPaths"
+    | "editorial"
+    | "servicesTeaser"
+    | "communityTeaser"
+    | "benefits"
+    | "menuCategory"
+    | "donation"
+    | "filters"
+    | "custom";
+  label?: InternationalizedArrayString;
+  title?: InternationalizedArrayString;
+  text?: InternationalizedArrayText;
+  media?: Array<
+    {
+      _key: string;
+    } & MediaItem
+  >;
+  actions?: Array<
+    {
+      _key: string;
+    } & CtaAction
+  >;
+  items?: Array<
+    {
+      _key: string;
+    } & ContentItem
+  >;
+  settings?: Array<{
+    key?: string;
+    value?: string;
+    _type: "sectionSetting";
+    _key: string;
+  }>;
+};
+
 export type PackageTier = {
   _type: "packageTier";
   title?: InternationalizedArrayString;
@@ -965,6 +1026,40 @@ export type NavChild = {
   _type: "navChild";
   href?: string;
   label?: InternationalizedArrayString;
+};
+
+export type SanityFileAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+};
+
+export type MediaItem = {
+  _type: "mediaItem";
+  kind?: "image" | "video";
+  image?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  videoFile?: {
+    asset?: SanityFileAssetReference;
+    media?: unknown;
+    _type: "file";
+  };
+  videoUrl?: string;
+  posterImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  alt?: InternationalizedArrayString;
+  caption?: InternationalizedArrayText;
 };
 
 export type MediaGalleryItem = {
@@ -997,6 +1092,28 @@ export type FaqItem = {
   _type: "faqItem";
   question?: InternationalizedArrayString;
   answer?: InternationalizedArrayText;
+};
+
+export type CtaAction = {
+  _type: "ctaAction";
+  actionKey?: string;
+  label?: InternationalizedArrayString;
+  linkType?: "internal" | "external" | "anchor";
+  href?: string;
+  openInNewTab?: boolean;
+  enabled?: boolean;
+};
+
+export type ContentItem = {
+  _type: "contentItem";
+  itemKey?: string;
+  icon?: string;
+  title?: InternationalizedArrayString;
+  text?: InternationalizedArrayText;
+  image?: ImageWithAlt;
+  href?: string;
+  label?: InternationalizedArrayString;
+  value?: string;
 };
 
 export type CateringMenuItem = {
@@ -1184,6 +1301,7 @@ export type AllSanitySchemaTypes =
   | CateringPage
   | CateringMenuExamplesPage
   | AboutPage
+  | Page
   | GalleryCollection
   | Slug
   | FaqGroup
@@ -1191,13 +1309,18 @@ export type AllSanitySchemaTypes =
   | CateringMenuCategory
   | SocialLink
   | PracticalDetail
+  | PageSection
   | PackageTier
   | NavItem
   | NavChild
+  | SanityFileAssetReference
+  | MediaItem
   | MediaGalleryItem
   | KeyedString
   | IconCard
   | FaqItem
+  | CtaAction
+  | ContentItem
   | CateringMenuItem
   | BulletText
   | BulletParagraph
@@ -1560,6 +1683,24 @@ export type EventMessagesQueryResult = {
       _key: string;
     } & KeyedString
   >;
+} | null;
+
+// Source: sanity/queries/page.ts
+// Variable: pageByKeyQuery
+// Query: *[_type == "page" && pageKey == $pageKey][0]
+export type PageByKeyQueryResult = {
+  _id: string;
+  _type: "page";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  pageKey?: string;
+  sections?: Array<
+    {
+      _key: string;
+    } & PageSection
+  >;
+  seo?: Seo;
 } | null;
 
 // Source: sanity/queries/pages.ts
@@ -2100,6 +2241,7 @@ declare module "@sanity/client" {
     '*[_type == "footer"][0]': FooterQueryResult;
     '*[_type == "formMessages"][0]': FormMessagesQueryResult;
     '*[_type == "eventMessages"][0]': EventMessagesQueryResult;
+    '*[_type == "page" && pageKey == $pageKey][0]': PageByKeyQueryResult;
     '*[_type == "homePage"][0]': HomePageQueryResult;
     '*[_type == "aboutPage"][0]': AboutPageQueryResult;
     '*[_type == "cateringPage"][0]': CateringPageQueryResult;

@@ -1,5 +1,6 @@
 import type { StructureResolver } from "sanity/structure";
 import { LEGAL_PAGE_KEYS } from "./schemaTypes";
+import { PAGE_DOC_ID, type PageKey } from "./lib/pageIds";
 
 /**
  * Singleton documents use a fixed `documentId` (see sanity.config.ts's
@@ -12,6 +13,17 @@ function singleton(S: Parameters<StructureResolver>[0], id: string, title: strin
     .id(id)
     .title(title)
     .child(S.document().documentId(id).schemaType(type));
+}
+
+/**
+ * A page migrated to the new `page` document type (see documents/page.ts,
+ * MIGRATION_REPORT.md) — same fixed-id/named-entry pattern as `singleton()`
+ * above, just always targeting the shared `page` type. Uses the dash-based
+ * id from PAGE_DOC_ID — dotted ids (the old `page.<key>` scheme) are not
+ * publicly readable, see sanity/lib/pageIds.ts.
+ */
+function pageDoc(S: Parameters<StructureResolver>[0], key: PageKey, title: string) {
+  return singleton(S, PAGE_DOC_ID[key], title, "page");
 }
 
 export const structure: StructureResolver = (S) =>
@@ -40,18 +52,18 @@ export const structure: StructureResolver = (S) =>
           S.list()
             .title("Pages")
             .items([
-              singleton(S, "homePage", "Home", "homePage"),
-              singleton(S, "aboutPage", "About", "aboutPage"),
-              singleton(S, "eventsPage", "Attend Events (listing)", "eventsPage"),
-              singleton(S, "cateringPage", "Catering", "cateringPage"),
-              singleton(S, "cateringMenuExamplesPage", "Catering Menu Examples", "cateringMenuExamplesPage"),
-              singleton(S, "eventDecorationPage", "Event Decoration", "eventDecorationPage"),
-              singleton(S, "hostAtRorumPage", "Host at RORUM", "hostAtRorumPage"),
-              singleton(S, "communityMembershipPage", "Community Membership", "communityMembershipPage"),
-              singleton(S, "volunteerPage", "Volunteer", "volunteerPage"),
-              singleton(S, "workWithUsPage", "Work With Us", "workWithUsPage"),
-              singleton(S, "contactPage", "Contact", "contactPage"),
-              singleton(S, "faqPage", "FAQ", "faqPage"),
+              pageDoc(S, "home", "Home"),
+              pageDoc(S, "about", "About"),
+              pageDoc(S, "events", "Attend Events (listing)"),
+              pageDoc(S, "catering", "Catering"),
+              pageDoc(S, "cateringMenuExamples", "Catering Menu Examples"),
+              pageDoc(S, "eventDecoration", "Event Decoration"),
+              pageDoc(S, "hostAtRorum", "Host at RORUM"),
+              pageDoc(S, "communityMembership", "Community Membership"),
+              pageDoc(S, "volunteer", "Volunteer"),
+              pageDoc(S, "workWithUs", "Work With Us"),
+              pageDoc(S, "contact", "Contact"),
+              pageDoc(S, "faq", "FAQ"),
               S.divider(),
               ...LEGAL_PAGE_KEYS.map((key) =>
                 singleton(

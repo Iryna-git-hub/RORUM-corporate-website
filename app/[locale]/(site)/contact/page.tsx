@@ -6,8 +6,10 @@ import { Container, FAQInlinePrompt, SectionLabel } from "@/components/ui";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/sanity-i18n";
+import { getItem, getSection } from "@/lib/sanity-sections";
 import { isSanityConfigured } from "@/sanity/env";
 import { sanityFetch } from "@/sanity/lib/live";
+import { pageByKeyQuery } from "@/sanity/queries/page";
 import { contactPageQuery } from "@/sanity/queries/pages";
 import { contactInfoQuery, socialLinksQuery } from "@/sanity/queries/globals";
 import { resolveContactDetails, resolveSocialLinks } from "@/lib/sanityContact";
@@ -32,20 +34,33 @@ async function getData(locale: Locale) {
     return { ...fallback, contactDetails: resolveContactDetails(null), socialLinks: resolveSocialLinks(null, locale) };
   }
 
-  const [{ data: page }, { data: contactInfoDoc }, { data: socialLinksDoc }] = await Promise.all([
+  const [{ data: page }, { data: newPage }, { data: contactInfoDoc }, { data: socialLinksDoc }] = await Promise.all([
     sanityFetch({ query: contactPageQuery }),
+    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "contact" } }),
     sanityFetch({ query: contactInfoQuery }),
     sanityFetch({ query: socialLinksQuery, stega: false }),
   ]);
 
+  const heroSection = getSection(newPage?.sections, "hero");
+  const formSection = getSection(newPage?.sections, "form");
+
   return {
-    heroLabel: pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
-    introTitle: pickLocalized(page?.introTitle, locale) ?? fallback.introTitle,
-    introText: pickLocalized(page?.introText, locale) ?? fallback.introText,
-    followUsTitle: pickLocalized(page?.followUsTitle, locale) ?? fallback.followUsTitle,
-    formTitle: pickLocalized(page?.formTitle, locale) ?? fallback.formTitle,
-    successMessage: pickLocalized(page?.successMessage, locale) ?? fallback.successMessage,
-    submitLabel: pickLocalized(page?.submitLabel, locale) ?? fallback.submitLabel,
+    heroLabel: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
+    introTitle: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.introTitle, locale) ?? fallback.introTitle,
+    introText: pickLocalized(heroSection?.text, locale) ?? pickLocalized(page?.introText, locale) ?? fallback.introText,
+    followUsTitle:
+      pickLocalized(getItem(heroSection, "followUsTitle")?.title, locale) ??
+      pickLocalized(page?.followUsTitle, locale) ??
+      fallback.followUsTitle,
+    formTitle: pickLocalized(formSection?.title, locale) ?? pickLocalized(page?.formTitle, locale) ?? fallback.formTitle,
+    successMessage:
+      pickLocalized(getItem(formSection, "successMessage")?.text, locale) ??
+      pickLocalized(page?.successMessage, locale) ??
+      fallback.successMessage,
+    submitLabel:
+      pickLocalized(getItem(formSection, "submitLabel")?.title, locale) ??
+      pickLocalized(page?.submitLabel, locale) ??
+      fallback.submitLabel,
     description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
     contactDetails: resolveContactDetails(contactInfoDoc),
     socialLinks: resolveSocialLinks(socialLinksDoc, locale),

@@ -43,10 +43,12 @@ export default defineConfig({
   document: {
     // Singletons: no "duplicate" (would create a second, ambiguous
     // instance) and no "delete" (the frontend assumes these always exist).
-    // `legalPage` is a singleton *type* with 3 fixed-id instances instead of
-    // exactly one, so the same restriction applies to all of them.
+    // `legalPage`/`page` are singleton *types* with several fixed-id
+    // instances instead of exactly one, so the same restriction applies.
     actions: (input, context) =>
-      SINGLETON_TYPES.has(context.schemaType) || context.schemaType === "legalPage"
+      SINGLETON_TYPES.has(context.schemaType) ||
+      context.schemaType === "legalPage" ||
+      context.schemaType === "page"
         ? input.filter(({ action }) => action && !["duplicate", "delete"].includes(action))
         : input,
     // New documents of a singleton type can only be created through the
@@ -56,7 +58,10 @@ export default defineConfig({
     newDocumentOptions: (prev, { creationContext }) => {
       if (creationContext.type !== "global") return prev;
       return prev.filter(
-        (template) => !SINGLETON_TYPES.has(template.templateId) && template.templateId !== "legalPage",
+        (template) =>
+          !SINGLETON_TYPES.has(template.templateId) &&
+          template.templateId !== "legalPage" &&
+          template.templateId !== "page",
       );
     },
   },

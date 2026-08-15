@@ -6,10 +6,12 @@ import { Container, SectionLabel } from "@/components/ui";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { compact, pickLocalized } from "@/lib/sanity-i18n";
+import { getItem, getSection } from "@/lib/sanity-sections";
 import { getIconCardIcon } from "@/lib/iconCardIcons";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
+import { pageByKeyQuery } from "@/sanity/queries/page";
 import { workWithUsPageQuery } from "@/sanity/queries/pages";
 
 const fallbackFeatureItems: { text: string; icon: LucideIcon }[] = [
@@ -63,44 +65,90 @@ async function getData(locale: Locale) {
     };
   }
 
-  const { data: page } = await sanityFetch({ query: workWithUsPageQuery });
-  const heroParagraphs = page?.heroParagraphs
-    ? compact(page.heroParagraphs.map((p) => pickLocalized(p?.text, locale)))
-    : fallbackHeroParagraphs;
+  const [{ data: page }, { data: newPage }] = await Promise.all([
+    sanityFetch({ query: workWithUsPageQuery }),
+    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "workWithUs" } }),
+  ]);
 
-  const featureItems = page?.featureItems?.length
-    ? page.featureItems.map((f, i) => ({
-        text: pickLocalized(f?.title, locale) ?? fallbackFeatureItems[i]?.text ?? "",
-        icon: getIconCardIcon(f?.icon),
+  const heroSection = getSection(newPage?.sections, "hero");
+  const featuresSection = getSection(newPage?.sections, "features");
+  const formSection = getSection(newPage?.sections, "cvUploadForm");
+
+  const heroParagraphItems = (heroSection?.items ?? []).filter((i) => i.itemKey?.startsWith("hero"));
+  const heroParagraphs = heroParagraphItems.length
+    ? compact(heroParagraphItems.map((i) => pickLocalized(i.text, locale)))
+    : page?.heroParagraphs
+      ? compact(page.heroParagraphs.map((p) => pickLocalized(p?.text, locale)))
+      : fallbackHeroParagraphs;
+
+  const featureItems = featuresSection?.items?.length
+    ? featuresSection.items.map((f, i) => ({
+        text: pickLocalized(f.title, locale) ?? fallbackFeatureItems[i]?.text ?? "",
+        icon: getIconCardIcon(f.icon ?? undefined),
       }))
-    : fallbackFeatureItems;
+    : page?.featureItems?.length
+      ? page.featureItems.map((f, i) => ({
+          text: pickLocalized(f?.title, locale) ?? fallbackFeatureItems[i]?.text ?? "",
+          icon: getIconCardIcon(f?.icon),
+        }))
+      : fallbackFeatureItems;
 
-  const collaborationImages = page?.collaborationImages?.length
-    ? page.collaborationImages.map((img, i) => ({
+  const collaborationImages = heroSection?.media?.length
+    ? heroSection.media.map((m, i) => ({
         image:
-          urlForImage(img as unknown as Parameters<typeof urlForImage>[0])
+          urlForImage(m.image as unknown as Parameters<typeof urlForImage>[0])
             ?.width(900)
             .url() ?? fallbackCollaborationImages[i]?.image ?? "",
-        alt: pickLocalized(img?.alt, locale) ?? fallbackCollaborationImages[i]?.alt ?? "",
+        alt: pickLocalized(m.alt, locale) ?? fallbackCollaborationImages[i]?.alt ?? "",
       }))
-    : fallbackCollaborationImages;
+    : page?.collaborationImages?.length
+      ? page.collaborationImages.map((img, i) => ({
+          image:
+            urlForImage(img as unknown as Parameters<typeof urlForImage>[0])
+              ?.width(900)
+              .url() ?? fallbackCollaborationImages[i]?.image ?? "",
+          alt: pickLocalized(img?.alt, locale) ?? fallbackCollaborationImages[i]?.alt ?? "",
+        }))
+      : fallbackCollaborationImages;
 
   const cvUploadForm: CvUploadFormContent = {
-    modalTitle: pickLocalized(page?.cvUploadForm?.modalTitle, locale) ?? fallbackCvUploadForm.modalTitle,
-    modalTitleSent: pickLocalized(page?.cvUploadForm?.modalTitleSent, locale) ?? fallbackCvUploadForm.modalTitleSent,
-    description: pickLocalized(page?.cvUploadForm?.description, locale) ?? fallbackCvUploadForm.description,
+    modalTitle:
+      pickLocalized(getItem(formSection, "modalTitle")?.title, locale) ??
+      pickLocalized(page?.cvUploadForm?.modalTitle, locale) ??
+      fallbackCvUploadForm.modalTitle,
+    modalTitleSent:
+      pickLocalized(getItem(formSection, "modalTitleSent")?.title, locale) ??
+      pickLocalized(page?.cvUploadForm?.modalTitleSent, locale) ??
+      fallbackCvUploadForm.modalTitleSent,
+    description:
+      pickLocalized(getItem(formSection, "description")?.text, locale) ??
+      pickLocalized(page?.cvUploadForm?.description, locale) ??
+      fallbackCvUploadForm.description,
     descriptionSent:
-      pickLocalized(page?.cvUploadForm?.descriptionSent, locale) ?? fallbackCvUploadForm.descriptionSent,
+      pickLocalized(getItem(formSection, "descriptionSent")?.text, locale) ??
+      pickLocalized(page?.cvUploadForm?.descriptionSent, locale) ??
+      fallbackCvUploadForm.descriptionSent,
     messagePlaceholder:
-      pickLocalized(page?.cvUploadForm?.messagePlaceholder, locale) ?? fallbackCvUploadForm.messagePlaceholder,
-    dropzoneText: pickLocalized(page?.cvUploadForm?.dropzoneText, locale) ?? fallbackCvUploadForm.dropzoneText,
-    errorMessage: pickLocalized(page?.cvUploadForm?.errorMessage, locale) ?? fallbackCvUploadForm.errorMessage,
+      pickLocalized(getItem(formSection, "messagePlaceholder")?.title, locale) ??
+      pickLocalized(page?.cvUploadForm?.messagePlaceholder, locale) ??
+      fallbackCvUploadForm.messagePlaceholder,
+    dropzoneText:
+      pickLocalized(getItem(formSection, "dropzoneText")?.title, locale) ??
+      pickLocalized(page?.cvUploadForm?.dropzoneText, locale) ??
+      fallbackCvUploadForm.dropzoneText,
+    errorMessage:
+      pickLocalized(getItem(formSection, "errorMessage")?.text, locale) ??
+      pickLocalized(page?.cvUploadForm?.errorMessage, locale) ??
+      fallbackCvUploadForm.errorMessage,
   };
 
   return {
-    heroLabel: pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
-    heroTitle: pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
-    cvUploadCta: pickLocalized(page?.cvUploadCta, locale) ?? fallback.cvUploadCta,
+    heroLabel: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
+    heroTitle: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
+    cvUploadCta:
+      pickLocalized(getItem(heroSection, "cvUploadCta")?.title, locale) ??
+      pickLocalized(page?.cvUploadCta, locale) ??
+      fallback.cvUploadCta,
     description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
     heroParagraphs,
     featureItems,

@@ -15,16 +15,19 @@ import {
   HomeHero,
   Section,
   SectionHeader,
+  type TrustItem,
 } from "@/components/ui";
 import { events as staticEvents } from "@/lib/data";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { compact, pickLocalized } from "@/lib/sanity-i18n";
+import { getAction, getItem, getSection } from "@/lib/sanity-sections";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
 import { isSanityConfigured } from "@/sanity/env";
-import { urlForImage } from "@/sanity/lib/image";
+import { urlForFile, urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { allEventsQuery } from "@/sanity/queries/events";
+import { pageByKeyQuery } from "@/sanity/queries/page";
 import { homePageQuery } from "@/sanity/queries/pages";
 import {
   ArrowRight,
@@ -82,7 +85,12 @@ const fallback = {
   heroLabel: "Copenhagen event space",
   heroTitle: "A Copenhagen space for meaningful gatherings",
   heroText: "Attend events or host your own gathering in a calm, thoughtfully prepared space with support from the RORUM team.",
-  heroTrustItems: ["Up to 12 guests", "Central Copenhagen", "On-site support", "Catering & decoration available"],
+  heroTrustItems: [
+    { title: "Up to 12 guests", icon: "Users" },
+    { title: "Central Copenhagen", icon: "MapPin" },
+    { title: "On-site support", icon: "Smile" },
+    { title: "Catering & decoration available", icon: "Wine" },
+  ],
   hostAtRorumCta: "Host at RORUM",
   attendEventsCta: "Attend Events",
   quickPathsLabel: "Quick paths",
@@ -141,29 +149,95 @@ async function getData(locale: Locale) {
     };
   }
 
-  const [{ data: page }, events] = await Promise.all([sanityFetch({ query: homePageQuery }), eventsPromise]);
+  const [{ data: page }, { data: newPage }, events] = await Promise.all([
+    sanityFetch({ query: homePageQuery }),
+    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "home" } }),
+    eventsPromise,
+  ]);
 
-  const quickPaths = page?.quickPaths?.length
-    ? page.quickPaths.map((p, i) => ({
-        title: pickLocalized(p?.title, locale) ?? fallbackQuickPaths[i]?.[0] ?? "",
-        text: pickLocalized(p?.text, locale) ?? fallbackQuickPaths[i]?.[1] ?? "",
+  // New compact page+sections model (see MIGRATION_REPORT.md) — preferred
+  // when a `page` document with pageKey "home" exists; falls through to the
+  // old `homePage` singleton, then to the hardcoded fallback below, so this
+  // cuts over automatically the moment the pilot migration has run, with no
+  // risk beforehand.
+  const heroSection = getSection(newPage?.sections, "hero");
+  const quickPathsSection = getSection(newPage?.sections, "quickPaths");
+  const eventsStripSection = getSection(newPage?.sections, "eventsStrip");
+  const attendFeatureSection = getSection(newPage?.sections, "editorialAttendEvents");
+  const hostFeatureSection = getSection(newPage?.sections, "editorialHostAtRorum");
+  const servicesTeaserSection = getSection(newPage?.sections, "servicesTeaser");
+  const communityTeaserSection = getSection(newPage?.sections, "communityTeaser");
+  const closingCtaSection = getSection(newPage?.sections, "closingCta");
+
+  const quickPathsFromSections = quickPathsSection?.items?.length
+    ? quickPathsSection.items.map((item, i) => ({
+        title: pickLocalized(item.title, locale) ?? fallbackQuickPaths[i]?.[0] ?? "",
+        text: pickLocalized(item.text, locale) ?? fallbackQuickPaths[i]?.[1] ?? "",
         href: (quickPathMeta[i] ?? quickPathMeta[0]!).href,
         image:
-          urlForImage(p?.image as unknown as Parameters<typeof urlForImage>[0])
+          urlForImage(item.image as unknown as Parameters<typeof urlForImage>[0])
             ?.width(700)
             .url() ?? (quickPathMeta[i] ?? quickPathMeta[0]!).image,
-        cta: pickLocalized(p?.cta, locale),
+        cta: pickLocalized(item.label, locale),
       }))
-    : fallbackQuickPaths.map(([title, text], i) => ({ title, text, ...quickPathMeta[i]!, cta: undefined }));
+    : undefined;
+  const quickPaths =
+    quickPathsFromSections ??
+    (page?.quickPaths?.length
+      ? page.quickPaths.map((p, i) => ({
+          title: pickLocalized(p?.title, locale) ?? fallbackQuickPaths[i]?.[0] ?? "",
+          text: pickLocalized(p?.text, locale) ?? fallbackQuickPaths[i]?.[1] ?? "",
+          href: (quickPathMeta[i] ?? quickPathMeta[0]!).href,
+          image:
+            urlForImage(p?.image as unknown as Parameters<typeof urlForImage>[0])
+              ?.width(700)
+              .url() ?? (quickPathMeta[i] ?? quickPathMeta[0]!).image,
+          cta: pickLocalized(p?.cta, locale),
+        }))
+      : fallbackQuickPaths.map(([title, text], i) => ({ title, text, ...quickPathMeta[i]!, cta: undefined })));
 
-  const heroTrustItems = page?.heroTrustItems?.length
-    ? compact(page.heroTrustItems.map((b) => pickLocalized(b?.text, locale)))
-    : fallback.heroTrustItems;
+  const heroTrustSectionItems = heroSection?.items?.filter((i) => i.itemKey?.startsWith("trust"));
+  const heroTrustItems: TrustItem[] = heroTrustSectionItems?.length
+    ? compact(
+        heroTrustSectionItems.map((item, i) => {
+          const title = pickLocalized(item.title, locale) ?? fallback.heroTrustItems[i]?.title;
+          return title ? { title, icon: item.icon ?? fallback.heroTrustItems[i]?.icon } : undefined;
+        }),
+      )
+    : page?.heroTrustItems?.length
+      ? compact(
+          page.heroTrustItems.map((b, i) => {
+            const title = pickLocalized(b?.text, locale);
+            return title ? { title, icon: fallback.heroTrustItems[i]?.icon } : undefined;
+          }),
+        )
+      : fallback.heroTrustItems;
 
   function resolveFeature(
+    section: typeof attendFeatureSection,
     feature: typeof page extends null | undefined ? never : NonNullable<typeof page>["attendEventsFeature"],
     fb: typeof fallback.attendFeature,
   ) {
+    const media = section?.media?.[0];
+    const descriptionItem = getItem(section, "description");
+    if (section) {
+      return {
+        eyebrow: pickLocalized(section.label, locale) ?? fb.eyebrow,
+        title: pickLocalized(section.title, locale) ?? fb.title,
+        intro: pickLocalized(section.text, locale) ?? fb.intro,
+        description: pickLocalized(descriptionItem?.text, locale) ?? fb.description,
+        features: (section.items ?? [])
+          .filter((i) => i.itemKey?.startsWith("feature"))
+          .map((i) => pickLocalized(i.title, locale))
+          .filter((v): v is string => Boolean(v)),
+        cta: pickLocalized(getAction(section, "cta")?.label, locale) ?? fb.cta,
+        image:
+          urlForImage(media?.image as unknown as Parameters<typeof urlForImage>[0])
+            ?.width(900)
+            .url() ?? fb.image,
+        imageAlt: pickLocalized(media?.alt, locale) ?? fb.imageAlt,
+      };
+    }
     return {
       eyebrow: pickLocalized(feature?.eyebrow, locale) ?? fb.eyebrow,
       title: pickLocalized(feature?.title, locale) ?? fb.title,
@@ -181,25 +255,47 @@ async function getData(locale: Locale) {
     };
   }
 
-  const services: ServiceTeaser[] = page?.services?.length
-    ? page.services.map((s, i) => ({
-        title: pickLocalized(s?.title, locale) ?? fallbackServices[i]?.title ?? "",
-        text: pickLocalized(s?.text, locale) ?? fallbackServices[i]?.text ?? "",
-        cta: pickLocalized(s?.cta, locale) ?? fallbackServices[i]?.cta,
-        href: s?.href ?? fallbackServices[i]?.href ?? "/",
+  const servicesFromSections = servicesTeaserSection?.items?.length
+    ? servicesTeaserSection.items.map((s, i) => ({
+        title: pickLocalized(s.title, locale) ?? fallbackServices[i]?.title ?? "",
+        text: pickLocalized(s.text, locale) ?? fallbackServices[i]?.text ?? "",
+        cta: pickLocalized(s.label, locale) ?? fallbackServices[i]?.cta,
+        href: s.href ?? fallbackServices[i]?.href ?? "/",
         image:
-          urlForImage(s?.image as unknown as Parameters<typeof urlForImage>[0])
+          urlForImage(s.image as unknown as Parameters<typeof urlForImage>[0])
             ?.width(700)
             .url() ?? serviceImages[i] ?? serviceImages[0]!,
       }))
-    : fallbackServices;
+    : undefined;
+  const services: ServiceTeaser[] =
+    servicesFromSections ??
+    (page?.services?.length
+      ? page.services.map((s, i) => ({
+          title: pickLocalized(s?.title, locale) ?? fallbackServices[i]?.title ?? "",
+          text: pickLocalized(s?.text, locale) ?? fallbackServices[i]?.text ?? "",
+          cta: pickLocalized(s?.cta, locale) ?? fallbackServices[i]?.cta,
+          href: s?.href ?? fallbackServices[i]?.href ?? "/",
+          image:
+            urlForImage(s?.image as unknown as Parameters<typeof urlForImage>[0])
+              ?.width(700)
+              .url() ?? serviceImages[i] ?? serviceImages[0]!,
+        }))
+      : fallbackServices);
 
-  const communityLinks: CommunityLink[] = page?.communityLinks?.length
-    ? page.communityLinks.map((l, i) => ({
-        href: l?.href ?? fallbackCommunityLinks[i]?.href ?? "/",
-        label: pickLocalized(l?.label, locale) ?? fallbackCommunityLinks[i]?.label ?? "",
+  const communityLinksFromSections = communityTeaserSection?.items?.length
+    ? communityTeaserSection.items.map((l, i) => ({
+        href: l.href ?? fallbackCommunityLinks[i]?.href ?? "/",
+        label: pickLocalized(l.label, locale) ?? fallbackCommunityLinks[i]?.label ?? "",
       }))
-    : fallbackCommunityLinks;
+    : undefined;
+  const communityLinks: CommunityLink[] =
+    communityLinksFromSections ??
+    (page?.communityLinks?.length
+      ? page.communityLinks.map((l, i) => ({
+          href: l?.href ?? fallbackCommunityLinks[i]?.href ?? "/",
+          label: pickLocalized(l?.label, locale) ?? fallbackCommunityLinks[i]?.label ?? "",
+        }))
+      : fallbackCommunityLinks);
 
   const closingLinksFallback = [
     { href: "/events", label: "Attend Events" },
@@ -207,49 +303,99 @@ async function getData(locale: Locale) {
     { href: "/catering", label: "Catering" },
     { href: "/event-decoration", label: "Event decoration" },
   ];
-  const closingLinks = page?.closingSection?.links?.length
-    ? page.closingSection.links.map((l, i) => ({
-        href: l?.href ?? closingLinksFallback[i]?.href ?? "/",
-        label: pickLocalized(l?.label, locale) ?? closingLinksFallback[i]?.label ?? "",
+  const closingLinkItems = closingCtaSection?.items?.filter((i) => i.itemKey?.startsWith("link"));
+  const closingLinksFromSections = closingLinkItems?.length
+    ? closingLinkItems.map((l, i) => ({
+        href: l.href ?? closingLinksFallback[i]?.href ?? "/",
+        label: pickLocalized(l.label, locale) ?? closingLinksFallback[i]?.label ?? "",
       }))
-    : closingLinksFallback;
+    : undefined;
+  const closingLinks =
+    closingLinksFromSections ??
+    (page?.closingSection?.links?.length
+      ? page.closingSection.links.map((l, i) => ({
+          href: l?.href ?? closingLinksFallback[i]?.href ?? "/",
+          label: pickLocalized(l?.label, locale) ?? closingLinksFallback[i]?.label ?? "",
+        }))
+      : closingLinksFallback);
+
+  const heroVideoMedia = heroSection?.media?.find((m) => m.kind === "video");
+  const heroImageMedia = heroSection?.media?.find((m) => m.kind !== "video") ?? heroVideoMedia;
 
   return {
-    heroLabel: pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
-    heroTitle: pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
-    heroText: pickLocalized(page?.heroText, locale) ?? fallback.heroText,
+    heroLabel: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
+    heroTitle: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
+    heroText: pickLocalized(heroSection?.text, locale) ?? pickLocalized(page?.heroText, locale) ?? fallback.heroText,
     heroTrustItems,
-    hostAtRorumCta: pickLocalized(page?.heroPrimaryCta?.label, locale) ?? fallback.hostAtRorumCta,
-    attendEventsCta: pickLocalized(page?.heroSecondaryCta?.label, locale) ?? fallback.attendEventsCta,
-    quickPathsLabel: pickLocalized(page?.quickPathsLabel, locale) ?? fallback.quickPathsLabel,
-    quickPathsTitle: pickLocalized(page?.quickPathsTitle, locale) ?? fallback.quickPathsTitle,
+    hostAtRorumCta:
+      pickLocalized(getAction(heroSection, "primary")?.label, locale) ??
+      pickLocalized(page?.heroPrimaryCta?.label, locale) ??
+      fallback.hostAtRorumCta,
+    attendEventsCta:
+      pickLocalized(getAction(heroSection, "secondary")?.label, locale) ??
+      pickLocalized(page?.heroSecondaryCta?.label, locale) ??
+      fallback.attendEventsCta,
+    quickPathsLabel:
+      pickLocalized(quickPathsSection?.label, locale) ?? pickLocalized(page?.quickPathsLabel, locale) ?? fallback.quickPathsLabel,
+    quickPathsTitle:
+      pickLocalized(quickPathsSection?.title, locale) ?? pickLocalized(page?.quickPathsTitle, locale) ?? fallback.quickPathsTitle,
     quickPaths,
-    eventsLabel: pickLocalized(page?.eventsLabel, locale) ?? fallback.eventsLabel,
-    eventsTitle: pickLocalized(page?.eventsTitle, locale) ?? fallback.eventsTitle,
-    eventsViewAllLabel: pickLocalized(page?.eventsViewAllLabel, locale) ?? fallback.eventsViewAllLabel,
-    attendFeature: resolveFeature(page?.attendEventsFeature, fallback.attendFeature),
-    hostFeature: resolveFeature(page?.hostAtRorumFeature, fallback.hostFeature),
-    closingEyebrow: pickLocalized(page?.closingSection?.eyebrow, locale) ?? fallback.closingEyebrow,
-    closingTitle: pickLocalized(page?.closingSection?.title, locale) ?? fallback.closingTitle,
-    closingText: pickLocalized(page?.closingSection?.text, locale) ?? fallback.closingText,
-    closingCta: pickLocalized(page?.closingSection?.cta?.label, locale) ?? fallback.closingCta,
-    closingFaqQuestion: pickLocalized(page?.closingSection?.faqQuestion, locale) ?? "Have questions?",
-    closingFaqLabel: pickLocalized(page?.closingSection?.faqLabel, locale) ?? "Read our FAQs",
+    eventsLabel:
+      pickLocalized(eventsStripSection?.label, locale) ?? pickLocalized(page?.eventsLabel, locale) ?? fallback.eventsLabel,
+    eventsTitle:
+      pickLocalized(eventsStripSection?.title, locale) ?? pickLocalized(page?.eventsTitle, locale) ?? fallback.eventsTitle,
+    eventsViewAllLabel:
+      pickLocalized(getAction(eventsStripSection, "viewAll")?.label, locale) ??
+      pickLocalized(page?.eventsViewAllLabel, locale) ??
+      fallback.eventsViewAllLabel,
+    attendFeature: resolveFeature(attendFeatureSection, page?.attendEventsFeature, fallback.attendFeature),
+    hostFeature: resolveFeature(hostFeatureSection, page?.hostAtRorumFeature, fallback.hostFeature),
+    closingEyebrow:
+      pickLocalized(closingCtaSection?.label, locale) ?? pickLocalized(page?.closingSection?.eyebrow, locale) ?? fallback.closingEyebrow,
+    closingTitle:
+      pickLocalized(closingCtaSection?.title, locale) ?? pickLocalized(page?.closingSection?.title, locale) ?? fallback.closingTitle,
+    closingText:
+      pickLocalized(closingCtaSection?.text, locale) ?? pickLocalized(page?.closingSection?.text, locale) ?? fallback.closingText,
+    closingCta:
+      pickLocalized(getAction(closingCtaSection, "main")?.label, locale) ??
+      pickLocalized(page?.closingSection?.cta?.label, locale) ??
+      fallback.closingCta,
+    closingFaqQuestion:
+      pickLocalized(getItem(closingCtaSection, "faqQuestion")?.title, locale) ??
+      pickLocalized(page?.closingSection?.faqQuestion, locale) ??
+      "Have questions?",
+    closingFaqLabel:
+      pickLocalized(getItem(closingCtaSection, "faqLabel")?.title, locale) ??
+      pickLocalized(page?.closingSection?.faqLabel, locale) ??
+      "Read our FAQs",
     closingLinks,
     description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
-    servicesLabel: pickLocalized(page?.servicesLabel, locale) ?? fallback.servicesLabel,
-    servicesTitle: pickLocalized(page?.servicesTitle, locale) ?? fallback.servicesTitle,
-    communityLabel: pickLocalized(page?.communityLabel, locale) ?? fallback.communityLabel,
-    communityTitle: pickLocalized(page?.communityTitle, locale) ?? fallback.communityTitle,
-    communityText: pickLocalized(page?.communityText, locale) ?? fallback.communityText,
-    communityImageUrl: urlForImage(page?.communityImage as unknown as Parameters<typeof urlForImage>[0])
-      ?.width(1600)
-      .url(),
+    servicesLabel:
+      pickLocalized(servicesTeaserSection?.label, locale) ?? pickLocalized(page?.servicesLabel, locale) ?? fallback.servicesLabel,
+    servicesTitle:
+      pickLocalized(servicesTeaserSection?.title, locale) ?? pickLocalized(page?.servicesTitle, locale) ?? fallback.servicesTitle,
+    communityLabel:
+      pickLocalized(communityTeaserSection?.label, locale) ?? pickLocalized(page?.communityLabel, locale) ?? fallback.communityLabel,
+    communityTitle:
+      pickLocalized(communityTeaserSection?.title, locale) ?? pickLocalized(page?.communityTitle, locale) ?? fallback.communityTitle,
+    communityText:
+      pickLocalized(communityTeaserSection?.text, locale) ?? pickLocalized(page?.communityText, locale) ?? fallback.communityText,
+    communityImageUrl:
+      urlForImage(communityTeaserSection?.media?.[0]?.image as unknown as Parameters<typeof urlForImage>[0])
+        ?.width(1600)
+        .url() ??
+      urlForImage(page?.communityImage as unknown as Parameters<typeof urlForImage>[0])
+        ?.width(1600)
+        .url(),
     heroImageUrl:
+      urlForImage(heroImageMedia?.image as unknown as Parameters<typeof urlForImage>[0])
+        ?.width(1600)
+        .url() ??
       urlForImage(page?.heroImage as unknown as Parameters<typeof urlForImage>[0])
         ?.width(1600)
-        .url() ?? fallback.heroImageUrl,
-    heroVideoUrl: page?.heroVideoUrl || fallback.heroVideoUrl,
+        .url() ??
+      fallback.heroImageUrl,
+    heroVideoUrl: urlForFile(heroVideoMedia?.videoFile) ?? (page?.heroVideoUrl || fallback.heroVideoUrl),
     services,
     communityLinks,
     events,

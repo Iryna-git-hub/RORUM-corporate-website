@@ -1,15 +1,8 @@
 import type { ReactNode } from "react";
 import { LocaleLink as Link } from "@/components/LocaleLink";
 import { FAQInlinePrompt } from "@/components/FAQInlinePrompt";
-import {
-  MapPin,
-  MessageCircle,
-  MessagesSquare,
-  Smile,
-  Sparkles,
-  Users,
-  Wine,
-} from "lucide-react";
+import { getIconCardIcon } from "@/lib/iconCardIcons";
+import { MessageCircle, MessagesSquare } from "lucide-react";
 
 // NOTE ON THIS FILE'S MIGRATION APPROACH:
 // Container/Section/SectionLabel/Card/HomeHero/FAQInlinePrompt/CTASection
@@ -229,23 +222,9 @@ export function Card({
   );
 }
 
-// Fixed by position, not by sniffing English keywords out of the item text
-// (the previous approach broke for every non-English trust item, since
-// translated text never contains "guest"/"copenhagen"/"support"/"catering" —
-// every item silently fell through to the same fallback icon in da/uk).
-// `heroTrustItems` is always the same 4 facts in the same order regardless
-// of locale, so a fixed index→icon map is both simpler and locale-safe.
-const TRUST_ICONS = [Users, MapPin, Smile, Wine];
-
-function TrustIcon({ index }: { index: number }) {
-  const Icon = TRUST_ICONS[index] ?? Sparkles;
-  return (
-    <Icon
-      className="w-[22px] h-[22px] text-gold shrink-0"
-      aria-hidden="true"
-      strokeWidth={1.8}
-    />
-  );
+export interface TrustItem {
+  title: string;
+  icon?: string;
 }
 
 export function HomeHero({
@@ -262,7 +241,7 @@ export function HomeHero({
   title: ReactNode;
   text?: string;
   microcopy?: string;
-  trustItems?: string[];
+  trustItems?: TrustItem[];
   image?: string;
   video?: string;
   actions?: ReactNode;
@@ -309,12 +288,19 @@ export function HomeHero({
           className="home-hero-trust absolute inset-x-0 bottom-0 z-[2] grid grid-cols-4 gap-[18px] w-full m-0 py-[18px] px-[max(16px,calc((100vw_-_1180px)/2))] list-none bg-[rgba(var(--rgb-cream),0.14)] backdrop-blur-[12px] max-sm:grid-cols-1"
           aria-label="RORUM highlights"
         >
-          {trustItems.map((item, index) => (
-            <li key={item}>
-              <TrustIcon index={index} />
-              <span>{item}</span>
-            </li>
-          ))}
+          {trustItems.map((item) => {
+            const Icon = getIconCardIcon(item.icon);
+            return (
+              <li key={item.title}>
+                <Icon
+                  className="w-[22px] h-[22px] text-gold shrink-0"
+                  aria-hidden="true"
+                  strokeWidth={1.8}
+                />
+                <span>{item.title}</span>
+              </li>
+            );
+          })}
         </ul>
       ) : null}
     </section>

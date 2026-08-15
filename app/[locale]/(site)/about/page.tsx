@@ -14,10 +14,12 @@ import { Container, CTASection, Section, SectionLabel } from "@/components/ui";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/sanity-i18n";
+import { getAction, getItem, getSection } from "@/lib/sanity-sections";
 import { getIconCardIcon } from "@/lib/iconCardIcons";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
+import { pageByKeyQuery } from "@/sanity/queries/page";
 import { aboutPageQuery } from "@/sanity/queries/pages";
 
 const fallbackIntroLinks: { href: string; label: string; icon: LucideIcon }[] = [
@@ -97,7 +99,16 @@ async function getData(locale: Locale) {
     };
   }
 
-  const { data: page } = await sanityFetch({ query: aboutPageQuery });
+  const [{ data: page }, { data: newPage }] = await Promise.all([
+    sanityFetch({ query: aboutPageQuery }),
+    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "about" } }),
+  ]);
+
+  const heroSection = getSection(newPage?.sections, "hero");
+  const statementSection = getSection(newPage?.sections, "statement");
+  const communitySection = getSection(newPage?.sections, "community");
+  const pillarsSection = getSection(newPage?.sections, "pillars");
+  const closingCtaSection = getSection(newPage?.sections, "closingCta");
 
   function resolveIconLinks(
     links: typeof page extends null | undefined ? never : NonNullable<typeof page>["introLinks"],
@@ -112,54 +123,107 @@ async function getData(locale: Locale) {
       : fb.map(({ href, label, icon }) => ({ href, label, Icon: icon }));
   }
 
-  const atmosphereImages = page?.atmosphereImages?.length
-    ? page.atmosphereImages.map((img, i) => ({
+  function resolveIconLinksFromSection(section: typeof heroSection, fb: { href: string; label: string; icon: LucideIcon }[]) {
+    return section?.items?.length
+      ? section.items.map((item, i) => ({
+          href: item.href ?? fb[i]?.href ?? "/",
+          label: pickLocalized(item.label, locale) ?? fb[i]?.label ?? "",
+          Icon: item.icon ? getIconCardIcon(item.icon) : (fb[i]?.icon ?? CalendarPlus),
+        }))
+      : undefined;
+  }
+
+  const atmosphereMedia = heroSection?.media;
+  const atmosphereImages = atmosphereMedia?.length
+    ? atmosphereMedia.map((m, i) => ({
         image:
-          urlForImage(img as unknown as Parameters<typeof urlForImage>[0])
+          urlForImage(m.image as unknown as Parameters<typeof urlForImage>[0])
             ?.width(700)
             .url() ?? fallbackAtmosphereImages[i]?.image ?? "",
-        alt: pickLocalized(img?.alt, locale) ?? fallbackAtmosphereImages[i]?.alt ?? "",
+        alt: pickLocalized(m.alt, locale) ?? fallbackAtmosphereImages[i]?.alt ?? "",
       }))
-    : fallbackAtmosphereImages;
+    : page?.atmosphereImages?.length
+      ? page.atmosphereImages.map((img, i) => ({
+          image:
+            urlForImage(img as unknown as Parameters<typeof urlForImage>[0])
+              ?.width(700)
+              .url() ?? fallbackAtmosphereImages[i]?.image ?? "",
+          alt: pickLocalized(img?.alt, locale) ?? fallbackAtmosphereImages[i]?.alt ?? "",
+        }))
+      : fallbackAtmosphereImages;
 
-  const pillars = page?.pillars?.length
-    ? page.pillars.map((p, i) => ({
+  const pillars = pillarsSection?.items?.length
+    ? pillarsSection.items.map((p, i) => ({
         number: String(i + 1).padStart(2, "0"),
-        title: pickLocalized(p?.title, locale) ?? "",
-        text: pickLocalized(p?.text, locale) ?? "",
+        title: pickLocalized(p.title, locale) ?? "",
+        text: pickLocalized(p.text, locale) ?? "",
       }))
-    : fallbackPillars.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }));
+    : page?.pillars?.length
+      ? page.pillars.map((p, i) => ({
+          number: String(i + 1).padStart(2, "0"),
+          title: pickLocalized(p?.title, locale) ?? "",
+          text: pickLocalized(p?.text, locale) ?? "",
+        }))
+      : fallbackPillars.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }));
 
-  const closingLinks = page?.closingSection?.links?.length
-    ? page.closingSection.links.map((l, i) => ({
-        href: l?.href ?? closingLinksFallback[i]?.href ?? "/",
-        label: pickLocalized(l?.label, locale) ?? closingLinksFallback[i]?.label ?? "",
+  const closingLinkItems = closingCtaSection?.items?.filter((i) => i.itemKey?.startsWith("link"));
+  const closingLinks = closingLinkItems?.length
+    ? closingLinkItems.map((l, i) => ({
+        href: l.href ?? closingLinksFallback[i]?.href ?? "/",
+        label: pickLocalized(l.label, locale) ?? closingLinksFallback[i]?.label ?? "",
       }))
-    : closingLinksFallback;
+    : page?.closingSection?.links?.length
+      ? page.closingSection.links.map((l, i) => ({
+          href: l?.href ?? closingLinksFallback[i]?.href ?? "/",
+          label: pickLocalized(l?.label, locale) ?? closingLinksFallback[i]?.label ?? "",
+        }))
+      : closingLinksFallback;
 
   return {
-    heroLabel: pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
-    heroTitle: pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
-    heroLead: pickLocalized(page?.heroLead, locale) ?? fallback.heroLead,
-    statementTitle: pickLocalized(page?.statementTitle, locale) ?? fallback.statementTitle,
-    statementText: pickLocalized(page?.statementText, locale) ?? fallback.statementText,
-    communityTitle: pickLocalized(page?.communityTitle, locale) ?? fallback.communityTitle,
-    communityText: pickLocalized(page?.communityText, locale) ?? fallback.communityText,
-    pillarsLabel: pickLocalized(page?.pillarsLabel, locale) ?? fallback.pillarsLabel,
-    locationTitle: pickLocalized(page?.locationTitle, locale) ?? fallback.locationTitle,
-    locationText: pickLocalized(page?.locationText, locale) ?? fallback.locationText,
+    heroLabel: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
+    heroTitle: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
+    heroLead: pickLocalized(heroSection?.text, locale) ?? pickLocalized(page?.heroLead, locale) ?? fallback.heroLead,
+    statementTitle:
+      pickLocalized(statementSection?.title, locale) ?? pickLocalized(page?.statementTitle, locale) ?? fallback.statementTitle,
+    statementText:
+      pickLocalized(statementSection?.text, locale) ?? pickLocalized(page?.statementText, locale) ?? fallback.statementText,
+    communityTitle:
+      pickLocalized(communitySection?.title, locale) ?? pickLocalized(page?.communityTitle, locale) ?? fallback.communityTitle,
+    communityText:
+      pickLocalized(communitySection?.text, locale) ?? pickLocalized(page?.communityText, locale) ?? fallback.communityText,
+    pillarsLabel:
+      pickLocalized(pillarsSection?.label, locale) ?? pickLocalized(page?.pillarsLabel, locale) ?? fallback.pillarsLabel,
+    locationTitle:
+      pickLocalized(pillarsSection?.title, locale) ?? pickLocalized(page?.locationTitle, locale) ?? fallback.locationTitle,
+    locationText:
+      pickLocalized(pillarsSection?.text, locale) ?? pickLocalized(page?.locationText, locale) ?? fallback.locationText,
     description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
-    closingEyebrow: pickLocalized(page?.closingSection?.eyebrow, locale) ?? fallback.closingEyebrow,
-    closingTitle: pickLocalized(page?.closingSection?.title, locale) ?? fallback.closingTitle,
-    closingText: pickLocalized(page?.closingSection?.text, locale) ?? fallback.closingText,
-    closingCta: pickLocalized(page?.closingSection?.cta?.label, locale) ?? fallback.closingCta,
-    closingFaqQuestion: pickLocalized(page?.closingSection?.faqQuestion, locale) ?? fallback.closingFaqQuestion,
-    closingFaqLabel: pickLocalized(page?.closingSection?.faqLabel, locale) ?? fallback.closingFaqLabel,
+    closingEyebrow:
+      pickLocalized(closingCtaSection?.label, locale) ?? pickLocalized(page?.closingSection?.eyebrow, locale) ?? fallback.closingEyebrow,
+    closingTitle:
+      pickLocalized(closingCtaSection?.title, locale) ?? pickLocalized(page?.closingSection?.title, locale) ?? fallback.closingTitle,
+    closingText:
+      pickLocalized(closingCtaSection?.text, locale) ?? pickLocalized(page?.closingSection?.text, locale) ?? fallback.closingText,
+    closingCta:
+      pickLocalized(getAction(closingCtaSection, "main")?.label, locale) ??
+      pickLocalized(page?.closingSection?.cta?.label, locale) ??
+      fallback.closingCta,
+    closingFaqQuestion:
+      pickLocalized(getItem(closingCtaSection, "faqQuestion")?.title, locale) ??
+      pickLocalized(page?.closingSection?.faqQuestion, locale) ??
+      fallback.closingFaqQuestion,
+    closingFaqLabel:
+      pickLocalized(getItem(closingCtaSection, "faqLabel")?.title, locale) ??
+      pickLocalized(page?.closingSection?.faqLabel, locale) ??
+      fallback.closingFaqLabel,
     pillars,
     closingLinks,
-    introLinks: resolveIconLinks(page?.introLinks, fallbackIntroLinks),
-    serviceLinks: resolveIconLinks(page?.serviceLinks, fallbackServiceLinks),
-    communityQuickLinks: resolveIconLinks(page?.communityLinks, fallbackCommunityQuickLinks),
+    introLinks: resolveIconLinksFromSection(heroSection, fallbackIntroLinks) ?? resolveIconLinks(page?.introLinks, fallbackIntroLinks),
+    serviceLinks:
+      resolveIconLinksFromSection(statementSection, fallbackServiceLinks) ?? resolveIconLinks(page?.serviceLinks, fallbackServiceLinks),
+    communityQuickLinks:
+      resolveIconLinksFromSection(communitySection, fallbackCommunityQuickLinks) ??
+      resolveIconLinks(page?.communityLinks, fallbackCommunityQuickLinks),
     atmosphereImages,
   };
 }

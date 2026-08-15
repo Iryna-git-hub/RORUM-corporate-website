@@ -5,6 +5,8 @@ import bodyPortableText from "./objects/bodyPortableText";
 import bulletParagraph from "./objects/bulletParagraph";
 import bulletText from "./objects/bulletText";
 import cateringMenuItem from "./objects/cateringMenuItem";
+import contentItem from "./objects/contentItem";
+import ctaAction from "./objects/ctaAction";
 import ctaLink from "./objects/ctaLink";
 import editorialFeature from "./objects/editorialFeature";
 import faqItem from "./objects/faqItem";
@@ -12,10 +14,12 @@ import iconCard from "./objects/iconCard";
 import imageWithAlt from "./objects/imageWithAlt";
 import keyedString from "./objects/keyedString";
 import mediaGalleryItem from "./objects/mediaGalleryItem";
+import mediaItem from "./objects/mediaItem";
 import navChild from "./objects/navChild";
 import navItem from "./objects/navItem";
 import nextStepSection from "./objects/nextStepSection";
 import packageTier from "./objects/packageTier";
+import pageSection from "./objects/pageSection";
 import practicalDetail from "./objects/practicalDetail";
 import seo from "./objects/seo";
 import serviceHero from "./objects/serviceHero";
@@ -27,6 +31,7 @@ import cateringMenuCategory from "./documents/cateringMenuCategory";
 import event from "./documents/event";
 import faqGroup from "./documents/faqGroup";
 import galleryCollection from "./documents/galleryCollection";
+import page from "./documents/page";
 
 // Singletons (globals + page documents)
 import aboutPage from "./singletons/aboutPage";
@@ -56,6 +61,8 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   bulletParagraph,
   bulletText,
   cateringMenuItem,
+  contentItem,
+  ctaAction,
   ctaLink,
   editorialFeature,
   faqItem,
@@ -63,10 +70,12 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   imageWithAlt,
   keyedString,
   mediaGalleryItem,
+  mediaItem,
   navChild,
   navItem,
   nextStepSection,
   packageTier,
+  pageSection,
   practicalDetail,
   seo,
   serviceHero,
@@ -77,6 +86,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   event,
   faqGroup,
   galleryCollection,
+  page,
   // Singletons
   aboutPage,
   cateringMenuExamplesPage,
@@ -128,3 +138,26 @@ export const SINGLETON_TYPES = new Set([
  * `pageKey`) rather than exactly one — handled separately in structure.ts.
  */
 export const LEGAL_PAGE_KEYS = ["terms", "privacy-policy", "cookie-policy"] as const;
+
+/**
+ * The eventual full set of `page.<key>` documents (see
+ * documents/page.ts) that replace the old per-page singletons — see
+ * MIGRATION_REPORT.md. Rolled out incrementally: a page only exists as a
+ * `page` document (and disappears from structure.ts's old singleton list)
+ * once its migration has run and been verified. `home`/`catering` are the
+ * pilot; the rest follow once the pilot is verified.
+ */
+export const PAGE_KEYS = [
+  "home",
+  "about",
+  "events",
+  "catering",
+  "cateringMenuExamples",
+  "eventDecoration",
+  "hostAtRorum",
+  "communityMembership",
+  "volunteer",
+  "workWithUs",
+  "contact",
+  "faq",
+] as const;

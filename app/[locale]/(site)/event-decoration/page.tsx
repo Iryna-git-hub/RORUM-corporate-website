@@ -12,13 +12,16 @@ import {
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/sanity-i18n";
+import { getAction, getItem, getSection } from "@/lib/sanity-sections";
 import { getIconCardIcon } from "@/lib/iconCardIcons";
 import { eventDecorationGalleryImages } from "@/lib/galleryImages";
 import { resolveGalleryImages } from "@/lib/sanityGallery";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
+import { pageByKeyQuery } from "@/sanity/queries/page";
 import { eventDecorationPageQuery } from "@/sanity/queries/pages";
+import type { ImageWithAlt } from "@/sanity.types";
 
 const fallbackFormats: { title: string; text: string; icon: string }[] = [
   { title: "Table styling", text: "Elegant table setups with flowers, candles, place details and carefully selected visual accents.", icon: "UtensilsCrossed" },
@@ -75,6 +78,7 @@ async function getData(locale: Locale) {
   if (!isSanityConfigured) {
     return {
       ...fallback,
+      howItWorksLabel: "How it works",
       formats: fallbackFormats.map((f) => ({ title: f.title, text: f.text, Icon: getIconCardIcon(f.icon) })),
       suitableFor: fallbackSuitableFor.map(([label, icon]) => ({ label, Icon: getIconCardIcon(icon) })),
       steps: fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text })),
@@ -82,59 +86,119 @@ async function getData(locale: Locale) {
     };
   }
 
-  const { data: page } = await sanityFetch({ query: eventDecorationPageQuery });
+  const [{ data: page }, { data: newPage }] = await Promise.all([
+    sanityFetch({ query: eventDecorationPageQuery }),
+    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "eventDecoration" } }),
+  ]);
 
-  const galleryImages = resolveGalleryImages(page?.gallery, locale, eventDecorationGalleryImages);
+  const heroSection = getSection(newPage?.sections, "hero");
+  const gallerySection = getSection(newPage?.sections, "gallery");
+  const stylingSection = getSection(newPage?.sections, "styling");
+  const stepsSection = getSection(newPage?.sections, "steps");
+  const formSection = getSection(newPage?.sections, "inquiryForm");
 
-  const stylingIntro = page?.stylingIntro?.length
-    ? page.stylingIntro.map((p) => pickLocalized(p?.text, locale)).filter((v): v is NonNullable<typeof v> => v != null)
-    : fallback.stylingIntro;
+  const galleryImagesFromSections = gallerySection?.media?.length
+    ? gallerySection.media
+        .filter((m) => m.kind !== "video")
+        .map((m) => ({ _type: "image" as const, asset: m.image?.asset, alt: m.alt }) as unknown as ImageWithAlt)
+    : undefined;
+  const galleryImages = resolveGalleryImages(galleryImagesFromSections ?? page?.gallery, locale, eventDecorationGalleryImages);
 
-  const formats = page?.formats?.length
-    ? page.formats.map((f) => ({
-        title: pickLocalized(f?.title, locale) ?? "",
-        text: pickLocalized(f?.text, locale) ?? "",
-        Icon: getIconCardIcon(f?.icon),
-      }))
-    : fallbackFormats.map((f) => ({ title: f.title, text: f.text, Icon: getIconCardIcon(f.icon) }));
+  const introItemsFromSections = stylingSection?.items?.filter((i) => i.itemKey?.startsWith("intro"));
+  const stylingIntro = introItemsFromSections?.length
+    ? introItemsFromSections.map((i) => pickLocalized(i.text, locale)).filter((v): v is NonNullable<typeof v> => v != null)
+    : page?.stylingIntro?.length
+      ? page.stylingIntro.map((p) => pickLocalized(p?.text, locale)).filter((v): v is NonNullable<typeof v> => v != null)
+      : fallback.stylingIntro;
 
-  const suitableFor = page?.suitableFor?.length
-    ? page.suitableFor.map((s) => ({ label: pickLocalized(s?.title, locale) ?? "", Icon: getIconCardIcon(s?.icon) }))
-    : fallbackSuitableFor.map(([label, icon]) => ({ label, Icon: getIconCardIcon(icon) }));
+  const formatItemsFromSections = stylingSection?.items?.filter((i) => i.itemKey?.startsWith("format"));
+  const formats = formatItemsFromSections?.length
+    ? formatItemsFromSections.map((f) => ({ title: pickLocalized(f.title, locale) ?? "", text: pickLocalized(f.text, locale) ?? "", Icon: getIconCardIcon(f.icon ?? undefined) }))
+    : page?.formats?.length
+      ? page.formats.map((f) => ({
+          title: pickLocalized(f?.title, locale) ?? "",
+          text: pickLocalized(f?.text, locale) ?? "",
+          Icon: getIconCardIcon(f?.icon),
+        }))
+      : fallbackFormats.map((f) => ({ title: f.title, text: f.text, Icon: getIconCardIcon(f.icon) }));
 
-  const steps = page?.steps?.length
-    ? page.steps.map((s, i) => ({
+  const suitableForItems = gallerySection?.items?.filter((i) => i.itemKey?.startsWith("suitableFor"));
+  const suitableFor = suitableForItems?.length
+    ? suitableForItems.map((s) => ({ label: pickLocalized(s.title, locale) ?? "", Icon: getIconCardIcon(s.icon ?? undefined) }))
+    : page?.suitableFor?.length
+      ? page.suitableFor.map((s) => ({ label: pickLocalized(s?.title, locale) ?? "", Icon: getIconCardIcon(s?.icon) }))
+      : fallbackSuitableFor.map(([label, icon]) => ({ label, Icon: getIconCardIcon(icon) }));
+
+  const steps = stepsSection?.items?.length
+    ? stepsSection.items.map((s, i) => ({
         number: String(i + 1).padStart(2, "0"),
-        title: pickLocalized(s?.title, locale) ?? "",
-        text: pickLocalized(s?.text, locale) ?? "",
+        title: pickLocalized(s.title, locale) ?? "",
+        text: pickLocalized(s.text, locale) ?? "",
       }))
-    : fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }));
+    : page?.steps?.length
+      ? page.steps.map((s, i) => ({
+          number: String(i + 1).padStart(2, "0"),
+          title: pickLocalized(s?.title, locale) ?? "",
+          text: pickLocalized(s?.text, locale) ?? "",
+        }))
+      : fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }));
+
+  const tailoredNoteItem = getItem(stylingSection, "tailoredNote");
+  const stylingMedia = stylingSection?.media?.[0];
 
   return {
-    label: pickLocalized(page?.hero?.label, locale) ?? fallback.label,
-    title: pickLocalized(page?.hero?.title, locale) ?? fallback.title,
-    text: pickLocalized(page?.hero?.text, locale) ?? fallback.text,
-    requestCta: pickLocalized(page?.hero?.primaryCta?.label, locale) ?? fallback.requestCta,
-    stylingLabel: pickLocalized(page?.stylingLabel, locale) ?? fallback.stylingLabel,
-    stylingTitle: pickLocalized(page?.stylingTitle, locale) ?? fallback.stylingTitle,
+    label: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.hero?.label, locale) ?? fallback.label,
+    title: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.hero?.title, locale) ?? fallback.title,
+    text: pickLocalized(heroSection?.text, locale) ?? pickLocalized(page?.hero?.text, locale) ?? fallback.text,
+    requestCta:
+      pickLocalized(getAction(heroSection, "request")?.label, locale) ??
+      pickLocalized(page?.hero?.primaryCta?.label, locale) ??
+      fallback.requestCta,
+    stylingLabel:
+      pickLocalized(stylingSection?.label, locale) ?? pickLocalized(page?.stylingLabel, locale) ?? fallback.stylingLabel,
+    stylingTitle:
+      pickLocalized(stylingSection?.title, locale) ?? pickLocalized(page?.stylingTitle, locale) ?? fallback.stylingTitle,
     stylingIntro,
     stylingImage:
+      urlForImage(stylingMedia?.image as unknown as Parameters<typeof urlForImage>[0])
+        ?.width(900)
+        .url() ??
       urlForImage(page?.stylingImage as unknown as Parameters<typeof urlForImage>[0])
         ?.width(900)
-        .url() ?? fallback.stylingImage,
-    stylingImageAlt: pickLocalized(page?.stylingImage?.alt, locale) ?? fallback.stylingImageAlt,
-    suitableForLabel: pickLocalized(page?.suitableForLabel, locale) ?? fallback.suitableForLabel,
+        .url() ??
+      fallback.stylingImage,
+    stylingImageAlt:
+      pickLocalized(stylingMedia?.alt, locale) ?? pickLocalized(page?.stylingImage?.alt, locale) ?? fallback.stylingImageAlt,
+    suitableForLabel:
+      pickLocalized(gallerySection?.label, locale) ?? pickLocalized(page?.suitableForLabel, locale) ?? fallback.suitableForLabel,
     suitableForAriaLabel:
-      pickLocalized(page?.suitableForAriaLabel, locale) ?? fallback.suitableForAriaLabel,
-    tailoredTitle: pickLocalized(page?.tailoredNote?.title, locale) ?? fallback.tailoredTitle,
-    tailoredText: pickLocalized(page?.tailoredNote?.text, locale) ?? fallback.tailoredText,
-    stepsTitle: pickLocalized(page?.stepsTitle, locale) ?? fallback.stepsTitle,
-    inquiryIntro: pickLocalized(page?.inquiryIntro, locale) ?? fallback.inquiryIntro,
+      pickLocalized(getItem(gallerySection, "ariaLabel")?.title, locale) ??
+      pickLocalized(page?.suitableForAriaLabel, locale) ??
+      fallback.suitableForAriaLabel,
+    tailoredTitle:
+      pickLocalized(tailoredNoteItem?.title, locale) ?? pickLocalized(page?.tailoredNote?.title, locale) ?? fallback.tailoredTitle,
+    tailoredText:
+      pickLocalized(tailoredNoteItem?.text, locale) ?? pickLocalized(page?.tailoredNote?.text, locale) ?? fallback.tailoredText,
+    stepsTitle:
+      pickLocalized(stepsSection?.title, locale) ?? pickLocalized(page?.stepsTitle, locale) ?? fallback.stepsTitle,
+    howItWorksLabel: pickLocalized(stepsSection?.label, locale) ?? "How it works",
+    inquiryIntro:
+      pickLocalized(formSection?.text, locale) ?? pickLocalized(page?.inquiryIntro, locale) ?? fallback.inquiryIntro,
     description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
-    inquiryTitle: pickLocalized(page?.inquiryTitle, locale) ?? fallback.inquiryTitle,
-    inquirySubmitLabel: pickLocalized(page?.inquirySubmitLabel, locale) ?? fallback.inquirySubmitLabel,
-    messagePlaceholder: pickLocalized(page?.messagePlaceholder, locale) ?? fallback.messagePlaceholder,
-    successMessage: pickLocalized(page?.successMessage, locale) ?? fallback.successMessage,
+    inquiryTitle:
+      pickLocalized(formSection?.title, locale) ?? pickLocalized(page?.inquiryTitle, locale) ?? fallback.inquiryTitle,
+    inquirySubmitLabel:
+      pickLocalized(getItem(formSection, "submitLabel")?.title, locale) ??
+      pickLocalized(page?.inquirySubmitLabel, locale) ??
+      fallback.inquirySubmitLabel,
+    messagePlaceholder:
+      pickLocalized(getItem(formSection, "messagePlaceholder")?.title, locale) ??
+      pickLocalized(page?.messagePlaceholder, locale) ??
+      fallback.messagePlaceholder,
+    successMessage:
+      pickLocalized(getItem(formSection, "successMessage")?.text, locale) ??
+      pickLocalized(page?.successMessage, locale) ??
+      fallback.successMessage,
     formats,
     suitableFor,
     steps,
@@ -292,7 +356,7 @@ export default async function DecorationPage({ params }: { params: Promise<{ loc
             className="grid grid-cols-[minmax(260px,0.62fr)_minmax(0,1fr)] gap-24 items-start scroll-mt-24 max-lg:grid-cols-1"
           >
             <div className="grid gap-8 pt-2">
-              <SectionLabel className="text-gold! border-b-gold!">How it works</SectionLabel>
+              <SectionLabel className="text-gold! border-b-gold!">{data.howItWorksLabel}</SectionLabel>
               <h2 className="font-heading font-medium text-white m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] leading-[1.25] tracking-[0] normal-case">
                 {data.stepsTitle}
               </h2>

@@ -16,9 +16,11 @@ import { resolveGalleryImages } from "@/lib/sanityGallery";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { compact, pickLabel, pickLocalized } from "@/lib/sanity-i18n";
+import { getAction, getItem, getSection, listItems } from "@/lib/sanity-sections";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
+import { pageByKeyQuery } from "@/sanity/queries/page";
 import { hostAtRorumPageQuery } from "@/sanity/queries/pages";
 import {
   ArrowRight,
@@ -93,6 +95,7 @@ async function getData(locale: Locale) {
   if (!isSanityConfigured) {
     return {
       ...fallback,
+      howItWorksLabel: "How it works",
       included: fallbackIncluded,
       basics: fallbackBasics,
       optional: fallbackOptional,
@@ -103,71 +106,158 @@ async function getData(locale: Locale) {
     };
   }
 
-  const { data: page } = await sanityFetch({ query: hostAtRorumPageQuery });
+  const [{ data: page }, { data: newPage }] = await Promise.all([
+    sanityFetch({ query: hostAtRorumPageQuery }),
+    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "hostAtRorum" } }),
+  ]);
 
-  const galleryImages = resolveGalleryImages(page?.gallery, locale, hostAtRorumGalleryImages);
+  const heroSection = getSection(newPage?.sections, "hero");
+  const gallerySection = getSection(newPage?.sections, "gallery");
+  const sessionSection = getSection(newPage?.sections, "session");
+  const packagesSection = getSection(newPage?.sections, "packages");
+  const stepsSection = getSection(newPage?.sections, "steps");
+  const formSection = getSection(newPage?.sections, "inquiryForm");
 
-  const includedAll = page?.includedItems?.length
-    ? compact(page.includedItems.map((b) => pickLocalized(b?.text, locale)))
-    : [...fallbackIncluded, ...fallbackBasics];
+  const galleryImagesFromSections = gallerySection?.media?.length
+    ? gallerySection.media
+        .filter((m) => m.kind !== "video")
+        .map((m) => ({ _type: "image" as const, asset: m.image?.asset, alt: m.alt }) as unknown as Parameters<typeof resolveGalleryImages>[0])
+    : undefined;
+  const galleryImages = resolveGalleryImages(
+    (galleryImagesFromSections as never) ?? page?.gallery,
+    locale,
+    hostAtRorumGalleryImages,
+  );
+
+  const includedAllFromSections = (sessionSection?.items ?? []).filter((i) => i.itemKey?.startsWith("included"));
+  const includedAll = includedAllFromSections.length
+    ? compact(includedAllFromSections.map((i) => pickLocalized(i.title, locale)))
+    : page?.includedItems?.length
+      ? compact(page.includedItems.map((b) => pickLocalized(b?.text, locale)))
+      : [...fallbackIncluded, ...fallbackBasics];
   const included = includedAll.slice(0, 4).length ? includedAll.slice(0, 4) : fallbackIncluded;
   const basics = includedAll.slice(4, 7).length ? includedAll.slice(4, 7) : fallbackBasics;
 
-  const optional = page?.optionalItems?.length
-    ? compact(page.optionalItems.map((b) => pickLocalized(b?.text, locale)))
-    : fallbackOptional;
+  const optionalItemsFromSections = (sessionSection?.items ?? []).filter((i) => i.itemKey?.startsWith("optional") && i.itemKey !== "optionalLabel");
+  const optional = optionalItemsFromSections.length
+    ? compact(optionalItemsFromSections.map((i) => pickLocalized(i.title, locale)))
+    : page?.optionalItems?.length
+      ? compact(page.optionalItems.map((b) => pickLocalized(b?.text, locale)))
+      : fallbackOptional;
 
-  const steps = page?.steps?.length
-    ? page.steps.map((s, i) => ({
+  const steps = stepsSection?.items?.length
+    ? listItems(stepsSection, ["requestProcessAriaLabel"]).map((s, i) => ({
         number: String(i + 1).padStart(2, "0"),
-        title: pickLocalized(s?.title, locale) ?? "",
-        text: pickLocalized(s?.text, locale) ?? "",
+        title: pickLocalized(s.title, locale) ?? "",
+        text: pickLocalized(s.text, locale) ?? "",
       }))
-    : fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }));
+    : page?.steps?.length
+      ? page.steps.map((s, i) => ({
+          number: String(i + 1).padStart(2, "0"),
+          title: pickLocalized(s?.title, locale) ?? "",
+          text: pickLocalized(s?.text, locale) ?? "",
+        }))
+      : fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }));
 
-  const cancellation = page?.cancellationItems?.length
-    ? compact(page.cancellationItems.map((b) => pickLocalized(b?.text, locale)))
-    : fallbackCancellation;
+  const cancellationItemsFromSections = (packagesSection?.items ?? []).filter((i) => i.itemKey?.startsWith("cancellation") && i.itemKey !== "cancellationTitle");
+  const cancellation = cancellationItemsFromSections.length
+    ? compact(cancellationItemsFromSections.map((i) => pickLocalized(i.title, locale)))
+    : page?.cancellationItems?.length
+      ? compact(page.cancellationItems.map((b) => pickLocalized(b?.text, locale)))
+      : fallbackCancellation;
 
-  const packageItems: PackageItem[] = page?.packages?.length
-    ? page.packages.map((p) => ({
-        title: pickLocalized(p?.title, locale) ?? "",
-        price: pickLocalized(p?.price, locale) ?? "",
-        items: p?.items?.length ? compact(p.items.map((i) => pickLocalized(i?.text, locale))) : [],
+  const packageItemsFromSections = (packagesSection?.items ?? []).filter((i) => i.itemKey?.startsWith("package"));
+  const packageItems: PackageItem[] = packageItemsFromSections.length
+    ? packageItemsFromSections.map((p) => ({
+        title: pickLocalized(p.title, locale) ?? "",
+        price: pickLocalized(p.label, locale) ?? "",
+        items: (pickLocalized(p.text, locale) ?? "").split("\n").filter(Boolean),
       }))
-    : packages.booking;
+    : page?.packages?.length
+      ? page.packages.map((p) => ({
+          title: pickLocalized(p?.title, locale) ?? "",
+          price: pickLocalized(p?.price, locale) ?? "",
+          items: p?.items?.length ? compact(p.items.map((i) => pickLocalized(i?.text, locale))) : [],
+        }))
+      : packages.booking;
 
   return {
-    label: pickLocalized(page?.hero?.label, locale) ?? fallback.label,
-    title: pickLocalized(page?.hero?.title, locale) ?? fallback.title,
-    intro: page?.hero?.text
-      ? [pickLocalized(page.hero.text, locale) ?? fallback.intro.join(" ")]
-      : fallback.intro,
-    applyCta: pickLocalized(page?.hero?.primaryCta?.label, locale) ?? fallback.applyCta,
-    packagesCta: pickLocalized(page?.hero?.secondaryCta?.label, locale) ?? fallback.packagesCta,
-    sessionLabel: pickLocalized(page?.sessionLabel, locale) ?? fallback.sessionLabel,
-    sessionTitle: pickLocalized(page?.sessionTitle, locale) ?? fallback.sessionTitle,
-    optionalLabel: pickLocalized(page?.optionalLabel, locale) ?? fallback.optionalLabel,
-    packagesLabel: pickLocalized(page?.packagesLabel, locale) ?? fallback.packagesLabel,
-    packagesTitle: pickLocalized(page?.packagesTitle, locale) ?? fallback.packagesTitle,
-    packagesIntro: pickLocalized(page?.packagesIntro, locale) ?? fallback.packagesIntro,
-    packagesFooterCtaLabel: pickLabel(page?.labels, "packagesFooterCtaLabel", locale, fallback.packagesFooterCtaLabel),
-    packagesFooterText: pickLabel(page?.labels, "packagesFooterText", locale, fallback.packagesFooterText),
-    selectPackageCta: pickLabel(page?.labels, "selectPackageCta", locale, fallback.selectPackageCta),
-    cancellationTitle: pickLocalized(page?.cancellationTitle, locale) ?? fallback.cancellationTitle,
-    stepsTitle: pickLocalized(page?.stepsTitle, locale) ?? fallback.stepsTitle,
-    requestProcessAriaLabel: pickLabel(page?.labels, "requestProcessAriaLabel", locale, fallback.requestProcessAriaLabel),
+    label: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.hero?.label, locale) ?? fallback.label,
+    title: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.hero?.title, locale) ?? fallback.title,
+    intro: (() => {
+      const text = pickLocalized(heroSection?.text, locale) ?? pickLocalized(page?.hero?.text, locale);
+      return text ? [text] : fallback.intro;
+    })(),
+    applyCta:
+      pickLocalized(getAction(heroSection, "apply")?.label, locale) ??
+      pickLocalized(page?.hero?.primaryCta?.label, locale) ??
+      fallback.applyCta,
+    packagesCta:
+      pickLocalized(getAction(heroSection, "packages")?.label, locale) ??
+      pickLocalized(page?.hero?.secondaryCta?.label, locale) ??
+      fallback.packagesCta,
+    sessionLabel:
+      pickLocalized(sessionSection?.label, locale) ?? pickLocalized(page?.sessionLabel, locale) ?? fallback.sessionLabel,
+    sessionTitle:
+      pickLocalized(sessionSection?.title, locale) ?? pickLocalized(page?.sessionTitle, locale) ?? fallback.sessionTitle,
+    optionalLabel:
+      pickLocalized(getItem(sessionSection, "optionalLabel")?.title, locale) ??
+      pickLocalized(page?.optionalLabel, locale) ??
+      fallback.optionalLabel,
+    packagesLabel:
+      pickLocalized(packagesSection?.label, locale) ?? pickLocalized(page?.packagesLabel, locale) ?? fallback.packagesLabel,
+    packagesTitle:
+      pickLocalized(packagesSection?.title, locale) ?? pickLocalized(page?.packagesTitle, locale) ?? fallback.packagesTitle,
+    packagesIntro:
+      pickLocalized(packagesSection?.text, locale) ?? pickLocalized(page?.packagesIntro, locale) ?? fallback.packagesIntro,
+    packagesFooterCtaLabel:
+      pickLocalized(getItem(packagesSection, "footerCtaLabel")?.title, locale) ??
+      pickLabel(page?.labels, "packagesFooterCtaLabel", locale, fallback.packagesFooterCtaLabel),
+    packagesFooterText:
+      pickLocalized(getItem(packagesSection, "footerText")?.title, locale) ??
+      pickLabel(page?.labels, "packagesFooterText", locale, fallback.packagesFooterText),
+    selectPackageCta:
+      pickLocalized(getItem(packagesSection, "selectPackageCta")?.title, locale) ??
+      pickLabel(page?.labels, "selectPackageCta", locale, fallback.selectPackageCta),
+    cancellationTitle:
+      pickLocalized(getItem(packagesSection, "cancellationTitle")?.title, locale) ??
+      pickLocalized(page?.cancellationTitle, locale) ??
+      fallback.cancellationTitle,
+    stepsTitle:
+      pickLocalized(stepsSection?.title, locale) ?? pickLocalized(page?.stepsTitle, locale) ?? fallback.stepsTitle,
+    howItWorksLabel: pickLocalized(stepsSection?.label, locale) ?? "How it works",
+    requestProcessAriaLabel:
+      pickLocalized(getItem(stepsSection, "requestProcessAriaLabel")?.title, locale) ??
+      pickLabel(page?.labels, "requestProcessAriaLabel", locale, fallback.requestProcessAriaLabel),
     sessionImage:
+      urlForImage(sessionSection?.media?.[0]?.image as unknown as Parameters<typeof urlForImage>[0])
+        ?.width(1200)
+        .url() ??
       urlForImage(page?.sessionImage as unknown as Parameters<typeof urlForImage>[0])
         ?.width(1200)
-        .url() ?? fallback.sessionImage,
-    sessionImageAlt: pickLocalized(page?.sessionImage?.alt, locale) ?? fallback.sessionImageAlt,
-    inquiryIntro: pickLocalized(page?.inquiryIntro, locale) ?? fallback.inquiryIntro,
+        .url() ??
+      fallback.sessionImage,
+    sessionImageAlt:
+      pickLocalized(sessionSection?.media?.[0]?.alt, locale) ??
+      pickLocalized(page?.sessionImage?.alt, locale) ??
+      fallback.sessionImageAlt,
+    inquiryIntro:
+      pickLocalized(formSection?.text, locale) ?? pickLocalized(page?.inquiryIntro, locale) ?? fallback.inquiryIntro,
     description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
-    inquiryTitle: pickLocalized(page?.inquiryTitle, locale) ?? fallback.inquiryTitle,
-    inquirySubmitLabel: pickLocalized(page?.inquirySubmitLabel, locale) ?? fallback.inquirySubmitLabel,
-    messagePlaceholder: pickLocalized(page?.messagePlaceholder, locale) ?? fallback.messagePlaceholder,
-    successMessage: pickLocalized(page?.successMessage, locale) ?? fallback.successMessage,
+    inquiryTitle:
+      pickLocalized(formSection?.title, locale) ?? pickLocalized(page?.inquiryTitle, locale) ?? fallback.inquiryTitle,
+    inquirySubmitLabel:
+      pickLocalized(getItem(formSection, "submitLabel")?.title, locale) ??
+      pickLocalized(page?.inquirySubmitLabel, locale) ??
+      fallback.inquirySubmitLabel,
+    messagePlaceholder:
+      pickLocalized(getItem(formSection, "messagePlaceholder")?.title, locale) ??
+      pickLocalized(page?.messagePlaceholder, locale) ??
+      fallback.messagePlaceholder,
+    successMessage:
+      pickLocalized(getItem(formSection, "successMessage")?.text, locale) ??
+      pickLocalized(page?.successMessage, locale) ??
+      fallback.successMessage,
     included,
     basics,
     optional,
@@ -406,7 +496,7 @@ export default async function HostAtRorumPage({ params }: { params: Promise<{ lo
             className="split private-meeting-request"
           >
             <div className="grid gap-8 max-w-[48ch]">
-              <SectionLabel className="text-gold! border-b-gold!">How it works</SectionLabel>
+              <SectionLabel className="text-gold! border-b-gold!">{data.howItWorksLabel}</SectionLabel>
               <h2 className="font-heading font-medium text-white m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] leading-tight tracking-normal normal-case">
                 {data.stepsTitle}
               </h2>
