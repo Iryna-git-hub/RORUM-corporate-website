@@ -32,6 +32,26 @@ export function pickLocalizedOr<T>(entries: I18nEntry<T>[] | undefined | null, l
   return pickLocalized(entries, locale) ?? fallback;
 }
 
+/**
+ * Like `pickLocalized`, but does NOT fall back to English when the exact
+ * locale is missing — returns `undefined` instead. `pickLocalized`'s
+ * English fallback is correct as a *last resort*, but it's wrong as an
+ * intermediate step in a priority chain that needs to try a *different*
+ * source's exact-locale value first (e.g. the event detail page's Ticket
+ * Provider label: an event's own missing DA/UK translation should fall
+ * through to the *shared* label's DA/UK translation before ever reaching
+ * English). Callers building such a chain use this to test "does this
+ * exact locale exist here at all", then fall back to `pickLocalized`
+ * (or another field already using it) only once every source's exact-locale
+ * value has been checked.
+ */
+export function pickExactLocalized<T>(
+  entries: I18nEntry<T>[] | undefined | null,
+  locale: Locale,
+): T | undefined {
+  return entries?.find((e) => e.language === locale)?.value;
+}
+
 interface KeyedStringEntry {
   key?: string | null;
   value?: I18nEntry<string>[] | null;
@@ -53,6 +73,16 @@ export function pickLabel(
 ): string {
   const row = entries?.find((entry) => entry.key === key);
   return pickLocalized(row?.value, locale) ?? fallback;
+}
+
+/** Like `pickLabel`, but exact-locale only — see `pickExactLocalized`. */
+export function pickLabelExact(
+  entries: KeyedStringEntry[] | undefined | null,
+  key: string,
+  locale: Locale,
+): string | undefined {
+  const row = entries?.find((entry) => entry.key === key);
+  return pickExactLocalized(row?.value, locale);
 }
 
 /**

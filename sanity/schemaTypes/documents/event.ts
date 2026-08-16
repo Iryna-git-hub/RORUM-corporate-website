@@ -258,16 +258,36 @@ export default defineType({
       fields: [
         defineField({
           name: "label",
-          title: "Label",
+          title: "Ticket provider label",
           type: "internationalizedArrayString",
-          description: 'What this field is called, e.g. "Ticket provider". / Як називається це поле, напр. «Постачальник квитків».',
-          initialValue: [localizedStringValue("en", "Ticket provider")],
+          description:
+            'The label shown before the ticket provider name. Editable separately for this event in English, Danish and Ukrainian — leave a language blank to use the site-wide default label for that language instead. / Напис перед назвою постачальника квитків. Редагується окремо для цієї події англійською, данською та українською — залиште мову порожньою, щоб використати спільний напис за замовчуванням для цієї мови.',
+          initialValue: [
+            localizedStringValue("en", "Ticket provider"),
+            localizedStringValue("da", "Billetudbyder"),
+            localizedStringValue("uk", "Квитковий оператор"),
+          ],
+          validation: (rule) =>
+            rule.custom((value) => {
+              const entries = value as { _key: string; language?: string; value?: string }[] | undefined;
+              if (!entries?.length) return true; // empty is fine — falls back to the shared label (see resolveTicketProviderLabel)
+              const languages = entries.map((e) => e.language ?? e._key);
+              if (new Set(languages).size !== languages.length) {
+                return "Each language can only appear once.";
+              }
+              for (const entry of entries) {
+                if (!entry.value || !entry.value.trim()) {
+                  return `The ${(entry.language ?? entry._key).toUpperCase()} translation can't be blank or whitespace-only — remove the row instead if you want to fall back to the shared label.`;
+                }
+              }
+              return true;
+            }),
         }),
         defineField({
           name: "value",
-          title: "Value",
+          title: "Ticket provider name",
           type: "internationalizedArrayString",
-          description: 'The displayed text, e.g. "Billetto". / Текст, що показується, напр. «Billetto».',
+          description: 'The actual ticketing service name, for example "Billetto". / Фактична назва сервісу продажу квитків, наприклад «Billetto».',
           initialValue: [localizedStringValue("en", "Billetto"), localizedStringValue("da", "Billetto"), localizedStringValue("uk", "Billetto")],
         }),
       ],

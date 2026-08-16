@@ -54,7 +54,11 @@
     "sanity:migrate-page-ids:dry-run": "tsx --env-file=.env.local scripts/migrate-page-ids.ts --dry-run",
     "sanity:migrate-page-ids": "tsx --env-file=.env.local scripts/migrate-page-ids.ts",
     "sanity:delete-old-page-ids:dry-run": "tsx --env-file=.env.local scripts/delete-old-dotted-page-ids.ts --dry-run",
-    "sanity:delete-old-page-ids": "tsx --env-file=.env.local scripts/delete-old-dotted-page-ids.ts"
+    "sanity:delete-old-page-ids": "tsx --env-file=.env.local scripts/delete-old-dotted-page-ids.ts",
+    "sanity:add-ticket-provider-label:dry-run": "tsx --env-file=.env.local scripts/add-ticket-provider-row-label.ts --dry-run",
+    "sanity:add-ticket-provider-label": "tsx --env-file=.env.local scripts/add-ticket-provider-row-label.ts",
+    "sanity:backfill-ticket-provider-label:dry-run": "tsx --env-file=.env.local scripts/backfill-ticket-provider-label.ts --dry-run",
+    "sanity:backfill-ticket-provider-label": "tsx --env-file=.env.local scripts/backfill-ticket-provider-label.ts"
   },
   "dependencies": {
     "@portabletext/react": "^7.0.1",

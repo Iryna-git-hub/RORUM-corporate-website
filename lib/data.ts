@@ -137,7 +137,31 @@ export interface ShareAction {
 }
 
 export interface TicketProviderInfo {
+  // English-fallback-inclusive AND ends in a hardcoded English literal if
+  // Sanity has neither the current locale nor English — do not use this
+  // for anything locale-sensitive (that hardcoded tail defeats any
+  // locale-aware fallback layered on top of it). It exists for simple
+  // non-priority-chain call sites; the event detail page's own 5-tier
+  // chain uses `labelExactLocale`/`labelEnglish` below instead, precisely
+  // to avoid this field's hardcoded tail overriding a shared-label or
+  // code-default fallback that should have run first.
   label: string;
+  // Exact-locale only, no fallback of any kind — `undefined` if this
+  // specific event has no translation for the *current* locale (regardless
+  // of whether it has an English one). Lets the event detail page check
+  // "does this event have its own translation for this exact locale"
+  // before ever falling through to the shared label, English, or a code
+  // default. Not set by static fallback events (Sanity not configured) —
+  // those have no per-locale data to check.
+  labelExactLocale?: string;
+  // This event's own English translation specifically, regardless of the
+  // current locale — no fallback beyond that (unlike `label`, this is
+  // `undefined`, not a hardcoded string, when the event has no English
+  // translation either). The priority chain's "this event's own English
+  // translation" step; using `label` there instead would incorrectly
+  // short-circuit past the shared label and code default whenever an event
+  // has no translation in either the current locale or English.
+  labelEnglish?: string;
   value: string;
 }
 

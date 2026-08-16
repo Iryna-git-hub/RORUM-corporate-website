@@ -7,7 +7,7 @@ import {
   type ShareActionType,
   type TicketProviderInfo,
 } from "@/lib/data";
-import { pickLocalized, type I18nEntry } from "@/lib/sanity-i18n";
+import { pickExactLocalized, pickLocalized, type I18nEntry } from "@/lib/sanity-i18n";
 import type { Locale } from "@/lib/i18n";
 import { computeDurationFromTimeRange, parseDurationText, type EventDuration } from "@/lib/eventDuration";
 import { urlForImage } from "@/sanity/lib/image";
@@ -87,8 +87,17 @@ export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale): R
 
   const arrival = pickLocalized(doc.arrival, locale) ?? getLegacyDetail(doc, "Arrival") ?? fallback?.arrival ?? DEFAULT_ARRIVAL_TEXT;
 
+  // `labelExactLocale`/`labelEnglish`: exact-locale-only (no fallback of any
+  // kind), whitespace-only treated as unset — a blank translation shouldn't
+  // count as "this event has its own label here" (see the event detail
+  // page's priority chain, which needs to know the difference between "not
+  // translated" and "translated to an empty string").
+  const rawExactLabel = pickExactLocalized(doc.ticketProviderInfo?.label, locale);
+  const rawEnglishLabel = pickExactLocalized(doc.ticketProviderInfo?.label, "en");
   const ticketProviderInfo: TicketProviderInfo = {
     label: pickLocalized(doc.ticketProviderInfo?.label, locale) ?? fallback?.ticketProviderInfo?.label ?? "Ticket provider",
+    labelExactLocale: rawExactLabel?.trim() ? rawExactLabel : undefined,
+    labelEnglish: rawEnglishLabel?.trim() ? rawEnglishLabel : undefined,
     value:
       pickLocalized(doc.ticketProviderInfo?.value, locale) ??
       doc.ticketProvider ??
