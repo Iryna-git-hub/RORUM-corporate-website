@@ -278,6 +278,17 @@ html[lang="uk"] .quick-card-title,
 html[lang="uk"] .policy-content h2 {
   font-size-adjust: none;
 }
+/* The header's nav links, language switcher, and CTA button are all
+   uppercase — governed by cap-height, not x-height. Nunito's and
+   Quicksand's cap-heights already match to within 1% (measured directly
+   from this project's cached font files: 0.705em vs 0.700em), so the
+   x-height-targeted `font-size-adjust: 0.52` above (tuned for lowercase
+   body copy) does nothing but inflate header text ~7% taller and wider
+   here. Opt the whole header back out, same mechanism as the heading
+   exemption above. */
+html[lang="uk"] header {
+  font-size-adjust: none;
+}
 .section-title {
   margin: 0;
   font-size: clamp(1.85rem, 2.6vw, 2.3rem);
