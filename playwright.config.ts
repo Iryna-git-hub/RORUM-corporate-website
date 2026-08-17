@@ -1,5 +1,16 @@
 import { defineConfig, devices } from "@playwright/test";
 
+// The test-runner Node process (unlike the `webServer` child process, which
+// is `next start` and loads .env.local itself) doesn't get .env.local for
+// free — needed once a spec talks to Sanity directly (see
+// tests/cms-home-contract.spec.ts). Guarded: CI environments that already
+// export real env vars have no .env.local file at all.
+try {
+  process.loadEnvFile(".env.local");
+} catch {
+  // No .env.local (e.g. CI with env vars already set) — nothing to load.
+}
+
 const PORT = 3100;
 const BASE_URL = `http://localhost:${PORT}`;
 

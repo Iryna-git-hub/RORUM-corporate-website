@@ -61,9 +61,11 @@ export function Section({
 export function SectionLabel({
   children,
   className = "",
+  "data-testid": dataTestId,
 }: {
   children: ReactNode;
   className?: string;
+  "data-testid"?: string;
 }) {
   return (
     // `label` is kept (deferred, like `btn`/`heading`/`section-head`): 18+
@@ -72,6 +74,7 @@ export function SectionLabel({
     // context overrides (see MIGRATION_REPORT.md for the full list).
     <span
       className={`label inline-flex items-center gap-[10px] text-red text-[0.78rem] font-extrabold tracking-[0.08em] uppercase w-fit border-b border-red ${className}`.trim()}
+      data-testid={dataTestId}
     >
       {children}
     </span>
@@ -90,6 +93,7 @@ export function SectionHeader({
   labelClassName = "",
   titleClassName = "",
   textClassName = "",
+  "data-testid": dataTestId,
 }: {
   label?: string;
   title: ReactNode;
@@ -99,6 +103,7 @@ export function SectionHeader({
   labelClassName?: string;
   titleClassName?: string;
   textClassName?: string;
+  "data-testid"?: string;
 }) {
   // `level` is restricted to 1-6 above, so this is always a valid heading tag.
   const HeadingTag = `h${level}` as HeadingTagName;
@@ -117,7 +122,11 @@ export function SectionHeader({
     // competing against this component's own layered Tailwind defaults)
     // instead of reaching in via a `.context .section-head` CSS selector.
     <div className={`section-head grid gap-3.5 max-w-190 mb-7 ${className}`.trim()}>
-      {label ? <SectionLabel className={labelClassName}>{label}</SectionLabel> : null}
+      {label ? (
+        <SectionLabel className={labelClassName} data-testid={dataTestId}>
+          {label}
+        </SectionLabel>
+      ) : null}
       <HeadingTag
         className={`section-title font-heading font-medium text-text-primary m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] ${headingLeading} tracking-normal normal-case ${titleClassName}`.trim()}
       >
@@ -162,27 +171,37 @@ export function Button({
   children,
   variant = "primary",
   className: extraClassName = "",
+  target,
+  rel,
+  "data-testid": dataTestId,
 }: {
   href?: string;
   children: ReactNode;
   variant?: ButtonVariant;
   className?: string;
+  /** Opt-in only — omitting these keeps every existing caller's behavior (auto `_blank`/`noreferrer` for absolute hrefs) unchanged. */
+  target?: string;
+  rel?: string;
+  "data-testid"?: string;
 }) {
   const variantClass = variant === "primary" ? "" : variant;
   const className =
     `btn inline-flex items-center justify-center font-bold uppercase cursor-pointer transition-all duration-[180ms] ease-[ease] group has-[.button-arrow]:gap-2 ${variantClass} ${BUTTON_VARIANT_CLASSES[variant]} ${extraClassName}`.trim();
   if (!href)
     return (
-      <button className={className} type="button">
+      <button className={className} type="button" data-testid={dataTestId}>
         {children}
       </button>
     );
-  return href.startsWith("http") ? (
-    <a className={className} href={href} target="_blank" rel="noreferrer">
+  const isAbsolute = href.startsWith("http");
+  const resolvedTarget = target ?? (isAbsolute ? "_blank" : undefined);
+  const resolvedRel = rel ?? (isAbsolute ? "noreferrer" : undefined);
+  return isAbsolute ? (
+    <a className={className} href={href} target={resolvedTarget} rel={resolvedRel} data-testid={dataTestId}>
       {children}
     </a>
   ) : (
-    <Link className={className} href={href}>
+    <Link className={className} href={href} target={resolvedTarget} rel={resolvedRel} data-testid={dataTestId}>
       {children}
     </Link>
   );
@@ -225,6 +244,8 @@ export function Card({
 export interface TrustItem {
   title: string;
   icon?: string;
+  /** Stable Sanity itemKey (e.g. "trust0"), when available — lets tests assert a specific badge by key instead of position. */
+  key?: string;
 }
 
 export function HomeHero({
@@ -266,11 +287,11 @@ export function HomeHero({
       <div className="home-hero-overlay absolute inset-0 bg-[#00000080] z-[1]" />
       <Container className="relative z-2">
         <div className="home-hero-copy w-[min(62%,730px)] grid gap-[22px] py-[clamp(42px,7vw,84px)] translate-y-[clamp(-42px,-3vw,-18px)] max-lg:w-[min(72vw,680px)] max-lg:translate-y-0 max-sm:w-full max-sm:-mt-[35%] max-sm:translate-y-0 max-sm:gap-[18px]">
-          <SectionLabel className="text-beige! border-b-transparent!">{label}</SectionLabel>
+          <SectionLabel className="text-beige! border-b-transparent!" data-testid="home-hero-label">{label}</SectionLabel>
           <h1 className="heading font-heading font-medium text-white text-[clamp(34px,3.95vw,66px)] leading-[1.1] tracking-[0] normal-case max-sm:text-[clamp(31px,9vw,42px)] max-sm:leading-[1.2]">
             {title}
           </h1>
-          <p className="max-w-[58ch] m-0 text-text-on-image text-[18px] leading-[1.6]">{text}</p>
+          <p className="max-w-[58ch] m-0 text-text-on-image text-[18px] leading-[1.6]" data-testid="home-hero-text">{text}</p>
           {actions ? (
             <div className="flex flex-wrap gap-[12px]">
               {actions}
@@ -291,11 +312,12 @@ export function HomeHero({
           {trustItems.map((item) => {
             const Icon = getIconCardIcon(item.icon);
             return (
-              <li key={item.title}>
+              <li key={item.title} data-testid={`home-hero-trust-${item.key ?? item.title}`}>
                 <Icon
                   className="w-[22px] h-[22px] text-gold shrink-0"
                   aria-hidden="true"
                   strokeWidth={1.8}
+                  data-icon={item.icon}
                 />
                 <span>{item.title}</span>
               </li>
@@ -323,6 +345,8 @@ export function CTASection({
   text,
   href,
   label,
+  target,
+  rel,
   eyebrow = "Next step",
   links = [],
   variant = "",
@@ -330,11 +354,15 @@ export function CTASection({
   cardClassName = "",
   faqQuestion = "",
   faqLabel = "Read FAQ",
+  "data-testid": dataTestId,
 }: {
   title: ReactNode;
   text?: string;
   href?: string;
   label?: ReactNode;
+  /** Opt-in — set when the resolved action's `openInNewTab` is true. */
+  target?: string;
+  rel?: string;
   eyebrow?: string;
   links?: CTALink[];
   variant?: "final" | "host" | "";
@@ -342,6 +370,7 @@ export function CTASection({
   cardClassName?: string;
   faqQuestion?: string;
   faqLabel?: string;
+  "data-testid"?: string;
 }) {
   const sectionBg = variant === "final" ? "bg-light-green" : "bg-cream";
   const sectionClass =
@@ -405,11 +434,13 @@ export function CTASection({
   const isNotSure = className.includes("next-step-section-not-sure");
 
   return (
-    <section className={sectionClass}>
+    <section className={sectionClass} data-testid={dataTestId}>
       <Container className="relative z-2">
         <Card className={cardClass}>
           <div className={copyClass}>
-            <SectionLabel className={eyebrowClassName}>{eyebrow}</SectionLabel>
+            <SectionLabel className={eyebrowClassName} data-testid={dataTestId ? `${dataTestId}-eyebrow` : undefined}>
+              {eyebrow}
+            </SectionLabel>
             {/* No literal `heading` class here (unlike some other
                 headings that keep it): its own line-height:1.2 would beat
                 this element's intended 1.25 regardless of `!important`
@@ -421,7 +452,9 @@ export function CTASection({
             >
               {title}
             </h2>
-            <p className={textClassName}>{text}</p>
+            <p className={textClassName} data-testid={dataTestId ? `${dataTestId}-text` : undefined}>
+              {text}
+            </p>
             {links.length ? (
               <div className="flex flex-wrap gap-[10px] mt-1 max-sm:grid" aria-label="Suggested paths">
                 {links.map((link) => (
@@ -448,16 +481,18 @@ export function CTASection({
             </div>
           ) : null}
           <div className={actionClass}>
-            <Button href={href}>
-              {variant === "final" ? (
-                <MessageCircle
-                  className="w-[18px] h-[18px] text-current"
-                  aria-hidden="true"
-                  strokeWidth={1.9}
-                />
-              ) : null}
-              {label}
-            </Button>
+            {href ? (
+              <Button href={href} target={target} rel={rel} data-testid={dataTestId ? `${dataTestId}-cta` : undefined}>
+                {variant === "final" ? (
+                  <MessageCircle
+                    className="w-[18px] h-[18px] text-current"
+                    aria-hidden="true"
+                    strokeWidth={1.9}
+                  />
+                ) : null}
+                {label}
+              </Button>
+            ) : null}
             {faqQuestion ? (
               <FAQInlinePrompt
                 question={faqQuestion}

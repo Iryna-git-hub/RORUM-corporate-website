@@ -50,8 +50,21 @@ const FIELD_VISIBILITY: Record<(typeof SECTION_KINDS)[number], Set<string>> = {
   custom: new Set(["label", "title", "text", "media", "actions", "items", "settings"]),
 };
 
+// Sections whose `settings` field is hidden even though their `sectionKind`
+// would otherwise show it — narrowly scoped per `sectionKey`, not per kind,
+// so any *other* "custom"-kind section keeps using `settings` exactly as
+// before. Home's `eventsStrip` is the only current entry: the field is
+// empty in production, has no description of what a key/value pair should
+// contain, and no frontend code reads it for this section — presented to a
+// non-technical editor it's a dead, unexplained input. Still stored (not
+// deleted) and still visible for every other section, "custom"-kind or not.
+const SETTINGS_HIDDEN_FOR_SECTION_KEYS = new Set(["eventsStrip"]);
+
 function fieldHidden(fieldName: string) {
-  return ({ parent }: { parent?: { sectionKind?: string } }) => {
+  return ({ parent }: { parent?: { sectionKind?: string; sectionKey?: string } }) => {
+    if (fieldName === "settings" && parent?.sectionKey && SETTINGS_HIDDEN_FOR_SECTION_KEYS.has(parent.sectionKey)) {
+      return true;
+    }
     const kind = parent?.sectionKind as (typeof SECTION_KINDS)[number] | undefined;
     if (!kind) return false;
     const visible = FIELD_VISIBILITY[kind];

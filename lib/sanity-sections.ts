@@ -6,6 +6,9 @@
 // file only finds things by key, it doesn't know what any particular page
 // looks like.
 
+import type { Locale } from "@/lib/i18n";
+import { pickLocalized } from "@/lib/sanity-i18n";
+
 interface I18nEntry {
   _key: string;
   _type?: string;
@@ -83,6 +86,47 @@ export function getAction(section: RawPageSection | undefined, key: string): Raw
 
 export function getSetting(section: RawPageSection | undefined, key: string): string | undefined {
   return section?.settings?.find((s) => s.key === key)?.value ?? undefined;
+}
+
+export interface ResolvedAction {
+  label: string;
+  href: string;
+  target?: "_blank";
+  rel?: string;
+}
+
+/**
+ * Resolves a `ctaAction` to everything a `<Link>`/`<Button>` needs: the
+ * localized label, the destination, and target/rel derived from
+ * `openInNewTab`. One shared resolver so every section wires its buttons the
+ * same way instead of each page re-deriving href/target logic by hand.
+ *
+ * Returns `undefined` when the action is explicitly disabled
+ * (`enabled === false`) — callers should render nothing for that slot.
+ *
+ * `linkType` is intentionally not branched on here: `LocaleLink` (the `Link`
+ * every caller renders through) already infers internal-vs-external purely
+ * from the href's own shape (leading `/` = internal, anything else passes
+ * through unprefixed) — that's strictly safer than trusting the editor's
+ * dropdown, since a mistyped absolute URL under "Internal page" still won't
+ * get a locale prefix wrongly stapled onto it.
+ */
+export function resolveAction(
+  section: RawPageSection | undefined,
+  key: string,
+  locale: Locale,
+  fallback: { label: string; href: string },
+): ResolvedAction | undefined {
+  const action = getAction(section, key);
+  if (action?.enabled === false) return undefined;
+  const href = action?.href?.trim() || fallback.href;
+  const openInNewTab = action?.openInNewTab ?? false;
+  return {
+    label: pickLocalized(action?.label, locale) ?? fallback.label,
+    href,
+    target: openInNewTab ? "_blank" : undefined,
+    rel: openInNewTab ? "noopener noreferrer" : undefined,
+  };
 }
 
 /** Every item whose `itemKey` is NOT one of the given reserved keys — i.e. the "free-form list" part of a section's items. */

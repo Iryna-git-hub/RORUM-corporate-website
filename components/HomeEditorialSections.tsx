@@ -1,12 +1,21 @@
 import type { LucideIcon } from "lucide-react";
 import { LocaleLink as Link } from "@/components/LocaleLink";
-import { ArrowRight, Wrench } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import {
   Container,
   Section,
   SectionHeader,
   SectionLabel,
 } from "@/components/ui";
+
+export interface FeatureBullet {
+  label: string;
+  icon: LucideIcon;
+  /** Resolved Lucide export name, e.g. "MessagesSquare" — stamped as `data-icon` so tests can assert the exact icon without depending on SVG internals. */
+  iconName?: string;
+  /** Stable Sanity itemKey (e.g. "feature0"), when available. */
+  key?: string;
+}
 
 export function EditorialFeatureSection({
   eyebrow,
@@ -15,28 +24,34 @@ export function EditorialFeatureSection({
   description,
   ctaLabel,
   ctaHref,
+  ctaTarget,
+  ctaRel,
   image,
   imageAlt,
   features = [],
-  featureIcons = [],
   reversed = false,
   note,
+  "data-testid": dataTestId,
 }: {
   eyebrow: string;
   title: string;
   intro?: string;
   description: string;
-  ctaLabel: string;
-  ctaHref: string;
+  ctaLabel?: string;
+  /** Omitted (or the resolved action was disabled) — the CTA link renders nothing. */
+  ctaHref?: string;
+  ctaTarget?: string;
+  ctaRel?: string;
   image: string;
   imageAlt: string;
-  features?: string[];
-  featureIcons?: LucideIcon[];
+  features?: FeatureBullet[];
   reversed?: boolean;
   note?: string;
+  "data-testid"?: string;
 }) {
+  const testId = (suffix: string) => (dataTestId ? `${dataTestId}-${suffix}` : undefined);
   return (
-    <section className="editorial-feature">
+    <section className="editorial-feature" data-testid={dataTestId}>
       {/* `!important`: Container's own base className sets an arbitrary-
           value width/max-width, and a plain named `w-full`/`max-w-none`
           isn't reliably guaranteed to win over it (Tailwind's generated
@@ -51,32 +66,35 @@ export function EditorialFeatureSection({
                 : "pl-[max(16px,calc((100vw_-_1180px)/2))] pr-[clamp(42px,6vw,86px)]"
             }`}
           >
-            <SectionLabel>{eyebrow}</SectionLabel>
+            <SectionLabel data-testid={testId("eyebrow")}>{eyebrow}</SectionLabel>
             <h2 className="font-heading font-medium leading-tight text-text-primary m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] max-w-140">
               {title}
             </h2>
             {intro ? (
-              <p className="m-0 leading-[1.7] max-w-140">{intro}</p>
+              <p className="m-0 leading-[1.7] max-w-140" data-testid={testId("intro")}>
+                {intro}
+              </p>
             ) : null}
-            <p className="m-0 leading-[1.7] max-w-140">{description}</p>
+            <p className="m-0 leading-[1.7] max-w-140" data-testid={testId("description")}>
+              {description}
+            </p>
             {features.length ? (
               <ul className="grid grid-cols-2 max-sm:grid-cols-1 gap-x-4 gap-y-3 mt-4 mb-6 mx-0 p-0 list-none max-w-140">
-                {features.map((feature, index) => {
-                  const FeatureIcon = featureIcons[index] ?? Wrench;
-                  return (
-                    <li
-                      key={feature}
-                      className="grid grid-cols-[30px_minmax(0,1fr)] gap-[14px] items-start text-text-primary text-sm font-bold"
-                    >
-                      <FeatureIcon
-                        aria-hidden="true"
-                        strokeWidth={1.9}
-                        className="w-[28px] h-[28px] text-red -translate-y-[2px]"
-                      />
-                      <span>{feature}</span>
-                    </li>
-                  );
-                })}
+                {features.map((feature, index) => (
+                  <li
+                    key={feature.key ?? feature.label}
+                    className="grid grid-cols-[30px_minmax(0,1fr)] gap-[14px] items-start text-text-primary text-sm font-bold"
+                    data-testid={testId(`feature-${feature.key ?? index}`)}
+                  >
+                    <feature.icon
+                      aria-hidden="true"
+                      strokeWidth={1.9}
+                      className="w-[28px] h-[28px] text-red -translate-y-[2px]"
+                      data-icon={feature.iconName}
+                    />
+                    <span>{feature.label}</span>
+                  </li>
+                ))}
               </ul>
             ) : null}
             {note ? (
@@ -84,23 +102,29 @@ export function EditorialFeatureSection({
                 {note}
               </p>
             ) : null}
-            <Link
-              className={`group inline-flex items-center justify-center min-h-[42px] w-fit px-6 border border-primary rounded-pill bg-primary text-white! text-[12.5px] font-bold tracking-[0.02em] uppercase cursor-pointer transition-[transform,background,border-color,color] duration-[180ms] ease-[ease] gap-2 max-w-140 hover:-translate-y-px hover:bg-primary-dark hover:border-primary-dark hover:text-white! active:bg-primary-darker active:border-primary-darker focus-visible:text-white!`}
-              href={ctaHref}
-            >
-              <span>{ctaLabel}</span>
-              <ArrowRight
-                aria-hidden="true"
-                strokeWidth={1.9}
-                className="w-[17px] h-[17px] text-current transition-transform duration-200 ease-[ease] group-hover:translate-x-[5px] group-focus-visible:translate-x-[5px]"
-              />
-            </Link>
+            {ctaHref ? (
+              <Link
+                className={`group inline-flex items-center justify-center min-h-[42px] w-fit px-6 border border-primary rounded-pill bg-primary text-white! text-[12.5px] font-bold tracking-[0.02em] uppercase cursor-pointer transition-[transform,background,border-color,color] duration-[180ms] ease-[ease] gap-2 max-w-140 hover:-translate-y-px hover:bg-primary-dark hover:border-primary-dark hover:text-white! active:bg-primary-darker active:border-primary-darker focus-visible:text-white!`}
+                href={ctaHref}
+                target={ctaTarget}
+                rel={ctaRel}
+                data-testid={testId("cta")}
+              >
+                <span>{ctaLabel}</span>
+                <ArrowRight
+                  aria-hidden="true"
+                  strokeWidth={1.9}
+                  className="w-[17px] h-[17px] text-current transition-transform duration-200 ease-[ease] group-hover:translate-x-[5px] group-focus-visible:translate-x-[5px]"
+                />
+              </Link>
+            ) : null}
           </div>
           <div
             className={`min-h-full bg-beige bg-center bg-cover bg-no-repeat max-lg:min-h-[320px] max-sm:min-h-[260px] ${reversed ? "lg:order-1" : ""}`}
             role="img"
             aria-label={imageAlt}
             style={{ backgroundImage: `url(${image})` }}
+            data-testid={testId("media")}
           />
         </div>
       </Container>
@@ -128,7 +152,7 @@ export function ServicesTeaserSection({
   return (
     <Section>
       <Container>
-        <SectionHeader label={label} title={title} />
+        <SectionHeader label={label} title={title} data-testid="home-services-label" />
         <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-[22px]">
           {services.map((service) => (
             <Link
@@ -136,6 +160,7 @@ export function ServicesTeaserSection({
               href={service.href}
               aria-label={service.cta ?? service.title}
               key={service.title}
+              data-testid={`home-service-${service.href.replace(/^\/+/, "").replaceAll("/", "-") || "unknown"}`}
             >
               <div className="relative min-h-full bg-beige overflow-hidden max-lg:min-h-[220px] max-sm:min-h-[190px]">
                 <span
@@ -196,18 +221,19 @@ export function CommunityTeaserSection({
     <section
       className="py-[clamp(40px,6vw,76px)] relative isolate overflow-hidden bg-dark-green bg-position-[center_45%] bg-cover bg-no-repeat before:content-[''] before:absolute before:inset-0 before:z-0 before:bg-[linear-gradient(90deg,rgb(0_0_0/58%)_0%,rgb(0_0_0/38%)_52%,rgb(0_0_0/16%)_100%)]"
       style={{ backgroundImage: `url('${backgroundImage}')` }}
+      data-testid="home-community-teaser"
     >
       <Container>
         <div className="grid grid-cols-[minmax(220px,0.62fr)_minmax(0,1fr)_auto] max-lg:grid-cols-1 gap-[clamp(20px,4vw,48px)] relative z-1 items-center py-[clamp(34px,5vw,64px)]">
           <div className="grid gap-2">
-            <SectionLabel className="text-gold! border-b-[rgba(var(--rgb-gold),0.72)]!">
+            <SectionLabel className="text-gold! border-b-[rgba(var(--rgb-gold),0.72)]!" data-testid="home-community-label">
               {label}
             </SectionLabel>
             <h2 className="font-heading font-medium leading-tight text-cream m-0 text-[clamp(1.85rem,2.6vw,2.3rem)]">
               {title}
             </h2>
           </div>
-          <p className="m-0 text-[rgba(var(--rgb-cream),0.9)] leading-[1.65]">
+          <p className="m-0 text-[rgba(var(--rgb-cream),0.9)] leading-[1.65]" data-testid="home-community-text">
             {text}
           </p>
           <div className="flex flex-wrap justify-end max-lg:justify-start gap-2.5">

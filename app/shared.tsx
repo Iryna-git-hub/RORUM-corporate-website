@@ -4,6 +4,19 @@ import { ArrowRight, Balloon, CalendarDays, ConciergeBell, Presentation } from "
 
 export type QuickPathHref = "/events" | "/host-at-rorum" | "/catering" | "/event-decoration";
 
+const QUICK_PATH_HREFS: readonly QuickPathHref[] = ["/events", "/host-at-rorum", "/catering", "/event-decoration"];
+
+/**
+ * `QuickPathCard` looks up its icon/tone by using `href` as a key into
+ * `quickPathMeta` below, which only has entries for these 4 exact paths —
+ * an editor-supplied href that isn't one of them would make that lookup
+ * `undefined` and crash on `.icon`. Callers resolving `item.href` from
+ * Sanity must check this first and fall back to a known-safe href otherwise.
+ */
+export function isQuickPathHref(value: string | null | undefined): value is QuickPathHref {
+  return !!value && (QUICK_PATH_HREFS as readonly string[]).includes(value);
+}
+
 interface QuickPathMeta {
   icon: LucideIcon;
   cta: string;

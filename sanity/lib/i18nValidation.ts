@@ -1,4 +1,4 @@
-import type { Rule } from "sanity";
+import type { Rule, ValidationContext } from "sanity";
 
 // Reusable validators for the `{_key, language, value}[]` shape every
 // internationalized field uses. Two variants because not every field needs
@@ -34,10 +34,22 @@ function analyze(entries: I18nEntry[] | undefined | null) {
   return { missing, emptyLanguages, duplicates };
 }
 
-/** All three languages must be present and non-empty. Use on required visible content. */
-export function requireAllLanguages() {
+/**
+ * All three languages must be present and non-empty. Use on required visible
+ * content.
+ *
+ * `skip`: lets one specific, narrowly-identified case opt out of the
+ * requirement entirely (returns valid unconditionally) without weakening it
+ * for every other field that reuses this same shape — e.g. Home's hero
+ * background media, whose alt text is hidden from Studio (see
+ * sanity/schemaTypes/objects/mediaItem.ts) because it's never rendered.
+ * Without this, an editor could be blocked from publishing by a required
+ * field they can't even see.
+ */
+export function requireAllLanguages(options?: { skip?: (context: ValidationContext) => boolean }) {
   return (rule: Rule) =>
-    rule.custom((value: I18nEntry[] | undefined) => {
+    rule.custom((value: I18nEntry[] | undefined, context: ValidationContext) => {
+      if (options?.skip?.(context)) return true;
       const { missing, emptyLanguages, duplicates } = analyze(value);
       if (duplicates.length) return `Duplicate language entries: ${duplicates.join(", ")}.`;
       if (missing.length) return `Missing translation for: ${missing.join(", ")}.`;
