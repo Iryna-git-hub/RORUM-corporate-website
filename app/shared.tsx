@@ -52,15 +52,18 @@ function QuickPathCard({
   href,
   image,
   cta,
+  icon,
 }: {
   title: string;
   text: string;
   href: QuickPathHref;
   image: string;
   cta?: string;
+  /** Editor-chosen icon from Sanity, already resolved to a component. Falls back to the fixed per-href icon below when unset (e.g. field empty, or an invalid/unrecognized icon name). */
+  icon?: LucideIcon;
 }) {
   const meta = quickPathMeta[href];
-  const Icon = meta.icon;
+  const Icon = icon ?? meta.icon;
   const cardClassName = `quick-path-card quick-path-card-${meta.tone} quick-path-card-${href.replace(/^\/+/, "").replaceAll("/", "-")}`;
   const inner = (
     <>
@@ -93,12 +96,12 @@ function QuickPathCard({
 export function QuickPathsGrid({
   items,
 }: {
-  items: [title: string, text: string, href: QuickPathHref, image: string, cta?: string][];
+  items: [title: string, text: string, href: QuickPathHref, image: string, cta?: string, icon?: LucideIcon][];
 }) {
   return (
     <div className="grid grid-cols-4 gap-[18px] items-stretch max-sm:grid-cols-1 sm:max-xl:grid-cols-2">
-      {items.map(([title, text, href, image, cta]) => (
-        <QuickPathCard key={title} title={title} text={text} href={href} image={image} cta={cta} />
+      {items.map(([title, text, href, image, cta, icon]) => (
+        <QuickPathCard key={title} title={title} text={text} href={href} image={image} cta={cta} icon={icon} />
       ))}
     </div>
   );

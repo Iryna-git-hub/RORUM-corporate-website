@@ -35,6 +35,15 @@ export default defineType({
         layout: "radio",
       },
       initialValue: "internal",
+      // Hidden site-wide: never read by the frontend — `LocaleLink` (every
+      // caller's `Link`) infers internal-vs-external purely from the
+      // destination's own shape (leading `/` = internal), which is strictly
+      // safer than trusting this dropdown (a mistyped absolute URL under
+      // "Internal page" still won't get a locale prefix wrongly stapled on).
+      // Showing this field gave editors a false expectation that choosing
+      // "External website" did something. Not removed: existing stored
+      // values are preserved, and every other ctaAction field is unaffected.
+      hidden: true,
     }),
     defineField({
       name: "href",

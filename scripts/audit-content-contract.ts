@@ -13,10 +13,12 @@
  */
 import { createClient } from "@sanity/client";
 import { homeContract } from "@/lib/content-contracts/home";
+import { aboutContract } from "@/lib/content-contracts/about";
 import type { ContentContractEntry, PageContentContract } from "@/lib/content-contracts/types";
 
 const CONTRACTS: Record<string, PageContentContract> = {
   home: homeContract,
+  about: aboutContract,
 };
 
 const REQUIRED_LANGUAGES = ["en", "da", "uk"];

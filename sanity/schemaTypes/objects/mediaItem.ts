@@ -101,6 +101,14 @@ export default defineType({
       title: "Caption",
       type: "internationalizedArrayText",
       description: "Optional visible caption. / Необов'язковий видимий підпис.",
+      // Hidden site-wide: no component anywhere in the codebase renders a
+      // media caption (grep-verified — `.caption` has zero consumers).
+      // Confirmed via a read-only query first that no published or draft
+      // page document has a non-empty caption value anywhere, so hiding
+      // this doesn't orphan any real content an editor was relying on.
+      // Not removed: the field and any future stored values are preserved
+      // — this can be un-hidden the moment a real caption display exists.
+      hidden: true,
     }),
   ],
   preview: {

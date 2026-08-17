@@ -53,6 +53,7 @@ interface RawItem {
 }
 interface RawMedia {
   kind?: string;
+  alt?: I18nEntry[];
 }
 interface RawSection {
   sectionKey?: string;
@@ -86,7 +87,7 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
         "seo": seo{title, description},
         "sections": sections[]{
           sectionKey, label, title, text,
-          "media": media[]{kind},
+          "media": media[]{kind, alt},
           "actions": actions[]{actionKey, label, href, openInNewTab, enabled},
           "items": items[]{itemKey, icon, title, text, label, href}
         }
@@ -258,8 +259,14 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
           await expect(link).toHaveAttribute("href", localizedHref(action!.href!, locale));
         });
 
-        test(`${sectionKey}: media state`, async () => {
-          test.skip(true, "classification: pending-approved-migration — production has 0 media items here; see scripts/backfill-home-fallback-images.ts (dry-run only, not yet run live)");
+        test(`${sectionKey}: media (image + localized alt text)`, async ({ page }) => {
+          const media = byKey(sectionKey)?.media?.[0];
+          const alt = pick(media?.alt, locale);
+          test.skip(!media || !alt, "no published media/alt for this locale yet");
+          const el = page.getByTestId(`${testId}-media`);
+          await expect(el).toHaveAttribute("role", "img");
+          await expect(el).toHaveAttribute("aria-label", alt!);
+          await expect(el).toHaveAttribute("style", /background-image/);
         });
       }
 
@@ -295,8 +302,16 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
         if (text) await expect(page.getByTestId("home-community-text")).toHaveText(text);
       });
 
-      test("community media state", async () => {
-        test.skip(true, "classification: pending-approved-migration — production has 0 media items here; see scripts/backfill-home-fallback-images.ts (dry-run only, not yet run live)");
+      test("community media: uses the Sanity image, decorative (no accessible image label)", async ({ page }) => {
+        const media = byKey("communityTeaser")?.media?.[0];
+        test.skip(!media, "no published media for communityTeaser yet");
+        const el = page.getByTestId("home-community-teaser");
+        // Sourced from Sanity now, not the old local /images/... fallback path.
+        await expect(el).toHaveAttribute("style", /background-image.*cdn\.sanity\.io/);
+        // Decorative: must NOT expose an accessible image name (no role="img", no aria-label) —
+        // the community background is a CSS background, same treatment as the Home hero.
+        await expect(el).not.toHaveAttribute("role", "img");
+        await expect(el).not.toHaveAttribute("aria-label", /.+/);
       });
 
       test("community pill links by stable key", async ({ page }) => {

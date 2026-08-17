@@ -33,6 +33,7 @@ import { allEventsQuery } from "@/sanity/queries/events";
 import { pageByKeyQuery } from "@/sanity/queries/page";
 import {
   ArrowRight,
+  CircleEllipsis,
   HandHeart,
   HeartHandshake,
   MapPin,
@@ -198,7 +199,13 @@ async function getData(locale: Locale) {
       closingMainAction: noAction(fallback.closingCta, "/contact"),
       attendFeature: noActionFeature(fallback.attendFeature),
       hostFeature: noActionFeature(fallback.hostFeature),
-      quickPaths: fallbackQuickPaths.map(([title, text], i) => ({ title, text, ...quickPathMeta[i]!, cta: undefined as string | undefined })),
+      quickPaths: fallbackQuickPaths.map(([title, text], i) => ({
+        title,
+        text,
+        ...quickPathMeta[i]!,
+        cta: undefined as string | undefined,
+        icon: undefined as LucideIcon | undefined,
+      })),
       services: fallbackServices,
       communityLinks: fallbackCommunityLinks,
       events: await eventsPromise,
@@ -243,12 +250,28 @@ async function getData(locale: Locale) {
               ?.width(700)
               .url() ?? fallbackMeta.image,
           cta: pickLocalized(item.label, locale),
+          // Editor-chosen icon, wired via the same validated resolver every
+          // other icon picker on the site uses. Empty AND invalid values
+          // (an icon name that isn't a real current lucide-react export)
+          // both resolve to `undefined` here rather than getIconCardIcon's
+          // own CircleEllipsis placeholder, so QuickPathCard's per-href
+          // fallback icon applies instead of a generic dot in either case.
+          icon: (() => {
+            const resolved = item.icon?.trim() ? getIconCardIcon(item.icon) : undefined;
+            return resolved && resolved !== CircleEllipsis ? resolved : undefined;
+          })(),
         };
       })
     : undefined;
   const quickPaths =
     quickPathsFromSections ??
-    fallbackQuickPaths.map(([title, text], i) => ({ title, text, ...quickPathMeta[i]!, cta: undefined as string | undefined }));
+    fallbackQuickPaths.map(([title, text], i) => ({
+      title,
+      text,
+      ...quickPathMeta[i]!,
+      cta: undefined as string | undefined,
+      icon: undefined as LucideIcon | undefined,
+    }));
 
   const heroTrustSectionItems = heroSection?.items?.filter((i) => i.itemKey?.startsWith("trust"));
   const heroTrustItems: TrustItem[] = heroTrustSectionItems?.length
@@ -491,7 +514,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             data-testid="home-quickpaths-label"
           />
           <QuickPathsGrid
-            items={data.quickPaths.map(({ title, text, href, image, cta }) => [title, text, href, image, cta])}
+            items={data.quickPaths.map(({ title, text, href, image, cta, icon }) => [title, text, href, image, cta, icon])}
           />
         </Container>
       </section>

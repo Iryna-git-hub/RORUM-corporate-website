@@ -46,6 +46,7 @@
     "sanity:stats": "tsx --env-file=.env.local scripts/sanity-stats.ts",
     "sanity:audit-translations": "tsx --env-file=.env.local scripts/audit-translations.ts",
     "sanity:audit-contract": "tsx --env-file=.env.local scripts/audit-content-contract.ts",
+    "sanity:audit-studio-visibility": "tsx --env-file=.env.local scripts/audit-studio-visibility.ts",
     "sanity:migrate-to-page-sections:dry-run": "tsx --env-file=.env.local scripts/migrate-to-page-sections.ts --dry-run",
     "sanity:migrate-to-page-sections": "tsx --env-file=.env.local scripts/migrate-to-page-sections.ts",
     "sanity:delete-migrated-singletons:dry-run": "tsx --env-file=.env.local scripts/delete-migrated-page-singletons.ts --dry-run",
@@ -63,7 +64,9 @@
     "sanity:backfill-home-feature-icons:dry-run": "tsx --env-file=.env.local scripts/backfill-home-feature-icons.ts --dry-run",
     "sanity:backfill-home-feature-icons": "tsx --env-file=.env.local scripts/backfill-home-feature-icons.ts",
     "sanity:backfill-home-images:dry-run": "tsx --env-file=.env.local scripts/backfill-home-fallback-images.ts --dry-run",
-    "sanity:backfill-home-images": "tsx --env-file=.env.local scripts/backfill-home-fallback-images.ts"
+    "sanity:backfill-home-images": "tsx --env-file=.env.local scripts/backfill-home-fallback-images.ts",
+    "sanity:backfill-quickpath-icons:dry-run": "tsx --env-file=.env.local scripts/backfill-quickpath-icons.ts --dry-run",
+    "sanity:backfill-quickpath-icons": "tsx --env-file=.env.local scripts/backfill-quickpath-icons.ts"
   },
   "dependencies": {
     "@portabletext/react": "^7.0.1",

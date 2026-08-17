@@ -14,7 +14,7 @@ import { Container, CTASection, Section, SectionLabel } from "@/components/ui";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/sanity-i18n";
-import { getAction, getItem, getSection } from "@/lib/sanity-sections";
+import { getItem, getSection, resolveAction } from "@/lib/sanity-sections";
 import { getIconCardIcon } from "@/lib/iconCardIcons";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
@@ -63,6 +63,7 @@ const fallback = {
   locationTitle: "Thoughtful and practical",
   locationText: "These principles shape the way RORUM approaches meetings, hosted events, catering, decoration and community collaborations.",
   description: "Learn about RORUM, a small curated ground-floor creative and event space in Copenhagen.",
+  seoTitle: "About",
   closingEyebrow: "Not sure where to start?",
   closingTitle: "Let's shape your idea together",
   closingText:
@@ -197,17 +198,36 @@ async function getData(locale: Locale) {
       pickLocalized(pillarsSection?.title, locale) ?? pickLocalized(page?.locationTitle, locale) ?? fallback.locationTitle,
     locationText:
       pickLocalized(pillarsSection?.text, locale) ?? pickLocalized(page?.locationText, locale) ?? fallback.locationText,
-    description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    // Reads the current page-about document's own SEO field — previously
+    // read `page?.seo?.description` from the obsolete `aboutPageQuery`
+    // result, which always returned null (0 `aboutPage` documents in
+    // production), so this silently ignored every editor's SEO
+    // description. `pickLocalized` still falls back to English internally
+    // when only EN is set, and to `fallback.description` only as the true
+    // last resort (no Sanity content at all) — same fallback chain Home
+    // already uses.
+    description: pickLocalized(newPage?.seo?.description, locale) ?? fallback.description,
+    // Same fallback shape as description above. `seo.title` is not a new
+    // field — it already exists on the shared `seo` object type used by
+    // every page/event/singleton (0 new Content Lake attributes) — this is
+    // wiring only; production content for it is still empty on About as of
+    // this change, so `<title>` keeps showing the hardcoded fallback until
+    // an editor fills it in.
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
     closingEyebrow:
       pickLocalized(closingCtaSection?.label, locale) ?? pickLocalized(page?.closingSection?.eyebrow, locale) ?? fallback.closingEyebrow,
     closingTitle:
       pickLocalized(closingCtaSection?.title, locale) ?? pickLocalized(page?.closingSection?.title, locale) ?? fallback.closingTitle,
     closingText:
       pickLocalized(closingCtaSection?.text, locale) ?? pickLocalized(page?.closingSection?.text, locale) ?? fallback.closingText,
-    closingCta:
-      pickLocalized(getAction(closingCtaSection, "main")?.label, locale) ??
-      pickLocalized(page?.closingSection?.cta?.label, locale) ??
-      fallback.closingCta,
+    // Same shared resolver Home already uses for every CTA — wires
+    // href/openInNewTab/enabled together with the label instead of only
+    // ever reading .label (the previous behavior here). The legacy
+    // `page?.closingSection?.cta` fallback leg is dropped: `page` (the
+    // aboutPage singleton) always resolves to null in production (0
+    // documents, confirmed via a read-only count query), so that branch
+    // was already dead code, not a behavior this removes.
+    closingMainAction: resolveAction(closingCtaSection, "main", locale, { label: fallback.closingCta, href: "/contact" }),
     closingFaqQuestion:
       pickLocalized(getItem(closingCtaSection, "faqQuestion")?.title, locale) ??
       pickLocalized(page?.closingSection?.faqQuestion, locale) ??
@@ -235,8 +255,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { description } = await getData(locale);
-  return localizedPageMetadata({ path: "/about", locale, title: "About", description });
+  const { seoTitle, description } = await getData(locale);
+  return localizedPageMetadata({ path: "/about", locale, title: seoTitle, description });
 }
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -257,7 +277,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     closingEyebrow,
     closingTitle,
     closingText,
-    closingCta,
+    closingMainAction,
     closingFaqQuestion,
     closingFaqLabel,
     closingLinks,
@@ -401,8 +421,10 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         eyebrow={closingEyebrow}
         title={closingTitle}
         text={closingText}
-        href="/contact"
-        label={closingCta}
+        href={closingMainAction?.href}
+        label={closingMainAction?.label}
+        target={closingMainAction?.target}
+        rel={closingMainAction?.rel}
         faqQuestion={closingFaqQuestion}
         faqLabel={closingFaqLabel}
         links={closingLinks}

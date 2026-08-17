@@ -1,5 +1,6 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 import { allOrNothingLanguages } from "@/sanity/lib/i18nValidation";
+import { EventsStripLabelField } from "@/sanity/components/EventsStripLabelField";
 
 // The one section shape every page in the new `page` document type is built
 // from. `sectionKind` picks what the section visually is; the remaining
@@ -50,19 +51,60 @@ const FIELD_VISIBILITY: Record<(typeof SECTION_KINDS)[number], Set<string>> = {
   custom: new Set(["label", "title", "text", "media", "actions", "items", "settings"]),
 };
 
-// Sections whose `settings` field is hidden even though their `sectionKind`
-// would otherwise show it — narrowly scoped per `sectionKey`, not per kind,
-// so any *other* "custom"-kind section keeps using `settings` exactly as
-// before. Home's `eventsStrip` is the only current entry: the field is
-// empty in production, has no description of what a key/value pair should
-// contain, and no frontend code reads it for this section — presented to a
-// non-technical editor it's a dead, unexplained input. Still stored (not
-// deleted) and still visible for every other section, "custom"-kind or not.
-const SETTINGS_HIDDEN_FOR_SECTION_KEYS = new Set(["eventsStrip"]);
+// Section-level field-hide overrides: fieldName -> Set<sectionKey> where
+// that field is hidden even though its sectionKind would otherwise show it.
+// Narrowly scoped per `sectionKey`, not per kind, so any *other* section of
+// the same kind keeps its normal visibility. Current entries, from the Home
+// eventsStrip Studio-visibility audit: the section's own copy (`text`),
+// photos (`media`) and generic list rows (`items`) are all empty in
+// production and read by no frontend code for this section — the visible
+// event cards come entirely from separate `event` documents, matched only
+// by page position, never by anything stored here (see the section's own
+// `description` below). Presented to a non-technical editor these 3 fields
+// (plus `settings`, hidden here for the same reason) look editable but are
+// dead ends. Still stored (not deleted) and still visible for every other
+// "custom"-kind section.
+const SECTION_FIELD_FORCE_HIDDEN: Partial<Record<string, ReadonlySet<string>>> = {
+  settings: new Set(["eventsStrip"]),
+  text: new Set(["eventsStrip"]),
+  media: new Set(["eventsStrip"]),
+  items: new Set(["eventsStrip"]),
+};
+
+// About's statement/community/pillars sections use sectionKind "iconGrid"/
+// "steps", whose FIELD_VISIBILITY doesn't include "text" — but all 3
+// sections' `text` holds real, published, rendered copy (the services
+// paragraph, the community paragraph, the pillars intro). Rather than
+// adding "text" to iconGrid/steps globally (which would also reveal empty,
+// genuinely-unused text fields on catering/workWithUs/eventDecoration/
+// hostAtRorum's iconGrid/steps sections, none of which have been audited
+// yet), this force-shows `text` only for these 3 exact sections on the
+// About document specifically — narrowed by document id (draft-stripped)
+// AND sectionKey together, the same two-part scoping mediaItem.ts's
+// isHomeDecorativeBackgroundMedia already uses for the equivalent problem
+// in the opposite direction.
+const ABOUT_TEXT_FORCE_VISIBLE_SECTION_KEYS = new Set(["statement", "community", "pillars"]);
+
+// About's hero section has an empty, unused `actions` array — its 2 quick
+// links live in `items`, not `actions` (unlike Home's hero, which uses
+// `actions` for its 2 real CTA buttons and must keep seeing this field).
+// Hidden only for page-about's own hero, not sectionKind "hero" generally.
+const ABOUT_HERO_ACTIONS_HIDDEN_SECTION_KEYS = new Set(["hero"]);
+
+function isPageAbout(document: unknown): boolean {
+  const doc = document as { _id?: string } | undefined;
+  return doc?._id?.replace(/^drafts\./, "") === "page-about";
+}
 
 function fieldHidden(fieldName: string) {
-  return ({ parent }: { parent?: { sectionKind?: string; sectionKey?: string } }) => {
-    if (fieldName === "settings" && parent?.sectionKey && SETTINGS_HIDDEN_FOR_SECTION_KEYS.has(parent.sectionKey)) {
+  return ({ parent, document }: { parent?: { sectionKind?: string; sectionKey?: string }; document?: unknown }) => {
+    if (fieldName === "text" && parent?.sectionKey && ABOUT_TEXT_FORCE_VISIBLE_SECTION_KEYS.has(parent.sectionKey) && isPageAbout(document)) {
+      return false; // force-visible override wins before the sectionKind-based hide below would otherwise hide it
+    }
+    if (fieldName === "actions" && parent?.sectionKey && ABOUT_HERO_ACTIONS_HIDDEN_SECTION_KEYS.has(parent.sectionKey) && isPageAbout(document)) {
+      return true;
+    }
+    if (parent?.sectionKey && SECTION_FIELD_FORCE_HIDDEN[fieldName]?.has(parent.sectionKey)) {
       return true;
     }
     const kind = parent?.sectionKind as (typeof SECTION_KINDS)[number] | undefined;
@@ -103,6 +145,7 @@ export default defineType({
       description: 'Small eyebrow text above the title, e.g. "Catering". / Невеликий напис над заголовком.',
       validation: allOrNothingLanguages(),
       hidden: fieldHidden("label"),
+      components: { field: EventsStripLabelField },
     }),
     defineField({
       name: "title",

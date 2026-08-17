@@ -229,6 +229,30 @@ export const homeContract: PageContentContract = {
         "fallback for an href that isn't one of the 4 recognized destinations — documented in " +
         "app/[locale]/(site)/page.tsx's quickPathMeta comment.",
     },
+    {
+      pageKey: "home",
+      sectionKey: "quickPaths",
+      sanityPath: 'sections[sectionKey=="quickPaths"].items[*].icon',
+      fieldPurpose: "Per-card icon override for the 4 Quick Path cards",
+      fieldType: "icon",
+      required: false,
+      languages: [],
+      querySource: QUERY,
+      mapper: "getData() quickPathsFromSections — item.icon -> getIconCardIcon(), falling back to the fixed per-href lookup (app/shared.tsx quickPathMeta) when empty or not a valid current Lucide icon name",
+      component: "app/shared.tsx QuickPathCard",
+      frontendSelector: ".quick-path-card-* svg",
+      expectedBehavior: "Editor's chosen icon renders on the card; falls back to the card's fixed default icon (CalendarDays/Presentation/ConciergeBell/Balloon) when the field is empty or the stored value isn't a real Lucide icon.",
+      mutationStrategy: "icon-swap",
+      editorVisibility: "visible",
+      classification: "connected",
+      notes:
+        "Fixed this pass (Approved Fix 3): previously visible in Studio but read by no frontend code at all — " +
+        "QuickPathCard always rendered a fixed icon looked up by href. An additive, idempotent backfill migration " +
+        "(scripts/backfill-quickpath-icons.ts) is ready and was run in dry-run only — NOT live. 2 of 4 items " +
+        "(events, eventDecoration on published; events, eventDecoration on draft) would be newly populated; the " +
+        "\"hostAtRorum\" item's pre-existing value (AlarmClock) and a draft-only \"catering\" value (CalendarDays) " +
+        "both conflict with the icon actually rendered and were left untouched, flagged for a manual decision.",
+    },
 
     // ---- eventsStrip -------------------------------------------------
     {
@@ -426,12 +450,12 @@ export const homeContract: PageContentContract = {
       expectedBehavior: "Background image + accessible name change to the edited asset/text once populated.",
       mutationStrategy: "image-swap",
       editorVisibility: "visible",
-      classification: "pending-approved-migration",
+      classification: "connected",
       notes:
-        "Code wiring is correct and unconditional (already \"connected\" from the code's point of view) — " +
-        "classified pending-approved-migration because production has 0 media items here, and an idempotent, " +
-        "dry-run-only migration (scripts/backfill-home-fallback-images.ts) that would populate it with the exact " +
-        "photo currently shown via code fallback has not been run live.",
+        "Migrated live this pass: scripts/backfill-home-fallback-images.ts populated this section's media on both " +
+        "page-home and drafts.page-home, reusing the existing Sanity asset already used elsewhere on the site " +
+        "(no duplicate upload) with approved EN/DA/UK alt text — verified idempotent and pixel-identical to the " +
+        "prior code-fallback rendering (see the Home report's Part 4 for the exact asset ID and alt text).",
     },
 
     {
@@ -449,15 +473,12 @@ export const homeContract: PageContentContract = {
       expectedBehavior: "Identical connectivity to editorialAttendEvents above, field for field.",
       mutationStrategy: "localized-canary",
       editorVisibility: "visible",
-      classification: "pending-approved-migration",
+      classification: "connected",
       notes:
-        "Collapsed into one entry to avoid duplicating ~6 near-identical rows — this classification reflects the " +
-        "least-complete field in the group, not the whole group's state. Precisely: eyebrow/title/intro/" +
-        "description/feature labels/cta text+href are `connected`; the 4 feature icons are now `connected` too " +
-        "(migrated live this pass, same as editorialAttendEvents — see that entry above); the section's media " +
-        "(photo) is still `pending-approved-migration` — production has 0 media items here and " +
-        "scripts/backfill-home-fallback-images.ts has only been dry-run, not run live (see the image-migration " +
-        "entry below and the Home report's image-alt-text analysis).",
+        "Collapsed into one entry to avoid duplicating ~6 near-identical rows. Every field is now `connected`: " +
+        "eyebrow/title/intro/description/feature labels/cta text+href, the 4 feature icons (migrated), and the " +
+        "section's media/photo (migrated, reused asset, approved alt text) — see editorialAttendEvents above for " +
+        "the identical, individually-tested field list, and the Home report for the exact migration details.",
     },
 
     // ---- servicesTeaser --------------------------------------------------
@@ -526,11 +547,36 @@ export const homeContract: PageContentContract = {
       mapper: "getData() communityImageUrl",
       component: '[data-testid="home-community-teaser"] (style backgroundImage)',
       frontendSelector: '[data-testid="home-community-teaser"][style*=background-image]',
-      expectedBehavior: "Background photo changes to the uploaded asset once populated.",
+      expectedBehavior: "Background photo changes to the uploaded asset.",
       mutationStrategy: "image-swap",
       editorVisibility: "visible",
-      classification: "pending-approved-migration",
-      notes: "Code wiring already unconditional; production has 0 media items — see scripts/backfill-home-fallback-images.ts (dry-run only).",
+      classification: "connected",
+      notes:
+        "Migrated live this pass: scripts/backfill-home-fallback-images.ts uploaded a new Sanity asset (no " +
+        "existing asset with this filename) and populated this section's media on both page-home and " +
+        "drafts.page-home — verified idempotent and pixel-identical to the prior code-fallback rendering.",
+    },
+    {
+      pageKey: "home",
+      sectionKey: "communityTeaser",
+      sanityPath: 'sections[sectionKey=="communityTeaser"].media[0].alt',
+      fieldPurpose: "Community teaser background alt text",
+      fieldType: "i18nString",
+      required: false,
+      languages: [],
+      querySource: QUERY,
+      mapper: "not read — intentionally, see notes",
+      component: '[data-testid="home-community-teaser"] — no accessible-image element exists',
+      frontendSelector: "n/a — not rendered",
+      expectedBehavior:
+        "Field is hidden in Studio for Home's communityTeaser media specifically (same " +
+        "isHomeDecorativeBackgroundMedia treatment as the hero, sanity/schemaTypes/objects/mediaItem.ts), and its " +
+        "required-language validation is skipped for that same case. The live migration deliberately wrote no " +
+        "alt value for this media item — verified: the rendered element has no role=\"img\" and no aria-label.",
+      mutationStrategy: "not-mutation-tested",
+      editorVisibility: "hidden",
+      classification: "technical-hidden",
+      notes: "Same reasoning and same narrow document+section scoping as the hero media alt entry above — see that entry's notes.",
     },
     {
       pageKey: "home",
