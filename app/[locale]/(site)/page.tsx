@@ -205,6 +205,7 @@ async function getData(locale: Locale) {
         ...quickPathMeta[i]!,
         cta: undefined as string | undefined,
         icon: undefined as LucideIcon | undefined,
+        iconName: undefined as string | undefined,
       })),
       services: fallbackServices,
       communityLinks: fallbackCommunityLinks,
@@ -256,9 +257,13 @@ async function getData(locale: Locale) {
           // both resolve to `undefined` here rather than getIconCardIcon's
           // own CircleEllipsis placeholder, so QuickPathCard's per-href
           // fallback icon applies instead of a generic dot in either case.
-          icon: (() => {
-            const resolved = item.icon?.trim() ? getIconCardIcon(item.icon) : undefined;
-            return resolved && resolved !== CircleEllipsis ? resolved : undefined;
+          // `iconName` is the validated raw string, paired 1:1 with `icon`,
+          // used only to stamp `data-icon` for tests.
+          ...(() => {
+            const trimmed = item.icon?.trim();
+            const resolved = trimmed ? getIconCardIcon(trimmed) : undefined;
+            const valid = resolved && resolved !== CircleEllipsis;
+            return { icon: valid ? resolved : undefined, iconName: valid ? trimmed : undefined };
           })(),
         };
       })
@@ -271,6 +276,7 @@ async function getData(locale: Locale) {
       ...quickPathMeta[i]!,
       cta: undefined as string | undefined,
       icon: undefined as LucideIcon | undefined,
+      iconName: undefined as string | undefined,
     }));
 
   const heroTrustSectionItems = heroSection?.items?.filter((i) => i.itemKey?.startsWith("trust"));
@@ -514,7 +520,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             data-testid="home-quickpaths-label"
           />
           <QuickPathsGrid
-            items={data.quickPaths.map(({ title, text, href, image, cta, icon }) => [title, text, href, image, cta, icon])}
+            items={data.quickPaths.map(({ title, text, href, image, cta, icon, iconName }) => [title, text, href, image, cta, icon, iconName])}
           />
         </Container>
       </section>

@@ -183,6 +183,24 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
         }
       });
 
+      test("quick path icons render the canonical Sanity-sourced value by stable key", async ({ page }) => {
+        const section = byKey("quickPaths");
+        const canonical: Record<string, string> = {
+          events: "CalendarDays",
+          hostAtRorum: "Presentation",
+          catering: "ConciergeBell",
+          eventDecoration: "Balloon",
+        };
+        for (const key of ["events", "hostAtRorum", "catering", "eventDecoration"]) {
+          const item = itemByKey(section, key);
+          test.skip(!item?.icon, `no published icon value for "${key}" yet`);
+          expect(item!.icon, `${key} should hold its approved canonical icon`).toBe(canonical[key]);
+          const slug = (item?.href ?? "").replace(/^\/+/, "").replaceAll("/", "-");
+          const icon = page.locator(`.quick-path-card-${slug} svg`);
+          await expect(icon).toHaveAttribute("data-icon", canonical[key]!);
+        }
+      });
+
       // ---- eventsStrip -------------------------------------------------
       test("events strip label", async ({ page }) => {
         const value = pick(byKey("eventsStrip")?.label, locale);

@@ -253,24 +253,34 @@ test.describe("About content contract — schema-to-frontend connection (read-on
         await expect(closing.getByRole("link", { name: label! })).toBeVisible();
       });
 
-      test("closing CTA button href (DISCONNECTED — hardcoded in JSX, see contract)", async () => {
-        test.skip(
-          true,
-          "disconnected: about/page.tsx hardcodes href=\"/contact\" as a JSX literal instead of reading actions[main].href — asserting the rendered value would only prove the hardcoded string, not a Sanity connection",
+      test("closing CTA button href (FIXED — now wired via resolveAction())", async ({ page }) => {
+        const closing = page.locator(".next-step-section-not-sure");
+        const action = byKey("closingCta")?.actions?.find((a) => a.actionKey === "main");
+        test.skip(!action?.href, "no published href for this locale yet");
+        await expect(closing.getByRole("link", { name: pick(action?.label, locale) ?? "" })).toHaveAttribute(
+          "href",
+          localizedHref(action!.href!, locale),
         );
       });
 
-      test("closing CTA openInNewTab / enabled (DISCONNECTED, see contract)", async () => {
-        test.skip(
-          true,
-          "disconnected: about/page.tsx never reads actions[main].openInNewTab or .enabled — the button always renders with no target/rel regardless of these fields",
-        );
+      test("closing CTA openInNewTab / enabled (FIXED — now wired via resolveAction())", async ({ page }) => {
+        const closing = page.locator(".next-step-section-not-sure");
+        const action = byKey("closingCta")?.actions?.find((a) => a.actionKey === "main");
+        const link = closing.getByRole("link", { name: pick(action?.label, locale) ?? "" });
+        if (action?.enabled === false) {
+          await expect(link).toHaveCount(0);
+        } else if (action?.openInNewTab) {
+          await expect(link).toHaveAttribute("target", "_blank");
+          await expect(link).toHaveAttribute("rel", "noopener noreferrer");
+        } else {
+          await expect(link).not.toHaveAttribute("target", "_blank");
+        }
       });
 
-      test("closing CTA settings.variant (DISCONNECTED, see contract)", async () => {
+      test("closing CTA settings.variant (correctly hidden in Studio, unread by the frontend — see contract)", async () => {
         test.skip(
           true,
-          "disconnected: about/page.tsx hardcodes variant=\"final\" as a JSX literal instead of reading settings[key==\"variant\"].value",
+          "correctly-hidden: sectionKind \"cta\" never shows the settings field in Studio (verified this pass — see the Studio Visibility Contract); about/page.tsx also still hardcodes variant=\"final\" as a JSX literal, so there is nothing to assert against a rendered value even if it were visible",
         );
       });
 
@@ -295,19 +305,32 @@ test.describe("About content contract — schema-to-frontend connection (read-on
         }
       });
 
-      // ---- SEO (DISCONNECTED, see contract) ---------------------------------------
-      test("SEO title (DISCONNECTED, see contract)", async () => {
-        test.skip(
-          true,
-          "disconnected: generateMetadata() always passes the JSX-literal title \"About\" and never reads newPage?.seo?.title for any locale",
+      // ---- SEO (FIXED — now wired with Home's fallback chain) ---------------------------------------
+      test("SEO title falls back to the hardcoded default when Sanity has no value", async ({ page }) => {
+        const value = pick(page_.seo?.title, locale);
+        test.skip(!!value, "a value is published for this locale — see the companion 'reflects the published value' test instead");
+        await expect(page).toHaveTitle("About");
+      });
+
+      test("SEO title reflects the published Sanity value when present", async ({ page }) => {
+        const value = pick(page_.seo?.title, locale);
+        test.skip(!value, "no published SEO title for this locale yet — see the companion fallback test instead");
+        await expect(page).toHaveTitle(value!);
+      });
+
+      test("SEO description falls back to the hardcoded default when Sanity has no value", async ({ page }) => {
+        const value = pick(page_.seo?.description, locale);
+        test.skip(!!value, "a value is published for this locale — see the companion 'reflects the published value' test instead");
+        await expect(page.locator('head meta[name="description"]')).toHaveAttribute(
+          "content",
+          "Learn about RORUM, a small curated ground-floor creative and event space in Copenhagen.",
         );
       });
 
-      test("SEO description (DISCONNECTED, see contract)", async () => {
-        test.skip(
-          true,
-          "disconnected: getData() reads the legacy, permanently-empty aboutPage singleton (page?.seo?.description) instead of the real, editable page-about field (newPage?.seo?.description) — populating Sanity has zero effect",
-        );
+      test("SEO description reflects the published Sanity value when present", async ({ page }) => {
+        const value = pick(page_.seo?.description, locale);
+        test.skip(!value, "no published value for this locale yet — see the companion fallback test instead");
+        await expect(page.locator('head meta[name="description"]')).toHaveAttribute("content", value!);
       });
     });
   }

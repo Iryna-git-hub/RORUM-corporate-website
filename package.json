@@ -66,7 +66,9 @@
     "sanity:backfill-home-images:dry-run": "tsx --env-file=.env.local scripts/backfill-home-fallback-images.ts --dry-run",
     "sanity:backfill-home-images": "tsx --env-file=.env.local scripts/backfill-home-fallback-images.ts",
     "sanity:backfill-quickpath-icons:dry-run": "tsx --env-file=.env.local scripts/backfill-quickpath-icons.ts --dry-run",
-    "sanity:backfill-quickpath-icons": "tsx --env-file=.env.local scripts/backfill-quickpath-icons.ts"
+    "sanity:backfill-quickpath-icons": "tsx --env-file=.env.local scripts/backfill-quickpath-icons.ts",
+    "sanity:backfill-about-translations:dry-run": "tsx --env-file=.env.local scripts/backfill-about-translations.ts --dry-run",
+    "sanity:backfill-about-translations": "tsx --env-file=.env.local scripts/backfill-about-translations.ts"
   },
   "dependencies": {
     "@portabletext/react": "^7.0.1",
