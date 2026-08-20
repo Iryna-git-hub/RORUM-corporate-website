@@ -1,6 +1,10 @@
 import { defineArrayMember, defineField, defineType, type SanityDocument } from "sanity";
 import { ACTION_ICONS } from "@/sanity/components/actionIcons";
-import { allOrNothingForSelectedEventLocales, requireSelectedEventLocales } from "@/sanity/lib/i18nValidation";
+import {
+  allOrNothingForSelectedEventLocales,
+  requireSelectedEventLocales,
+  requireSelectedEventLocalesForShareAction,
+} from "@/sanity/lib/i18nValidation";
 import { EventLocalizedFieldNotice } from "@/sanity/components/EventLocalizedFieldNotice";
 import { EventLocaleAwareInput } from "@/sanity/components/EventLocaleAwareInput";
 
@@ -372,7 +376,9 @@ export default defineType({
               title: "Display label",
               type: "internationalizedArrayString",
               description:
-                "Shown to editors here, and used as this action's accessible (screen-reader) name on the site. / Показується редакторам тут і використовується як назва цієї дії для програм читання з екрана на сайті.",
+                "Shown to editors here, and used as this action's accessible (screen-reader) name on the site. Required for every language selected in \"Show on website languages\" while this action is enabled — an unchecked (disabled) action never requires a label. / Показується редакторам тут і використовується як назва цієї дії для програм читання з екрана на сайті. Обов'язково для кожної мови, обраної в «Show on website languages», поки ця дія увімкнена — вимкнена дія не потребує напису.",
+              components: { input: EventLocaleAwareInput },
+              validation: requireSelectedEventLocalesForShareAction(),
             }),
             defineField({
               name: "enabled",

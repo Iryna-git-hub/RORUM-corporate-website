@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { expect, test } from "@playwright/test";
 import pageSectionType from "@/sanity/schemaTypes/objects/pageSection";
 import contentItemType, { ITEM_ROLE_RULES, matchItemRoleInContext } from "@/sanity/schemaTypes/objects/contentItem";
@@ -735,5 +737,191 @@ test.describe("Events — visibleLocales field + conditional locale validation",
     // pre-existing English-length-only check — no completeness requirement.
     const pageDocument = { _id: "page-home", _type: "page" };
     expect(titleValidate(eventEntries(["en"]), { document: pageDocument }), "non-event: partial i18n is fine, no completeness rule applies").toBe(true);
+  });
+});
+
+// ============================================================================
+// shareSettings[].label — the field the live manual Studio bug report found
+// omitted from EventLocaleAwareInput coverage. Its validation
+// (requireSelectedEventLocalesForShareAction) is parent-aware: it reads
+// `enabled` off the enclosing shareAction array item (`context.parent`), not
+// off the document, since a disabled share action's label is never rendered
+// and must never block Publish.
+// ============================================================================
+test.describe("Events — shareSettings[].label (Share With Friends)", () => {
+  function labelField() {
+    const shareSettings = eventType.fields.find((f) => f.name === "shareSettings") as unknown as {
+      of: { fields: FieldDef[] }[];
+    };
+    const shareAction = shareSettings.of[0];
+    if (!shareAction) throw new Error('expected event.shareSettings to have an "of" array member type');
+    return shareAction.fields.find((f) => f.name === "label") as FieldDef;
+  }
+  function entries(langs: readonly string[]): { _key: string; language: string; value: string }[] {
+    return langs.map((l) => ({ _key: l, language: l, value: `Share ${l}` }));
+  }
+  function context(visibleLocales: readonly string[], enabled: boolean) {
+    return { document: { _type: "event", visibleLocales: [...visibleLocales] }, parent: { enabled } };
+  }
+
+  test("wired to EventLocaleAwareInput (the exact gap the live bug report found)", () => {
+    const f = labelField() as unknown as { components?: { input?: unknown } };
+    expect(f.components?.input, "shareSettings[].label must use EventLocaleAwareInput like every other Event i18n field").toBeTruthy();
+  });
+
+  test("enabled action: label required for every selected locale", () => {
+    const validate = captureCustomValidator(labelField());
+    expect(validate(entries(["en", "uk"]), context(["en", "uk"], true)), "complete for both selected locales").toBe(true);
+    expect(validate(entries(["en"]), context(["en", "uk"], true)), "missing uk while enabled").not.toBe(true);
+    expect(validate([], context(["en", "uk"], true)), "fully empty while enabled").not.toBe(true);
+  });
+
+  test("disabled action: missing/empty label for a selected locale never blocks publishing", () => {
+    const validate = captureCustomValidator(labelField());
+    expect(validate([], context(["en", "uk"], false)), "fully empty while disabled").toBe(true);
+    expect(validate(entries(["en"]), context(["en", "uk"], false)), "partial while disabled").toBe(true);
+  });
+
+  test("enabled defaults to true when the array item omits it (matches the field's own initialValue: true)", () => {
+    const validate = captureCustomValidator(labelField());
+    const doc = { document: { _type: "event", visibleLocales: ["en"] }, parent: {} };
+    expect(validate([], doc), "no `enabled` on parent -> treated as enabled -> empty label fails").not.toBe(true);
+  });
+
+  test("duplicate entries for the same language fail regardless of enabled/disabled", () => {
+    const validate = captureCustomValidator(labelField());
+    const duplicated = [
+      { _key: "a", language: "en", value: "first" },
+      { _key: "b", language: "en", value: "second" },
+    ];
+    expect(validate(duplicated, context(["en"], true)), "duplicate while enabled").not.toBe(true);
+    expect(validate(duplicated, context(["en"], false)), "duplicate while disabled").not.toBe(true);
+  });
+
+  test("unselected-locale entries are never required or flagged, enabled or not", () => {
+    const validate = captureCustomValidator(labelField());
+    // uk is selected; da is not. A da-only label is neither required nor invalid.
+    expect(validate(entries(["uk"]), context(["uk"], true)), "only the selected locale populated").toBe(true);
+  });
+});
+
+// ============================================================================
+// Regression coverage for the exact live-Studio defect reported after
+// visibleLocales shipped: deselecting a locale (da) while it has stored
+// content must NOT cause that stored entry to be classified as an unknown/
+// invalid language anywhere in this codebase's OWN validators, across every
+// internationalized-array field reachable from an Event document — this is
+// the same failure class (not the same code path) as the plugin's own
+// array-level "Array item keys must be valid languages registered to the
+// field type" check, which is guarded separately below by asserting the
+// global plugin registry stays static.
+//
+// Disclosed limitation: this proves EVERY validator this project owns
+// treats a deselected-but-stored locale as "not required, not evaluated" —
+// never as an error — for every field EventLocaleAwareInput reaches. It
+// cannot exercise sanity-plugin-internationalized-array's OWN internal
+// array validation (that only runs inside a live Studio, which remains
+// blocked by the unresolved auth issue documented in the implementation
+// report) — that is exactly why the static-registry guard test and a manual
+// Studio pass are both still required before this is considered proven end
+// to end.
+// ============================================================================
+test.describe("Events — regression: deselecting da after content exists never flags da as invalid, anywhere", () => {
+  const STORED_ALL_THREE = { _key: "da", language: "da", value: "Del" };
+
+  function fieldsToCheck(): { label: string; validate: (value: unknown, context: unknown) => unknown }[] {
+    const direct = ["title", "longDescription", "whatToExpect", "arrival", "ticketButtonLabel"].map((name) => ({
+      label: `event.${name}`,
+      validate: captureCustomValidator(field(eventType as unknown as { fields: FieldDef[] }, name)),
+    }));
+    const ticketProviderInfoField = eventType.fields.find((f) => f.name === "ticketProviderInfo") as unknown as {
+      fields: FieldDef[];
+    };
+    const nested = ["label", "value"].map((name) => ({
+      label: `event.ticketProviderInfo.${name}`,
+      validate: captureCustomValidator(field(ticketProviderInfoField, name)),
+    }));
+    const shareSettingsField = eventType.fields.find((f) => f.name === "shareSettings") as unknown as {
+      of: { fields: FieldDef[] }[];
+    };
+    const shareAction = shareSettingsField.of[0];
+    if (!shareAction) throw new Error('expected event.shareSettings to have an "of" array member type');
+    const shareLabel = {
+      label: "event.shareSettings[].label",
+      validate: captureCustomValidator(shareAction.fields.find((f) => f.name === "label") as FieldDef),
+    };
+    const imageAlt = { label: "event.image.alt", validate: captureCustomValidator(field(imageWithAltType, "alt")) };
+    const seoTitle = { label: "event.seo.title", validate: captureCustomValidator(field(seoType, "title")) };
+    const seoDescription = { label: "event.seo.description", validate: captureCustomValidator(field(seoType, "description")) };
+    return [...direct, ...nested, shareLabel, imageAlt, seoTitle, seoDescription];
+  }
+
+  test("en/da/uk populated, then da deselected (visibleLocales -> [en, uk]): every field's validator still passes with da's stored entry present and untouched", () => {
+    const document = { _type: "event", visibleLocales: ["en", "uk"] };
+    const parentEnabled = { document, parent: { enabled: true } };
+    for (const { label, validate } of fieldsToCheck()) {
+      const isShareLabel = label === "event.shareSettings[].label";
+      const stored = [
+        { _key: "en", language: "en", value: "English" },
+        STORED_ALL_THREE,
+        { _key: "uk", language: "uk", value: "Ukrainian" },
+      ];
+      const result = validate(stored, isShareLabel ? parentEnabled : { document });
+      expect(result, `${label}: da preserved-but-deselected must not be flagged invalid`).toBe(true);
+    }
+  });
+
+  for (const deselected of ["en", "da", "uk"] as const) {
+    test(`deselecting ${deselected} specifically: its stored entry is never required nor flagged for any field`, () => {
+      const remaining = (["en", "da", "uk"] as const).filter((l) => l !== deselected);
+      const document = { _type: "event", visibleLocales: [...remaining] };
+      const parentEnabled = { document, parent: { enabled: true } };
+      for (const { label, validate } of fieldsToCheck()) {
+        const isShareLabel = label === "event.shareSettings[].label";
+        const stored = (["en", "da", "uk"] as const).map((l) => ({ _key: l, language: l, value: `Value ${l}` }));
+        expect(validate(stored, isShareLabel ? parentEnabled : { document }), `${label}: deselecting ${deselected}`).toBe(true);
+      }
+    });
+  }
+
+  for (const combo of [["en"], ["da"], ["uk"], ["en", "da"], ["en", "uk"], ["da", "uk"], ["en", "da", "uk"]] as const) {
+    test(`visibleLocales=${JSON.stringify(combo)}: full en/da/uk stored content never fails any field's validator`, () => {
+      const document = { _type: "event", visibleLocales: [...combo] };
+      const parentEnabled = { document, parent: { enabled: true } };
+      const stored = (["en", "da", "uk"] as const).map((l) => ({ _key: l, language: l, value: `Value ${l}` }));
+      for (const { label, validate } of fieldsToCheck()) {
+        const isShareLabel = label === "event.shareSettings[].label";
+        expect(validate(stored, isShareLabel ? parentEnabled : { document }), `${label}: ${JSON.stringify(combo)}`).toBe(true);
+      }
+    });
+  }
+});
+
+// ============================================================================
+// Static-registry guard: the actual root cause of the live bug was making
+// the GLOBAL sanity-plugin-internationalized-array `languages` config
+// depend on visibleLocales. Reverted to a static array — this test reads
+// sanity.config.ts's own source text (not merely its exported runtime
+// value, since that would require live env config) and asserts the
+// regression can't silently come back: the plugin registration must be a
+// plain array literal containing all 3 locale codes, never a `select`
+// option or a `languages` callback/function.
+// ============================================================================
+test.describe("sanity.config.ts — internationalizedArray global registry stays static", () => {
+  test("languages is a static array with en/da/uk, not a per-document callback", () => {
+    const source = readFileSync(path.join(process.cwd(), "sanity.config.ts"), "utf8");
+    const pluginCallStart = source.indexOf("internationalizedArray({");
+    expect(pluginCallStart, "internationalizedArray({...}) plugin registration not found").toBeGreaterThan(-1);
+    const pluginCallEnd = source.indexOf("}),", pluginCallStart);
+    const pluginConfig = source.slice(pluginCallStart, pluginCallEnd);
+
+    expect(pluginConfig, "must not reintroduce a document-scoped `select` option").not.toContain("select:");
+    expect(pluginConfig, "must not reintroduce a `languages` callback/function").not.toMatch(/languages:\s*\(/);
+    expect(pluginConfig, "languages must be declared as a static array").toMatch(/languages:\s*\[/);
+    for (const [id, title] of [["en", "English"], ["da", "Danish"], ["uk", "Ukrainian"]] as const) {
+      expect(pluginConfig, `languages must always include { id: "${id}", title: "${title}" }`).toMatch(
+        new RegExp(`id:\\s*"${id}"[\\s\\S]{0,20}title:\\s*"${title}"`),
+      );
+    }
   });
 });

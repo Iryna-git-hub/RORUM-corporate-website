@@ -26,31 +26,35 @@ export default defineConfig({
     // the main navigation for editors, available at /studio/vision.
     visionTool({ defaultApiVersion: apiVersion }),
     internationalizedArray({
-      // `select` reads a field off whichever document is CURRENTLY OPEN in
-      // the form (confirmed by reading the plugin's own source —
-      // `InternationalizedArrayProvider` calls `getSelectedValue(select,
-      // deferredDocument)`, where `deferredDocument` is that document's live
-      // form state) and hands it to `languages` below as `selectedValue`.
-      // Every non-`event` document (Home, About, every other page/singleton)
-      // simply has no `visibleLocales` field, so `selectedValue.visibleLocales`
-      // is always `undefined` for them and the callback falls through to the
-      // unchanged, full 3-language default — this is a single global plugin
-      // registration, but it provably changes nothing for any document type
-      // other than `event`.
-      select: { visibleLocales: "visibleLocales" },
-      languages: (_client, selectedValue) => {
-        const ALL = [
-          { id: "en", title: "English" },
-          { id: "da", title: "Danish" },
-          { id: "uk", title: "Ukrainian" },
-        ];
-        const selected = selectedValue.visibleLocales;
-        if (Array.isArray(selected) && selected.length > 0) {
-          const filtered = ALL.filter((l) => selected.includes(l.id));
-          if (filtered.length) return Promise.resolve(filtered);
-        }
-        return Promise.resolve(ALL);
-      },
+      // FIXED (regression found in live Studio testing): this MUST stay a
+      // static, always-complete registry. It was briefly made
+      // `visibleLocales`-dependent (a `languages` callback filtering by the
+      // currently-open event's selected locales) to hide inactive-language
+      // rows — but the plugin's OWN array validation (not just the row-
+      // rendering logic) resolves its "is this a recognized language" check
+      // from this exact same global config (`array_default()`'s
+      // `options.languages`, read via `getLanguagesFieldOption`). Filtering
+      // it meant that the moment a locale was deselected, the plugin itself
+      // started treating every EXISTING stored entry for that locale as an
+      // unrecognized language key ("Array item keys must be valid languages
+      // registered to the field type") — turning every internationalized-
+      // array field with stored data in that locale red (confirmed: this
+      // broke `event.shareSettings[].label`, not just the fields
+      // EventLocaleAwareInput wraps) and disabling Publish, even though the
+      // data itself was never touched or lost.
+      //
+      // Row-level hiding for deselected-but-still-stored locales is instead
+      // handled entirely by sanity/components/EventLocaleAwareInput.tsx,
+      // which filters `members` (what renders) without touching this
+      // registry or the plugin's own value/validation resolution at all —
+      // the correct separation: "what's a valid language" (global, static,
+      // always all 3) vs "what's currently visible for this event" (per-
+      // field, per-document, additive-only).
+      languages: [
+        { id: "en", title: "English" },
+        { id: "da", title: "Danish" },
+        { id: "uk", title: "Ukrainian" },
+      ],
       defaultLanguages: ["en"],
       fieldTypes: ["string", "text", "bodyPortableText"],
     }),

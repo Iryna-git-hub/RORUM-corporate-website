@@ -165,6 +165,54 @@ export function requireSelectedEventLocales(options?: { skip?: (context: Validat
  * for a locale it IS shown in should be finished or cleared, not left
  * silently partial.
  */
+/**
+ * Sibling of `requireSelectedEventLocales()` for a field nested inside a
+ * `shareSettings[]` item (the "Display label" on each Share With Friends
+ * action): that label is real rendered content (the action's accessible
+ * screen-reader name) only when the action is actually `enabled` on this
+ * event, so the requirement must read `enabled` off the array item itself
+ * (`context.parent`), not off the document.
+ *
+ * - `enabled: true` (or missing, since it defaults to `true`): the label
+ *   must be present and non-empty for every locale selected in
+ *   `visibleLocales` — same rule as `requireSelectedEventLocales()`.
+ * - `enabled: false`: a missing/empty label for a selected locale never
+ *   blocks publishing (the action isn't shown, so its label is never read).
+ * - Duplicate entries for the same language are always invalid, enabled or
+ *   not — that's a structural/data-integrity problem, not a content gap.
+ * - Locales NOT selected in `visibleLocales` are never validated either way.
+ */
+export function requireSelectedEventLocalesForShareAction() {
+  return (rule: Rule) =>
+    rule.custom((value: I18nEntry[] | undefined, context: ValidationContext) => {
+      const selected = getEventVisibleLocales(context.document);
+      if (!selected) return true;
+
+      const list = value ?? [];
+      const seen = new Map<string, number>();
+      const emptyLanguages: string[] = [];
+      for (const entry of list) {
+        if (!entry?.language || !selected.includes(entry.language)) continue;
+        seen.set(entry.language, (seen.get(entry.language) ?? 0) + 1);
+        if (isEmptyValue(entry.value)) emptyLanguages.push(entry.language);
+      }
+      const duplicates = [...seen.entries()].filter(([, count]) => count > 1).map(([lang]) => lang);
+      if (duplicates.length) return `There's more than one entry for ${namesFor(duplicates)} — please remove the extra one.`;
+
+      const parent = context.parent as { enabled?: boolean } | undefined;
+      if (parent?.enabled === false) return true;
+
+      const missing = selected.filter((lang) => !seen.has(lang));
+      if (missing.length) {
+        const translationWord = missing.length > 1 ? "translations" : "translation";
+        const websiteWord = missing.length > 1 ? "websites" : "website";
+        return `Please add the ${namesFor(missing)} ${translationWord} because this event is shown on the ${namesFor(missing)} ${websiteWord} and this share action is enabled.`;
+      }
+      if (emptyLanguages.length) return `The ${namesFor(emptyLanguages)} text is empty — please fill it in.`;
+      return true;
+    });
+}
+
 export function allOrNothingForSelectedEventLocales(options?: { skip?: (context: ValidationContext) => boolean }) {
   return (rule: Rule) =>
     rule.custom((value: I18nEntry[] | undefined, context: ValidationContext) => {
