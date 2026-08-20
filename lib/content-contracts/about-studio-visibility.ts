@@ -109,7 +109,7 @@ export const aboutStudioVisibilityContract: StudioVisibilityContract = {
       fieldType: "mixed", editorVisibleExpected: false, editorVisibleActual: false, requiredExpected: false, requiredActual: false,
       localized: true, requiredLanguages: [], editorialPurpose: "n/a — hidden (Approved Fix 4, role \"About hero intro link\").",
       websiteConsumer: "(none)", querySource: q, mapper: "not read for intro0/intro1", component: "n/a", frontendSelectorOrConsumer: "none",
-      classification: "correctly-hidden", recommendedAction: "FIXED this pass via contentItem.ts's ITEM_ROLE_RULES (role \"About hero intro link\", sectionKeys:[\"hero\"], itemKeyPattern /^intro[01]$/, visible:[itemKey,icon,href,label]).",
+      classification: "correctly-hidden", recommendedAction: "FIXED this pass via contentItem.ts's ITEM_ROLE_RULES (role \"About hero intro link\", sectionKeys:[\"hero\"], itemKeyPattern /^intro[01]$/, visible:[itemKey,icon,href,label]). FIXED (later pass): drafts.page-about's intro0 item had accumulated stray, empty-string `en` entries for title/text/image (pre-dating this hide) that failed allOrNothingLanguages()/imageWithAlt validation despite being invisible — the same class of bug as Home's closingCta link items, fixed the same way: contentItem.ts's title/text/label validation and imageWithAlt.ts's alt validation now both skip whenever the field is hidden by an item role, and the stray data was unset live via scripts/repair-home-about-validation.ts (backed up first, dry-run verified, idempotent).",
       reason: "These chips only ever render icon+href+label — the 4 fields above never had an effect.", sharedSchemaImpact: "Scoped by sectionKey \"hero\" + itemKey pattern together, per-page-safe.", approvalRequired: false,
     }),
 
@@ -173,8 +173,8 @@ export const aboutStudioVisibilityContract: StudioVisibilityContract = {
       editorVisibleExpected: true, editorVisibleActual: true, requiredExpected: true, requiredActual: false,
       localized: true, requiredLanguages: D, editorialPurpose: "\"Community\" sub-heading.", websiteConsumer: "community <h2>",
       querySource: q, mapper: "getData (communityTitle)", component: "about/page.tsx", frontendSelectorOrConsumer: `page.getByRole("heading", { level: 2 })`,
-      classification: "visible-connected-but-empty", recommendedAction: "Populate da/uk — currently EN-only (no da/uk entries at all for this specific field, distinct from a translation-completeness nice-to-have: this one silently renders the English word \"Community\" on da/uk pages).",
-      reason: "Wired and visible, but not localized for 2 of 3 required languages.", sharedSchemaImpact: "n/a", approvalRequired: false,
+      classification: "visible-connected", recommendedAction: "FIXED: da/uk populated live (scripts/backfill-about-translations.ts, verified idempotent) — previously EN-only, silently rendering the English word \"Community\" on da/uk pages.",
+      reason: "Wired, visible, and now fully localized.", sharedSchemaImpact: "n/a", approvalRequired: false,
     }),
     entry({
       sectionKey: "community", sectionKind: "iconGrid", fieldPath: `sections[sectionKey=="community"].text`,
@@ -373,14 +373,14 @@ export const aboutStudioVisibilityContract: StudioVisibilityContract = {
     }),
     entry({
       sectionKey: "seo", sectionKind: "n/a", fieldPath: `seo.ogImage / seo.ogImage.alt`,
-      studioTitle: "Open Graph image / Alt text", studioDescription: "generic", fieldType: "image + i18n string",
-      editorVisibleExpected: false, editorVisibleActual: true, requiredExpected: false, requiredActual: false,
-      localized: true, requiredLanguages: [], editorialPurpose: "Appears to let the editor set the social-share preview image for About.",
-      websiteConsumer: "(none)", querySource: q,
-      mapper: "localizedPageMetadata() accepts an `image` param (default \"/images/hero.jpg\") but About's generateMetadata() call never passes one",
-      component: "lib/seo.ts:localizedPageMetadata", frontendSelectorOrConsumer: "none — same site-wide grep-verified finding as Home",
-      classification: "visible-unused", recommendedAction: "Same fix as Home's equivalent entry — resolve once, site-wide, not per-page.",
-      reason: "Duplicate instance of a genuinely global finding.", sharedSchemaImpact: "Global — see the Home contract's matching entry.", approvalRequired: true,
+      studioTitle: "Social Sharing Image / Alt text", studioDescription: "The preview image shown when this page is shared on Facebook, LinkedIn, messaging apps, and other services.", fieldType: "image + i18n string",
+      editorVisibleExpected: true, editorVisibleActual: true, requiredExpected: false, requiredActual: false,
+      localized: true, requiredLanguages: [], editorialPurpose: "Lets the editor set the social-share preview image for About.",
+      websiteConsumer: "generateMetadata() -> og:image", querySource: q,
+      mapper: "getData() ogImageUrl = urlForImage(newPage?.seo?.ogImage), passed to localizedPageMetadata()'s `image` param when set",
+      component: "app/[locale]/(site)/about/page.tsx:generateMetadata", frontendSelectorOrConsumer: `page.locator('meta[property="og:image"]')`,
+      classification: "visible-connected", recommendedAction: "FIXED this pass — same wiring as Home's equivalent entry (About's own generateMetadata() call), plus the same lib/seo.ts absolute-URL bug fix (shared helper, fixed once for both pages). Content currently unset on About; falls back to the existing default unchanged.",
+      reason: "Now genuinely affects the frontend for About specifically.", sharedSchemaImpact: "Wired only for Home + About's own generateMetadata() calls.", approvalRequired: false,
     }),
 
     // ============================================================ legacy

@@ -32,3 +32,13 @@ _debug*.spec.ts
 # destructive operation (e.g. scripts/delete-orphaned-legacy-docs.ts) — not
 # meant to be committed, just a local safety net for that run.
 /scripts/backups/
+
+# Captured Playwright storageState containing a real, personal Sanity Studio
+# login session (cookies/localStorage) — used locally to drive Studio UI
+# tests without checking in credentials. Never commit this file.
+/tests/.studio-auth-state.json
+# Persistent Chromium profile directory holding the same kind of real,
+# personal Sanity Studio login session (this time including IndexedDB/
+# sessionStorage, which the storageState file above cannot capture). Never
+# commit this directory.
+/tests/.studio-profile/

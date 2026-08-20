@@ -1,5 +1,14 @@
 import { defineArrayMember, defineField, defineType, type SanityDocument } from "sanity";
 import { ACTION_ICONS } from "@/sanity/components/actionIcons";
+import { allOrNothingForSelectedEventLocales, requireSelectedEventLocales } from "@/sanity/lib/i18nValidation";
+import { EventLocalizedFieldNotice } from "@/sanity/components/EventLocalizedFieldNotice";
+import { EventLocaleAwareInput } from "@/sanity/components/EventLocaleAwareInput";
+
+const WEBSITE_LOCALE_OPTIONS = [
+  { title: "English", value: "en" },
+  { title: "Danish", value: "da" },
+  { title: "Ukrainian", value: "uk" },
+] as const;
 
 // Field names deliberately mirror `RorumEvent` in `lib/data.ts` so the
 // import script's mapping is a near 1:1 transcription, not a redesign.
@@ -74,20 +83,50 @@ export default defineType({
     { name: "ticketSection", title: "Ticket link & button", options: { collapsible: true, collapsed: false } },
   ],
   fields: [
+    // --- 0. Show on website languages ---------------------------------------
+    // The single source of truth for which localized website versions this
+    // event is shown on — deliberately placed first, above title/slug/image,
+    // so a manager decides "who is this for?" before touching any content.
+    // Distinct from `language` below (which language the physical event is
+    // conducted in) — see that field's own description for the same
+    // clarifying cross-reference in the other direction.
+    //
+    // Renders as checkboxes: Sanity's default input for `array of string`
+    // with a predefined `options.list` (no `layout` override) is a checkbox
+    // group — an immediately visible multi-select, not a technical
+    // free-text array or a searchable tag/reference picker.
+    defineField({
+      name: "visibleLocales",
+      title: "Show on website languages",
+      type: "array",
+      of: [defineArrayMember({ type: "string" })],
+      options: { list: [...WEBSITE_LOCALE_OPTIONS] },
+      description:
+        "Which localized versions of the website show this event — controls the Home/Events listing feeds, which " +
+        "/[locale]/events/[slug] routes exist (any other locale 404s), which translations are required below, and " +
+        "which URLs appear in the sitemap. At least one language must stay selected. This is separate from " +
+        '"Event language" further down, which describes the language spoken AT the event itself. / ' +
+        "Якими мовами показується ця подія на сайті — впливає на стрічку подій на головній і в переліку подій, на " +
+        "те, які маршрути /[locale]/events/[slug] існують (інші мови повертають 404), які переклади обов'язкові " +
+        "нижче, і які URL-адреси потрапляють у sitemap. Має бути обрана хоча б одна мова. Це не те саме, що «Мова " +
+        "події» нижче — там йдеться про мову, якою проводиться сама подія.",
+      initialValue: ["en", "da", "uk"],
+      validation: (rule) => rule.required().min(1).error("Select at least one website language for this event."),
+    }),
+
     // --- 1. Title ---------------------------------------------------------
+    // First localized field — carries the "shown in: ..." notice (Task 7:
+    // near the top of the localized content area, not buried further down).
     defineField({
       name: "title",
       title: "Title",
       type: "internationalizedArrayString",
       fieldset: "basicSection",
-      description: "Event name (English required). / Назва події (обов'язково англійською).",
-      validation: (rule) =>
-        rule.custom((value) =>
-          (value as { _key: string; language?: string; value?: string }[] | undefined)?.find((v) => v.language === "en" || v._key === "en")
-            ?.value
-            ? true
-            : "English title is required.",
-        ),
+      description:
+        "Event name. Required for every language selected in \"Show on website languages\" above. / " +
+        "Назва події. Обов'язково для кожної мови, обраної вище в полі «Show on website languages».",
+      components: { field: EventLocalizedFieldNotice, input: EventLocaleAwareInput },
+      validation: requireSelectedEventLocales(),
     }),
     // --- 2. Slug -----------------------------------------------------------
     defineField({
@@ -172,7 +211,12 @@ export default defineType({
       name: "longDescription",
       title: "Event Overview",
       type: "internationalizedArrayText",
-      description: "The full description shown on the event detail page. / Повний опис на сторінці конкретної події.",
+      description:
+        "The full description shown on the event detail page. Required for every language selected in \"Show on " +
+        "website languages\" above. / Повний опис на сторінці конкретної події. Обов'язково для кожної мови, " +
+        "обраної вище в полі «Show on website languages».",
+      components: { input: EventLocaleAwareInput },
+      validation: requireSelectedEventLocales(),
     }),
 
     // --- 9. What to Expect --------------------------------------------------
@@ -181,15 +225,22 @@ export default defineType({
       title: "What to Expect",
       type: "internationalizedArrayText",
       description:
-        "One line per bullet — press Enter to start a new bullet, blank lines are ignored. Add, remove, edit or reorder bullets by editing the lines. / Один рядок на пункт — натисніть Enter, щоб почати новий пункт, порожні рядки ігноруються. Додавайте, видаляйте, редагуйте чи змінюйте порядок пунктів, редагуючи рядки.",
+        "One line per bullet — press Enter to start a new bullet, blank lines are ignored. Add, remove, edit or " +
+        "reorder bullets by editing the lines. Required for every language selected in \"Show on website " +
+        "languages\" above. / Один рядок на пункт — натисніть Enter, щоб почати новий пункт, порожні рядки " +
+        "ігноруються. Додавайте, видаляйте, редагуйте чи змінюйте порядок пунктів, редагуючи рядки. Обов'язково для " +
+        "кожної мови, обраної вище в полі «Show on website languages».",
       initialValue: [{ _key: "en", _type: "internationalizedArrayTextValue", language: "en", value: WHAT_TO_EXPECT_DEFAULT_EN }],
+      components: { input: EventLocaleAwareInput },
+      validation: requireSelectedEventLocales(),
     }),
     defineField({
       name: "included",
-      title: "What's included",
+      title: "What's included (currently unused)",
       type: "array",
       of: [defineArrayMember({ type: "bulletText" })],
-      description: "Optional bullet list of what's included in the event (not currently shown on the site). / Необов'язковий список того, що входить у подію (наразі не показується на сайті).",
+      hidden: () => true,
+      description: "Hidden — no page currently renders this list. Data (if any) is preserved. / Приховано — жодна сторінка наразі не показує цей список. Дані (якщо є) збережено.",
     }),
 
     // --- 10. Practical Details (Language, Duration, Arrival, Ticket provider) ---
@@ -198,7 +249,12 @@ export default defineType({
       title: "Event language",
       type: "string",
       fieldset: "practicalSection",
-      description: "The language the event is held in. / Мова, якою проводиться подія.",
+      description:
+        'The language the event is CONDUCTED in (e.g. a workshop run in Danish). This is NOT the same as "Show on ' +
+        'website languages" above, which controls which website versions display this event — an event conducted ' +
+        "in English can still be shown only on the Ukrainian website, for example. / Мова, якою ПРОВОДИТЬСЯ сама " +
+        'подія (напр. воркшоп данською). Це НЕ те саме, що «Show on website languages» вище — те поле визначає, ' +
+        "якими мовами сайту показується подія; подія англійською мовою може показуватися лише на українській версії сайту.",
       options: { list: ["English", "Danish", "Ukrainian"] },
     }),
     defineField({
@@ -241,12 +297,17 @@ export default defineType({
       title: "Arrival note",
       type: "internationalizedArrayString",
       fieldset: "practicalSection",
-      description: "Short note about when to arrive. / Короткий напис про час прибуття.",
+      description:
+        "Short note about when to arrive. Required for every language selected in \"Show on website languages\" " +
+        "above. / Короткий напис про час прибуття. Обов'язково для кожної мови, обраної вище в полі «Show on " +
+        "website languages».",
       initialValue: [
         localizedStringValue("en", "Please arrive 5-10 minutes before the event begins."),
         localizedStringValue("da", "Ankom venligst 5-10 minutter, før arrangementet begynder."),
         localizedStringValue("uk", "Будь ласка, прийдіть за 5-10 хвилин до початку події."),
       ],
+      components: { input: EventLocaleAwareInput },
+      validation: requireSelectedEventLocales(),
     }),
     defineField({
       name: "ticketProviderInfo",
@@ -267,21 +328,13 @@ export default defineType({
             localizedStringValue("da", "Billetudbyder"),
             localizedStringValue("uk", "Квитковий оператор"),
           ],
-          validation: (rule) =>
-            rule.custom((value) => {
-              const entries = value as { _key: string; language?: string; value?: string }[] | undefined;
-              if (!entries?.length) return true; // empty is fine — falls back to the shared label (see resolveTicketProviderLabel)
-              const languages = entries.map((e) => e.language ?? e._key);
-              if (new Set(languages).size !== languages.length) {
-                return "Each language can only appear once.";
-              }
-              for (const entry of entries) {
-                if (!entry.value || !entry.value.trim()) {
-                  return `The ${(entry.language ?? entry._key).toUpperCase()} translation can't be blank or whitespace-only — remove the row instead if you want to fall back to the shared label.`;
-                }
-              }
-              return true;
-            }),
+          // Optional override (empty is always fine — falls back to the
+          // shared label, see resolveTicketProviderLabel) but if used at all,
+          // must be complete for every SELECTED website language — a locale
+          // this event isn't even shown in is never required here, even if
+          // this specific field happens to hold stray data for it.
+          components: { input: EventLocaleAwareInput },
+          validation: allOrNothingForSelectedEventLocales(),
         }),
         defineField({
           name: "value",
@@ -289,6 +342,8 @@ export default defineType({
           type: "internationalizedArrayString",
           description: 'The actual ticketing service name, for example "Billetto". / Фактична назва сервісу продажу квитків, наприклад «Billetto».',
           initialValue: [localizedStringValue("en", "Billetto"), localizedStringValue("da", "Billetto"), localizedStringValue("uk", "Billetto")],
+          components: { input: EventLocaleAwareInput },
+          validation: allOrNothingForSelectedEventLocales(),
         }),
       ],
     }),
@@ -372,22 +427,26 @@ export default defineType({
       title: "Ticket button text",
       type: "internationalizedArrayString",
       fieldset: "ticketSection",
-      description: 'Optional override for the ticket button\'s text — defaults to "Buy Ticket" when empty. / Необов\'язковий текст кнопки квитків — за замовчуванням «Buy Ticket», якщо не заповнено.',
+      description: 'Optional override for the ticket button\'s text — defaults to "Buy Ticket" when empty. If used, must be filled in for every selected website language. / Необов\'язковий текст кнопки квитків — за замовчуванням «Buy Ticket», якщо не заповнено. Якщо заповнено, має бути заповнено для кожної обраної мови сайту.',
+      components: { input: EventLocaleAwareInput },
+      validation: allOrNothingForSelectedEventLocales(),
     }),
     defineField({
       name: "calendarUrl",
-      title: "Add-to-calendar URL",
+      title: "Add-to-calendar URL (currently unused)",
       type: "url",
       fieldset: "ticketSection",
-      description: "Link that adds the event to a calendar. / Посилання, що додає подію в календар.",
+      hidden: () => true,
+      description: "Hidden — no add-to-calendar control currently exists on the site. Data (if any) is preserved. / Приховано — на сайті наразі немає елемента «додати в календар». Дані (якщо є) збережено.",
     }),
     defineField({
       name: "waitlistUrl",
-      title: "Waitlist URL",
+      title: "Waitlist URL (currently unused)",
       type: "string",
       fieldset: "ticketSection",
+      hidden: () => true,
       description:
-        "Usually a mailto: link with a prefilled subject. / Зазвичай посилання mailto: із заздалегідь заповненою темою листа.",
+        "Hidden — no waitlist control currently exists on the site. Data (if any) is preserved. / Приховано — на сайті наразі немає елемента списку очікування. Дані (якщо є) збережено.",
     }),
     defineField({
       name: "ticketsLeft",

@@ -56,6 +56,12 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
   { role: "About statement service link", sectionKeys: ["statement"], itemKeyPattern: /^service[01]$/, visible: ["itemKey", "icon", "href", "label"] },
   { role: "About community link", sectionKeys: ["community"], itemKeyPattern: /^community[0-2]$/, visible: ["itemKey", "icon", "href", "label"] },
   { role: "About pillar card", sectionKeys: ["pillars"], itemKeyPattern: /^pillar[0-3]$/, visible: ["itemKey", "title", "text"] },
+  {
+    role: "Events filter/empty-state label",
+    sectionKeys: ["filters"],
+    itemKeyPattern: /^(dateLabel|languageLabel|priceLabel|availabilityLabel|soonestLabel|weekLabel|monthLabel|priceAscLabel|priceDescLabel|availableLabel|soldOutLabel|clearFiltersLabel|emptyStateTitle|emptyStateText)$/,
+    visible: ["title"],
+  },
 ];
 
 export function matchItemRole(sectionKey: string | undefined, itemKey: string | undefined): ItemRoleRule | undefined {
@@ -88,6 +94,18 @@ function hiddenByItemRole(fieldName: ContentItemField) {
   };
 }
 
+/**
+ * A hidden field must never block publishing — reuses the exact same
+ * hidden-by-role check as `hiddenByItemRole` above so a field's `hidden` and
+ * `validation` can never drift out of sync. Any stray/partial data left in a
+ * field the editor can no longer see (e.g. leftover from before a role's
+ * ITEM_ROLE_RULES entry was added) is inert instead of invalidating the
+ * whole document.
+ */
+function skipValidationWhenHiddenByItemRole(fieldName: ContentItemField) {
+  return ({ document, parent }: { document?: unknown; parent?: unknown }) => hiddenByItemRole(fieldName)({ document, parent });
+}
+
 export default defineType({
   name: "contentItem",
   title: "Item",
@@ -117,7 +135,7 @@ export default defineType({
       title: "Title",
       type: "internationalizedArrayString",
       description: "Optional heading. / Необов'язковий заголовок.",
-      validation: allOrNothingLanguages(),
+      validation: allOrNothingLanguages({ skip: skipValidationWhenHiddenByItemRole("title") }),
       hidden: hiddenByItemRole("title"),
     }),
     defineField({
@@ -125,7 +143,7 @@ export default defineType({
       title: "Text",
       type: "internationalizedArrayText",
       description: "Optional longer text (e.g. a description or answer). / Необов'язковий довший текст (напр. опис або відповідь).",
-      validation: allOrNothingLanguages(),
+      validation: allOrNothingLanguages({ skip: skipValidationWhenHiddenByItemRole("text") }),
       hidden: hiddenByItemRole("text"),
     }),
     defineField({
@@ -148,7 +166,7 @@ export default defineType({
       type: "internationalizedArrayString",
       description:
         "Optional — link text if this item has its own link, or the trilingual value for a small labeled row. / Необов'язково — текст посилання (якщо є) або текст значення для невеликого підпису.",
-      validation: allOrNothingLanguages(),
+      validation: allOrNothingLanguages({ skip: skipValidationWhenHiddenByItemRole("label") }),
       hidden: hiddenByItemRole("label"),
     }),
     defineField({

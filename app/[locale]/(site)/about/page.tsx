@@ -214,6 +214,9 @@ async function getData(locale: Locale) {
     // this change, so `<title>` keeps showing the hardcoded fallback until
     // an editor fills it in.
     seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
+    ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1200)
+      .url(),
     closingEyebrow:
       pickLocalized(closingCtaSection?.label, locale) ?? pickLocalized(page?.closingSection?.eyebrow, locale) ?? fallback.closingEyebrow,
     closingTitle:
@@ -255,8 +258,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { seoTitle, description } = await getData(locale);
-  return localizedPageMetadata({ path: "/about", locale, title: seoTitle, description });
+  const { seoTitle, description, ogImageUrl } = await getData(locale);
+  return localizedPageMetadata({ path: "/about", locale, title: seoTitle, description, ...(ogImageUrl ? { image: ogImageUrl } : {}) });
 }
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {

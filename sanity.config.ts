@@ -26,11 +26,31 @@ export default defineConfig({
     // the main navigation for editors, available at /studio/vision.
     visionTool({ defaultApiVersion: apiVersion }),
     internationalizedArray({
-      languages: [
-        { id: "en", title: "English" },
-        { id: "da", title: "Danish" },
-        { id: "uk", title: "Ukrainian" },
-      ],
+      // `select` reads a field off whichever document is CURRENTLY OPEN in
+      // the form (confirmed by reading the plugin's own source —
+      // `InternationalizedArrayProvider` calls `getSelectedValue(select,
+      // deferredDocument)`, where `deferredDocument` is that document's live
+      // form state) and hands it to `languages` below as `selectedValue`.
+      // Every non-`event` document (Home, About, every other page/singleton)
+      // simply has no `visibleLocales` field, so `selectedValue.visibleLocales`
+      // is always `undefined` for them and the callback falls through to the
+      // unchanged, full 3-language default — this is a single global plugin
+      // registration, but it provably changes nothing for any document type
+      // other than `event`.
+      select: { visibleLocales: "visibleLocales" },
+      languages: (_client, selectedValue) => {
+        const ALL = [
+          { id: "en", title: "English" },
+          { id: "da", title: "Danish" },
+          { id: "uk", title: "Ukrainian" },
+        ];
+        const selected = selectedValue.visibleLocales;
+        if (Array.isArray(selected) && selected.length > 0) {
+          const filtered = ALL.filter((l) => selected.includes(l.id));
+          if (filtered.length) return Promise.resolve(filtered);
+        }
+        return Promise.resolve(ALL);
+      },
       defaultLanguages: ["en"],
       fieldTypes: ["string", "text", "bodyPortableText"],
     }),

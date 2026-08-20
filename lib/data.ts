@@ -232,6 +232,18 @@ export interface RorumEvent {
   endTime?: string;
   fullDescription?: string;
   description?: string;
+  // Per-event Search Result Title/Description/Social Sharing Image — only
+  // set when the Sanity `seo` block has a value; consumers fall back to
+  // title/longDescription/image (above) when a piece is unset. Never
+  // populated by the static fallback data below.
+  seo?: { title?: string; description?: string; ogImageUrl?: string };
+  // Which localized website versions this event is shown on ("Show on
+  // website languages" in Studio) — the authoritative visibility rule, see
+  // lib/eventVisibility.ts's isEventVisibleInLocale(). Undefined for the
+  // hardcoded static fallback events below (that code path is unrelated to
+  // per-event locale visibility) and, briefly, for any real Sanity event
+  // that predates migration — never populated by the static data below.
+  visibleLocales?: string[];
 }
 
 const featuredEvents: RorumEvent[] = [

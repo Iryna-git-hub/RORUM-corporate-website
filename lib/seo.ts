@@ -47,21 +47,41 @@ export function localizedPageMetadata({
   title,
   description,
   image = "/images/hero.jpg",
+  alternateLocales = locales,
 }: {
   path: string;
   locale: Locale;
   title: string;
   description: string;
   image?: string;
+  /**
+   * Which locales this exact page/URL actually exists in — defaults to
+   * every site locale (unchanged behavior for every page except Event
+   * Detail). An Event Detail page passes its own event's `visibleLocales`
+   * here so `alternates.languages`/`x-default` never advertises an
+   * hreflang URL for a locale that 404s for this specific event.
+   */
+  alternateLocales?: readonly Locale[];
 }): Metadata {
+  // `image` is either a relative local path ("/images/hero.jpg") or an
+  // already-absolute Sanity CDN URL (urlForImage(...).url()) — concatenating
+  // siteUrl onto an absolute URL unconditionally would silently produce a
+  // broken, doubled-up string, so only relative paths get siteUrl prefixed.
+  const imageUrl = /^https?:\/\//.test(image) ? image : `${siteUrl}${image}`;
+  // `x-default` should point at an alternate that actually exists — prefer
+  // English when it's one of the available locales, otherwise the first
+  // available one (stable: `locales`' own declared order).
+  const defaultLocale = alternateLocales.includes("en")
+    ? "en"
+    : (locales.find((l) => alternateLocales.includes(l)) ?? locale);
   return {
     title,
     description,
     alternates: {
       canonical: `${siteUrl}${localizedHref(path, locale)}`,
       languages: {
-        ...Object.fromEntries(locales.map((l) => [localeTags[l], `${siteUrl}${localizedHref(path, l)}`])),
-        "x-default": `${siteUrl}${path}`,
+        ...Object.fromEntries(alternateLocales.map((l) => [localeTags[l], `${siteUrl}${localizedHref(path, l)}`])),
+        "x-default": `${siteUrl}${localizedHref(path, defaultLocale)}`,
       },
     },
     openGraph: {
@@ -69,7 +89,7 @@ export function localizedPageMetadata({
       description,
       url: `${siteUrl}${localizedHref(path, locale)}`,
       siteName: "RORUM",
-      images: [{ url: `${siteUrl}${image}`, width: 1200, height: 630, alt: title }],
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: title }],
       locale: ogLocaleTags[locale],
       type: "website",
     },

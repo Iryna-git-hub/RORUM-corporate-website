@@ -12,8 +12,9 @@ import { getAction, getItem, getSection } from "@/lib/sanity-sections";
 import { defaultFormMessages, resolveFormMessages } from "@/lib/sanityForms";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
 import { isSanityConfigured } from "@/sanity/env";
+import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
-import { allEventsQuery, eventsPageQuery } from "@/sanity/queries/events";
+import { allEventsQuery } from "@/sanity/queries/events";
 import { eventMessagesQuery, formMessagesQuery } from "@/sanity/queries/globals";
 import { pageByKeyQuery } from "@/sanity/queries/page";
 
@@ -36,6 +37,7 @@ export const revalidate = 60;
 
 const fallback = {
   title: "Upcoming events at RORUM",
+  seoTitle: "Events",
   closingEyebrow: "Host at RORUM",
   closingTitle: "Would you like to host at RORUM?",
   closingText: "Explore our space for workshops, meetings, and community gatherings of up to 12 guests.",
@@ -71,10 +73,9 @@ async function getData(locale: Locale) {
     };
   }
 
-  const [{ data: page }, { data: newPage }, { data: eventDocs }, { data: formMessagesDoc }, { data: eventMessagesDoc }] = await Promise.all([
-    sanityFetch({ query: eventsPageQuery }),
+  const [{ data: newPage }, { data: eventDocs }, { data: formMessagesDoc }, { data: eventMessagesDoc }] = await Promise.all([
     sanityFetch({ query: pageByKeyQuery, params: { pageKey: "events" } }),
-    sanityFetch({ query: allEventsQuery }),
+    sanityFetch({ query: allEventsQuery, params: { locale } }),
     sanityFetch({ query: formMessagesQuery }),
     sanityFetch({ query: eventMessagesQuery }),
   ]);
@@ -83,16 +84,15 @@ async function getData(locale: Locale) {
   const filtersSection = getSection(newPage?.sections, "filters");
   const closingCtaSection = getSection(newPage?.sections, "closingCta");
 
-  const events = eventDocs?.length
-    ? eventDocs.map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale))
-    : staticEvents;
+  // An empty result is a real, legitimate state (no event has this locale in
+  // its own `visibleLocales`) and must render as the genuine empty-state UI,
+  // never silently fall back to the hardcoded English static events.
+  const events = (eventDocs ?? []).map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale));
 
   const messages = resolveFormMessages(formMessagesDoc, locale);
 
   const filterField = (key: string, fallbackValue: string) =>
-    pickLocalized(getItem(filtersSection, key)?.title, locale) ??
-    pickLocalized((page?.filters as Record<string, unknown> | undefined)?.[key] as never, locale) ??
-    fallbackValue;
+    pickLocalized(getItem(filtersSection, key)?.title, locale) ?? fallbackValue;
 
   const filters = {
     dateLabel: filterField("dateLabel", fallbackFilters.dateLabel),
@@ -128,27 +128,21 @@ async function getData(locale: Locale) {
   };
 
   const emptyState: EventsEmptyStateText = {
-    title:
-      pickLocalized(getItem(filtersSection, "emptyStateTitle")?.title, locale) ??
-      pickLabel(page?.labels, "emptyStateTitle", locale, defaultEventsEmptyStateText.title),
-    text:
-      pickLocalized(getItem(filtersSection, "emptyStateText")?.title, locale) ??
-      pickLabel(page?.labels, "emptyStateText", locale, defaultEventsEmptyStateText.text),
+    title: pickLocalized(getItem(filtersSection, "emptyStateTitle")?.title, locale) ?? defaultEventsEmptyStateText.title,
+    text: pickLocalized(getItem(filtersSection, "emptyStateText")?.title, locale) ?? defaultEventsEmptyStateText.text,
   };
 
   return {
-    title: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.title, locale) ?? fallback.title,
-    closingEyebrow:
-      pickLocalized(closingCtaSection?.label, locale) ?? pickLocalized(page?.closingSection?.eyebrow, locale) ?? fallback.closingEyebrow,
-    closingTitle:
-      pickLocalized(closingCtaSection?.title, locale) ?? pickLocalized(page?.closingSection?.title, locale) ?? fallback.closingTitle,
-    closingText:
-      pickLocalized(closingCtaSection?.text, locale) ?? pickLocalized(page?.closingSection?.text, locale) ?? fallback.closingText,
-    closingLabel:
-      pickLocalized(getAction(closingCtaSection, "main")?.label, locale) ??
-      pickLocalized(page?.closingSection?.cta?.label, locale) ??
-      fallback.closingLabel,
-    description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    title: pickLocalized(heroSection?.title, locale) ?? fallback.title,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
+    ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1200)
+      .url(),
+    closingEyebrow: pickLocalized(closingCtaSection?.label, locale) ?? fallback.closingEyebrow,
+    closingTitle: pickLocalized(closingCtaSection?.title, locale) ?? fallback.closingTitle,
+    closingText: pickLocalized(closingCtaSection?.text, locale) ?? fallback.closingText,
+    closingLabel: pickLocalized(getAction(closingCtaSection, "main")?.label, locale) ?? fallback.closingLabel,
+    description: pickLocalized(newPage?.seo?.description, locale) ?? fallback.description,
     faqQuestion: messages.faqQuestion,
     faqLabel: messages.faqLabel,
     events,
@@ -165,8 +159,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { description } = await getData(locale);
-  return localizedPageMetadata({ path: "/events", locale, title: "Events", description });
+  const { seoTitle, description, ogImageUrl } = await getData(locale);
+  return localizedPageMetadata({
+    path: "/events",
+    locale,
+    title: seoTitle,
+    description,
+    ...(ogImageUrl ? { image: ogImageUrl } : {}),
+  });
 }
 
 export default async function EventsPage({ params }: { params: Promise<{ locale: string }> }) {

@@ -1740,6 +1740,13 @@ button.btn,
   left: -10px;
   z-index: 20;
   min-width: 210px;
+  /* Grid's default `min-width: auto` on the implicit column lets a nowrap
+     item's unbroken content width (e.g. a long Ukrainian option label) force
+     the track — and this container's own rendered width — past the
+     `min-width`/`width` caps below ("grid blowout"). `minmax(0, 1fr)` gives
+     the single implicit column an explicit 0 floor so it can never grow past
+     the container's own declared width, regardless of content. */
+  grid-template-columns: minmax(0, 1fr);
   display: grid;
   gap: 4px;
   padding: 10px;
@@ -1786,6 +1793,7 @@ button.btn,
 }
 .events-filter-menu button {
   width: 100%;
+  min-width: 0;
   padding: 10px 11px 10px 24px;
   border: 0;
   border-radius: 0;
@@ -1795,7 +1803,13 @@ button.btn,
   font-size: 15px;
   line-height: 1.25;
   text-align: left;
-  white-space: nowrap;
+  /* Was `nowrap` — on a fixed-width dropdown that forced a long option
+     label (e.g. Ukrainian's longer Price options) to overflow the menu
+     instead of wrapping. Every label that already fits on one line renders
+     identically; only labels wider than the menu now wrap to a second line
+     instead of bleeding past the viewport. */
+  white-space: normal;
+  overflow-wrap: break-word;
   cursor: pointer;
 }
 .events-filter-menu button:hover,

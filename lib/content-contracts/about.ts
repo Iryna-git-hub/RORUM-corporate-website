@@ -102,7 +102,7 @@ export const aboutContract: PageContentContract = {
       mutationStrategy: "link-href",
       editorVisibility: "visible",
       classification: "connected",
-      notes: "label only populated in EN — da/uk silently fall back to the English string via pickLocalized (not a connection defect, a translation gap).",
+      notes: "FIXED: da/uk now populated (scripts/backfill-about-translations.ts, run live and verified idempotent) — previously EN-only, falling back to the English string via pickLocalized.",
     },
     {
       pageKey: "about",
@@ -120,7 +120,7 @@ export const aboutContract: PageContentContract = {
       mutationStrategy: "link-href",
       editorVisibility: "visible",
       classification: "connected",
-      notes: "label only populated in EN — same translation gap as intro0.",
+      notes: "FIXED: da/uk now populated (scripts/backfill-about-translations.ts) — same fix as intro0.",
     },
     {
       pageKey: "about",
@@ -156,7 +156,7 @@ export const aboutContract: PageContentContract = {
       mutationStrategy: "localized-canary",
       editorVisibility: "visible",
       classification: "connected",
-      notes: "EN only for all 3 images — da/uk fall back to the English alt text via pickLocalized (translation gap, not a connection defect; these ARE meaningful/informative images so alt text is required, unlike Home's decorative backgrounds).",
+      notes: "FIXED: da/uk alt text now populated for all 3 images (scripts/backfill-about-translations.ts, verified idempotent) — previously EN-only. These ARE meaningful/informative images so alt text is required, unlike Home's decorative backgrounds.",
     },
     // ---- statement ---------------------------------------------------------
     {
@@ -191,9 +191,9 @@ export const aboutContract: PageContentContract = {
       frontendSelector: `page.getByText(value, { exact: true })`,
       expectedBehavior: "Renders the localized paragraph, fully localized in production.",
       mutationStrategy: "localized-canary",
-      editorVisibility: "hidden",
+      editorVisibility: "visible",
       classification: "connected",
-      notes: "DEFECT (Studio-editability, not data connection): rendered from real, populated data, but invisible in Studio because sectionKind=\"iconGrid\" hides the \"text\" field (pageSection.ts FIELD_VISIBILITY.iconGrid = {label,title,items} only). An editor cannot find this field to change it. Same issue as community.text below. Proposed fix (needs approval + cross-page check — see report): add \"text\" to iconGrid's FIELD_VISIBILITY; confirmed via a live read-only query that About's statement/community are the ONLY iconGrid sections site-wide with populated text today (catering.menuFormats and workWithUs.features also use iconGrid but have no text content), so this is low-risk.",
+      notes: "FIXED: rendered from real, populated data and now correctly visible+editable in Studio. sectionKind=\"iconGrid\" still hides \"text\" by default (pageSection.ts FIELD_VISIBILITY.iconGrid = {label,title,items}), but pageSection.ts's ABOUT_TEXT_FORCE_VISIBLE_SECTION_KEYS narrowly force-shows it for page-about's statement/community/pillars sections specifically — not added to iconGrid globally, so catering.menuFormats/workWithUs.features (also iconGrid, no text content) are unaffected.",
     },
     {
       pageKey: "about",
@@ -211,7 +211,7 @@ export const aboutContract: PageContentContract = {
       mutationStrategy: "link-href",
       editorVisibility: "visible",
       classification: "connected",
-      notes: "label only populated in EN — translation gap, falls back to English text on da/uk.",
+      notes: "FIXED: da/uk now populated (scripts/backfill-about-translations.ts) — previously EN-only, falling back to English text on da/uk.",
     },
     {
       pageKey: "about",
@@ -229,7 +229,7 @@ export const aboutContract: PageContentContract = {
       mutationStrategy: "link-href",
       editorVisibility: "visible",
       classification: "connected",
-      notes: "label only populated in EN — same translation gap.",
+      notes: "FIXED: da/uk now populated (scripts/backfill-about-translations.ts) — same fix as service0.",
     },
     // ---- community ---------------------------------------------------------
     {
@@ -248,7 +248,7 @@ export const aboutContract: PageContentContract = {
       mutationStrategy: "localized-canary",
       editorVisibility: "visible",
       classification: "connected",
-      notes: "EN only — no da/uk entries at all for this specific field (translation gap; renders the English word 'Community' on da/uk pages today).",
+      notes: "FIXED: da/uk now populated (scripts/backfill-about-translations.ts, verified idempotent) — previously EN-only, rendering the English word 'Community' on da/uk pages.",
     },
     {
       pageKey: "about",
@@ -264,9 +264,9 @@ export const aboutContract: PageContentContract = {
       frontendSelector: `page.getByText(value, { exact: true })`,
       expectedBehavior: "Renders the localized paragraph, fully localized in production.",
       mutationStrategy: "localized-canary",
-      editorVisibility: "hidden",
+      editorVisibility: "visible",
       classification: "connected",
-      notes: "Same Studio-editability defect as statement.text above (sectionKind=\"iconGrid\" hides \"text\"). Data itself is fully localized and renders correctly.",
+      notes: "FIXED: same treatment as statement.text above — now correctly visible+editable in Studio via ABOUT_TEXT_FORCE_VISIBLE_SECTION_KEYS. Data itself is fully localized and renders correctly.",
     },
     {
       pageKey: "about",
@@ -284,7 +284,7 @@ export const aboutContract: PageContentContract = {
       mutationStrategy: "link-href",
       editorVisibility: "visible",
       classification: "connected",
-      notes: "label only populated in EN — translation gap.",
+      notes: "FIXED: da/uk now populated (scripts/backfill-about-translations.ts) — previously EN-only.",
     },
     {
       pageKey: "about",
@@ -302,7 +302,7 @@ export const aboutContract: PageContentContract = {
       mutationStrategy: "link-href",
       editorVisibility: "visible",
       classification: "connected",
-      notes: "label only populated in EN — translation gap.",
+      notes: "FIXED: da/uk now populated (scripts/backfill-about-translations.ts) — previously EN-only.",
     },
     {
       pageKey: "about",
@@ -320,7 +320,7 @@ export const aboutContract: PageContentContract = {
       mutationStrategy: "link-href",
       editorVisibility: "visible",
       classification: "connected",
-      notes: "label only populated in EN — translation gap.",
+      notes: "FIXED: da/uk now populated (scripts/backfill-about-translations.ts) — previously EN-only.",
     },
     // ---- pillars -----------------------------------------------------------
     {
@@ -630,6 +630,26 @@ export const aboutContract: PageContentContract = {
       editorVisibility: "visible",
       classification: "connected",
       notes: "FIXED this pass: now reads `newPage` (the real, editable page-about field) instead of the dead legacy `aboutPage` singleton (confirmed 0 documents). \"Connected\" means the code path is correct for both branches, not that content is populated — content is still EMPTY in Sanity for all 3 languages; not populated this phase per instruction. Distinguish \"connected in code\" from \"populated in Sanity\".",
+    },
+    {
+      pageKey: "about",
+      sectionKey: "seo",
+      sanityPath: "seo.ogImage",
+      fieldPurpose: "Social Sharing Image (og:image) for the About page",
+      fieldType: "image",
+      required: false,
+      languages: [],
+      querySource: "sanity/queries/page.ts:pageByKeyQuery",
+      mapper: "about/page.tsx:getData (ogImageUrl = urlForImage(newPage?.seo?.ogImage)), passed to generateMetadata()'s localizedPageMetadata() call",
+      component: "app/[locale]/(site)/about/page.tsx:generateMetadata",
+      frontendSelector: `page.locator('meta[property="og:image"]')`,
+      expectedBehavior: "When an editor uploads a Social Sharing Image, that photo's URL is used for og:image; otherwise the existing hardcoded default is used, unchanged from before.",
+      mutationStrategy: "image-swap",
+      editorVisibility: "visible",
+      classification: "connected",
+      notes:
+        "Wired this pass — same fix as Home's equivalent entry (own generateMetadata() call, plus a shared " +
+        "lib/seo.ts bug fix for already-absolute image URLs). About's own ogImage content is currently unset.",
     },
     // ---- legacy singleton (dead data path) ------------------------------------
     {

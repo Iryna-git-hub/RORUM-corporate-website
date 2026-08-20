@@ -166,9 +166,15 @@ const fallback = {
 };
 
 async function getData(locale: Locale) {
+  // `data` is a real (possibly empty) array whenever Sanity is configured —
+  // an empty result means "no event is visible on this locale's website"
+  // (per that event's own `visibleLocales`), which must render as a
+  // genuinely empty strip, not silently fall back to the hardcoded English
+  // static events. The static fallback is only for the case Sanity itself
+  // isn't configured at all (see the other branch below).
   const eventsPromise = isSanityConfigured
-    ? sanityFetch({ query: allEventsQuery }).then(({ data }) =>
-        data?.length ? data.map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale)) : staticEvents,
+    ? sanityFetch({ query: allEventsQuery, params: { locale } }).then(({ data }) =>
+        (data ?? []).map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale)),
       )
     : Promise.resolve(staticEvents);
 
@@ -420,6 +426,9 @@ async function getData(locale: Locale) {
     // this change, so `<title>` keeps showing the hardcoded fallback until
     // an editor fills it in.
     seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
+    ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1200)
+      .url(),
     servicesLabel: pickLocalized(servicesTeaserSection?.label, locale) ?? fallback.servicesLabel,
     servicesTitle: pickLocalized(servicesTeaserSection?.title, locale) ?? fallback.servicesTitle,
     communityLabel: pickLocalized(communityTeaserSection?.label, locale) ?? fallback.communityLabel,
@@ -446,12 +455,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { seoTitle, description } = await getData(locale);
+  const { seoTitle, description, ogImageUrl } = await getData(locale);
   return localizedPageMetadata({
     path: "/",
     locale,
     title: seoTitle,
     description,
+    ...(ogImageUrl ? { image: ogImageUrl } : {}),
   });
 }
 

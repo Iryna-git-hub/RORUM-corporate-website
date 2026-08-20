@@ -10,6 +10,7 @@ import { contactDetails } from "@/lib/siteConfig";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, localeTags, type Locale } from "@/lib/i18n";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
+import { isEventVisibleInLocale } from "@/lib/eventVisibility";
 import { formatDuration, type EventDuration } from "@/lib/eventDuration";
 import { getEventLanguageLabel } from "@/lib/eventLanguage";
 import { getUiText } from "@/lib/uiText";
@@ -131,13 +132,22 @@ async function getEventMessages(locale: Locale): Promise<EventDetailMessages> {
   };
 }
 
+// Returns `undefined` both when no event exists at this slug AND when one
+// exists but isn't shown on `locale`'s website version (its own
+// `visibleLocales` doesn't include this locale) — both callers (
+// generateMetadata and the page component below) already treat "no event"
+// as 404/empty-metadata, so a locale-unsupported event and a nonexistent
+// one are handled identically, correctly, with no separate branch needed.
+// Never renders English (or any other locale's) content as a fallback for
+// an unsupported locale.
 async function getEvent(slug: string, locale: Locale): Promise<RorumEvent | undefined> {
     if (!isSanityConfigured) {
         return staticEvents.find((event) => event.slug === slug);
     }
     const { data: doc } = await sanityFetch({ query: eventBySlugQuery, params: { slug } });
     if (!doc) return staticEvents.find((event) => event.slug === slug);
-    return sanityEventToRorumEvent(doc as SanityEventLike, locale);
+    const event = sanityEventToRorumEvent(doc as SanityEventLike, locale);
+    return isEventVisibleInLocale(event, locale) ? event : undefined;
 }
 
 // Danish and Ukrainian weekday/date strings come back lowercase from
@@ -445,14 +455,20 @@ export async function generateMetadata({
     const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
     const event = await getEvent(slug, locale);
     if (!event) return {};
-    const description = event.longDescription || fallbackDescription;
-    const image = event.image ?? "/images/hero.jpg";
+    const title = event.seo?.title || `${event.title} | RORUM`;
+    const description = event.seo?.description || event.longDescription || fallbackDescription;
+    const image = event.seo?.ogImageUrl || event.image || "/images/hero.jpg";
+    // Only advertise hreflang alternates for locales this event is actually
+    // shown on — an alternate pointing at a locale that itself 404s for
+    // this event would mislead search engines about which URLs exist.
+    const alternateLocales = (event.visibleLocales ?? []).filter(isLocale);
     return localizedPageMetadata({
         path: `/events/${event.slug}`,
         locale,
-        title: `${event.title} | RORUM`,
+        title,
         description,
         image,
+        ...(alternateLocales.length ? { alternateLocales } : {}),
     });
 }
 

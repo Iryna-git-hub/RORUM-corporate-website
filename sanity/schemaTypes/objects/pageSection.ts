@@ -114,6 +114,17 @@ function fieldHidden(fieldName: string) {
   };
 }
 
+/**
+ * A hidden field must never block publishing — reuses `fieldHidden`'s exact
+ * logic (via the same `parent`/`document` shape validation contexts already
+ * carry) so a section-level field's `hidden` and `validation` can never
+ * drift out of sync.
+ */
+function skipValidationWhenHidden(fieldName: string) {
+  return ({ parent, document }: { parent?: unknown; document?: unknown }) =>
+    fieldHidden(fieldName)({ parent: parent as { sectionKind?: string; sectionKey?: string } | undefined, document });
+}
+
 export default defineType({
   name: "pageSection",
   title: "Section",
@@ -143,7 +154,7 @@ export default defineType({
       title: "Small label",
       type: "internationalizedArrayString",
       description: 'Small eyebrow text above the title, e.g. "Catering". / Невеликий напис над заголовком.',
-      validation: allOrNothingLanguages(),
+      validation: allOrNothingLanguages({ skip: skipValidationWhenHidden("label") }),
       hidden: fieldHidden("label"),
       components: { field: EventsStripLabelField },
     }),
@@ -151,14 +162,14 @@ export default defineType({
       name: "title",
       title: "Title",
       type: "internationalizedArrayString",
-      validation: allOrNothingLanguages(),
+      validation: allOrNothingLanguages({ skip: skipValidationWhenHidden("title") }),
       hidden: fieldHidden("title"),
     }),
     defineField({
       name: "text",
       title: "Text",
       type: "internationalizedArrayText",
-      validation: allOrNothingLanguages(),
+      validation: allOrNothingLanguages({ skip: skipValidationWhenHidden("text") }),
       hidden: fieldHidden("text"),
     }),
     defineField({

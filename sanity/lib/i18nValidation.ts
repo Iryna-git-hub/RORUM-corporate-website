@@ -7,6 +7,15 @@ import type { Rule, ValidationContext } from "sanity";
 // fully trilingual (no half-translated content shipping silently).
 const REQUIRED_LANGUAGES = ["en", "da", "uk"];
 
+const LANGUAGE_NAMES: Record<string, string> = { en: "English", da: "Danish", uk: "Ukrainian" };
+
+/** "en" -> "English"; "da, uk" -> "Danish and Ukrainian"; 3 codes -> "English, Danish and Ukrainian". */
+function namesFor(codes: string[]): string {
+  const names = codes.map((c) => LANGUAGE_NAMES[c] ?? c);
+  if (names.length <= 1) return names.join("");
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
 interface I18nEntry {
   _key?: string;
   language?: string;
@@ -20,7 +29,7 @@ function isEmptyValue(value: unknown): boolean {
   return false;
 }
 
-function analyze(entries: I18nEntry[] | undefined | null) {
+function analyze(entries: I18nEntry[] | undefined | null, requiredLanguages: readonly string[] = REQUIRED_LANGUAGES) {
   const list = entries ?? [];
   const seen = new Map<string, number>();
   const emptyLanguages: string[] = [];
@@ -29,7 +38,7 @@ function analyze(entries: I18nEntry[] | undefined | null) {
     seen.set(entry.language, (seen.get(entry.language) ?? 0) + 1);
     if (isEmptyValue(entry.value)) emptyLanguages.push(entry.language);
   }
-  const missing = REQUIRED_LANGUAGES.filter((lang) => !seen.has(lang));
+  const missing = requiredLanguages.filter((lang) => !seen.has(lang));
   const duplicates = [...seen.entries()].filter(([, count]) => count > 1).map(([lang]) => lang);
   return { missing, emptyLanguages, duplicates };
 }
@@ -51,23 +60,136 @@ export function requireAllLanguages(options?: { skip?: (context: ValidationConte
     rule.custom((value: I18nEntry[] | undefined, context: ValidationContext) => {
       if (options?.skip?.(context)) return true;
       const { missing, emptyLanguages, duplicates } = analyze(value);
-      if (duplicates.length) return `Duplicate language entries: ${duplicates.join(", ")}.`;
-      if (missing.length) return `Missing translation for: ${missing.join(", ")}.`;
-      if (emptyLanguages.length) return `Empty value for: ${emptyLanguages.join(", ")}.`;
+      if (duplicates.length) return `There's more than one entry for ${namesFor(duplicates)} — please remove the extra one.`;
+      if (missing.length) return `Please add the ${namesFor(missing)} translation${missing.length > 1 ? "s" : ""}.`;
+      if (emptyLanguages.length) return `The ${namesFor(emptyLanguages)} text is empty — please fill it in.`;
       return true;
     });
 }
 
-/** Either the whole field is empty, or all three languages are present and non-empty. Use on optional content. */
-export function allOrNothingLanguages() {
+/**
+ * Either the whole field is empty, or all three languages are present and
+ * non-empty. Use on optional content.
+ *
+ * `skip`: same purpose as `requireAllLanguages`'s — lets one specific,
+ * narrowly-identified hidden-field context opt out entirely, so a hidden
+ * field's stray/partial leftover data can never block publishing (e.g.
+ * contentItem.ts's item-role-hidden title/text fields).
+ */
+export function allOrNothingLanguages(options?: { skip?: (context: ValidationContext) => boolean }) {
   return (rule: Rule) =>
-    rule.custom((value: I18nEntry[] | undefined) => {
+    rule.custom((value: I18nEntry[] | undefined, context: ValidationContext) => {
+      if (options?.skip?.(context)) return true;
       const list = value ?? [];
       if (list.length === 0) return true;
       const { missing, emptyLanguages, duplicates } = analyze(list);
-      if (duplicates.length) return `Duplicate language entries: ${duplicates.join(", ")}.`;
-      if (missing.length) return `If any language is filled in, all three are required — missing: ${missing.join(", ")}.`;
-      if (emptyLanguages.length) return `Empty value for: ${emptyLanguages.join(", ")}.`;
+      if (duplicates.length) return `There's more than one entry for ${namesFor(duplicates)} — please remove the extra one.`;
+      if (missing.length) return `This field is filled in for some languages but not all — please add the ${namesFor(missing)} translation${missing.length > 1 ? "s" : ""}, or clear the field completely.`;
+      if (emptyLanguages.length) return `The ${namesFor(emptyLanguages)} text is empty — please fill it in or clear the field completely.`;
+      return true;
+    });
+}
+
+/**
+ * Reads an `event` document's `visibleLocales` ("Show on website languages")
+ * field — the single source of truth for which locales that event requires
+ * content in. Returns `undefined` when the document isn't an event, or when
+ * `visibleLocales` isn't a real, non-empty array (e.g. mid-creation, or a
+ * pre-migration document) — callers treat `undefined` as "don't apply
+ * event-specific rules here", never as "require nothing" vs "require
+ * everything" silently.
+ */
+export function getEventVisibleLocales(document: unknown): string[] | undefined {
+  const doc = document as { _type?: string; visibleLocales?: unknown } | undefined;
+  if (doc?._type !== "event") return undefined;
+  const locales = doc.visibleLocales;
+  return Array.isArray(locales) && locales.every((l) => typeof l === "string") && locales.length > 0
+    ? (locales as string[])
+    : undefined;
+}
+
+/**
+ * Event-specific replacement for `requireAllLanguages()`: instead of a fixed
+ * en/da/uk requirement, requires exactly the locales selected in that same
+ * document's `visibleLocales` field ("Show on website languages") —
+ * unselected locales are never required, never validated, and their stored
+ * data (if any, e.g. from before a locale was deselected) is left alone.
+ *
+ * If `visibleLocales` is missing/empty (mid-creation, or a document that
+ * predates this field), this returns `true` unconditionally rather than
+ * cascading dozens of unexplained errors onto every localized field —
+ * `visibleLocales`'s own `min(1)` validation is the single, clear place that
+ * error surfaces.
+ *
+ * `skip`: same purpose as the other two validators' — lets one specific,
+ * narrowly-identified hidden-field context opt out entirely.
+ */
+export function requireSelectedEventLocales(options?: { skip?: (context: ValidationContext) => boolean }) {
+  return (rule: Rule) =>
+    rule.custom((value: I18nEntry[] | undefined, context: ValidationContext) => {
+      if (options?.skip?.(context)) return true;
+      const selected = getEventVisibleLocales(context.document);
+      if (!selected) return true;
+
+      const list = value ?? [];
+      const seen = new Map<string, number>();
+      const emptyLanguages: string[] = [];
+      for (const entry of list) {
+        if (!entry?.language || !selected.includes(entry.language)) continue; // unselected locales are never validated
+        seen.set(entry.language, (seen.get(entry.language) ?? 0) + 1);
+        if (isEmptyValue(entry.value)) emptyLanguages.push(entry.language);
+      }
+      const missing = selected.filter((lang) => !seen.has(lang));
+      const duplicates = [...seen.entries()].filter(([, count]) => count > 1).map(([lang]) => lang);
+
+      if (duplicates.length) return `There's more than one entry for ${namesFor(duplicates)} — please remove the extra one.`;
+      if (missing.length) {
+        const translationWord = missing.length > 1 ? "translations" : "translation";
+        const websiteWord = missing.length > 1 ? "websites" : "website";
+        return `Please add the ${namesFor(missing)} ${translationWord} because this event is shown on the ${namesFor(missing)} ${websiteWord}.`;
+      }
+      if (emptyLanguages.length) return `The ${namesFor(emptyLanguages)} text is empty — please fill it in.`;
+      return true;
+    });
+}
+
+/**
+ * Sibling of `requireSelectedEventLocales()` for genuinely OPTIONAL
+ * per-event fields that have a real, sensible fallback when empty (ticket
+ * button label override, ticket-provider label/value override, event SEO) —
+ * same relationship as `allOrNothingLanguages()` is to `requireAllLanguages()`
+ * elsewhere in this file. Empty is always fine, regardless of which locales
+ * are selected. But a field that HAS been started must be complete for every
+ * SELECTED locale (not all 3) — a half-filled-in override for a locale the
+ * event isn't even shown in is never required, but a half-filled-in override
+ * for a locale it IS shown in should be finished or cleared, not left
+ * silently partial.
+ */
+export function allOrNothingForSelectedEventLocales(options?: { skip?: (context: ValidationContext) => boolean }) {
+  return (rule: Rule) =>
+    rule.custom((value: I18nEntry[] | undefined, context: ValidationContext) => {
+      if (options?.skip?.(context)) return true;
+      const selected = getEventVisibleLocales(context.document);
+      if (!selected) return true;
+
+      const relevant = (value ?? []).filter((e) => e?.language && selected.includes(e.language));
+      if (relevant.length === 0) return true; // fully empty (for the selected locales) is fine
+
+      const seen = new Map<string, number>();
+      const emptyLanguages: string[] = [];
+      for (const entry of relevant) {
+        seen.set(entry.language!, (seen.get(entry.language!) ?? 0) + 1);
+        if (isEmptyValue(entry.value)) emptyLanguages.push(entry.language!);
+      }
+      const missing = selected.filter((lang) => !seen.has(lang));
+      const duplicates = [...seen.entries()].filter(([, count]) => count > 1).map(([lang]) => lang);
+
+      if (duplicates.length) return `There's more than one entry for ${namesFor(duplicates)} — please remove the extra one.`;
+      if (missing.length) {
+        const translationWord = missing.length > 1 ? "translations" : "translation";
+        return `This field is filled in for some of the event's website languages but not all — please add the ${namesFor(missing)} ${translationWord}, or clear the field completely.`;
+      }
+      if (emptyLanguages.length) return `The ${namesFor(emptyLanguages)} text is empty — please fill it in or clear the field completely.`;
       return true;
     });
 }

@@ -108,19 +108,23 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
       // ---- hero ----------------------------------------------------------
       test("hero label", async ({ page }) => {
         const value = pick(byKey("hero")?.label, locale);
-        test.skip(!value, "no published value for this locale yet");
+        // Optional per the content contract (hero.label required:false) — a
+        // future locale could legitimately ship with no eyebrow text.
+        test.skip(!value, "optional field (contract: required=false) — not published for this locale");
         await expect(page.getByTestId("home-hero-label")).toHaveText(value!);
       });
 
       test("hero H1", async ({ page }) => {
         const value = pick(byKey("hero")?.title, locale);
-        test.skip(!value, "no published value for this locale yet");
+        // hero.title is required:true and rendered (the page's only H1) per
+        // the content contract — a missing translation must fail, not skip.
+        expect(value, `hero H1 must be published for locale "${locale}"`).toBeTruthy();
         await expect(page.locator(".home-hero-full h1")).toHaveText(value!);
       });
 
       test("hero text", async ({ page }) => {
         const value = pick(byKey("hero")?.text, locale);
-        test.skip(!value, "no published value for this locale yet");
+        test.skip(!value, "optional field (contract: required=false) — not published for this locale");
         await expect(page.getByTestId("home-hero-text")).toHaveText(value!);
       });
 
@@ -132,8 +136,12 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
 
       test("hero primary action (label + href)", async ({ page }) => {
         const action = actionByKey(byKey("hero"), "primary");
+        // A disabled action legitimately renders nothing — that's the only
+        // acceptable skip reason here (Task 4F). hero.actions is required:true,
+        // so a missing label on an ENABLED action must fail, not skip.
+        test.skip(action?.enabled === false, "action is disabled — renders nothing by design");
         const label = pick(action?.label, locale);
-        test.skip(!label || action?.enabled === false, "no published label, or action disabled");
+        expect(label, `hero primary action label must be published for locale "${locale}"`).toBeTruthy();
         const link = page.getByTestId("home-hero-primary-cta");
         await expect(link).toContainText(label!);
         await expect(link).toHaveAttribute("href", localizedHref(action!.href!, locale));
@@ -141,8 +149,9 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
 
       test("hero secondary action (label + href)", async ({ page }) => {
         const action = actionByKey(byKey("hero"), "secondary");
+        test.skip(action?.enabled === false, "action is disabled — renders nothing by design");
         const label = pick(action?.label, locale);
-        test.skip(!label || action?.enabled === false, "no published label, or action disabled");
+        expect(label, `hero secondary action label must be published for locale "${locale}"`).toBeTruthy();
         const link = page.getByTestId("home-hero-secondary-cta");
         await expect(link).toContainText(label!);
         await expect(link).toHaveAttribute("href", localizedHref(action!.href!, locale));
@@ -160,25 +169,28 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
       // ---- quickPaths ------------------------------------------------------
       test("quick paths label", async ({ page }) => {
         const value = pick(byKey("quickPaths")?.label, locale);
-        test.skip(!value, "no published value for this locale yet");
+        test.skip(!value, "optional field (contract: required=false) — not published for this locale");
         await expect(page.getByTestId("home-quickpaths-label")).toHaveText(value!);
       });
 
       test("quick paths title", async ({ page }) => {
         const value = pick(byKey("quickPaths")?.title, locale);
-        test.skip(!value, "no published value for this locale yet");
+        test.skip(!value, "optional field (contract: required=false) — not published for this locale");
         await expect(page.getByRole("heading", { level: 2, name: value! })).toBeVisible();
       });
 
       test("quick path cards render by stable key with correct title/href", async ({ page }) => {
+        // quickPaths items are required:true and rendered per the content
+        // contract — every one of the 4 cards must have a title for every
+        // locale, so a missing one fails instead of being silently skipped.
         const section = byKey("quickPaths");
         for (const key of ["events", "hostAtRorum", "catering", "eventDecoration"]) {
           const item = itemByKey(section, key);
           const title = pick(item?.title, locale);
-          if (!title) continue;
+          expect(title, `quick path card "${key}" title must be published for locale "${locale}"`).toBeTruthy();
           const slug = (item?.href ?? "").replace(/^\/+/, "").replaceAll("/", "-");
           const card = page.locator(`.quick-path-card-${slug}`);
-          await expect(card).toContainText(title);
+          await expect(card).toContainText(title!);
           await expect(card).toHaveAttribute("href", localizedHref(item!.href!, locale));
         }
       });
@@ -196,7 +208,10 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
           test.skip(!item?.icon, `no published icon value for "${key}" yet`);
           expect(item!.icon, `${key} should hold its approved canonical icon`).toBe(canonical[key]);
           const slug = (item?.href ?? "").replace(/^\/+/, "").replaceAll("/", "-");
-          const icon = page.locator(`.quick-path-card-${slug} svg`);
+          // Scoped to .quick-card-icon specifically — the card also
+          // contains an unrelated decorative arrow-right svg, and a bare
+          // `svg` locator matches both (strict-mode violation).
+          const icon = page.locator(`.quick-path-card-${slug} svg.quick-card-icon`);
           await expect(icon).toHaveAttribute("data-icon", canonical[key]!);
         }
       });
@@ -204,20 +219,21 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
       // ---- eventsStrip -------------------------------------------------
       test("events strip label", async ({ page }) => {
         const value = pick(byKey("eventsStrip")?.label, locale);
-        test.skip(!value, "no published value for this locale yet");
+        test.skip(!value, "optional field (contract: required=false) — not published for this locale");
         await expect(page.getByTestId("home-events-label")).toHaveText(value!);
       });
 
       test("events strip title", async ({ page }) => {
         const value = pick(byKey("eventsStrip")?.title, locale);
-        test.skip(!value, "no published value for this locale yet");
+        test.skip(!value, "optional field (contract: required=false) — not published for this locale");
         await expect(page.getByRole("heading", { level: 2, name: value! })).toBeVisible();
       });
 
       test("events strip view-all action (label + href)", async ({ page }) => {
         const action = actionByKey(byKey("eventsStrip"), "viewAll");
+        test.skip(action?.enabled === false, "action is disabled — renders nothing by design");
         const label = pick(action?.label, locale);
-        test.skip(!label || action?.enabled === false, "no published label, or action disabled");
+        expect(label, `events strip view-all label must be published for locale "${locale}"`).toBeTruthy();
         const link = page.getByTestId("home-events-view-all");
         await expect(link).toContainText(label!);
         await expect(link).toHaveAttribute("href", localizedHref(action!.href!, locale));
@@ -257,11 +273,13 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
         });
 
         test(`${sectionKey}: feature icons render by stable key`, async ({ page }) => {
+          // Feature icons are required:false per the contract — an editor
+          // may leave an icon unset and the frontend falls back safely.
           const section = byKey(sectionKey);
           const items = ["feature0", "feature1", "feature2", "feature3"]
             .map((key) => itemByKey(section, key))
             .filter((item): item is RawItem => !!item?.icon);
-          test.skip(!items.length, "no published icon values for this section yet");
+          test.skip(!items.length, "optional field (contract: required=false) — no icons published for this section");
           for (const item of items) {
             const icon = page.getByTestId(`${testId}-feature-${item.itemKey}`).locator("svg");
             await expect(icon).toHaveAttribute("data-icon", item.icon!);
@@ -270,17 +288,22 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
 
         test(`${sectionKey}: cta (label + href)`, async ({ page }) => {
           const action = actionByKey(byKey(sectionKey), "cta");
+          test.skip(action?.enabled === false, "action is disabled — renders nothing by design");
           const label = pick(action?.label, locale);
-          test.skip(!label || action?.enabled === false, "no published label, or action disabled");
+          expect(label, `${sectionKey} cta label must be published for locale "${locale}"`).toBeTruthy();
           const link = page.getByTestId(`${testId}-cta`);
           await expect(link).toContainText(label!);
           await expect(link).toHaveAttribute("href", localizedHref(action!.href!, locale));
         });
 
         test(`${sectionKey}: media (image + localized alt text)`, async ({ page }) => {
+          // media[0].image/.alt is required:true and rendered (role="img")
+          // per the contract — this is a genuinely informative photo, not a
+          // decorative background, so a missing alt must fail, not skip.
           const media = byKey(sectionKey)?.media?.[0];
           const alt = pick(media?.alt, locale);
-          test.skip(!media || !alt, "no published media/alt for this locale yet");
+          expect(media, `${sectionKey} media must be published`).toBeTruthy();
+          expect(alt, `${sectionKey} media alt text must be published for locale "${locale}"`).toBeTruthy();
           const el = page.getByTestId(`${testId}-media`);
           await expect(el).toHaveAttribute("role", "img");
           await expect(el).toHaveAttribute("aria-label", alt!);
@@ -297,15 +320,18 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
       });
 
       test("service cards render by stable key with correct title/href", async ({ page }) => {
+        // servicesTeaser items are required:true per the contract — both
+        // cards must have a title+href for every locale.
         const section = byKey("servicesTeaser");
         for (const key of ["catering", "eventDecoration"]) {
           const item = itemByKey(section, key);
           const title = pick(item?.title, locale);
-          if (!title || !item?.href) continue;
-          const testId = `home-service-${item.href.replace(/^\/+/, "").replaceAll("/", "-")}`;
+          expect(title, `service card "${key}" title must be published for locale "${locale}"`).toBeTruthy();
+          expect(item?.href, `service card "${key}" href must be published`).toBeTruthy();
+          const testId = `home-service-${item!.href!.replace(/^\/+/, "").replaceAll("/", "-")}`;
           const card = page.getByTestId(testId);
-          await expect(card).toContainText(title);
-          await expect(card).toHaveAttribute("href", localizedHref(item.href, locale));
+          await expect(card).toContainText(title!);
+          await expect(card).toHaveAttribute("href", localizedHref(item!.href!, locale));
         }
       });
 
@@ -322,7 +348,7 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
 
       test("community media: uses the Sanity image, decorative (no accessible image label)", async ({ page }) => {
         const media = byKey("communityTeaser")?.media?.[0];
-        test.skip(!media, "no published media for communityTeaser yet");
+        test.skip(!media, "optional field (contract: required=false) — no media published for communityTeaser");
         const el = page.getByTestId("home-community-teaser");
         // Sourced from Sanity now, not the old local /images/... fallback path.
         await expect(el).toHaveAttribute("style", /background-image.*cdn\.sanity\.io/);
@@ -333,13 +359,15 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
       });
 
       test("community pill links by stable key", async ({ page }) => {
+        // communityTeaser items are required:true per the contract.
         const section = byKey("communityTeaser");
         for (const key of ["wecoda", "workWithUs", "volunteer"]) {
           const item = itemByKey(section, key);
           const label = pick(item?.label, locale);
-          if (!label || !item?.href) continue;
-          const link = page.getByTestId("home-community-teaser").getByRole("link", { name: label });
-          await expect(link).toHaveAttribute("href", localizedHref(item.href, locale));
+          expect(label, `community link "${key}" label must be published for locale "${locale}"`).toBeTruthy();
+          expect(item?.href, `community link "${key}" href must be published`).toBeTruthy();
+          const link = page.getByTestId("home-community-teaser").getByRole("link", { name: label! });
+          await expect(link).toHaveAttribute("href", localizedHref(item!.href!, locale));
         }
       });
 
@@ -356,8 +384,9 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
 
       test("closing main cta (label + href)", async ({ page }) => {
         const action = actionByKey(byKey("closingCta"), "main");
+        test.skip(action?.enabled === false, "action is disabled — renders nothing by design");
         const label = pick(action?.label, locale);
-        test.skip(!label || action?.enabled === false, "no published label, or action disabled");
+        expect(label, `closing cta label must be published for locale "${locale}"`).toBeTruthy();
         const link = page.getByTestId("home-closing-cta-cta");
         await expect(link).toContainText(label!);
         await expect(link).toHaveAttribute("href", localizedHref(action!.href!, locale));
@@ -383,9 +412,15 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
       });
 
       // ---- SEO ---------------------------------------------------------
+      // seo.title/description are genuinely optional by design (the schema
+      // has no requireAllLanguages/allOrNothingLanguages validation on
+      // them, only an English-length warning) and have a code-level
+      // fallback that's tested by the companion "falls back" test below —
+      // skipping the "reflects the published value" half when empty is a
+      // documented, deliberate choice, not a stand-in for missing coverage.
       test("SEO description", async ({ page }) => {
         const value = pick(page_.seo?.description, locale);
-        test.skip(!value, "no published value for this locale yet");
+        test.skip(!value, "optional field, has a tested code fallback — no value published for this locale");
         await expect(page.locator('head meta[name="description"]')).toHaveAttribute("content", value!);
       });
 
@@ -397,7 +432,7 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
 
       test("SEO title reflects the published Sanity value when present", async ({ page }) => {
         const value = pick(page_.seo?.title, locale);
-        test.skip(!value, "no published SEO title for this locale yet — see the companion fallback test instead");
+        test.skip(!value, "optional field, has a tested code fallback — no value published for this locale, see the companion fallback test");
         await expect(page).toHaveTitle(value!);
       });
     });

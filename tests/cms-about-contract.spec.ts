@@ -109,21 +109,23 @@ test.describe("About content contract — schema-to-frontend connection (read-on
       });
 
       // ---- hero ------------------------------------------------------------
+      // hero.label/title/text are all required:true and rendered per the
+      // content contract — a missing translation must fail, not skip.
       test("hero label", async ({ page }) => {
         const value = pick(byKey("hero")?.label, locale);
-        test.skip(!value, "no published value for this locale yet");
+        expect(value, `hero label must be published for locale "${locale}"`).toBeTruthy();
         await expect(page.getByText(value!, { exact: true }).first()).toBeVisible();
       });
 
       test("hero H1", async ({ page }) => {
         const value = pick(byKey("hero")?.title, locale);
-        test.skip(!value, "no published value for this locale yet");
+        expect(value, `hero H1 must be published for locale "${locale}"`).toBeTruthy();
         await expect(page.getByRole("heading", { level: 1 })).toHaveText(value!);
       });
 
       test("hero lead paragraph", async ({ page }) => {
         const value = pick(byKey("hero")?.text, locale);
-        test.skip(!value, "no published value for this locale yet");
+        expect(value, `hero lead paragraph must be published for locale "${locale}"`).toBeTruthy();
         await expect(page.getByText(value!, { exact: true })).toBeVisible();
       });
 
@@ -140,28 +142,35 @@ test.describe("About content contract — schema-to-frontend connection (read-on
       });
 
       test("atmosphere images (3, real Sanity assets, localized alt text)", async ({ page }) => {
+        // media[0..2].image/.alt are required:true per the contract — these
+        // are meaningful, informative photos (unlike Home's decorative
+        // backgrounds), so a missing alt must fail, not skip.
         const media = byKey("hero")?.media ?? [];
-        test.skip(media.length !== 3, "expected exactly 3 atmosphere media items");
+        expect(media.length, "expected exactly 3 atmosphere media items").toBe(3);
         const imgs = page.locator('[aria-label="RORUM atmosphere"] img');
         await expect(imgs).toHaveCount(3);
         for (let i = 0; i < media.length; i++) {
           const alt = pick(media[i]?.alt, locale);
-          if (!alt) continue;
-          await expect(imgs.nth(i)).toHaveAttribute("alt", alt);
+          expect(alt, `atmosphere image ${i} alt text must be published for locale "${locale}"`).toBeTruthy();
+          await expect(imgs.nth(i)).toHaveAttribute("alt", alt!);
           await expect(imgs.nth(i)).toHaveAttribute("src", /cdn\.sanity\.io/);
         }
       });
 
       // ---- statement ---------------------------------------------------------
+      // statement.title/text are both required:true and rendered. text is
+      // now also correctly visible+editable in Studio (narrowly force-shown
+      // for this section by pageSection.ts's ABOUT_TEXT_FORCE_VISIBLE_SECTION_KEYS)
+      // — it is no longer a Studio-invisible field, unlike an earlier pass.
       test("statement title", async ({ page }) => {
         const value = pick(byKey("statement")?.title, locale);
-        test.skip(!value, "no published value for this locale yet");
+        expect(value, `statement title must be published for locale "${locale}"`).toBeTruthy();
         await expect(page.getByRole("heading", { level: 2, name: value! })).toBeVisible();
       });
 
-      test("statement text (rendered, but NOT editable in Studio — see contract note)", async ({ page }) => {
+      test("statement text", async ({ page }) => {
         const value = pick(byKey("statement")?.text, locale);
-        test.skip(!value, "no published value for this locale yet");
+        expect(value, `statement text must be published for locale "${locale}"`).toBeTruthy();
         await expect(page.getByText(value!, { exact: true })).toBeVisible();
       });
 
@@ -178,15 +187,17 @@ test.describe("About content contract — schema-to-frontend connection (read-on
       });
 
       // ---- community ---------------------------------------------------------
+      // Same treatment as statement above: both required:true, both now
+      // correctly visible+editable in Studio (force-shown for this section).
       test("community title", async ({ page }) => {
         const value = pick(byKey("community")?.title, locale);
-        test.skip(!value, "no published value for this locale yet");
+        expect(value, `community title must be published for locale "${locale}"`).toBeTruthy();
         await expect(page.getByRole("heading", { level: 2, name: value! })).toBeVisible();
       });
 
-      test("community text (rendered, but NOT editable in Studio — see contract note)", async ({ page }) => {
+      test("community text", async ({ page }) => {
         const value = pick(byKey("community")?.text, locale);
-        test.skip(!value, "no published value for this locale yet");
+        expect(value, `community text must be published for locale "${locale}"`).toBeTruthy();
         await expect(page.getByText(value!, { exact: true })).toBeVisible();
       });
 
@@ -203,21 +214,22 @@ test.describe("About content contract — schema-to-frontend connection (read-on
       });
 
       // ---- pillars -------------------------------------------------------------
+      // pillars.label/title/text/items are all required:true per the contract.
       test("pillars label", async ({ page }) => {
         const value = pick(byKey("pillars")?.label, locale);
-        test.skip(!value, "no published value for this locale yet");
+        expect(value, `pillars label must be published for locale "${locale}"`).toBeTruthy();
         await expect(page.getByText(value!, { exact: true })).toBeVisible();
       });
 
       test("pillars title", async ({ page }) => {
         const value = pick(byKey("pillars")?.title, locale);
-        test.skip(!value, "no published value for this locale yet");
+        expect(value, `pillars title must be published for locale "${locale}"`).toBeTruthy();
         await expect(page.getByRole("heading", { level: 2, name: value! })).toBeVisible();
       });
 
       test("pillars text", async ({ page }) => {
         const value = pick(byKey("pillars")?.text, locale);
-        test.skip(!value, "no published value for this locale yet");
+        expect(value, `pillars text must be published for locale "${locale}"`).toBeTruthy();
         await expect(page.getByText(value!, { exact: true })).toBeVisible();
       });
 
@@ -227,36 +239,44 @@ test.describe("About content contract — schema-to-frontend connection (read-on
           const item = itemByKey(section, key);
           const title = pick(item?.title, locale);
           const text = pick(item?.text, locale);
-          if (!title) continue;
-          await expect(page.getByRole("heading", { level: 3, name: title })).toBeVisible();
-          if (text) await expect(page.getByText(text, { exact: true })).toBeVisible();
+          expect(title, `pillar "${key}" title must be published for locale "${locale}"`).toBeTruthy();
+          expect(text, `pillar "${key}" text must be published for locale "${locale}"`).toBeTruthy();
+          await expect(page.getByRole("heading", { level: 3, name: title! })).toBeVisible();
+          await expect(page.getByText(text!, { exact: true })).toBeVisible();
         }
       });
 
       // ---- closingCta ------------------------------------------------------------
+      // closingCta.label/title/text/actions[main].label/.href are all
+      // required:true per the contract.
       test("closing CTA eyebrow/title/text", async ({ page }) => {
         const closing = page.locator(".next-step-section-not-sure");
         const section = byKey("closingCta");
         const eyebrow = pick(section?.label, locale);
         const title = pick(section?.title, locale);
         const text = pick(section?.text, locale);
-        if (eyebrow) await expect(closing.getByText(eyebrow, { exact: true })).toBeVisible();
-        if (title) await expect(closing.getByRole("heading", { level: 2, name: title })).toBeVisible();
-        if (text) await expect(closing.getByText(text, { exact: true })).toBeVisible();
+        expect(eyebrow, `closing cta eyebrow must be published for locale "${locale}"`).toBeTruthy();
+        expect(title, `closing cta title must be published for locale "${locale}"`).toBeTruthy();
+        expect(text, `closing cta text must be published for locale "${locale}"`).toBeTruthy();
+        await expect(closing.getByText(eyebrow!, { exact: true })).toBeVisible();
+        await expect(closing.getByRole("heading", { level: 2, name: title! })).toBeVisible();
+        await expect(closing.getByText(text!, { exact: true })).toBeVisible();
       });
 
       test("closing CTA button label", async ({ page }) => {
         const closing = page.locator(".next-step-section-not-sure");
         const action = byKey("closingCta")?.actions?.find((a) => a.actionKey === "main");
+        test.skip(action?.enabled === false, "action is disabled — renders nothing by design");
         const label = pick(action?.label, locale);
-        test.skip(!label, "no published value for this locale yet");
+        expect(label, `closing cta button label must be published for locale "${locale}"`).toBeTruthy();
         await expect(closing.getByRole("link", { name: label! })).toBeVisible();
       });
 
       test("closing CTA button href (FIXED — now wired via resolveAction())", async ({ page }) => {
         const closing = page.locator(".next-step-section-not-sure");
         const action = byKey("closingCta")?.actions?.find((a) => a.actionKey === "main");
-        test.skip(!action?.href, "no published href for this locale yet");
+        test.skip(action?.enabled === false, "action is disabled — renders nothing by design");
+        expect(action?.href, "closing cta button href must be published").toBeTruthy();
         await expect(closing.getByRole("link", { name: pick(action?.label, locale) ?? "" })).toHaveAttribute(
           "href",
           localizedHref(action!.href!, locale),
@@ -306,6 +326,11 @@ test.describe("About content contract — schema-to-frontend connection (read-on
       });
 
       // ---- SEO (FIXED — now wired with Home's fallback chain) ---------------------------------------
+      // seo.title/description are genuinely optional by design (no
+      // requireAllLanguages/allOrNothingLanguages validation, only an
+      // English-length warning) and have a tested code fallback — skipping
+      // the "reflects the published value" half when empty is documented
+      // and deliberate, not a stand-in for missing coverage.
       test("SEO title falls back to the hardcoded default when Sanity has no value", async ({ page }) => {
         const value = pick(page_.seo?.title, locale);
         test.skip(!!value, "a value is published for this locale — see the companion 'reflects the published value' test instead");
@@ -314,7 +339,7 @@ test.describe("About content contract — schema-to-frontend connection (read-on
 
       test("SEO title reflects the published Sanity value when present", async ({ page }) => {
         const value = pick(page_.seo?.title, locale);
-        test.skip(!value, "no published SEO title for this locale yet — see the companion fallback test instead");
+        test.skip(!value, "optional field, has a tested code fallback — no value published for this locale, see the companion fallback test");
         await expect(page).toHaveTitle(value!);
       });
 
@@ -329,7 +354,7 @@ test.describe("About content contract — schema-to-frontend connection (read-on
 
       test("SEO description reflects the published Sanity value when present", async ({ page }) => {
         const value = pick(page_.seo?.description, locale);
-        test.skip(!value, "no published value for this locale yet — see the companion fallback test instead");
+        test.skip(!value, "optional field, has a tested code fallback — no value published for this locale, see the companion fallback test");
         await expect(page.locator('head meta[name="description"]')).toHaveAttribute("content", value!);
       });
     });

@@ -868,6 +868,7 @@ export type Event = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  visibleLocales?: Array<string>;
   title?: InternationalizedArrayString;
   slug?: Slug;
   image?: ImageWithAlt;
@@ -1372,13 +1373,14 @@ export type EventsPageQueryResult = {
 
 // Source: sanity/queries/events.ts
 // Variable: allEventsQuery
-// Query: *[_type == "event"] | order(date asc)
+// Query: *[_type == "event" && $locale in visibleLocales] | order(date asc)
 export type AllEventsQueryResult = Array<{
   _id: string;
   _type: "event";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  visibleLocales?: Array<string>;
   title?: InternationalizedArrayString;
   slug?: Slug;
   image?: ImageWithAlt;
@@ -1442,6 +1444,7 @@ export type EventBySlugQueryResult = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  visibleLocales?: Array<string>;
   title?: InternationalizedArrayString;
   slug?: Slug;
   image?: ImageWithAlt;
@@ -1500,6 +1503,14 @@ export type EventBySlugQueryResult = {
 // Variable: allEventSlugsQuery
 // Query: *[_type == "event"].slug.current
 export type AllEventSlugsQueryResult = Array<string | null>;
+
+// Source: sanity/queries/events.ts
+// Variable: allEventsForSitemapQuery
+// Query: *[_type == "event" && defined(slug.current)]{"slug": slug.current, visibleLocales}
+export type AllEventsForSitemapQueryResult = Array<{
+  slug: string | null;
+  visibleLocales: Array<string> | null;
+}>;
 
 // Source: sanity/queries/faq.ts
 // Variable: faqPageQuery
@@ -2230,9 +2241,10 @@ import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
     '*[_type == "eventsPage"][0]': EventsPageQueryResult;
-    '*[_type == "event"] | order(date asc)': AllEventsQueryResult;
+    '*[_type == "event" && $locale in visibleLocales] | order(date asc)': AllEventsQueryResult;
     '*[_type == "event" && slug.current == $slug][0]': EventBySlugQueryResult;
     '*[_type == "event"].slug.current': AllEventSlugsQueryResult;
+    '*[_type == "event" && defined(slug.current)]{"slug": slug.current, visibleLocales}': AllEventsForSitemapQueryResult;
     '*[_type == "faqPage"][0]': FaqPageQueryResult;
     '*[_type == "siteSettings"][0]': SiteSettingsQueryResult;
     '*[_type == "contactInfo"][0]': ContactInfoQueryResult;

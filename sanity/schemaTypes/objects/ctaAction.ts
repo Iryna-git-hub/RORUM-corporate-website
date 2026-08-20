@@ -51,7 +51,15 @@ export default defineType({
       type: "string",
       description:
         "An internal path (e.g. /events), an in-page anchor (e.g. #request), or a full external URL. / Внутрішній шлях, якір на сторінці або повна зовнішня адреса.",
-      validation: (rule) => rule.required(),
+      // Only required while the button is actually shown on the site
+      // (`enabled` !== false) — a disabled action renders nothing, so an
+      // editor turning a button off shouldn't be blocked from publishing by
+      // a destination they haven't gotten around to filling in yet.
+      validation: (rule) =>
+        rule.custom((href, context) => {
+          if ((context.parent as { enabled?: boolean } | undefined)?.enabled === false) return true;
+          return href ? true : "A destination is required.";
+        }),
     }),
     defineField({
       name: "openInNewTab",

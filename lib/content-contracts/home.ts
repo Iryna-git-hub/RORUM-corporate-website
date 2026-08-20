@@ -719,5 +719,30 @@ export const homeContract: PageContentContract = {
         "visible; production content for this field is still empty. Distinguish \"connected in code\" from " +
         "\"populated in Sanity\": this entry is the former, not (yet) the latter.",
     },
+    {
+      pageKey: "home",
+      sectionKey: "seo",
+      sanityPath: "seo.ogImage",
+      fieldPurpose: "Social Sharing Image (og:image) for the Home page",
+      fieldType: "image",
+      required: false,
+      languages: [],
+      querySource: QUERY,
+      mapper: "getData() ogImageUrl = urlForImage(newPage?.seo?.ogImage), passed to generateMetadata()'s localizedPageMetadata() call",
+      component: "app/[locale]/(site)/page.tsx generateMetadata() (<meta property=\"og:image\">)",
+      frontendSelector: 'head meta[property="og:image"]',
+      expectedBehavior: "When an editor uploads a Social Sharing Image, that photo's URL is used for og:image; otherwise the existing hardcoded /images/hero.jpg fallback is used, unchanged from before.",
+      mutationStrategy: "image-swap",
+      editorVisibility: "visible",
+      classification: "connected",
+      notes:
+        "Wired this pass: previously visible in Studio (rename: 'Open Graph image' -> 'Social Sharing Image') but " +
+        "read by no frontend code at all — every generateMetadata() call site site-wide except the event-detail " +
+        "page passed no `image`, so an editor's upload had zero effect. Also fixed a latent bug in " +
+        "lib/seo.ts's localizedPageMetadata(): it unconditionally prefixed the image path with siteUrl, silently " +
+        "breaking any already-absolute URL (e.g. this Sanity CDN asset) into a doubled-up, broken string. Home's " +
+        "own ogImage content is currently unset — this entry describes the code path, which is now correct for " +
+        "both the populated and empty branches.",
+    },
   ],
 };
