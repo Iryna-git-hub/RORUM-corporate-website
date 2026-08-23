@@ -72,6 +72,23 @@ function shouldSkipAltRequirement(document: unknown, path: PathSegment[] | undef
   return isDecorativeContentItemImageAlt(document, path) || isImageFieldHiddenByItemRole(document, path);
 }
 
+// Every `imageWithAlt` reachable from these 2 documents is a real,
+// informative content photo — menu-format cards and menu-category dish
+// photos (both `contentItem.image`) — never a decorative background (those
+// use `mediaItem`, which already requires all 3 languages unconditionally;
+// see mediaItem.ts). Scoped narrowly to these 2 document ids specifically
+// (not a blanket change to `imageWithAlt` or to `contentItem.image`
+// generally) so every other page's images — Home/About atmosphere photos,
+// Home's decorative quickPaths/servicesTeaser images above, etc. — keep the
+// existing English-required-only rule, unaudited and unaffected.
+const CATERING_INFORMATIVE_IMAGE_DOC_IDS = new Set(["page-catering", "page-catering-menu-examples"]);
+
+function isCateringInformativeImage(document: unknown): boolean {
+  const doc = document as { _id?: string } | undefined;
+  const docId = doc?._id?.replace(/^drafts\./, "");
+  return !!docId && CATERING_INFORMATIVE_IMAGE_DOC_IDS.has(docId);
+}
+
 export default defineType({
   name: "imageWithAlt",
   title: "Image",
@@ -111,6 +128,21 @@ export default defineType({
             const names = missing.map((l) => ({ en: "English", da: "Danish", uk: "Ukrainian" })[l] ?? l);
             const list = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : names[0];
             return `Please add the ${list} alt text — this event is shown on the ${list} website.`;
+          }
+
+          // Catering (non-event) informative images: full en/da/uk
+          // required, not just English — see
+          // CATERING_INFORMATIVE_IMAGE_DOC_IDS above for exactly which
+          // documents/images this applies to.
+          if (isCateringInformativeImage(context.document)) {
+            const entries = (value as { _key: string; language?: string; value?: string }[] | undefined) ?? [];
+            const missing = (["en", "da", "uk"] as const).filter(
+              (lang) => !entries.some((e) => (e.language ?? e._key) === lang && e.value?.trim()),
+            );
+            if (!missing.length) return true;
+            const names = missing.map((l) => ({ en: "English", da: "Danish", uk: "Ukrainian" })[l] ?? l);
+            const list = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : names[0];
+            return `Please add the ${list} alt text.`;
           }
 
           const en = (value as { _key: string; language?: string; value?: string }[] | undefined)?.find(

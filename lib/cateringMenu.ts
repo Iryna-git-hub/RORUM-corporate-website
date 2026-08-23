@@ -14,6 +14,16 @@ export interface CateringMenuCategory {
   navLabel: string;
   description: string;
   featuredItems: CateringMenuItem[];
+  /**
+   * Canonical `lucide-react` export name for this category's nav-tab icon,
+   * as picked by an editor via the Studio icon picker (see
+   * sanity/components/IconPickerInput.tsx / lib/iconCardIcons.ts). Not set
+   * on the hardcoded fallback categories below — those keep resolving their
+   * icon from CateringMenuOverlay.tsx's own `CATEGORY_ICONS` id-keyed map,
+   * unchanged, so the emergency-fallback experience is pixel-identical to
+   * before this field existed.
+   */
+  icon?: string;
 }
 
 export const menuCategories: CateringMenuCategory[] = [

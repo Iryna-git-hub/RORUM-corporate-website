@@ -3,11 +3,13 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 import pageSectionType from "@/sanity/schemaTypes/objects/pageSection";
 import contentItemType, { ITEM_ROLE_RULES, matchItemRoleInContext } from "@/sanity/schemaTypes/objects/contentItem";
+import { allOrNothingLanguages, allOrNothingForSelectedEventLocales, requireAllLanguages } from "@/sanity/lib/i18nValidation";
 import mediaItemType from "@/sanity/schemaTypes/objects/mediaItem";
 import ctaActionType from "@/sanity/schemaTypes/objects/ctaAction";
 import imageWithAltType from "@/sanity/schemaTypes/objects/imageWithAlt";
 import seoType from "@/sanity/schemaTypes/objects/seo";
 import eventType from "@/sanity/schemaTypes/documents/event";
+import pageType from "@/sanity/schemaTypes/documents/page";
 
 /**
  * Direct, no-Studio-runtime tests of the schema's own `hidden`/`readOnly`/
@@ -155,14 +157,21 @@ test.describe("pageSection.ts — section-level field visibility (mocked context
 // the rules the schema actually applies.
 // ============================================================================
 test.describe("contentItem.ts — ITEM_ROLE_RULES matrix (mocked document+parent contexts)", () => {
-  function docWithItem(sectionKey: string, itemKey: string, itemObjectKey = "the-item") {
-    return { sections: [{ sectionKey, items: [{ _key: itemObjectKey, itemKey }] }] };
+  // `itemKey: undefined` (omitted entirely) mirrors a real free-form list
+  // item that never had a key assigned (e.g. a catering menu dish) —
+  // `matchItemRole` treats a missing itemKey as "" for pattern matching.
+  function docWithItem(sectionKey: string, itemKey: string | undefined, itemObjectKey = "the-item", sectionKind?: string) {
+    const item: { _key: string; itemKey?: string } = { _key: itemObjectKey };
+    if (itemKey !== undefined) item.itemKey = itemKey;
+    return { sections: [{ sectionKey, sectionKind, items: [item] }] };
   }
 
   for (const rule of ITEM_ROLE_RULES) {
     // Patterns here are all literal-alternation or prefix+digit shaped; probe a few plausible candidates instead of guessing blindly.
     const candidates = [
-      ...rule.sectionKeys.flatMap((k) => [k, `${k}0`, `${k}1`]),
+      "",
+      "categoryIcon",
+      ...(rule.sectionKeys ?? []).flatMap((k) => [k, `${k}0`, `${k}1`]),
       "trust0", "trust1", "trust2", "trust3",
       "events", "hostAtRorum", "catering", "eventDecoration",
       "description", "feature0", "feature1", "feature2", "feature3",
@@ -174,17 +183,25 @@ test.describe("contentItem.ts — ITEM_ROLE_RULES matrix (mocked document+parent
       "dateLabel", "languageLabel", "priceLabel", "availabilityLabel", "soonestLabel", "weekLabel",
       "monthLabel", "priceAscLabel", "priceDescLabel", "availableLabel", "soldOutLabel",
       "clearFiltersLabel", "emptyStateTitle", "emptyStateText",
+      "menuExamplesCta", "ariaLabel", "suitableFor0", "suitableFor1",
+      "format0", "format1", "format2", "format3", "format4", "format5",
+      "tailoredNote", "step0", "step1", "step2",
+      "submitLabel", "messagePlaceholder", "footerNote", "successMessage",
+      "requestCta", "featuredDishesLabel", "backToCateringCta", "disclaimerNote", "emptyStateMessage",
     ];
-    const itemKey = candidates.find((c) => rule.itemKeyPattern.test(c));
-    if (!itemKey) throw new Error(`no test candidate matches rule "${rule.role}"'s pattern — fix the test fixture list`);
+    const rawItemKey = candidates.find((c) => rule.itemKeyPattern.test(c));
+    if (rawItemKey === undefined) throw new Error(`no test candidate matches rule "${rule.role}"'s pattern — fix the test fixture list`);
+    const itemKey = rawItemKey === "" ? undefined : rawItemKey;
 
-    test(`role="${rule.role}" (sectionKey in [${rule.sectionKeys.join(",")}], itemKey="${itemKey}")`, () => {
-      const sectionKey = rule.sectionKeys[0]!;
-      const document = docWithItem(sectionKey, itemKey);
+    const sectionKey = rule.sectionKeys?.[0] ?? "some-manager-added-section-key";
+    const sectionKind = rule.sectionKeys ? undefined : rule.sectionKinds![0];
+
+    test(`role="${rule.role}" (sectionKey in [${(rule.sectionKeys ?? []).join(",")}]${rule.sectionKinds ? `, sectionKind in [${rule.sectionKinds.join(",")}]` : ""}, itemKey=${JSON.stringify(itemKey)})`, () => {
+      const document = docWithItem(sectionKey, itemKey, "the-item", sectionKind);
       const parent = document.sections[0]!.items[0]!;
 
       const matched = matchItemRoleInContext(document, parent);
-      expect(matched?.role, `expected itemKey "${itemKey}" in sectionKey "${sectionKey}" to match role "${rule.role}"`).toBe(rule.role);
+      expect(matched?.role, `expected itemKey ${JSON.stringify(itemKey)} in section "${sectionKey}" to match role "${rule.role}"`).toBe(rule.role);
 
       for (const fieldName of ["itemKey", "icon", "title", "text", "image", "href", "label", "value"] as const) {
         const expectedVisible = rule.visible.includes(fieldName);
@@ -193,6 +210,53 @@ test.describe("contentItem.ts — ITEM_ROLE_RULES matrix (mocked document+parent
       }
     });
   }
+
+  test("a sectionKinds-based rule (Catering menu dish) matches ANY sectionKey sharing that kind — proves manager-added categories get the same field visibility with zero code changes", () => {
+    const document = docWithItem("menuCategory-brandNewCategory", undefined, "dish-1", "menuCategory");
+    const parent = document.sections[0]!.items[0]!;
+    const matched = matchItemRoleInContext(document, parent);
+    expect(matched?.role).toBe("Catering menu dish");
+  });
+
+  test("a sectionKinds-based rule never matches a section of a different kind, even with the same key pattern (empty itemKey)", () => {
+    const document = docWithItem("someOtherSection", undefined, "the-item", "custom");
+    const parent = document.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(document, parent)).toBeUndefined();
+  });
+
+  // Regression for the live Studio defect: a manager-added "What We Offer"
+  // bullet (philosophy section) added through the generic array "add"
+  // control has NO itemKey yet — before this fix, "Catering \"what we
+  // offer\" bullet"'s pattern was the closed set /^format[0-5]$/, which
+  // never matches "", so the new item matched no role at all and every
+  // generic contentItem field (itemKey, image, href, label, value) stayed
+  // visible with its validation unskipped. CateringOfferItemsInput.tsx
+  // sidesteps this in practice by always assigning a real formatN key, but
+  // the schema itself must also tolerate a blank one (e.g. an item added via
+  // the disabled-but-still-technically-reachable native array control).
+  test("a brand-new What We Offer bullet with NO itemKey yet matches its role — only icon/title/text visible, itemKey/image/href/label/value hidden", () => {
+    const document = docWithItem("philosophy", undefined, "the-item");
+    const parent = document.sections[0]!.items[0]!;
+    const matched = matchItemRoleInContext(document, parent);
+    expect(matched?.role).toBe('Catering "what we offer" bullet');
+    for (const fieldName of ["icon", "title", "text"] as const) {
+      expect(callHidden(field(contentItemType, fieldName), { document, parent }), fieldName).toBe(false);
+    }
+    for (const fieldName of ["itemKey", "image", "href", "label", "value"] as const) {
+      expect(callHidden(field(contentItemType, fieldName), { document, parent }), fieldName).toBe(true);
+    }
+  });
+
+  test("a What We Offer bullet's itemKey is readOnly once CateringOfferItemsInput assigns it — rename (title/text edits) and reorder have no code path that can change it", () => {
+    expect(callReadOnly(field(contentItemType, "itemKey"), { value: "format7" })).toBe(true);
+  });
+
+  test("a blank-itemKey What We Offer bullet still doesn't leak into the sibling tailoredNote role or vice versa", () => {
+    const blank = docWithItem("philosophy", undefined, "the-item");
+    expect(matchItemRoleInContext(blank, blank.sections[0]!.items[0]!)?.role).not.toBe('Catering "tailored upon request" note');
+    const noted = docWithItem("philosophy", "tailoredNote", "the-item");
+    expect(matchItemRoleInContext(noted, noted.sections[0]!.items[0]!)?.role).toBe('Catering "tailored upon request" note');
+  });
 
   test("an item with no audited role shows every field, unchanged", () => {
     const document = { sections: [{ sectionKey: "someUnauditedSection", items: [{ _key: "x", itemKey: "somethingElse" }] }] };
@@ -396,13 +460,22 @@ test.describe("contentItem.ts — hidden-by-role fields skip validation too (tit
     });
   }
 
+  // A single stray empty-valued entry (strayPartial) is, since the
+  // allOrNothingLanguages "effectively empty" fix, indistinguishable from a
+  // fully-cleared field — it must NOT block Publish, visible or hidden. To
+  // prove a VISIBLE field still enforces real incompleteness, these use a
+  // genuinely-started fixture (one language with real content) instead.
+  const genuinelyPartial = [{ _key: "en", language: "en", value: "Hello" }];
+
   test("closingCta link item's label and About hero intro-link's label are genuinely VISIBLE (both roles use it) and still enforce allOrNothingLanguages normally", () => {
     for (const [sectionKey, itemKey] of [["closingCta", "link0"], ["hero", "intro0"]] as const) {
       const document = docWithItem(sectionKey, itemKey);
       const parent = document.sections[0]!.items[0]!;
       const context = { document, parent };
       expect(callHidden(field(contentItemType, "label"), context)).toBe(false);
-      expect(captureCustomValidator(field(contentItemType, "label"))(strayPartial, context)).not.toBe(true);
+      expect(captureCustomValidator(field(contentItemType, "label"))(genuinelyPartial, context)).not.toBe(true);
+      // A stray-only array, though, is correctly treated as empty (valid) even for a visible field.
+      expect(captureCustomValidator(field(contentItemType, "label"))(strayPartial, context)).toBe(true);
     }
   });
 
@@ -414,7 +487,7 @@ test.describe("contentItem.ts — hidden-by-role fields skip validation too (tit
       const rule = matchItemRoleInContext(document, parent);
       if (!rule?.visible.includes(fieldName)) return; // only assert for fields this role actually shows
       expect(callHidden(field(contentItemType, fieldName), context)).toBe(false);
-      expect(captureCustomValidator(field(contentItemType, fieldName))(strayPartial, context)).not.toBe(true);
+      expect(captureCustomValidator(field(contentItemType, fieldName))(genuinelyPartial, context)).not.toBe(true);
     });
   }
 });
@@ -435,7 +508,81 @@ test.describe("pageSection.ts — hidden section-level label/title/text also ski
     const parent = { sectionKind: "custom", sectionKey: "someOtherCustomSection" };
     const context = { document, parent };
     expect(callHidden(field(pageSectionType, "text"), context)).toBe(false);
-    expect(captureCustomValidator(field(pageSectionType, "text"))(strayPartial, context)).not.toBe(true);
+    // A single stray empty-valued entry is correctly treated as empty (valid) — use a genuinely-started fixture instead.
+    const genuinelyPartial = [{ _key: "en", language: "en", value: "Hello" }];
+    expect(captureCustomValidator(field(pageSectionType, "text"))(genuinelyPartial, context)).not.toBe(true);
+  });
+});
+
+// ============================================================================
+// i18nValidation.ts — an optional i18n array left with only stray/empty
+// entries (Sanity's Studio widget leaves one behind when a manager clears a
+// field's text, rather than truly emptying the array) must be treated as
+// fully empty — the live-Studio symptom was "clearing the field never clears
+// the validation error." Exercised directly against the exported validators
+// (not through a schema field) so this can never silently drift from the
+// mocked-context tests above.
+// ============================================================================
+test.describe("i18nValidation.ts — stray empty-valued entries don't block Publish (optional fields only)", () => {
+  function customValidator(factory: () => (rule: import("sanity").Rule) => unknown): (value: unknown, context: unknown) => unknown {
+    let captured: ((value: unknown, context: unknown) => unknown) | undefined;
+    const mockRule = {
+      custom(fn: (value: unknown, context: unknown) => unknown) {
+        captured = fn;
+        return mockRule;
+      },
+    };
+    factory()(mockRule as unknown as import("sanity").Rule);
+    if (!captured) throw new Error("expected the validator factory to call rule.custom(...)");
+    return captured;
+  }
+
+  test("allOrNothingLanguages: a single stray entry with an undefined value (the exact Studio-clear residue) is valid", () => {
+    const validate = customValidator(() => allOrNothingLanguages());
+    expect(validate([{ _key: "en", language: "en", value: undefined }], {})).toBe(true);
+  });
+
+  test("allOrNothingLanguages: all three languages present but every value empty/whitespace is valid", () => {
+    const validate = customValidator(() => allOrNothingLanguages());
+    expect(validate([{ _key: "en", language: "en", value: "" }, { _key: "da", language: "da", value: "   " }, { _key: "uk", language: "uk", value: null }], {})).toBe(true);
+  });
+
+  test("allOrNothingLanguages: a genuinely-started field (one real value) still correctly requires the rest — the fix does not weaken real partial-content detection", () => {
+    const validate = customValidator(() => allOrNothingLanguages());
+    const result = validate([{ _key: "en", language: "en", value: "Hello" }], {});
+    expect(result).not.toBe(true);
+    expect(typeof result).toBe("string");
+  });
+
+  test("allOrNothingLanguages: a real value alongside a stray empty one for another language still requires completion, not silently accepted as done", () => {
+    const validate = customValidator(() => allOrNothingLanguages());
+    const result = validate([{ _key: "en", language: "en", value: "Hello" }, { _key: "da", language: "da", value: "" }], {});
+    expect(result).not.toBe(true);
+  });
+
+  test("allOrNothingForSelectedEventLocales: stray empty entries for the event's selected locales are valid", () => {
+    const validate = customValidator(() => allOrNothingForSelectedEventLocales());
+    const context = { document: { _type: "event", visibleLocales: ["en", "da"] } };
+    expect(validate([{ _key: "en", language: "en", value: "" }, { _key: "da", language: "da", value: undefined }], context)).toBe(true);
+  });
+
+  test("allOrNothingForSelectedEventLocales: a genuinely-started field for a selected locale still requires the rest", () => {
+    const validate = customValidator(() => allOrNothingForSelectedEventLocales());
+    const context = { document: { _type: "event", visibleLocales: ["en", "da"] } };
+    const result = validate([{ _key: "en", language: "en", value: "Hello" }], context);
+    expect(result).not.toBe(true);
+  });
+
+  test("requireAllLanguages is unchanged: a stray-only array is still invalid for a genuinely required field", () => {
+    const validate = customValidator(() => requireAllLanguages());
+    const result = validate([{ _key: "en", language: "en", value: "" }], {});
+    expect(result).not.toBe(true);
+  });
+
+  test("requireAllLanguages is unchanged: a fully empty/absent value is still invalid for a genuinely required field", () => {
+    const validate = customValidator(() => requireAllLanguages());
+    expect(validate(undefined, {})).not.toBe(true);
+    expect(validate([], {})).not.toBe(true);
   });
 });
 
@@ -527,7 +674,9 @@ test.describe("contentItem.ts — Events filter/empty-state label role, hidden-f
     const document = docWithFilterItem("dateLabel");
     const parent = document.sections[0]!.items[0]!;
     const context = { document, parent };
-    expect(captureCustomValidator(field(contentItemType, "title"))(strayPartial, context)).not.toBe(true);
+    // A single stray empty-valued entry is correctly treated as empty (valid) — use a genuinely-started fixture instead.
+    const genuinelyPartial = [{ _key: "en", language: "en", value: "Hello" }];
+    expect(captureCustomValidator(field(contentItemType, "title"))(genuinelyPartial, context)).not.toBe(true);
   });
 
   test("an unrelated sectionKey using the same itemKey string is unaffected (scoped by sectionKey, not itemKey alone)", () => {
@@ -907,6 +1056,241 @@ test.describe("Events — regression: deselecting da after content exists never 
 // plain array literal containing all 3 locale codes, never a `select`
 // option or a `languages` callback/function.
 // ============================================================================
+// ============================================================================
+// page.ts — pageKey uniqueness guard, added after this exact bug: two `page`
+// documents (canonical dash-case `page-catering-menu-examples` and an
+// erroneous camelCase `page-cateringMenuExamples`) both carried
+// `pageKey: "cateringMenuExamples"`, and pageByKeyQuery's `[0]` silently
+// picked the wrong one in production. This is a schema-level fix that
+// protects every page, not just Catering — regression-tested against Home's
+// own pageKey to prove it doesn't block ordinary, already-unique pages.
+// ============================================================================
+// ============================================================================
+// pageSection.ts — sectionKind/sectionKey hidden on page-catering-menu-examples
+// once a section is correctly shaped (has a sectionKind), and sectionKey's
+// own readOnly-once-set behavior — the two mechanisms CateringMenuSectionsInput
+// relies on to keep technical fields out of view for a valid category, and
+// to guarantee renaming a category (editing title/label) can never change
+// its stable sectionKey.
+// ============================================================================
+test.describe("pageSection.ts — sectionKind/sectionKey hidden + locked for Catering Menu Examples categories", () => {
+  function sectionKeyField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "sectionKey");
+  }
+  function sectionKindField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "sectionKind");
+  }
+  const cateringMenuDoc = { _id: "page-catering-menu-examples" };
+  const cateringMenuDraftDoc = { _id: "drafts.page-catering-menu-examples" };
+
+  test("both fields hidden once the section already has a sectionKind (a valid, already-added category)", () => {
+    const parent = { sectionKind: "menuCategory", sectionKey: "menuCategory-abc123" };
+    expect(callHidden(sectionKeyField(), { parent, document: cateringMenuDoc })).toBe(true);
+    expect(callHidden(sectionKindField(), { parent, document: cateringMenuDoc })).toBe(true);
+  });
+
+  test("draft id (prefix stripped) behaves identically to the published id", () => {
+    const parent = { sectionKind: "menuCategory", sectionKey: "menuCategory-abc123" };
+    expect(callHidden(sectionKeyField(), { parent, document: cateringMenuDraftDoc })).toBe(true);
+    expect(callHidden(sectionKindField(), { parent, document: cateringMenuDraftDoc })).toBe(true);
+  });
+
+  test("applies to every section on this document, not just menuCategory-kind ones (banner/closing too)", () => {
+    for (const sectionKind of ["hero", "cta"]) {
+      const parent = { sectionKind, sectionKey: sectionKind === "hero" ? "banner" : "closing" };
+      expect(callHidden(sectionKeyField(), { parent, document: cateringMenuDoc }), sectionKind).toBe(true);
+    }
+  });
+
+  test("never hidden while a section has NO sectionKind yet (a stray raw section from the generic array control, if ever reached) — required-and-visible, never required-and-hidden", () => {
+    const parent = { sectionKind: undefined, sectionKey: undefined };
+    expect(callHidden(sectionKeyField(), { parent, document: cateringMenuDoc })).toBe(false);
+    expect(callHidden(sectionKindField(), { parent, document: cateringMenuDoc })).toBe(false);
+  });
+
+  test("regression: unaffected on every other page (Home/About/Events) regardless of sectionKind", () => {
+    for (const docId of ["page-home", "page-about", "page-events"]) {
+      const parent = { sectionKind: "hero", sectionKey: "hero" };
+      expect(callHidden(sectionKeyField(), { parent, document: { _id: docId } }), docId).toBe(false);
+    }
+  });
+
+  test("rename never changes the key: sectionKey is readOnly once set, independent of title/label — editing a category's title has no code path that touches sectionKey", () => {
+    expect(callReadOnly(sectionKeyField(), { value: "menuCategory-abc123" })).toBe(true);
+    expect(callReadOnly(sectionKeyField(), { value: undefined })).toBe(false);
+  });
+});
+
+test.describe("page.ts — pageKey uniqueness validator", () => {
+  function captureAsyncCustomValidator(f: { validation?: (rule: unknown) => unknown }): (value: unknown, context: unknown) => Promise<unknown> {
+    let captured: ((value: unknown, context: unknown) => Promise<unknown>) | undefined;
+    const mockRule = {
+      required: () => mockRule,
+      custom(fn: (value: unknown, context: unknown) => Promise<unknown>) {
+        captured = fn;
+        return mockRule;
+      },
+    };
+    f.validation?.(mockRule);
+    if (!captured) throw new Error("expected pageKey's validation to call rule.custom(...)");
+    return captured;
+  }
+
+  function pageKeyField() {
+    return pageType.fields.find((f) => f.name === "pageKey") as unknown as { validation?: (rule: unknown) => unknown };
+  }
+
+  function mockContext(documentId: string, otherPagesWithSameKey: number) {
+    return {
+      document: { _id: documentId },
+      getClient: () => ({ fetch: async () => otherPagesWithSameKey }),
+    };
+  }
+
+  test("no other page uses this pageKey -> valid", async () => {
+    const validate = captureAsyncCustomValidator(pageKeyField());
+    await expect(validate("catering", mockContext("page-catering", 0))).resolves.toBe(true);
+  });
+
+  test("another page already uses this pageKey -> invalid, with a manager-readable message", async () => {
+    const validate = captureAsyncCustomValidator(pageKeyField());
+    const result = await validate("cateringMenuExamples", mockContext("page-cateringMenuExamples", 1));
+    expect(result).not.toBe(true);
+    expect(typeof result).toBe("string");
+    expect(result as string).toContain("cateringMenuExamples");
+  });
+
+  test("empty/missing value -> valid (required() reports the missing-value case separately)", async () => {
+    const validate = captureAsyncCustomValidator(pageKeyField());
+    await expect(validate(undefined, mockContext("page-home", 0))).resolves.toBe(true);
+  });
+
+  test("regression: an ordinary, already-unique page (Home) is never blocked", async () => {
+    const validate = captureAsyncCustomValidator(pageKeyField());
+    await expect(validate("home", mockContext("page-home", 0))).resolves.toBe(true);
+  });
+});
+
+// ============================================================================
+// contentItem.ts — Catering-specific ITEM_ROLE_RULES, exercised against the
+// REAL stored shape of page-catering-menu-examples (dishes carry a
+// positional "dish0".."dishN" itemKey, not no itemKey at all — confirmed by
+// a live read-only probe before this rule's pattern was chosen).
+// ============================================================================
+test.describe("contentItem.ts — Catering menu dish / category icon roles match real stored data", () => {
+  function docWithMenuCategorySection(sectionKey: string, item: { _key: string; itemKey?: string }) {
+    return { sections: [{ sectionKey, sectionKind: "menuCategory", items: [item] }] };
+  }
+
+  test('a dish with a real "dish0"-style itemKey matches the "Catering menu dish" role', () => {
+    const document = docWithMenuCategorySection("category-ukrainian", { _key: "dish0", itemKey: "dish0" });
+    const parent = document.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(document, parent)?.role).toBe("Catering menu dish");
+  });
+
+  test("a dish with no itemKey at all (a manager-added fresh row) also matches the same role", () => {
+    const document = docWithMenuCategorySection("category-ukrainian", { _key: "dish99" });
+    const parent = document.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(document, parent)?.role).toBe("Catering menu dish");
+  });
+
+  test("the categoryIcon reserved item matches its own role, not the dish role", () => {
+    const document = docWithMenuCategorySection("category-ukrainian", { _key: "categoryIcon", itemKey: "categoryIcon" });
+    const parent = document.sections[0]!.items[0]!;
+    const matched = matchItemRoleInContext(document, parent);
+    expect(matched?.role).toBe("Catering menu category tab icon");
+    expect(matched?.visible).toEqual(["icon"]);
+  });
+
+  test('a dish shows only title/text/image — icon/href/label/value/itemKey are hidden', () => {
+    const document = docWithMenuCategorySection("category-ukrainian", { _key: "dish0", itemKey: "dish0" });
+    const parent = document.sections[0]!.items[0]!;
+    for (const fieldName of ["itemKey", "icon", "title", "text", "image", "href", "label", "value"] as const) {
+      const expectedVisible = ["title", "text", "image"].includes(fieldName);
+      expect(callHidden(field(contentItemType, fieldName), { document, parent }), fieldName).toBe(!expectedVisible);
+    }
+  });
+});
+
+// ============================================================================
+// page.ts — `seo` is hidden on page-catering-menu-examples specifically.
+// Regression guard for the SEO-contradiction found this pass: an earlier
+// version of this task incorrectly reported that document's seo block as
+// "connected" — tracing generateMetadata() in
+// app/[locale]/(site)/catering/page.tsx shows it is never read (Catering
+// Menu Examples has no route of its own). This proves the fix: the field
+// is hidden there, and unaffected everywhere else.
+// ============================================================================
+// ============================================================================
+// imageWithAlt.ts — Catering informative images (menu-format cards, dish
+// photos) now require en/da/uk, not just English. Regression-tested against
+// every OTHER imageWithAlt use (Home/About/non-Catering pages, and Events —
+// which has its own, separate visibleLocales-aware branch) to prove this
+// change is scoped exactly to page-catering/page-catering-menu-examples.
+// ============================================================================
+test.describe("imageWithAlt.ts — Catering informative images require en/da/uk", () => {
+  function altField() {
+    return field(imageWithAltType, "alt");
+  }
+  function entries(langs: readonly string[]): { _key: string; language: string; value: string }[] {
+    return langs.map((l) => ({ _key: l, language: l, value: `Alt ${l}` }));
+  }
+
+  for (const docId of ["page-catering", "page-catering-menu-examples", "drafts.page-catering", "drafts.page-catering-menu-examples"]) {
+    test(`${docId}: full en/da/uk required`, () => {
+      const validate = captureCustomValidator(altField());
+      const document = { _id: docId };
+      expect(validate(entries(["en", "da", "uk"]), { document, path: [] }), "all 3 present").toBe(true);
+      expect(validate(entries(["en"]), { document, path: [] }), "only English present").not.toBe(true);
+      expect(validate(entries(["en", "da"]), { document, path: [] }), "missing Ukrainian").not.toBe(true);
+      expect(validate(undefined, { document, path: [] }), "fully empty").not.toBe(true);
+    });
+  }
+
+  test("regression: every other page (Home/About/non-Catering) keeps the unchanged English-only rule", () => {
+    const validate = captureCustomValidator(altField());
+    for (const docId of ["page-home", "page-about", "page-events", "page-work-with-us"]) {
+      const document = { _id: docId };
+      expect(validate(entries(["en"]), { document, path: [] }), `${docId}: English present`).toBe(true);
+      expect(validate(entries(["da", "uk"]), { document, path: [] }), `${docId}: English missing`).not.toBe(true);
+    }
+  });
+
+  test("regression: Event documents keep their own visibleLocales-aware branch, unaffected by the Catering branch", () => {
+    const validate = captureCustomValidator(altField());
+    const document = { _type: "event", _id: "some-event-id", visibleLocales: ["uk"] };
+    expect(validate(entries(["uk"]), { document, path: [] }), "event: only its selected locale required").toBe(true);
+    expect(validate(entries(["en"]), { document, path: [] }), "event: English alone is not the selected locale").not.toBe(true);
+  });
+});
+
+test.describe("page.ts — seo field hidden on page-catering-menu-examples only", () => {
+  function seoField() {
+    return pageType.fields.find((f) => f.name === "seo") as unknown as { hidden?: (ctx: { document?: unknown }) => boolean };
+  }
+
+  test("hidden on page-catering-menu-examples (published id)", () => {
+    const hidden = seoField().hidden?.({ document: { _id: "page-catering-menu-examples" } });
+    expect(hidden).toBe(true);
+  });
+
+  test("hidden on drafts.page-catering-menu-examples (draft id, prefix stripped)", () => {
+    const hidden = seoField().hidden?.({ document: { _id: "drafts.page-catering-menu-examples" } });
+    expect(hidden).toBe(true);
+  });
+
+  test("regression: visible/unaffected on page-catering — the one document whose seo block is genuinely connected", () => {
+    const hidden = seoField().hidden?.({ document: { _id: "page-catering" } });
+    expect(hidden).toBe(false);
+  });
+
+  test("regression: visible/unaffected on every other page (Home, About, Events)", () => {
+    for (const id of ["page-home", "page-about", "page-events"]) {
+      expect(seoField().hidden?.({ document: { _id: id } }), id).toBe(false);
+    }
+  });
+});
+
 test.describe("sanity.config.ts — internationalizedArray global registry stays static", () => {
   test("languages is a static array with en/da/uk, not a per-document callback", () => {
     const source = readFileSync(path.join(process.cwd(), "sanity.config.ts"), "utf8");

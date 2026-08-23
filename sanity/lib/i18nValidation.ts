@@ -81,7 +81,15 @@ export function allOrNothingLanguages(options?: { skip?: (context: ValidationCon
     rule.custom((value: I18nEntry[] | undefined, context: ValidationContext) => {
       if (options?.skip?.(context)) return true;
       const list = value ?? [];
-      if (list.length === 0) return true;
+      // Sanity's i18n-array Studio widget leaves a stray entry behind
+      // (e.g. {_key:"en", language:"en", value: undefined}) when a manager
+      // clears a field's text rather than truly emptying the array, so
+      // `list.length === 0` alone never becomes true again once a field has
+      // been touched. Treating "every entry is empty-valued" the same as
+      // "no entries at all" is what makes clearing a field actually clear
+      // the validation error, instead of leaving an unfixable-by-the-UI
+      // "please add the missing translations" message.
+      if (list.length === 0 || list.every((e) => isEmptyValue(e.value))) return true;
       const { missing, emptyLanguages, duplicates } = analyze(list);
       if (duplicates.length) return `There's more than one entry for ${namesFor(duplicates)} — please remove the extra one.`;
       if (missing.length) return `This field is filled in for some languages but not all — please add the ${namesFor(missing)} translation${missing.length > 1 ? "s" : ""}, or clear the field completely.`;
@@ -221,7 +229,10 @@ export function allOrNothingForSelectedEventLocales(options?: { skip?: (context:
       if (!selected) return true;
 
       const relevant = (value ?? []).filter((e) => e?.language && selected.includes(e.language));
-      if (relevant.length === 0) return true; // fully empty (for the selected locales) is fine
+      // Same stray-residue fix as allOrNothingLanguages() above: an entry
+      // left behind with no value after the manager clears the field must
+      // count as empty, not as "started".
+      if (relevant.length === 0 || relevant.every((e) => isEmptyValue(e.value))) return true; // fully empty (for the selected locales) is fine
 
       const seen = new Map<string, number>();
       const emptyLanguages: string[] = [];

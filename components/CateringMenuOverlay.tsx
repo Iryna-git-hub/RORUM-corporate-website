@@ -22,8 +22,9 @@ import {
   type CateringMenuItem,
 } from "@/lib/cateringMenu";
 import { useFormContent } from "@/components/FormContentProvider";
+import { getIconCardIcon } from "@/lib/iconCardIcons";
 
-type MenuCategoryWithIcon = CateringMenuCategory & { icon: LucideIcon };
+type MenuCategoryWithIcon = Omit<CateringMenuCategory, "icon"> & { icon: LucideIcon };
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   ukrainian: Soup,
@@ -34,13 +35,20 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   desserts: Dessert,
 };
 
-// Categories arrive already in display order (Sanity's `order` field, or —
-// when Sanity is unreachable — `fallbackMenuCategories`' own array order),
-// so no per-id reordering is needed here; only the icon is looked up by id.
+// Categories arrive already in display order (Studio's own section drag
+// order, or — when Sanity is unreachable — `fallbackMenuCategories`' own
+// array order), so no per-id reordering is needed here. Icon resolution
+// prefers the category's own Sanity-editable `icon` (a manager-picked
+// Lucide name); when that's unset — every hardcoded fallback category, and
+// any live category that hasn't had an icon chosen yet — falls back to the
+// original fixed id-keyed map, then finally to a neutral default. This
+// keeps every existing category's on-screen icon exactly what it already
+// was the moment this field was introduced, while making it manager-
+// editable going forward.
 function withIcons(categories: CateringMenuCategory[]): MenuCategoryWithIcon[] {
   return categories.map((category) => ({
     ...category,
-    icon: CATEGORY_ICONS[category.id] ?? Soup,
+    icon: category.icon ? getIconCardIcon(category.icon) : (CATEGORY_ICONS[category.id] ?? Soup),
   }));
 }
 
@@ -53,6 +61,15 @@ export interface CateringMenuOverlayText {
   customMenuTitle: string;
   customMenuText: string;
   backToCateringCta: string;
+  /**
+   * Shown instead of the category nav + list when `categories` is
+   * genuinely empty — i.e. the manager has intentionally removed every
+   * category, as distinct from Sanity being unreachable (which uses the
+   * hardcoded `fallbackMenuCategories` instead and never reaches this
+   * branch at all). Manager-editable, not a hidden technical string — see
+   * contentItem.ts's "Catering Menu Examples empty-state message" role.
+   */
+  emptyStateMessage: string;
 }
 
 const defaultOverlayText: CateringMenuOverlayText = {
@@ -69,6 +86,8 @@ const defaultOverlayText: CateringMenuOverlayText = {
   customMenuText:
     "Tell us about your event, number of guests, preferred cuisine, and dietary needs. We will help create a menu that fits your occasion and makes your guests feel welcome.",
   backToCateringCta: "Back to Catering",
+  emptyStateMessage:
+    "No menu examples are available right now — please get in touch and we'll help create a menu for your event.",
 };
 
 // Shared scroll-offset constants used by both scrollToCategory and
@@ -506,39 +525,53 @@ function CateringMenuOverlay({
             </div>
           </section>
 
-          <nav
-            className="sticky top-0 z-4 w-full ml-0 p-0 bg-[rgba(var(--rgb-white),0.96)] border-y-0 backdrop-blur-[18px] overflow-x-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-sm:px-3 catering-menu-nav"
-            aria-label="Catering categories"
-          >
-            <div className="flex flex-nowrap gap-[clamp(16px,2.4vw,30px)] min-w-0 py-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-sm:gap-4.5 max-sm:py-2.5">
-              {orderedMenuCategories.map((category) => {
-                const Icon = category.icon;
-                const isActive = activeCategory === category.id;
-                return (
-                  <a
-                    key={category.id}
-                    href={`#catering-menu-${category.id}`}
-                    className={`inline-flex items-center justify-center gap-1.75 min-h-9 p-0 border-0 border-b-2 rounded-none bg-transparent text-[15px] font-[850] tracking-normal normal-case text-center whitespace-nowrap leading-[1.2] transition-[border-color,color] duration-180 ease-[ease] hover:text-[rgba(var(--rgb-red),0.72)] focus-visible:text-[rgba(var(--rgb-red),0.72)] focus-visible:outline-none max-sm:min-h-8.5 max-sm:px-0 ${
-                      isActive
-                        ? "border-b-red text-red hover:border-b-[rgba(var(--rgb-red),0.72)] focus-visible:border-b-[rgba(var(--rgb-red),0.72)]"
-                        : "border-b-transparent text-text-primary"
-                    }`}
-                    onClick={(event) => scrollToCategory(event, category.id)}
-                  >
-                    <Icon
-                      aria-hidden="true"
-                      strokeWidth={1.8}
-                      className="w-4.25 h-4.25 flex-none text-red"
-                    />
-                    <span>{category.navLabel}</span>
-                  </a>
-                );
-              })}
+          {orderedMenuCategories.length === 0 ? (
+            // The manager has intentionally left every category empty
+            // (distinct from Sanity being unreachable, which never reaches
+            // this component with an empty list at all — see
+            // app/[locale]/(site)/catering/page.tsx's getData()). No old
+            // hardcoded categories are ever substituted here.
+            <div
+              className="grid justify-items-center gap-3 py-[clamp(40px,7vw,72px)] px-4 text-center"
+              data-testid="catering-menu-empty-state"
+            >
+              <p className="m-0 max-w-140 text-text-primary text-[15px] leading-[1.6]">{text.emptyStateMessage}</p>
             </div>
-          </nav>
+          ) : (
+            <>
+              <nav
+                className="sticky top-0 z-4 w-full ml-0 p-0 bg-[rgba(var(--rgb-white),0.96)] border-y-0 backdrop-blur-[18px] overflow-x-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-sm:px-3 catering-menu-nav"
+                aria-label="Catering categories"
+              >
+                <div className="flex flex-nowrap gap-[clamp(16px,2.4vw,30px)] min-w-0 py-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-sm:gap-4.5 max-sm:py-2.5">
+                  {orderedMenuCategories.map((category) => {
+                    const Icon = category.icon;
+                    const isActive = activeCategory === category.id;
+                    return (
+                      <a
+                        key={category.id}
+                        href={`#catering-menu-${category.id}`}
+                        className={`inline-flex items-center justify-center gap-1.75 min-h-9 p-0 border-0 border-b-2 rounded-none bg-transparent text-[15px] font-[850] tracking-normal normal-case text-center whitespace-nowrap leading-[1.2] transition-[border-color,color] duration-180 ease-[ease] hover:text-[rgba(var(--rgb-red),0.72)] focus-visible:text-[rgba(var(--rgb-red),0.72)] focus-visible:outline-none max-sm:min-h-8.5 max-sm:px-0 ${
+                          isActive
+                            ? "border-b-red text-red hover:border-b-[rgba(var(--rgb-red),0.72)] focus-visible:border-b-[rgba(var(--rgb-red),0.72)]"
+                            : "border-b-transparent text-text-primary"
+                        }`}
+                        onClick={(event) => scrollToCategory(event, category.id)}
+                      >
+                        <Icon
+                          aria-hidden="true"
+                          strokeWidth={1.8}
+                          className="w-4.25 h-4.25 flex-none text-red"
+                        />
+                        <span>{category.navLabel}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              </nav>
 
-          <div className="grid gap-0 pt-[clamp(22px,3vw,34px)] px-0 pb-0 max-sm:pt-[22px] max-sm:pb-[42px]">
-            {orderedMenuCategories.map((category) => {
+              <div className="grid gap-0 pt-[clamp(22px,3vw,34px)] px-0 pb-0 max-sm:pt-[22px] max-sm:pb-[42px]">
+                {orderedMenuCategories.map((category) => {
               const isExpanded = expandedCategories.includes(category.id);
 
               return (
@@ -604,7 +637,9 @@ function CateringMenuOverlay({
                 </section>
               );
             })}
-          </div>
+              </div>
+            </>
+          )}
 
           {/* `catering-menu-final` is kept: its `::before` renders a
               positioned watermark-logo background layer, a decorative

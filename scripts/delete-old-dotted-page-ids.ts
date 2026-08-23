@@ -12,6 +12,27 @@
  * live run only, same safety convention as every other destructive script
  * in this project.
  *
+ * FIXED (found while diagnosing a live Publish-blocking pageKey collision on
+ * page-catering): the client used to be configured with
+ * `perspective: "published"`. Under that perspective, an explicit
+ * `_id == "drafts.X"` lookup silently returns null even when the document
+ * exists — confirmed live: 3 real, orphaned draft-only documents
+ * (drafts.page.catering, drafts.page.about, drafts.page.home) were
+ * completely invisible to this script's own dry-run ("no draft found" for
+ * every key), while directly provably existing under `perspective: "raw"`
+ * and actively causing page.ts's async pageKey-uniqueness validator to
+ * block Publish on page-catering/page-about/page-home. Switched to
+ * `perspective: "raw"` so every `_id ==` lookup here (draft or published)
+ * reflects the real dataset state — this only changes what the script CAN
+ * SEE; the deletion-eligibility logic below (a draft is only touched
+ * alongside a verified-matching published old/new pair) is unchanged and
+ * stays exactly as conservative as before. See
+ * scripts/delete-orphaned-dotted-page-drafts.ts for the narrowly-scoped,
+ * explicitly-authorized script that actually removed those 3 draft-only
+ * orphans (this script's own gating still correctly refuses to touch a
+ * draft with no published old-dotted counterpart — that's by design, not a
+ * remaining bug).
+ *
  * Usage:
  *   npm run sanity:delete-old-page-ids:dry-run
  *   npm run sanity:delete-old-page-ids
@@ -20,6 +41,7 @@ import { createClient } from "@sanity/client";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { OLD_PAGE_DOC_ID, PAGE_DOC_ID, PAGE_KEYS } from "../sanity/lib/pageIds";
+import { CLEANUP_CLIENT_PERSPECTIVE, evaluateDeletionEligibility, type CleanupDoc } from "../sanity/lib/dottedPageIdCleanup";
 
 const DRY_RUN = process.argv.includes("--dry-run") || !process.env.SANITY_API_WRITE_TOKEN;
 
@@ -29,24 +51,10 @@ const client = createClient({
   apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION ?? "2025-02-19",
   token: process.env.SANITY_API_WRITE_TOKEN,
   useCdn: false,
-  perspective: "published",
+  perspective: CLEANUP_CLIENT_PERSPECTIVE,
 });
 
-const CONTENT_FIELDS = ["_type", "pageKey", "sections", "seo"] as const;
-
-interface PageDoc {
-  _id: string;
-  _type?: string;
-  pageKey?: string;
-  sections?: unknown;
-  seo?: unknown;
-}
-
-function extractContent(doc: PageDoc): Record<string, unknown> {
-  const content: Record<string, unknown> = {};
-  for (const field of CONTENT_FIELDS) content[field] = doc[field as keyof PageDoc];
-  return content;
-}
+type PageDoc = CleanupDoc;
 
 async function main() {
   console.log(`Delete old dotted page ids (${DRY_RUN ? "DRY RUN — nothing will be written" : "LIVE RUN"}):`);
@@ -79,31 +87,30 @@ async function main() {
       console.log(`[${key}] no draft found at ${draftId}.`);
     }
 
-    if (!oldDoc) {
-      console.log(`[${key}] ${oldId} does not exist — nothing to delete for the published document.`);
-      if (draftDoc) {
-        console.warn(`[${key}] SKIPPING draft ${draftId} — no corresponding published old document to verify against.`);
+    const decision = evaluateDeletionEligibility({ oldDoc, newDoc, draftDoc });
+
+    if (!decision.eligible) {
+      if (!oldDoc) {
+        console.log(`[${key}] ${oldId} does not exist — nothing to delete for the published document.`);
+        if (draftDoc) {
+          console.warn(`[${key}] SKIPPING draft ${draftId} — ${decision.reason}.`);
+          skipped += 1;
+        }
+      } else if (!newDoc) {
+        console.warn(`[${key}] SKIPPING — ${decision.reason} (${oldId}).`);
         skipped += 1;
+        if (draftDoc) console.warn(`[${key}] SKIPPING draft ${draftId} for the same reason.`);
+      } else {
+        console.warn(`[${key}] CONFLICT — ${decision.reason} (${newId} vs ${oldId}).`);
+        conflicts += 1;
+        if (draftDoc) console.warn(`[${key}] SKIPPING draft ${draftId} for the same reason.`);
       }
-      continue;
-    }
-    if (!newDoc) {
-      console.warn(`[${key}] SKIPPING — ${newId} does not exist yet. Refusing to delete ${oldId} without a confirmed replacement.`);
-      skipped += 1;
-      if (draftDoc) console.warn(`[${key}] SKIPPING draft ${draftId} for the same reason.`);
-      continue;
-    }
-    const matches = JSON.stringify(extractContent(oldDoc)) === JSON.stringify(extractContent(newDoc));
-    if (!matches) {
-      console.warn(`[${key}] CONFLICT — ${newId} exists but its content does not match ${oldId}. Refusing to delete without a verified match.`);
-      conflicts += 1;
-      if (draftDoc) console.warn(`[${key}] SKIPPING draft ${draftId} for the same reason.`);
       continue;
     }
 
     console.log(`[${key}] ${newId} confirmed to match ${oldId} — would delete ${oldId}.`);
-    toDelete.push({ key, id: oldId, kind: "published", doc: oldDoc });
-    if (draftDoc) {
+    toDelete.push({ key, id: oldId, kind: "published", doc: oldDoc! });
+    if (decision.deleteDraft && draftDoc) {
       console.log(`[${key}] published match confirmed — would also delete obsolete draft ${draftId}.`);
       toDelete.push({ key, id: draftId, kind: "draft", doc: draftDoc });
     }

@@ -1,6 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 import { allOrNothingLanguages } from "@/sanity/lib/i18nValidation";
 import { EventsStripLabelField } from "@/sanity/components/EventsStripLabelField";
+import { CateringOfferItemsInput } from "@/sanity/components/CateringOfferItemsInput";
 
 // The one section shape every page in the new `page` document type is built
 // from. `sectionKind` picks what the section visually is; the remaining
@@ -96,6 +97,28 @@ function isPageAbout(document: unknown): boolean {
   return doc?._id?.replace(/^drafts\./, "") === "page-about";
 }
 
+export function isPageCateringMenuExamples(document: unknown): boolean {
+  const doc = document as { _id?: string } | undefined;
+  return doc?._id?.replace(/^drafts\./, "") === "page-catering-menu-examples";
+}
+
+/**
+ * `sectionKind`/`sectionKey` are hidden on `page-catering-menu-examples`
+ * specifically — a non-technical manager editing this document should never
+ * need to understand what a "section" or a "key" is; every category is
+ * added through CateringMenuSectionsInput's own "+ Add category" button,
+ * which sets both fields correctly and out of sight. Scoped to sections
+ * that ALREADY have a `sectionKind` set (i.e. every section that migration
+ * or the custom "Add category" flow produced) — never hidden while empty,
+ * so a stray raw section added through Sanity's own generic array "add"
+ * control (still technically reachable, just not the advertised path)
+ * still shows these two required fields until they're filled in, instead
+ * of being hidden-but-required and silently blocking Publish forever.
+ */
+function isCorrectlyShapedCateringMenuSection(parent: { sectionKind?: string } | undefined, document: unknown): boolean {
+  return isPageCateringMenuExamples(document) && Boolean(parent?.sectionKind);
+}
+
 function fieldHidden(fieldName: string) {
   return ({ parent, document }: { parent?: { sectionKind?: string; sectionKey?: string }; document?: unknown }) => {
     if (fieldName === "text" && parent?.sectionKey && ABOUT_TEXT_FORCE_VISIBLE_SECTION_KEYS.has(parent.sectionKey) && isPageAbout(document)) {
@@ -135,9 +158,16 @@ export default defineType({
       name: "sectionKey",
       title: "Key (do not change)",
       type: "string",
-      readOnly: true,
+      // Locked once set (matching contentItem.itemKey/ctaAction.actionKey's
+      // existing convention) — not unconditionally read-only. Every
+      // pre-existing section already has a value, so this is a no-op for
+      // them; the one case this unlocks is a brand-new section a manager
+      // adds themselves (e.g. a new catering menu category), which needs to
+      // receive a fresh, unique key once before it locks for good.
+      readOnly: ({ value }) => Boolean(value),
       validation: (rule) => rule.required(),
       description: "Stable identifier the website looks this section up by. / Стабільний ідентифікатор, за яким сайт знаходить цей розділ.",
+      hidden: ({ parent, document }) => isCorrectlyShapedCateringMenuSection(parent, document),
     }),
     defineField({
       name: "sectionKind",
@@ -148,6 +178,7 @@ export default defineType({
       },
       validation: (rule) => rule.required(),
       description: "What kind of section this is — controls which fields below apply. / Тип розділу — визначає, які поля нижче застосовуються.",
+      hidden: ({ parent, document }) => isCorrectlyShapedCateringMenuSection(parent, document),
     }),
     defineField({
       name: "label",
@@ -192,6 +223,10 @@ export default defineType({
       type: "array",
       of: [defineArrayMember({ type: "contentItem" })],
       hidden: fieldHidden("items"),
+      // Scoped internally to page-catering's "philosophy" (What We Offer)
+      // section only — every other section's items array renders with the
+      // unmodified default input, unaffected.
+      components: { input: CateringOfferItemsInput },
     }),
     defineField({
       name: "settings",

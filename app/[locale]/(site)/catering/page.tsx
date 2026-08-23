@@ -17,20 +17,14 @@ import { isLocale, type Locale } from "@/lib/i18n";
 import { compact, pickLocalized } from "@/lib/sanity-i18n";
 import { getAction, getItem, getSection, type RawContentItem } from "@/lib/sanity-sections";
 import { getIconCardIcon } from "@/lib/iconCardIcons";
-import {
-  menuCategories as fallbackMenuCategories,
-  type CateringMenuCategory,
-} from "@/lib/cateringMenu";
+import { menuCategories as fallbackMenuCategories } from "@/lib/cateringMenu";
 import { cateringGalleryImages } from "@/lib/galleryImages";
 import { resolveGalleryImages } from "@/lib/sanityGallery";
+import { resolveCateringMenuCategories } from "@/lib/cateringMenuResolve";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
-import {
-  cateringMenuExamplesPageQuery,
-  cateringPageQuery,
-} from "@/sanity/queries/pages";
 import type { ImageWithAlt } from "@/sanity.types";
 
 const menuFormatImages = [
@@ -156,6 +150,7 @@ const fallback = {
     "Thank you. We've received your catering request and will contact you soon.",
   footerNote:
     "We'll only use your details to respond to your catering request.",
+  seoTitle: "Catering",
 };
 
 const fallbackOverlayText: CateringMenuOverlayText = {
@@ -172,6 +167,8 @@ const fallbackOverlayText: CateringMenuOverlayText = {
   customMenuText:
     "Tell us about your event, number of guests, preferred cuisine, and dietary needs. We will help create a menu that fits your occasion and makes your guests feel welcome.",
   backToCateringCta: "Back to Catering",
+  emptyStateMessage:
+    "No menu examples are available right now — please get in touch and we'll help create a menu for your event.",
 };
 
 async function getData(locale: Locale) {
@@ -203,17 +200,18 @@ async function getData(locale: Locale) {
     };
   }
 
-  const [{ data: page }, { data: menuPage }, { data: newPage }, { data: newMenuPage }] = await Promise.all([
-    sanityFetch({ query: cateringPageQuery }),
-    sanityFetch({ query: cateringMenuExamplesPageQuery }),
+  const [{ data: newPage }, { data: newMenuPage }] = await Promise.all([
     sanityFetch({ query: pageByKeyQuery, params: { pageKey: "catering" }, stega: false }),
     sanityFetch({ query: pageByKeyQuery, params: { pageKey: "cateringMenuExamples" }, stega: false }),
   ]);
 
-  // New compact page+sections model (see MIGRATION_REPORT.md) — preferred
-  // when `page` documents with pageKey "catering"/"cateringMenuExamples"
-  // exist; falls through to the old singletons, then to the hardcoded
-  // fallback below.
+  // Compact page+sections model (see MIGRATION_REPORT.md) — the sole live
+  // Sanity source for Catering; falls through directly to the hardcoded
+  // fallback below when a section/field is unset. The legacy `cateringPage`/
+  // `cateringMenuExamplesPage` singletons are no longer read here: only a
+  // draft of each has ever existed (confirmed via a live, read-only probe),
+  // so a published-perspective fetch of either has always returned nothing
+  // in production — this removes a dead middle tier, not a behavior change.
   const heroSection = getSection(newPage?.sections, "hero");
   const gallerySection = getSection(newPage?.sections, "gallery");
   const menuFormatsSection = getSection(newPage?.sections, "menuFormats");
@@ -221,88 +219,39 @@ async function getData(locale: Locale) {
   const stepsSection = getSection(newPage?.sections, "steps");
   const formSection = getSection(newPage?.sections, "inquiryForm");
   const bannerSection = getSection(newMenuPage?.sections, "banner");
-  const categorySections = (newMenuPage?.sections ?? []).filter((s) => s.sectionKind === "menuCategory");
   const closingSection = getSection(newMenuPage?.sections, "closing");
 
-  const galleryImagesFromSections = gallerySection?.media?.length
-    ? gallerySection.media
-        .filter((m) => m.kind !== "video")
-        .map((m) => ({ _type: "image" as const, asset: m.image?.asset, alt: m.alt }) as unknown as ImageWithAlt)
-    : undefined;
-  const galleryImages = resolveGalleryImages(
-    galleryImagesFromSections ?? page?.gallery,
-    locale,
-    cateringGalleryImages,
-  );
+  // Data-state distinction (applied to every array below, not just menu
+  // categories — see the Catering integration report's "stale hardcoded
+  // resurrection" fix): a MISSING section (the whole page/section doesn't
+  // exist — Sanity unreachable, the document was deleted, or this
+  // particular section was never migrated) falls back to hardcoded
+  // emergency content, same as every scalar field already does. A section
+  // that EXISTS but whose array a manager has intentionally emptied is
+  // rendered as genuinely empty — it must never silently resurrect the old
+  // hardcoded set. `!isSanityConfigured` is handled entirely by the early
+  // return above; everything below only needs to distinguish "section
+  // missing" from "section present but empty."
+  const galleryMediaImages = gallerySection?.media
+    ?.filter((m) => m.kind !== "video")
+    .map((m) => ({ _type: "image" as const, asset: m.image?.asset, alt: m.alt }) as unknown as ImageWithAlt);
+  const galleryImages = !gallerySection
+    ? resolveGalleryImages(undefined, locale, cateringGalleryImages) // section missing -> fallback
+    : galleryMediaImages?.length
+      ? resolveGalleryImages(galleryMediaImages, locale, cateringGalleryImages) // real images
+      : []; // section present, intentionally emptied -> respected, no fallback
 
-  const menuCategoriesFromSections: CateringMenuCategory[] | undefined = categorySections.length
-    ? categorySections.map((cat, i) => {
-        const fb = fallbackMenuCategories[i];
-        return {
-          id: cat.sectionKey ?? cat._key,
-          title: pickLocalized(cat.title, locale) ?? fb?.title ?? "",
-          navLabel: pickLocalized(cat.label, locale) ?? fb?.navLabel ?? "",
-          description: pickLocalized(cat.text, locale) ?? fb?.description ?? "",
-          featuredItems: cat.items?.length
-            ? cat.items.map((item, j) => {
-                const fbItem = fb?.featuredItems[j];
-                return {
-                  name: pickLocalized(item.title, locale) ?? fbItem?.name ?? "",
-                  description: pickLocalized(item.text, locale) ?? fbItem?.description ?? "",
-                  image:
-                    urlForImage(item.image as unknown as Parameters<typeof urlForImage>[0])
-                      ?.width(600)
-                      .height(338)
-                      .url() ?? fbItem?.image ?? "",
-                  alt: pickLocalized(item.image?.alt, locale) ?? fbItem?.alt ?? "",
-                };
-              })
-            : (fb?.featuredItems ?? []),
-        };
-      })
-    : undefined;
-  const menuCategories: CateringMenuCategory[] =
-    menuCategoriesFromSections ??
-    (menuPage?.categories?.length
-      ? menuPage.categories.map((cat, i) => {
-          const fb = fallbackMenuCategories[i];
-          return {
-            id: cat._key,
-            title: pickLocalized(cat.title, locale) ?? fb?.title ?? "",
-            navLabel: pickLocalized(cat.navLabel, locale) ?? fb?.navLabel ?? "",
-            description:
-              pickLocalized(cat.description, locale) ?? fb?.description ?? "",
-            featuredItems: cat.dishes?.length
-              ? cat.dishes.map((item, j) => {
-                  const fbItem = fb?.featuredItems[j];
-                  return {
-                    name: pickLocalized(item.name, locale) ?? fbItem?.name ?? "",
-                    description:
-                      pickLocalized(item.description, locale) ??
-                      fbItem?.description ??
-                      "",
-                    image:
-                      urlForImage(
-                        item.image as unknown as Parameters<
-                          typeof urlForImage
-                        >[0],
-                      )
-                        ?.width(600)
-                        .height(338)
-                        .url() ??
-                      fbItem?.image ??
-                      "",
-                    alt:
-                      pickLocalized(item.image?.alt, locale) ?? fbItem?.alt ?? "",
-                  };
-                })
-              : (fb?.featuredItems ?? []),
-          };
-        })
-      : fallbackMenuCategories);
+  // Extracted to lib/cateringMenuResolve.ts so the "document missing (->
+  // fallback) vs document exists with zero categories (-> [], never
+  // fallback)" distinction is independently unit-tested (all 5 required
+  // states: 6/1/0 categories, document missing, Sanity unavailable — the
+  // last of which is covered by the earlier `!isSanityConfigured` early
+  // return, which never calls this function at all).
+  const menuCategories = resolveCateringMenuCategories(newMenuPage, locale, fallbackMenuCategories);
 
-  const menuFormatsFromSections = menuFormatsSection?.items?.length
-    ? menuFormatsSection.items.map((m, i) => ({
+  const menuFormats = !menuFormatsSection
+    ? fallbackMenuFormats.map((m, i) => ({ ...m, ...menuFormatImages[i] })) // section missing -> fallback
+    : (menuFormatsSection.items ?? []).map((m, i) => ({
         title: pickLocalized(m.title, locale) ?? fallbackMenuFormats[i]?.title ?? "",
         description: pickLocalized(m.text, locale) ?? fallbackMenuFormats[i]?.description ?? "",
         image:
@@ -310,86 +259,34 @@ async function getData(locale: Locale) {
             ?.width(800)
             .url() ?? menuFormatImages[i]?.image ?? menuFormatImages[0]!.image,
         alt: pickLocalized(m.image?.alt, locale) ?? menuFormatImages[i]?.alt ?? menuFormatImages[0]!.alt,
-      }))
-    : undefined;
-  const menuFormats =
-    menuFormatsFromSections ??
-    (page?.menuFormats?.length
-      ? page.menuFormats.map((m, i) => ({
-          title:
-            pickLocalized(m?.title, locale) ??
-            fallbackMenuFormats[i]?.title ??
-            "",
-          description:
-            pickLocalized(m?.description, locale) ??
-            fallbackMenuFormats[i]?.description ??
-            "",
-          image:
-            urlForImage(m?.image as unknown as Parameters<typeof urlForImage>[0])
-              ?.width(800)
-              .url() ??
-            menuFormatImages[i]?.image ??
-            menuFormatImages[0]!.image,
-          alt:
-            pickLocalized(m?.image?.alt, locale) ??
-            menuFormatImages[i]?.alt ??
-            menuFormatImages[0]!.alt,
-        }))
-      : fallbackMenuFormats.map((m, i) => ({ ...m, ...menuFormatImages[i] })));
+      })); // section present but empty -> [] (respected)
 
-  const philosophyItems = philosophySection?.items?.filter((i) => i.itemKey?.startsWith("format"));
-  const formats = philosophyItems?.length
-    ? philosophyItems.map((f) => ({
-        title: pickLocalized(f.title, locale) ?? "",
-        text: pickLocalized(f.text, locale) ?? "",
-        Icon: getIconCardIcon(f.icon ?? undefined),
-      }))
-    : page?.formats?.length
-      ? page.formats.map((f) => ({
-          title: pickLocalized(f?.title, locale) ?? "",
-          text: pickLocalized(f?.text, locale) ?? "",
-          Icon: getIconCardIcon(f?.icon),
-        }))
-      : fallbackFormats.map((f) => ({
-          title: f.title,
-          text: f.text,
-          Icon: getIconCardIcon(f.icon),
+  const formats = !philosophySection
+    ? fallbackFormats.map((f) => ({ title: f.title, text: f.text, Icon: getIconCardIcon(f.icon) }))
+    : (philosophySection.items ?? [])
+        .filter((i) => i.itemKey?.startsWith("format"))
+        .map((f) => ({
+          title: pickLocalized(f.title, locale) ?? "",
+          text: pickLocalized(f.text, locale) ?? "",
+          Icon: getIconCardIcon(f.icon ?? undefined),
         }));
 
-  const suitableForItems = gallerySection?.items?.filter((i) => i.itemKey?.startsWith("suitableFor"));
-  const suitableFor = suitableForItems?.length
-    ? suitableForItems.map((s) => ({
-        label: pickLocalized(s.title, locale) ?? "",
-        Icon: getIconCardIcon(s.icon ?? undefined),
-      }))
-    : page?.suitableFor?.length
-      ? page.suitableFor.map((s) => ({
-          label: pickLocalized(s?.title, locale) ?? "",
-          Icon: getIconCardIcon(s?.icon),
-        }))
-      : fallbackSuitableFor.map(([label, icon]) => ({
-          label,
-          Icon: getIconCardIcon(icon),
+  const suitableFor = !gallerySection
+    ? fallbackSuitableFor.map(([label, icon]) => ({ label, Icon: getIconCardIcon(icon) }))
+    : (gallerySection.items ?? [])
+        .filter((i) => i.itemKey?.startsWith("suitableFor"))
+        .map((s) => ({
+          label: pickLocalized(s.title, locale) ?? "",
+          Icon: getIconCardIcon(s.icon ?? undefined),
         }));
 
-  const stepItems = stepsSection?.items;
-  const steps = stepItems?.length
-    ? stepItems.map((s, i) => ({
+  const steps = !stepsSection
+    ? fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }))
+    : (stepsSection.items ?? []).map((s, i) => ({
         number: String(i + 1).padStart(2, "0"),
         title: pickLocalized(s.title, locale) ?? "",
         text: pickLocalized(s.text, locale) ?? "",
-      }))
-    : page?.steps?.length
-      ? page.steps.map((s, i) => ({
-          number: String(i + 1).padStart(2, "0"),
-          title: pickLocalized(s?.title, locale) ?? "",
-          text: pickLocalized(s?.text, locale) ?? "",
-        }))
-      : fallbackSteps.map(([title, text], i) => ({
-          number: String(i + 1).padStart(2, "0"),
-          title,
-          text,
-        }));
+      }));
 
   const philosophyMedia = philosophySection?.media?.[0];
   const tailoredNoteItem = getItem(philosophySection, "tailoredNote");
@@ -397,132 +294,64 @@ async function getData(locale: Locale) {
   const introItemsFromSections = (bannerSection?.items ?? []).filter((i): i is RawContentItem => i.itemKey?.startsWith("intro") ?? false);
 
   return {
-    label: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.hero?.label, locale) ?? fallback.label,
-    title: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.hero?.title, locale) ?? fallback.title,
-    text: pickLocalized(heroSection?.text, locale) ?? pickLocalized(page?.hero?.text, locale) ?? fallback.text,
-    requestCta:
-      pickLocalized(getAction(heroSection, "request")?.label, locale) ??
-      pickLocalized(page?.hero?.primaryCta?.label, locale) ??
-      fallback.requestCta,
-    suitableForLabel:
-      pickLocalized(gallerySection?.label, locale) ??
-      pickLocalized(page?.suitableForLabel, locale) ??
-      fallback.suitableForLabel,
-    menuFormatsTitle:
-      pickLocalized(menuFormatsSection?.title, locale) ??
-      pickLocalized(page?.menuFormatsTitle, locale) ??
-      fallback.menuFormatsTitle,
-    philosophyTitle:
-      pickLocalized(philosophySection?.title, locale) ??
-      pickLocalized(page?.philosophyTitle, locale) ??
-      fallback.philosophyTitle,
-    philosophyText:
-      pickLocalized(philosophySection?.text, locale) ??
-      pickLocalized(page?.philosophyText, locale) ??
-      fallback.philosophyText,
-    tailoredTitle:
-      pickLocalized(tailoredNoteItem?.title, locale) ??
-      pickLocalized(page?.tailoredNote?.title, locale) ??
-      fallback.tailoredTitle,
-    tailoredText:
-      pickLocalized(tailoredNoteItem?.text, locale) ??
-      pickLocalized(page?.tailoredNote?.text, locale) ??
-      fallback.tailoredText,
-    stepsTitle:
-      pickLocalized(stepsSection?.title, locale) ?? pickLocalized(page?.stepsTitle, locale) ?? fallback.stepsTitle,
+    label: pickLocalized(heroSection?.label, locale) ?? fallback.label,
+    title: pickLocalized(heroSection?.title, locale) ?? fallback.title,
+    text: pickLocalized(heroSection?.text, locale) ?? fallback.text,
+    requestCta: pickLocalized(getAction(heroSection, "request")?.label, locale) ?? fallback.requestCta,
+    suitableForLabel: pickLocalized(gallerySection?.label, locale) ?? fallback.suitableForLabel,
+    menuFormatsTitle: pickLocalized(menuFormatsSection?.title, locale) ?? fallback.menuFormatsTitle,
+    philosophyTitle: pickLocalized(philosophySection?.title, locale) ?? fallback.philosophyTitle,
+    philosophyText: pickLocalized(philosophySection?.text, locale) ?? fallback.philosophyText,
+    tailoredTitle: pickLocalized(tailoredNoteItem?.title, locale) ?? fallback.tailoredTitle,
+    tailoredText: pickLocalized(tailoredNoteItem?.text, locale) ?? fallback.tailoredText,
+    stepsTitle: pickLocalized(stepsSection?.title, locale) ?? fallback.stepsTitle,
     howItWorksLabel: pickLocalized(stepsSection?.label, locale) ?? "How it works",
-    description:
-      pickLocalized(page?.seo?.description, locale) ?? fallback.description,
-    inquiryTitle:
-      pickLocalized(formSection?.title, locale) ?? pickLocalized(page?.inquiryTitle, locale) ?? fallback.inquiryTitle,
-    inquirySubmitLabel:
-      pickLocalized(getItem(formSection, "submitLabel")?.title, locale) ??
-      pickLocalized(page?.inquirySubmitLabel, locale) ??
-      fallback.inquirySubmitLabel,
+    description: pickLocalized(newPage?.seo?.description, locale) ?? fallback.description,
+    inquiryTitle: pickLocalized(formSection?.title, locale) ?? fallback.inquiryTitle,
+    inquirySubmitLabel: pickLocalized(getItem(formSection, "submitLabel")?.title, locale) ?? fallback.inquirySubmitLabel,
     messagePlaceholder:
-      pickLocalized(getItem(formSection, "messagePlaceholder")?.title, locale) ??
-      pickLocalized(page?.messagePlaceholder, locale) ??
-      fallback.messagePlaceholder,
-    successMessage:
-      pickLocalized(getItem(formSection, "successMessage")?.text, locale) ??
-      pickLocalized(page?.successMessage, locale) ??
-      fallback.successMessage,
-    footerNote:
-      pickLocalized(getItem(formSection, "footerNote")?.title, locale) ??
-      pickLocalized(page?.footerNote, locale) ??
-      fallback.footerNote,
-    inquiryIntro:
-      pickLocalized(formSection?.text, locale) ?? pickLocalized(page?.inquiryIntro, locale) ?? fallback.inquiryIntro,
-    suitableForAriaLabel:
-      pickLocalized(getItem(gallerySection, "ariaLabel")?.title, locale) ??
-      pickLocalized(page?.suitableForAriaLabel, locale) ??
-      fallback.suitableForAriaLabel,
+      pickLocalized(getItem(formSection, "messagePlaceholder")?.title, locale) ?? fallback.messagePlaceholder,
+    successMessage: pickLocalized(getItem(formSection, "successMessage")?.text, locale) ?? fallback.successMessage,
+    footerNote: pickLocalized(getItem(formSection, "footerNote")?.title, locale) ?? fallback.footerNote,
+    inquiryIntro: pickLocalized(formSection?.text, locale) ?? fallback.inquiryIntro,
+    suitableForAriaLabel: pickLocalized(getItem(gallerySection, "ariaLabel")?.title, locale) ?? fallback.suitableForAriaLabel,
     philosophyImage:
       urlForImage(philosophyMedia?.image as unknown as Parameters<typeof urlForImage>[0])
         ?.width(900)
-        .url() ??
-      urlForImage(page?.philosophyImage as unknown as Parameters<typeof urlForImage>[0])
-        ?.width(900)
-        .url() ??
-      fallback.philosophyImage,
-    philosophyImageAlt:
-      pickLocalized(philosophyMedia?.alt, locale) ??
-      pickLocalized(page?.philosophyImage?.alt, locale) ??
-      fallback.philosophyImageAlt,
-    menuExamplesCta:
-      pickLocalized(getItem(heroSection, "menuExamplesCta")?.title, locale) ??
-      pickLocalized(page?.menuExamplesCta, locale) ??
-      fallback.menuExamplesCta,
+        .url() ?? fallback.philosophyImage,
+    philosophyImageAlt: pickLocalized(philosophyMedia?.alt, locale) ?? fallback.philosophyImageAlt,
+    menuExamplesCta: pickLocalized(getItem(heroSection, "menuExamplesCta")?.title, locale) ?? fallback.menuExamplesCta,
     menuOverlayText: {
-      title:
-        pickLocalized(bannerSection?.title, locale) ??
-        pickLocalized(menuPage?.title, locale) ??
-        fallbackOverlayText.title,
+      title: pickLocalized(bannerSection?.title, locale) ?? fallbackOverlayText.title,
       intro: introItemsFromSections.length
         ? compact(introItemsFromSections.map((p) => pickLocalized(p.text, locale)))
-        : menuPage?.intro?.length
-          ? compact(menuPage.intro.map((p) => pickLocalized(p?.text, locale)))
-          : fallbackOverlayText.intro,
-      requestCta:
-        pickLocalized(getItem(bannerSection, "requestCta")?.title, locale) ??
-        pickLocalized(menuPage?.requestCta, locale) ??
-        fallbackOverlayText.requestCta,
+        : fallbackOverlayText.intro,
+      requestCta: pickLocalized(getItem(bannerSection, "requestCta")?.title, locale) ?? fallbackOverlayText.requestCta,
       featuredDishesLabel:
-        pickLocalized(getItem(closingSection, "featuredDishesLabel")?.title, locale) ??
-        pickLocalized(menuPage?.featuredDishesLabel, locale) ??
-        fallbackOverlayText.featuredDishesLabel,
+        pickLocalized(getItem(closingSection, "featuredDishesLabel")?.title, locale) ?? fallbackOverlayText.featuredDishesLabel,
       disclaimerNote:
-        pickLocalized(getItem(closingSection, "disclaimerNote")?.text, locale) ??
-        pickLocalized(menuPage?.disclaimerNote, locale) ??
-        fallbackOverlayText.disclaimerNote,
-      customMenuTitle:
-        pickLocalized(closingSection?.title, locale) ??
-        pickLocalized(menuPage?.customMenuTitle, locale) ??
-        fallbackOverlayText.customMenuTitle,
-      customMenuText:
-        pickLocalized(closingSection?.text, locale) ??
-        pickLocalized(menuPage?.customMenuText, locale) ??
-        fallbackOverlayText.customMenuText,
+        pickLocalized(getItem(closingSection, "disclaimerNote")?.text, locale) ?? fallbackOverlayText.disclaimerNote,
+      customMenuTitle: pickLocalized(closingSection?.title, locale) ?? fallbackOverlayText.customMenuTitle,
+      customMenuText: pickLocalized(closingSection?.text, locale) ?? fallbackOverlayText.customMenuText,
       backToCateringCta:
-        pickLocalized(getItem(closingSection, "backToCateringCta")?.title, locale) ??
-        pickLocalized(menuPage?.backToCateringCta, locale) ??
-        fallbackOverlayText.backToCateringCta,
+        pickLocalized(getItem(closingSection, "backToCateringCta")?.title, locale) ?? fallbackOverlayText.backToCateringCta,
+      emptyStateMessage:
+        pickLocalized(getItem(bannerSection, "emptyStateMessage")?.text, locale) ?? fallbackOverlayText.emptyStateMessage,
     },
-    bannerImageUrl:
-      urlForImage(bannerMedia?.image as unknown as Parameters<typeof urlForImage>[0])
-        ?.width(1600)
-        .url() ??
-      urlForImage(menuPage?.bannerImage as unknown as Parameters<typeof urlForImage>[0])
-        ?.width(1600)
-        .url(),
-    bannerImageAlt:
-      pickLocalized(bannerMedia?.alt, locale) ?? pickLocalized(menuPage?.bannerImage?.alt, locale),
+    bannerImageUrl: urlForImage(bannerMedia?.image as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1600)
+      .url(),
+    bannerImageAlt: pickLocalized(bannerMedia?.alt, locale),
     menuCategories,
     menuFormats,
     formats,
     suitableFor,
     steps,
     galleryImages,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
+    ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1200)
+      .url(),
   };
 }
 
@@ -533,12 +362,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { description } = await getData(locale);
+  const { seoTitle, description, ogImageUrl } = await getData(locale);
   return localizedPageMetadata({
     path: "/catering",
     locale,
-    title: "Catering",
+    title: seoTitle,
     description,
+    ...(ogImageUrl ? { image: ogImageUrl } : {}),
   });
 }
 

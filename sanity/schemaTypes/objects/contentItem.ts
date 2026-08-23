@@ -38,7 +38,22 @@ type ContentItemField = (typeof ALL_CONTENT_ITEM_FIELDS)[number];
 interface ItemRoleRule {
   /** Human label only — not used for matching, just for readability/debugging. */
   role: string;
-  sectionKeys: readonly string[];
+  /**
+   * A rule matches an item if its enclosing section's `sectionKey` is in
+   * `sectionKeys` OR (when given) its `sectionKind` is in `sectionKinds`.
+   * `sectionKeys` suits a fixed, closed set of sections (e.g. Home's
+   * `hero`/`quickPaths`, or Catering's `menuFormats`) where every relevant
+   * section already exists and its key is known ahead of time.
+   * `sectionKinds` suits an OPEN, manager-extensible set of sections that
+   * all share one `sectionKind` — e.g. Catering's menu categories, where
+   * each category is its own section with its own unique key, and a
+   * manager can add a brand-new one at any time (see pageSection.ts's
+   * `sectionKey` unlock). Matching by kind means a manager-added category's
+   * dishes get the same clean field visibility automatically, with no code
+   * change needed per new category.
+   */
+  sectionKeys?: readonly string[];
+  sectionKinds?: readonly string[];
   itemKeyPattern: RegExp;
   visible: readonly ContentItemField[];
 }
@@ -62,28 +77,87 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
     itemKeyPattern: /^(dateLabel|languageLabel|priceLabel|availabilityLabel|soonestLabel|weekLabel|monthLabel|priceAscLabel|priceDescLabel|availableLabel|soldOutLabel|clearFiltersLabel|emptyStateTitle|emptyStateText)$/,
     visible: ["title"],
   },
+  { role: "Catering hero menu-examples button", sectionKeys: ["hero"], itemKeyPattern: /^menuExamplesCta$/, visible: ["title"] },
+  { role: "Catering gallery chip-group aria label", sectionKeys: ["gallery"], itemKeyPattern: /^ariaLabel$/, visible: ["title"] },
+  { role: "Catering \"suitable for\" chip", sectionKeys: ["gallery"], itemKeyPattern: /^suitableFor\d+$/, visible: ["icon", "title"] },
+  { role: "Catering menu format card", sectionKeys: ["menuFormats"], itemKeyPattern: /^format[0-2]$/, visible: ["title", "text", "image"] },
+  { role: "Catering \"tailored upon request\" note", sectionKeys: ["philosophy"], itemKeyPattern: /^tailoredNote$/, visible: ["title", "text"] },
+  // Matches both the 6 existing "format0".."format5" bullets AND a
+  // manager-added new one (no itemKey at all — see
+  // CateringOfferItemsInput.tsx, which always inserts blank). Previously
+  // this only matched the fixed "format[0-5]" set, so a manually-added
+  // 7th bullet (or anything created via the generic array "add" control)
+  // matched no role at all — every generic contentItem field (image, href,
+  // label, value, the technical itemKey) became visible, and validation on
+  // fields like `label` ran unskipped despite being irrelevant to this
+  // role, which is the exact defect a live manual Studio test found.
+  { role: "Catering \"what we offer\" bullet", sectionKeys: ["philosophy"], itemKeyPattern: /^(format\d*)?$/, visible: ["icon", "title", "text"] },
+  { role: "Catering 3-step setup row", sectionKeys: ["steps"], itemKeyPattern: /^step\d+$/, visible: ["title", "text"] },
+  { role: "Catering inquiry form title-only row", sectionKeys: ["inquiryForm"], itemKeyPattern: /^(submitLabel|messagePlaceholder|footerNote)$/, visible: ["title"] },
+  { role: "Catering inquiry form success message", sectionKeys: ["inquiryForm"], itemKeyPattern: /^successMessage$/, visible: ["text"] },
+  { role: "Catering Menu Examples banner intro paragraph", sectionKeys: ["banner"], itemKeyPattern: /^intro\d+$/, visible: ["text"] },
+  { role: "Catering Menu Examples banner request button", sectionKeys: ["banner"], itemKeyPattern: /^requestCta$/, visible: ["title"] },
+  // Shown in place of the category nav/list only when the manager has
+  // intentionally left `categories` empty — see
+  // app/[locale]/(site)/catering/page.tsx's getData() and
+  // CateringMenuOverlay.tsx. A manager-editable message, not a hidden
+  // technical field, so an intentionally-empty menu never silently falls
+  // back to old hardcoded categories AND never shows a blank/broken overlay.
+  { role: "Catering Menu Examples empty-state message", sectionKeys: ["banner"], itemKeyPattern: /^emptyStateMessage$/, visible: ["text"] },
+  { role: "Catering Menu Examples closing-section title-only row", sectionKeys: ["closing"], itemKeyPattern: /^(featuredDishesLabel|backToCateringCta)$/, visible: ["title"] },
+  { role: "Catering Menu Examples closing-section disclaimer", sectionKeys: ["closing"], itemKeyPattern: /^disclaimerNote$/, visible: ["text"] },
+  // Menu category dishes are a free-form, manager-extensible list (add/
+  // remove/reorder). Live data uses a positional "dish0", "dish1", ...
+  // itemKey per dish (written by the migration that populated
+  // page-catering-menu-examples); a manager-added dish added fresh through
+  // Studio's own array-item "+" button won't have one at all (matched by
+  // the pattern's empty-string branch — see `matchItemRole`'s
+  // `itemKey ?? ""`). Matched by `sectionKinds` (not a fixed `sectionKeys`
+  // list) so a manager-added category's dishes get this same visibility
+  // automatically, with no code change needed per new category.
+  { role: "Catering menu dish", sectionKinds: ["menuCategory"], itemKeyPattern: /^(dish\d*)?$/, visible: ["title", "text", "image"] },
+  // A category's own tab icon is stored as ONE reserved item (itemKey
+  // "categoryIcon") inside that category's own items array, alongside its
+  // free-form dishes — same "reserved item" convention as
+  // hero.menuExamplesCta/form.submitLabel above, chosen so the manager-
+  // editable icon lives with its category without adding a new attribute
+  // path to pageSection.ts itself (see CateringMenuOverlay.tsx / page.tsx).
+  { role: "Catering menu category tab icon", sectionKinds: ["menuCategory"], itemKeyPattern: /^categoryIcon$/, visible: ["icon"] },
 ];
 
-export function matchItemRole(sectionKey: string | undefined, itemKey: string | undefined): ItemRoleRule | undefined {
-  if (!sectionKey || !itemKey) return undefined;
-  return ITEM_ROLE_RULES.find((rule) => rule.sectionKeys.includes(sectionKey) && rule.itemKeyPattern.test(itemKey));
+export function matchItemRole(
+  sectionKey: string | undefined,
+  itemKey: string | undefined,
+  sectionKind?: string,
+): ItemRoleRule | undefined {
+  if (!sectionKey) return undefined;
+  const key = itemKey ?? "";
+  return ITEM_ROLE_RULES.find(
+    (rule) =>
+      (rule.sectionKeys?.includes(sectionKey) || (sectionKind && rule.sectionKinds?.includes(sectionKind))) &&
+      rule.itemKeyPattern.test(key),
+  );
 }
 
 // `parent` here is the contentItem object itself (has its own `_key` and
-// `itemKey`) — it has no `sectionKey` of its own, so (same pattern as
-// mediaItem.ts's isHomeDecorativeBackgroundMedia) the enclosing section is
-// found by walking `document.sections`, matching on the item's own `_key`.
-function findEnclosingSectionKey(document: unknown, parent: unknown): string | undefined {
-  const doc = document as { sections?: { sectionKey?: string; items?: { _key?: string }[] }[] } | undefined;
+// `itemKey`) — it has no `sectionKey`/`sectionKind` of its own, so (same
+// pattern as mediaItem.ts's isHomeDecorativeBackgroundMedia) the enclosing
+// section is found by walking `document.sections`, matching on the item's
+// own `_key`.
+function findEnclosingSection(
+  document: unknown,
+  parent: unknown,
+): { sectionKey?: string; sectionKind?: string } | undefined {
+  const doc = document as { sections?: { sectionKey?: string; sectionKind?: string; items?: { _key?: string }[] }[] } | undefined;
   const itemObjectKey = (parent as { _key?: string } | undefined)?._key;
   if (!itemObjectKey) return undefined;
-  return doc?.sections?.find((s) => s.items?.some((i) => i._key === itemObjectKey))?.sectionKey;
+  return doc?.sections?.find((s) => s.items?.some((i) => i._key === itemObjectKey));
 }
 
 export function matchItemRoleInContext(document: unknown, parent: unknown): ItemRoleRule | undefined {
-  const sectionKey = findEnclosingSectionKey(document, parent);
+  const section = findEnclosingSection(document, parent);
   const itemKey = (parent as { itemKey?: string } | undefined)?.itemKey;
-  return matchItemRole(sectionKey, itemKey);
+  return matchItemRole(section?.sectionKey, itemKey, section?.sectionKind);
 }
 
 function hiddenByItemRole(fieldName: ContentItemField) {
