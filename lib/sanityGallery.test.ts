@@ -47,27 +47,58 @@ function videoItem(overrides: Partial<MediaItem> & { _key?: string } = {}): Medi
 describe("resolveGalleryItems — images", () => {
   it("resolves a real uploaded image to its CDN URL and localized alt", () => {
     const [item] = resolveGalleryItems([imageItem()], LOCALE, []);
-    expect(item).toEqual({ kind: "image", src: "https://cdn.test/image/image-abc-800x600-jpg.jpg", alt: "A photo" });
+    expect(item).toEqual({ id: "fallback-media-0", kind: "image", src: "https://cdn.test/image/image-abc-800x600-jpg.jpg", alt: "A photo" });
   });
 
   it("falls back to the positional static fallback src when the Sanity image has no asset, but keeps the item's own real alt text", () => {
     const [item] = resolveGalleryItems([imageItem({ image: undefined })], LOCALE, [{ src: "/fallback.png", alt: "Fallback" }]);
-    expect(item).toEqual({ kind: "image", src: "/fallback.png", alt: "A photo" });
+    expect(item).toEqual({ id: "fallback-media-0", kind: "image", src: "/fallback.png", alt: "A photo" });
   });
 
   it("falls back to the positional fallback's alt too when the item has no alt of its own", () => {
     const [item] = resolveGalleryItems([imageItem({ image: undefined, alt: undefined })], LOCALE, [{ src: "/fallback.png", alt: "Fallback" }]);
-    expect(item).toEqual({ kind: "image", src: "/fallback.png", alt: "Fallback" });
+    expect(item).toEqual({ id: "fallback-media-0", kind: "image", src: "/fallback.png", alt: "Fallback" });
   });
 
   it("returns the full fallback set, wrapped as image items, when the whole media array is missing", () => {
     const result = resolveGalleryItems(undefined, LOCALE, [{ src: "/a.png", alt: "A" }, { src: "/b.png", alt: "B" }]);
-    expect(result).toEqual([{ kind: "image", src: "/a.png", alt: "A" }, { kind: "image", src: "/b.png", alt: "B" }]);
+    expect(result).toEqual([
+      { id: "fallback-0", kind: "image", src: "/a.png", alt: "A" },
+      { id: "fallback-1", kind: "image", src: "/b.png", alt: "B" },
+    ]);
   });
 
   it("treats an empty array the same as a missing one (falls back) — the 'section present but intentionally emptied -> []' distinction is the CALLER's responsibility, not this function's; the 3 page.tsx call sites never call this function at all in that case, returning [] directly themselves instead", () => {
     const result = resolveGalleryItems([], LOCALE, [{ src: "/a.png", alt: "A" }]);
-    expect(result).toEqual([{ kind: "image", src: "/a.png", alt: "A" }]);
+    expect(result).toEqual([{ id: "fallback-0", kind: "image", src: "/a.png", alt: "A" }]);
+  });
+});
+
+describe("resolveGalleryItems — stable id generation", () => {
+  it("uses the Sanity _key as the item's id when present", () => {
+    const [item] = resolveGalleryItems([imageItem({ _key: "photo-abc123" })], LOCALE, []);
+    expect(item!.id).toBe("photo-abc123");
+  });
+
+  it("two different Sanity items that happen to share the same resolved src still get distinct ids (their own _key)", () => {
+    const result = resolveGalleryItems(
+      [
+        imageItem({ _key: "dup-a", image: { _type: "image", asset: { _type: "reference", _ref: "same-image-jpg" } } }),
+        imageItem({ _key: "dup-b", image: { _type: "image", asset: { _type: "reference", _ref: "same-image-jpg" } } }),
+      ],
+      LOCALE,
+      [],
+    );
+    expect(result[0]!.id).toBe("dup-a");
+    expect(result[1]!.id).toBe("dup-b");
+    expect(result[0]!.id).not.toBe(result[1]!.id);
+    expect((result[0] as { src: string }).src).toBe((result[1] as { src: string }).src);
+  });
+
+  it("falls back to a deterministic positional id when _key is missing (malformed data, not expected in practice)", () => {
+    const result = resolveGalleryItems([imageItem(), imageItem()], LOCALE, []);
+    expect(result[0]!.id).toBe("fallback-media-0");
+    expect(result[1]!.id).toBe("fallback-media-1");
   });
 });
 
@@ -78,7 +109,7 @@ describe("resolveGalleryItems — videos", () => {
       LOCALE,
       [],
     );
-    expect(item).toEqual({ kind: "video", src: "https://cdn.test/file/file-def-mp4.mp4", accessibleLabel: "A video" });
+    expect(item).toEqual({ id: "fallback-media-0", kind: "video", src: "https://cdn.test/file/file-def-mp4.mp4", accessibleLabel: "A video" });
   });
 
   // Product decision: a separate poster can crop/frame the video
@@ -94,12 +125,12 @@ describe("resolveGalleryItems — videos", () => {
       [],
     );
     expect(item).not.toHaveProperty("poster");
-    expect(Object.keys(item!)).toEqual(["kind", "src", "accessibleLabel"]);
+    expect(Object.keys(item!).sort()).toEqual(["accessibleLabel", "id", "kind", "src"]);
   });
 
   it("resolves a valid direct video-file URL when no file is uploaded", () => {
     const [item] = resolveGalleryItems([videoItem({ videoUrl: "https://example.com/clip.mp4" })], LOCALE, []);
-    expect(item).toEqual({ kind: "video", src: "https://example.com/clip.mp4", accessibleLabel: "A video" });
+    expect(item).toEqual({ id: "fallback-media-0", kind: "video", src: "https://example.com/clip.mp4", accessibleLabel: "A video" });
   });
 
   it("the uploaded file takes precedence over an external videoUrl when both are present", () => {
@@ -134,7 +165,7 @@ describe("resolveGalleryItems — videos", () => {
 
   it("accepts a relative direct video-file URL (e.g. /videos/x.mp4), matching the existing static-file convention", () => {
     const [item] = resolveGalleryItems([videoItem({ videoUrl: "/videos/clip.webm" })], LOCALE, []);
-    expect(item).toEqual({ kind: "video", src: "/videos/clip.webm", accessibleLabel: "A video" });
+    expect(item).toEqual({ id: "fallback-media-0", kind: "video", src: "/videos/clip.webm", accessibleLabel: "A video" });
   });
 
   // A missing poster is not a reason to omit a video: it never was one
@@ -146,7 +177,7 @@ describe("resolveGalleryItems — videos", () => {
   it("a video with a valid source is kept regardless of any stored posterImage on the source document", () => {
     const result = resolveGalleryItems([videoItem({ videoUrl: "https://example.com/video.mp4", posterImage: undefined })], LOCALE, []);
     expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({ kind: "video", src: "https://example.com/video.mp4", accessibleLabel: "A video" });
+    expect(result[0]).toEqual({ id: "fallback-media-0", kind: "video", src: "https://example.com/video.mp4", accessibleLabel: "A video" });
   });
 });
 

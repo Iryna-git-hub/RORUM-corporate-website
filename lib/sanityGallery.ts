@@ -16,9 +16,14 @@ function devWarn(message: string) {
  * anything playable/showable — the caller drops `undefined` results rather
  * than ever resurrecting an unrelated static fallback photo in its place
  * (a broken video is not "an image that failed to load").
+ *
+ * `fallbackId` is used only when `media._key` is missing (shouldn't happen
+ * in practice — Sanity always assigns `_key` to array-of-objects items —
+ * but keeps id generation total rather than throwing on malformed data).
  */
-function resolveOne(media: MediaItem & { _key?: string }, locale: Locale, fallbackImage: GalleryImage | undefined): HorizontalGalleryItem | undefined {
+function resolveOne(media: MediaItem & { _key?: string }, locale: Locale, fallbackImage: GalleryImage | undefined, fallbackId: string): HorizontalGalleryItem | undefined {
   const alt = pickLocalized(media.alt, locale) ?? fallbackImage?.alt ?? "";
+  const id = media._key ?? fallbackId;
 
   if (media.kind === "video") {
     // Uploaded file takes precedence over an external URL (matches the
@@ -45,7 +50,7 @@ function resolveOne(media: MediaItem & { _key?: string }, locale: Locale, fallba
     // the gallery deliberately shows the video's own frame instead (see
     // components/HorizontalGallery.tsx and mediaItem.ts's posterImage
     // field, which is now unused/hidden site-wide).
-    return { kind: "video", src, accessibleLabel: alt || "Video" };
+    return { id, kind: "video", src, accessibleLabel: alt || "Video" };
   }
 
   // Photo (default/undefined kind is treated as a photo, matching the
@@ -55,7 +60,7 @@ function resolveOne(media: MediaItem & { _key?: string }, locale: Locale, fallba
     devWarn(`dropping image item with no resolvable source and no positional fallback — _key: ${media._key ?? "(none)"}`);
     return undefined;
   }
-  return { kind: "image", src, alt };
+  return { id, kind: "image", src, alt };
 }
 
 /**
@@ -73,8 +78,8 @@ export function resolveGalleryItems(
   locale: Locale,
   fallback: GalleryImage[],
 ): HorizontalGalleryItem[] {
-  if (!media?.length) return fallback.map((f) => ({ kind: "image" as const, ...f }));
+  if (!media?.length) return fallback.map((f, i) => ({ id: `fallback-${i}`, kind: "image" as const, ...f }));
   return media
-    .map((item, i) => resolveOne(item, locale, fallback[i]))
+    .map((item, i) => resolveOne(item, locale, fallback[i], `fallback-media-${i}`))
     .filter((item): item is HorizontalGalleryItem => item !== undefined);
 }

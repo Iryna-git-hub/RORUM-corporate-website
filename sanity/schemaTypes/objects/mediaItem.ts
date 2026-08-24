@@ -1,6 +1,6 @@
 import { defineField, defineType } from "sanity";
 import { requireAllLanguages } from "@/sanity/lib/i18nValidation";
-import { videoUrlValidationMessage } from "@/sanity/lib/videoUrl";
+import { isDirectVideoFileUrl, videoUrlValidationMessage } from "@/sanity/lib/videoUrl";
 
 // Section keys, on the Home page only, whose background media is a plain
 // CSS background-image with no accessible-image semantics anywhere in the
@@ -47,6 +47,24 @@ export default defineType({
   title: "Photo or video",
   type: "object",
   description: "One photo, or one video. / Одне фото або одне відео.",
+  // Object-level (not field-level): "does this video have a usable source
+  // at all" genuinely spans two sibling fields (videoFile OR videoUrl), so
+  // one combined check here gives one clear, visible error rather than
+  // splitting an inherently combined condition across two fields (where
+  // neither field alone can say "you need EITHER of us"). Frontend
+  // resolution (lib/sanityGallery.ts's resolveOne) silently drops a video
+  // with neither source — this is what stops that gap from ever being
+  // reached by a saved document in the first place. A photo (or a video
+  // that already has a valid source) is untouched.
+  validation: (rule) =>
+    rule.custom((value) => {
+      const v = value as { kind?: string; videoFile?: { asset?: unknown }; videoUrl?: string } | undefined;
+      if (v?.kind !== "video") return true;
+      const hasFile = !!v.videoFile?.asset;
+      const hasValidUrl = !!v.videoUrl?.trim() && isDirectVideoFileUrl(v.videoUrl);
+      if (hasFile || hasValidUrl) return true;
+      return "A video needs either an uploaded video file or a valid direct video URL. / Відео потребує завантаженого відеофайлу або прямого посилання на відеофайл.";
+    }),
   fields: [
     defineField({
       name: "kind",
@@ -88,7 +106,16 @@ export default defineType({
       // exactly what the site will actually try to play.
       validation: (rule) =>
         rule.custom((value: string | undefined, context) => {
-          if ((context.parent as { kind?: string } | undefined)?.kind !== "video") return true;
+          const parent = context.parent as { kind?: string; videoFile?: { asset?: unknown } } | undefined;
+          if (parent?.kind !== "video") return true;
+          // An uploaded file always wins over the URL (resolveGalleryItems
+          // never even inspects videoUrl once a file is present) — so a
+          // stray/invalid URL left behind alongside a real upload is
+          // genuinely unused, not a publish blocker. This is what makes
+          // "uploaded file + invalid URL" valid per the field's own
+          // precedence promise, without requiring the editor to manually
+          // clear the leftover URL first.
+          if (parent?.videoFile?.asset) return true;
           if (!value?.trim()) return true; // optional — only used when no file is uploaded
           return videoUrlValidationMessage(value) ?? true;
         }),

@@ -404,6 +404,70 @@ test.describe("mediaItem.ts — posterImage is hidden and unvalidated everywhere
   });
 });
 
+test.describe("mediaItem.ts — a video needs at least one usable source before Publish (Mixed-media Lightbox follow-up, Task 10)", () => {
+  function videoValue(overrides: Record<string, unknown> = {}) {
+    return { kind: "video", ...overrides };
+  }
+
+  test("neither videoFile nor videoUrl -> blocking, bilingual error", () => {
+    const validate = captureCustomValidator(mediaItemType as unknown as FieldDef);
+    const result = validate(videoValue(), {});
+    expect(result).not.toBe(true);
+    expect(String(result)).toContain("needs either an uploaded video file or a valid direct video URL");
+    expect(String(result)).toContain("Відео потребує");
+  });
+
+  test("uploaded videoFile only -> valid", () => {
+    const validate = captureCustomValidator(mediaItemType as unknown as FieldDef);
+    const result = validate(videoValue({ videoFile: { asset: { _ref: "file-abc" } } }), {});
+    expect(result).toBe(true);
+  });
+
+  test("valid direct videoUrl only -> valid", () => {
+    const validate = captureCustomValidator(mediaItemType as unknown as FieldDef);
+    const result = validate(videoValue({ videoUrl: "https://example.com/clip.mp4" }), {});
+    expect(result).toBe(true);
+  });
+
+  test("invalid/unsupported videoUrl with no uploaded file -> blocking", () => {
+    const validate = captureCustomValidator(mediaItemType as unknown as FieldDef);
+    const result = validate(videoValue({ videoUrl: "https://www.youtube.com/watch?v=abc" }), {});
+    expect(result).not.toBe(true);
+  });
+
+  test("uploaded file + empty videoUrl -> valid", () => {
+    const validate = captureCustomValidator(mediaItemType as unknown as FieldDef);
+    const result = validate(videoValue({ videoFile: { asset: { _ref: "file-abc" } }, videoUrl: "" }), {});
+    expect(result).toBe(true);
+  });
+
+  test("uploaded file + invalid/unsupported videoUrl -> valid (upload wins, the unused URL never blocks Publish)", () => {
+    const validate = captureCustomValidator(mediaItemType as unknown as FieldDef);
+    const result = validate(videoValue({ videoFile: { asset: { _ref: "file-abc" } }, videoUrl: "https://www.youtube.com/watch?v=abc" }), {});
+    expect(result).toBe(true);
+  });
+
+  test("a photo item is never subject to this check, regardless of videoFile/videoUrl content", () => {
+    const validate = captureCustomValidator(mediaItemType as unknown as FieldDef);
+    const result = validate({ kind: "image" }, {});
+    expect(result).toBe(true);
+  });
+
+  test("videoUrl's OWN field-level validation also skips (returns true) once an uploaded file is present, even for an unsupported URL — the file takes precedence, so the stale URL is simply ignored, not a publish blocker", () => {
+    const validate = captureCustomValidator(field(mediaItemType, "videoUrl"));
+    const context = { parent: { kind: "video", videoFile: { asset: { _ref: "file-abc" } } } };
+    expect(validate("https://www.youtube.com/watch?v=abc", context)).toBe(true);
+    expect(validate("not a url", context)).toBe(true);
+  });
+
+  test("videoUrl's field-level validation still blocks an unsupported URL when NO file is uploaded (unchanged)", () => {
+    const validate = captureCustomValidator(field(mediaItemType, "videoUrl"));
+    const context = { parent: { kind: "video" } };
+    const result = validate("https://www.youtube.com/watch?v=abc", context);
+    expect(result).not.toBe(true);
+  });
+});
+
 /** Captures the function passed to `rule.custom(...)` so it can be invoked directly with a mocked (value, context) pair. */
 function captureCustomValidator(f: FieldDef): (value: unknown, context: unknown) => unknown {
   const withValidation = f as unknown as { validation?: (rule: unknown) => unknown };
