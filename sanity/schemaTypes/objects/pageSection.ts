@@ -55,9 +55,9 @@ const FIELD_VISIBILITY: Record<(typeof SECTION_KINDS)[number], Set<string>> = {
   // A FAQ category: only its Title and its Questions (items) — label/text/
   // media/actions/settings are all genuinely unused for this role (see
   // Task 1's audit — every existing category section only ever stores
-  // title/items). See isCorrectlyShapedFaqCategorySection below for why
-  // sectionKey/sectionKind are ALSO hidden once a category is correctly
-  // shaped.
+  // title/items). See isCorrectlyShapedSection below for why sectionKey/
+  // sectionKind are ALSO hidden once a category is correctly shaped —
+  // same site-wide rule every other section now uses too.
   faqCategory: new Set(["title", "items"]),
   custom: new Set(["label", "title", "text", "media", "actions", "items", "settings"]),
 };
@@ -127,12 +127,6 @@ export function isPageEvents(document: unknown): boolean {
   return doc?._id?.replace(/^drafts\./, "") === "page-events";
 }
 
-// Contact's 2 sections (hero, form) are fixed — never manager-created or
-// -deleted (unlike Catering Menu Examples' categories or FAQ's categories),
-// so sectionKey/sectionKind are hidden unconditionally for them, not gated
-// on "already correctly shaped" the way those two are.
-const CONTACT_FIXED_SECTION_KEYS = new Set(["hero", "form"]);
-
 // Contact's hero ("Contact intro") genuinely uses label/title/text/items
 // (the default "hero"-kind visibility already covers those) but never
 // media/actions — confirmed by the live audit (no media/actions ever
@@ -142,10 +136,6 @@ const CONTACT_FIXED_SECTION_KEYS = new Set(["hero", "form"]);
 // by ContactFormSectionInput).
 const CONTACT_HERO_FORCE_HIDDEN_FIELDS = new Set(["media", "actions"]);
 const CONTACT_FORM_FORCE_HIDDEN_FIELDS = new Set(["label", "text"]);
-
-// Events Listing's 3 sections (hero, filters, closingCta) are fixed —
-// same reasoning as Contact's fixed hero/form above.
-const EVENTS_FIXED_SECTION_KEYS = new Set(["hero", "filters", "closingCta"]);
 
 // Live audit (Events Listing Studio task): `app/[locale]/(site)/events/page.tsx`
 // reads the page's own H1 from `sections[sectionKey=="hero"].title` — the
@@ -161,33 +151,27 @@ const EVENTS_FIXED_SECTION_KEYS = new Set(["hero", "filters", "closingCta"]);
 const EVENTS_FILTERS_FORCE_HIDDEN_FIELDS = new Set(["label", "title"]);
 
 /**
- * `sectionKind`/`sectionKey` are hidden on `page-catering-menu-examples`
- * specifically — a non-technical manager editing this document should never
- * need to understand what a "section" or a "key" is; every category is
- * added through CateringMenuSectionsInput's own "+ Add category" button,
- * which sets both fields correctly and out of sight. Scoped to sections
- * that ALREADY have a `sectionKind` set (i.e. every section that migration
- * or the custom "Add category" flow produced) — never hidden while empty,
- * so a stray raw section added through Sanity's own generic array "add"
- * control (still technically reachable, just not the advertised path)
- * still shows these two required fields until they're filled in, instead
- * of being hidden-but-required and silently blocking Publish forever.
+ * The one, site-wide, document-agnostic rule for `sectionKey`/`sectionKind`
+ * visibility (Phase 1 — technical-field hygiene): once a section already
+ * has a `sectionKind` value, it is a real, correctly-shaped section —
+ * `sectionKey`/`sectionKind` are stable technical routing facts the
+ * frontend depends on, never something a manager should read or edit, on
+ * ANY page. This generalizes the exact reasoning first established for
+ * Catering Menu Examples' categories and FAQ's categories (every section a
+ * semantic "+ Add" action creates already has its `sectionKind` set) to
+ * every section of every document, replacing what used to be a growing set
+ * of per-document special cases (Contact's fixed hero/form, Events' fixed
+ * hero/filters/closingCta, Catering Menu Examples' categories, FAQ's
+ * categories) with one shared predicate.
+ *
+ * Deliberately NEVER hidden while `sectionKind` is unset — a stray raw
+ * section added through Sanity's own generic array "add" control (still
+ * technically reachable, just not the advertised path) still shows these
+ * two required fields until they're filled in, instead of being
+ * hidden-but-required and silently blocking Publish forever.
  */
-function isCorrectlyShapedCateringMenuSection(parent: { sectionKind?: string } | undefined, document: unknown): boolean {
-  return isPageCateringMenuExamples(document) && Boolean(parent?.sectionKind);
-}
-
-/**
- * Same reasoning as isCorrectlyShapedCateringMenuSection above, for FAQ
- * categories: sectionKey/sectionKind are hidden once a category is already
- * correctly shaped (sectionKind set — always true for every category
- * FaqSectionsInput's "+ Add FAQ category" button creates), but stay visible
- * on any section that somehow lacks one (e.g. one added through Sanity's own
- * generic array control, still technically reachable) so it's never
- * hidden-but-required.
- */
-function isCorrectlyShapedFaqCategorySection(parent: { sectionKind?: string } | undefined, document: unknown): boolean {
-  return isPageFaq(document) && Boolean(parent?.sectionKind);
+function isCorrectlyShapedSection(parent: { sectionKind?: string } | undefined): boolean {
+  return Boolean(parent?.sectionKind);
 }
 
 export function isFaqCategorySection(parent: { sectionKind?: string } | undefined): boolean {
@@ -271,11 +255,7 @@ export default defineType({
       readOnly: ({ value }) => Boolean(value),
       validation: (rule) => rule.required(),
       description: "Stable identifier the website looks this section up by. / Стабільний ідентифікатор, за яким сайт знаходить цей розділ.",
-      hidden: ({ parent, document }) =>
-        isCorrectlyShapedCateringMenuSection(parent, document) ||
-        isCorrectlyShapedFaqCategorySection(parent, document) ||
-        (isPageContact(document) && Boolean(parent?.sectionKey && CONTACT_FIXED_SECTION_KEYS.has(parent.sectionKey))) ||
-        (isPageEvents(document) && Boolean(parent?.sectionKey && EVENTS_FIXED_SECTION_KEYS.has(parent.sectionKey))),
+      hidden: ({ parent }) => isCorrectlyShapedSection(parent as { sectionKind?: string } | undefined),
     }),
     defineField({
       name: "sectionKind",
@@ -286,11 +266,7 @@ export default defineType({
       },
       validation: (rule) => rule.required(),
       description: "What kind of section this is — controls which fields below apply. / Тип розділу — визначає, які поля нижче застосовуються.",
-      hidden: ({ parent, document }) =>
-        isCorrectlyShapedCateringMenuSection(parent, document) ||
-        isCorrectlyShapedFaqCategorySection(parent, document) ||
-        (isPageContact(document) && Boolean(parent?.sectionKey && CONTACT_FIXED_SECTION_KEYS.has(parent.sectionKey))) ||
-        (isPageEvents(document) && Boolean(parent?.sectionKey && EVENTS_FIXED_SECTION_KEYS.has(parent.sectionKey))),
+      hidden: ({ parent }) => isCorrectlyShapedSection(parent as { sectionKind?: string } | undefined),
     }),
     defineField({
       name: "label",

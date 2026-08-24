@@ -1352,7 +1352,7 @@ test.describe("Events — regression: deselecting da after content exists never 
 // to guarantee renaming a category (editing title/label) can never change
 // its stable sectionKey.
 // ============================================================================
-test.describe("pageSection.ts — sectionKind/sectionKey hidden + locked for Catering Menu Examples categories", () => {
+test.describe("pageSection.ts — sectionKind/sectionKey hidden + locked site-wide once a section is correctly shaped (Phase 1 — technical-field hygiene)", () => {
   function sectionKeyField() {
     return field(pageSectionType as unknown as { fields: FieldDef[] }, "sectionKey");
   }
@@ -1387,19 +1387,60 @@ test.describe("pageSection.ts — sectionKind/sectionKey hidden + locked for Cat
     expect(callHidden(sectionKindField(), { parent, document: cateringMenuDoc })).toBe(false);
   });
 
-  test("regression: unaffected on every other page (Home/About) regardless of sectionKind", () => {
-    // page-events is deliberately excluded from this list — its own hero/
-    // filters/closingCta sections are now hidden for a SEPARATE reason (the
-    // Events Listing Studio task's own fixed-section rule below), not by
-    // this Catering-specific rule; see that rule's own dedicated tests.
-    for (const docId of ["page-home", "page-about"]) {
+  test("site-wide, not Catering-specific: also hidden on every other page (Home/About/Event Decoration/Host at RORUM/...) once sectionKind is set — Phase 1's whole point is that this is document-agnostic", () => {
+    for (const docId of ["page-home", "page-about", "page-event-decoration", "page-host-at-rorum"]) {
       const parent = { sectionKind: "hero", sectionKey: "hero" };
-      expect(callHidden(sectionKeyField(), { parent, document: { _id: docId } }), docId).toBe(false);
+      expect(callHidden(sectionKeyField(), { parent, document: { _id: docId } }), docId).toBe(true);
+      expect(callHidden(sectionKindField(), { parent, document: { _id: docId } }), docId).toBe(true);
     }
   });
 
   test("rename never changes the key: sectionKey is readOnly once set, independent of title/label — editing a category's title has no code path that touches sectionKey", () => {
     expect(callReadOnly(sectionKeyField(), { value: "menuCategory-abc123" })).toBe(true);
+    expect(callReadOnly(sectionKeyField(), { value: undefined })).toBe(false);
+  });
+});
+
+test.describe("pageSection.ts — Phase 1 site-wide regression: every previously-corrected workflow still behaves the same, plus every page now gets the same technical-field hiding", () => {
+  function sectionKeyField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "sectionKey");
+  }
+  function sectionKindField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "sectionKind");
+  }
+
+  test("a correctly-shaped section (sectionKind set) has sectionKey/sectionKind hidden on every one of FAQ / Contact / Catering / Catering Menu Examples / Events / Event Decoration / Host at RORUM / Home / About", () => {
+    const documentIds = [
+      "page-faq",
+      "page-contact",
+      "page-catering",
+      "page-catering-menu-examples",
+      "page-events",
+      "page-event-decoration",
+      "page-host-at-rorum",
+      "page-home",
+      "page-about",
+    ];
+    for (const _id of documentIds) {
+      const parent = { sectionKey: "anySection", sectionKind: "custom" };
+      const ctx = { parent, document: { _id } };
+      expect(callHidden(sectionKeyField(), ctx), _id).toBe(true);
+      expect(callHidden(sectionKindField(), ctx), _id).toBe(true);
+    }
+  });
+
+  test("a section with NO sectionKind yet keeps sectionKey/sectionKind visible on every one of those same documents — never hidden-but-required, on any page", () => {
+    const documentIds = ["page-faq", "page-contact", "page-catering-menu-examples", "page-events", "page-event-decoration", "page-host-at-rorum", "page-home"];
+    for (const _id of documentIds) {
+      const parent = { sectionKey: undefined, sectionKind: undefined };
+      const ctx = { parent, document: { _id } };
+      expect(callHidden(sectionKeyField(), ctx), _id).toBe(false);
+      expect(callHidden(sectionKindField(), ctx), _id).toBe(false);
+    }
+  });
+
+  test("sectionKey stays readOnly-once-set regardless of document — rename/reorder can never change it, on any page", () => {
+    expect(callReadOnly(sectionKeyField(), { value: "hero" })).toBe(true);
     expect(callReadOnly(sectionKeyField(), { value: undefined })).toBe(false);
   });
 });
@@ -1619,8 +1660,8 @@ test.describe("pageSection.ts — faqCategory section visibility (Task 2/4)", ()
     expect(callHidden(field(pageSectionType, "sectionKind"), { parent: faqCategoryParent(), document: faqDraftDoc })).toBe(true);
   });
 
-  test("sectionKey/sectionKind stay visible on a faqCategory-shaped section that isn't actually on page-faq (defensive — should never happen, but never hidden-but-required elsewhere)", () => {
-    expect(callHidden(field(pageSectionType, "sectionKey"), { parent: faqCategoryParent(), document: nonFaqDoc })).toBe(false);
+  test("sectionKey/sectionKind are ALSO hidden on a faqCategory-shaped section on a different document — Phase 1's site-wide rule cares only about shape, not which document", () => {
+    expect(callHidden(field(pageSectionType, "sectionKey"), { parent: faqCategoryParent(), document: nonFaqDoc })).toBe(true);
   });
 
   test("sectionKey/sectionKind stay visible on page-faq's hero section too (no sectionKind mismatch — hidden once ANY sectionKind is set, matching the Catering precedent)", () => {
@@ -1826,12 +1867,12 @@ test.describe("pageSection.ts — Contact-specific section hides (Task 2)", () =
     expect(callHidden(field(pageSectionType, "media"), { parent, document: otherDoc })).toBe(false);
   });
 
-  test("sectionKey/sectionKind are hidden unconditionally on Contact's hero and form sections", () => {
-    expect(callHidden(field(pageSectionType, "sectionKey"), { parent: { sectionKey: "hero" }, document: contactDoc })).toBe(true);
-    expect(callHidden(field(pageSectionType, "sectionKind"), { parent: { sectionKey: "form" }, document: contactDraftDoc })).toBe(true);
+  test("sectionKey/sectionKind are hidden on Contact's hero and form sections once correctly shaped (real data always has sectionKind set)", () => {
+    expect(callHidden(field(pageSectionType, "sectionKey"), { parent: { sectionKey: "hero", sectionKind: "hero" }, document: contactDoc })).toBe(true);
+    expect(callHidden(field(pageSectionType, "sectionKind"), { parent: { sectionKey: "form", sectionKind: "form" }, document: contactDraftDoc })).toBe(true);
   });
 
-  test("sectionKey/sectionKind stay visible on Contact for any OTHER (non-fixed) sectionKey, defensively", () => {
+  test("sectionKey/sectionKind stay visible on Contact for any section that genuinely has no sectionKind yet (a stray raw section, if ever reached) — never hidden-but-required", () => {
     expect(callHidden(field(pageSectionType, "sectionKey"), { parent: { sectionKey: "somethingElse" }, document: contactDoc })).toBe(false);
   });
 });
@@ -2147,18 +2188,18 @@ test.describe("pageSection.ts — Events Listing fixed-section visibility", () =
     }
   });
 
-  test("sectionKey/sectionKind stay visible on page-events for any OTHER (non-fixed) sectionKey, defensively", () => {
+  test("sectionKey/sectionKind are ALSO hidden on page-events for any OTHER (non-fixed) sectionKey — Phase 1's site-wide rule hides once correctly shaped, regardless of which sectionKey/document", () => {
     const parent = { sectionKey: "somethingElse", sectionKind: "custom" };
     const ctx = { parent, document: { _id: "page-events" } };
-    expect(callHidden(sectionKeyField(), ctx)).toBe(false);
-    expect(callHidden(sectionKindField(), ctx)).toBe(false);
+    expect(callHidden(sectionKeyField(), ctx)).toBe(true);
+    expect(callHidden(sectionKindField(), ctx)).toBe(true);
   });
 
-  test("regression: an identical sectionKey (\"hero\"/\"filters\"/\"closingCta\") on a DIFFERENT page's document is never hidden by this rule", () => {
+  test("an identical sectionKey (\"hero\"/\"filters\"/\"closingCta\") on a DIFFERENT page's document is ALSO hidden once shaped — the site-wide Phase 1 rule, not a page-events-specific one", () => {
     for (const sectionKey of ["hero", "filters", "closingCta"]) {
       const parent = { sectionKey, sectionKind: sectionKey };
       const ctx = { parent, document: { _id: "page-home" } };
-      expect(callHidden(sectionKeyField(), ctx), sectionKey).toBe(false);
+      expect(callHidden(sectionKeyField(), ctx), sectionKey).toBe(true);
     }
   });
 
