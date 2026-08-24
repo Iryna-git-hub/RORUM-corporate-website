@@ -84,6 +84,26 @@ const ITEM_KEY_PREVIEW_LABELS: Record<string, string> = {
   successMessage: "Success message",
   faqPromptQuestion: "FAQ prompt question",
   faqPromptLabel: "FAQ prompt link",
+  // Events Listing filters (see the "Events filter/empty-state label" role
+  // below) — group headings, then each group's own options, then the
+  // shared filter-messages rows.
+  dateLabel: "Date — group heading",
+  languageLabel: "Language — group heading",
+  priceLabel: "Price — group heading",
+  availabilityLabel: "Availability — group heading",
+  soonestLabel: "Soonest first",
+  weekLabel: "This week",
+  monthLabel: "This month",
+  languageDaLabel: "Danish (language option)",
+  languageEnLabel: "English (language option)",
+  languageUkLabel: "Ukrainian (language option)",
+  priceAscLabel: "Price: low to high",
+  priceDescLabel: "Price: high to low",
+  availableLabel: "Available",
+  soldOutLabel: "Sold out",
+  clearFiltersLabel: "Clear filters",
+  emptyStateTitle: "Empty-state title",
+  emptyStateText: "Empty-state text",
 };
 
 export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
@@ -99,11 +119,25 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
   { role: "About statement service link", sectionKeys: ["statement"], itemKeyPattern: /^service[01]$/, visible: ["itemKey", "icon", "href", "label"] },
   { role: "About community link", sectionKeys: ["community"], itemKeyPattern: /^community[0-2]$/, visible: ["itemKey", "icon", "href", "label"] },
   { role: "About pillar card", sectionKeys: ["pillars"], itemKeyPattern: /^pillar[0-3]$/, visible: ["itemKey", "title", "text"] },
+  // Every one of these 17 rows is read by app/[locale]/(site)/events/page.tsx
+  // via `getItem(filtersSection, key)?.title` ONLY (never .text/.href/.label/
+  // .value/.icon/.image/.itemKey) — confirmed live. `languageDaLabel`/
+  // `languageEnLabel`/`languageUkLabel` are new (Events Listing Studio task,
+  // Section 6): the 3 event-language *display names* ("Danish"/"English"/
+  // "Ukrainian" — the same 3 values `event.language` itself stores) were
+  // previously hardcoded in lib/eventLanguage.ts; EventsFiltersInput.tsx
+  // groups these 17 into 5 manager-facing groups. `documentIds`-scoped (like
+  // every other Contact/page-specific role) since "filters" is a section key
+  // in principle any future page could reuse. Required (blank labels would
+  // produce unusable filter controls, per the task's own explicit rule).
   {
     role: "Events filter/empty-state label",
+    documentIds: ["page-events"],
     sectionKeys: ["filters"],
-    itemKeyPattern: /^(dateLabel|languageLabel|priceLabel|availabilityLabel|soonestLabel|weekLabel|monthLabel|priceAscLabel|priceDescLabel|availableLabel|soldOutLabel|clearFiltersLabel|emptyStateTitle|emptyStateText)$/,
+    itemKeyPattern: /^(dateLabel|languageLabel|priceLabel|availabilityLabel|soonestLabel|weekLabel|monthLabel|languageDaLabel|languageEnLabel|languageUkLabel|priceAscLabel|priceDescLabel|availableLabel|soldOutLabel|clearFiltersLabel|emptyStateTitle|emptyStateText)$/,
     visible: ["title"],
+    requiredFields: ["title"],
+    fieldLabels: { title: "Label text" },
   },
   { role: "Catering hero menu-examples button", sectionKeys: ["hero"], itemKeyPattern: /^menuExamplesCta$/, visible: ["title"] },
   { role: "Catering gallery chip-group aria label", sectionKeys: ["gallery"], itemKeyPattern: /^ariaLabel$/, visible: ["title"] },

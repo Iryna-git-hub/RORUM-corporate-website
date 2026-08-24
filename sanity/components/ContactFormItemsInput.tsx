@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { insert, useFormValue, type ArrayOfObjectsInputProps, type ArraySchemaType } from "sanity";
 import { Box, Button, Card, Stack, Text } from "@sanity/ui";
+import { EventsFiltersInput } from "@/sanity/components/EventsFiltersInput";
 
 // Same supported Sanity mechanism as every other custom array input here —
 // ArrayOptions.disableActions, not CSS. Applied to every group rendered
@@ -88,7 +89,12 @@ export function ContactFormItemsInput(props: ArrayOfObjectsInputProps) {
   const [adding, setAdding] = useState(false);
 
   if (!isContactForm) {
-    return props.renderDefault(props);
+    // Chained (not both wired independently) — see this file's own doc
+    // comment for why `items` can only have one components.input.
+    // EventsFiltersInput itself delegates to props.renderDefault for every
+    // non-Events-filters items array, so every other section's items are
+    // unaffected.
+    return <EventsFiltersInput {...props} />;
   }
 
   const fieldMembers = props.members.filter((m) => itemKeyOf(m)?.startsWith(FIELD_ITEM_KEY_PREFIX));

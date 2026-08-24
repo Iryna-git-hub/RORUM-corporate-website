@@ -12,17 +12,20 @@ function isFaqCategoryTitleField(props: ArrayOfObjectsInputProps, parent: unknow
 }
 
 /**
- * True for any `contentItem` whose ITEM_ROLE_RULES role is a Contact one —
- * generic on purpose: every Contact reserved role (Follow-us heading,
- * Submit button, Success message, a Contact form field's Label, the FAQ
- * prompt question/link text) needs the same always-show-3-languages
- * treatment, and new Contact roles added later get it automatically
- * without another one-off check being added here. Named by role prefix,
- * not by an enumerated list, so this can never silently drift from
+ * True for any `contentItem` whose ITEM_ROLE_RULES role belongs to a
+ * document-scoped, always-localized workflow — Contact's reserved rows
+ * (Follow-us heading, Submit button, Success message, a form field's Label,
+ * the FAQ prompt question/link text) and Events Listing's filter/empty-
+ * state labels (Section 7: EN/DA/UK visible immediately without a
+ * mount-time write, same as every other reserved-row workflow) — generic on
+ * purpose: a new role added later under either prefix gets this treatment
+ * automatically, with no one-off check added here. Named by role prefix,
+ * not an enumerated list, so this can never silently drift from
  * contentItem.ts's own role table.
  */
-function isContactRole(document: unknown, parent: unknown): boolean {
-  return Boolean(matchItemRoleInContext(document, parent)?.role.startsWith("Contact "));
+function isAlwaysAllLanguagesRole(document: unknown, parent: unknown): boolean {
+  const role = matchItemRoleInContext(document, parent)?.role;
+  return Boolean(role?.startsWith("Contact ") || role?.startsWith("Events "));
 }
 
 /**
@@ -31,7 +34,8 @@ function isContactRole(document: unknown, parent: unknown): boolean {
  * EN/DA/UK, decided by the SAME `ITEM_ROLE_RULES`/sectionKind mechanism
  * validation itself uses (so this can never drift from what Publish
  * actually requires) — a FAQ category's Title, a FAQ question's Question/
- * Answer, and every Contact-only role's own localized field(s). Chained
+ * Answer, every Contact-only role's own localized field(s), and every
+ * Events Listing filter/empty-state label's Title. Chained
  * onto `CateringAllLanguagesInput.tsx` (see that file), which is the actual
  * `components.input` on the underlying field types — an
  * internationalizedArray* field can only have one.
@@ -57,7 +61,7 @@ export function RoleAwareAllLanguagesInput(props: ArrayOfObjectsInputProps) {
   const parent = useFormValue(parentPath ?? []) as unknown;
   const document = { _id: documentId, sections };
 
-  const applies = Boolean(parentPath) && (isFaqQuestionRole(document, parent) || isFaqCategoryTitleField(props, parent) || isContactRole(document, parent));
+  const applies = Boolean(parentPath) && (isFaqQuestionRole(document, parent) || isFaqCategoryTitleField(props, parent) || isAlwaysAllLanguagesRole(document, parent));
   if (!applies) {
     return <EventLocaleAwareInput {...props} />;
   }

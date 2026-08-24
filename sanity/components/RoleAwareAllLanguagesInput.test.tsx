@@ -135,6 +135,27 @@ describe("RoleAwareAllLanguagesInput — Contact roles (generic role-prefix chec
   });
 });
 
+describe("RoleAwareAllLanguagesInput — Events Listing filter/empty-state labels (generic role-prefix check, Events Listing Studio task)", () => {
+  const EVENTS_FILTERS_SECTIONS = [{ _key: "filters", sectionKey: "filters", sectionKind: "filters", items: [{ _key: "dateLabel", itemKey: "dateLabel" }] }];
+  const DATE_LABEL_TITLE_PATH = ["sections", { _key: "filters" }, "items", { _key: "dateLabel" }, "title"];
+
+  it("a filter group heading's title (e.g. dateLabel): shows the always-present EN/DA/UK rows", () => {
+    mockFormValue("page-events", EVENTS_FILTERS_SECTIONS, () => ({ _key: "dateLabel", itemKey: "dateLabel" }));
+    const { props } = fakeProps({ path: DATE_LABEL_TITLE_PATH } as never);
+    renderInput(props);
+    expect(screen.getByText("English")).toBeInTheDocument();
+    expect(screen.getByText("Danish")).toBeInTheDocument();
+    expect(screen.getByText("Ukrainian")).toBeInTheDocument();
+  });
+
+  it("the identical sectionKey/itemKey (\"filters\"/\"dateLabel\") on a DIFFERENT document falls through", () => {
+    mockFormValue("page-catering", EVENTS_FILTERS_SECTIONS, () => ({ _key: "dateLabel", itemKey: "dateLabel" }));
+    const { props } = fakeProps({ path: DATE_LABEL_TITLE_PATH } as never);
+    renderInput(props);
+    expect(screen.getByTestId("rendered-default")).toBeInTheDocument();
+  });
+});
+
 describe("RoleAwareAllLanguagesInput — lazy creation, never a silent auto-mutation from merely opening a field", () => {
   it("with an empty value, no onChange is called just from rendering", () => {
     mockFormValue("page-faq", QUESTION_SECTIONS, () => ({ _key: "q0", itemKey: "q0" }));

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import pageSectionType, { isFaqCategorySection, isPageFaq, isPageContact } from "@/sanity/schemaTypes/objects/pageSection";
+import pageSectionType, { isFaqCategorySection, isPageFaq, isPageContact, isPageEvents } from "@/sanity/schemaTypes/objects/pageSection";
 import contentItemType, { ITEM_ROLE_RULES, matchItemRoleInContext, isFaqQuestionRole, isFieldRequiredByItemRole, fieldLabelForItemRole } from "@/sanity/schemaTypes/objects/contentItem";
 import socialLinkType from "@/sanity/schemaTypes/objects/socialLink";
 import { allOrNothingLanguages, allOrNothingForSelectedEventLocales, requireAllLanguages } from "@/sanity/lib/i18nValidation";
@@ -1387,8 +1387,12 @@ test.describe("pageSection.ts — sectionKind/sectionKey hidden + locked for Cat
     expect(callHidden(sectionKindField(), { parent, document: cateringMenuDoc })).toBe(false);
   });
 
-  test("regression: unaffected on every other page (Home/About/Events) regardless of sectionKind", () => {
-    for (const docId of ["page-home", "page-about", "page-events"]) {
+  test("regression: unaffected on every other page (Home/About) regardless of sectionKind", () => {
+    // page-events is deliberately excluded from this list — its own hero/
+    // filters/closingCta sections are now hidden for a SEPARATE reason (the
+    // Events Listing Studio task's own fixed-section rule below), not by
+    // this Catering-specific rule; see that rule's own dedicated tests.
+    for (const docId of ["page-home", "page-about"]) {
       const parent = { sectionKind: "hero", sectionKey: "hero" };
       expect(callHidden(sectionKeyField(), { parent, document: { _id: docId } }), docId).toBe(false);
     }
@@ -2102,5 +2106,140 @@ test.describe("socialLink.ts — platform selector narrowed to Instagram/Faceboo
     const validate = captureCustomValidator(iconField);
     const doc = { links: [{ _key: "x", icon: "linkedin" }] };
     expect(validate("linkedin", { document: doc, parent: { _key: "x" } })).toBe(true);
+  });
+});
+
+// ============================================================================
+// Events Listing Studio task — page-events' 3 fixed sections (hero/filters/
+// closingCta), the document-scoped "Events filter/empty-state label" role,
+// and the required-title rule for filter labels.
+// ============================================================================
+test.describe("pageSection.ts — Events Listing fixed-section visibility", () => {
+  function sectionKeyField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "sectionKey");
+  }
+  function sectionKindField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "sectionKind");
+  }
+  function labelField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "label");
+  }
+  function titleField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "title");
+  }
+  function settingsField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "settings");
+  }
+
+  test("isPageEvents recognizes both the published and draft id, and rejects other documents", () => {
+    expect(isPageEvents({ _id: "page-events" })).toBe(true);
+    expect(isPageEvents({ _id: "drafts.page-events" })).toBe(true);
+    expect(isPageEvents({ _id: "page-catering" })).toBe(false);
+    expect(isPageEvents(undefined)).toBe(false);
+  });
+
+  test("sectionKey/sectionKind are hidden unconditionally on all 3 of page-events' fixed sections (hero/filters/closingCta)", () => {
+    for (const sectionKey of ["hero", "filters", "closingCta"]) {
+      const parent = { sectionKey, sectionKind: sectionKey === "closingCta" ? "cta" : sectionKey };
+      const ctx = { parent, document: { _id: "page-events" } };
+      expect(callHidden(sectionKeyField(), ctx), sectionKey).toBe(true);
+      expect(callHidden(sectionKindField(), ctx), sectionKey).toBe(true);
+    }
+  });
+
+  test("sectionKey/sectionKind stay visible on page-events for any OTHER (non-fixed) sectionKey, defensively", () => {
+    const parent = { sectionKey: "somethingElse", sectionKind: "custom" };
+    const ctx = { parent, document: { _id: "page-events" } };
+    expect(callHidden(sectionKeyField(), ctx)).toBe(false);
+    expect(callHidden(sectionKindField(), ctx)).toBe(false);
+  });
+
+  test("regression: an identical sectionKey (\"hero\"/\"filters\"/\"closingCta\") on a DIFFERENT page's document is never hidden by this rule", () => {
+    for (const sectionKey of ["hero", "filters", "closingCta"]) {
+      const parent = { sectionKey, sectionKind: sectionKey };
+      const ctx = { parent, document: { _id: "page-home" } };
+      expect(callHidden(sectionKeyField(), ctx), sectionKey).toBe(false);
+    }
+  });
+
+  test("filters section: label/title are hidden on page-events (never read by the frontend — only per-item .title is)", () => {
+    const parent = { sectionKey: "filters", sectionKind: "filters" };
+    const ctx = { parent, document: { _id: "page-events" } };
+    expect(callHidden(labelField(), ctx)).toBe(true);
+    expect(callHidden(titleField(), ctx)).toBe(true);
+  });
+
+  test("regression: filters section's label/title stay visible on any other page (defensive — no other page currently uses sectionKind \"filters\")", () => {
+    const parent = { sectionKey: "filters", sectionKind: "filters" };
+    const ctx = { parent, document: { _id: "page-catering" } };
+    expect(callHidden(labelField(), ctx)).toBe(false);
+    expect(callHidden(titleField(), ctx)).toBe(false);
+  });
+
+  test("closingCta section: settings is hidden on page-events (the stored \"variant\" flag is never read — the frontend hardcodes variant=\"host\") — via sectionKind \"cta\"'s own generic FIELD_VISIBILITY, not a page-events-specific override (that visibility rule already applies to every closingCta on every page)", () => {
+    const parent = { sectionKey: "closingCta", sectionKind: "cta" };
+    for (const docId of ["page-events", "page-home", "page-about"]) {
+      expect(callHidden(settingsField(), { parent, document: { _id: docId } }), docId).toBe(true);
+    }
+  });
+
+  test("closingCta section: label/title/text/actions/items stay visible on page-events (all genuinely read by the frontend)", () => {
+    const parent = { sectionKey: "closingCta", sectionKind: "cta" };
+    const ctx = { parent, document: { _id: "page-events" } };
+    expect(callHidden(labelField(), ctx)).toBe(false);
+    expect(callHidden(titleField(), ctx)).toBe(false);
+  });
+});
+
+test.describe("contentItem.ts — Events filter/empty-state label role (Events Listing Studio task)", () => {
+  function docWithItem(itemKey: string, documentId = "page-events") {
+    return { _id: documentId, sections: [{ sectionKey: "filters", sectionKind: "filters", items: [{ _key: "x", itemKey }] }] };
+  }
+  const ALL_17_KEYS = [
+    "dateLabel", "languageLabel", "priceLabel", "availabilityLabel",
+    "soonestLabel", "weekLabel", "monthLabel",
+    "languageDaLabel", "languageEnLabel", "languageUkLabel",
+    "priceAscLabel", "priceDescLabel",
+    "availableLabel", "soldOutLabel",
+    "clearFiltersLabel", "emptyStateTitle", "emptyStateText",
+  ];
+
+  test("all 17 known filter/empty-state keys match the role on page-events, with only title visible and required", () => {
+    for (const itemKey of ALL_17_KEYS) {
+      const doc = docWithItem(itemKey);
+      const parent = doc.sections[0]!.items[0]!;
+      const rule = matchItemRoleInContext(doc, parent);
+      expect(rule?.role, itemKey).toBe("Events filter/empty-state label");
+      expect(rule?.visible, itemKey).toEqual(["title"]);
+      expect(isFieldRequiredByItemRole("title")(doc, parent), itemKey).toBe(true);
+    }
+  });
+
+  test("the new languageDaLabel/languageEnLabel/languageUkLabel rows get a semantic field label (\"Label text\"), never a raw \"Title\"", () => {
+    const doc = docWithItem("languageDaLabel");
+    const parent = doc.sections[0]!.items[0]!;
+    expect(fieldLabelForItemRole("title", doc, parent)).toBe("Label text");
+  });
+
+  test("an identical sectionKey/itemKey (\"filters\"/\"dateLabel\") on a DIFFERENT page's document never activates this role — documentIds scoping", () => {
+    for (const documentId of ["page-catering", "drafts.page-catering"]) {
+      const doc = docWithItem("dateLabel", documentId);
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent)?.role, documentId).toBeUndefined();
+    }
+  });
+
+  test("both the published and draft page-events ids activate the role", () => {
+    for (const documentId of ["page-events", "drafts.page-events"]) {
+      const doc = docWithItem("dateLabel", documentId);
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent)?.role, documentId).toBe("Events filter/empty-state label");
+    }
+  });
+
+  test("an unrecognized itemKey inside page-events' filters section never matches this role — every generic field stays visible for it", () => {
+    const doc = docWithItem("someUnknownKey");
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)).toBeUndefined();
   });
 });

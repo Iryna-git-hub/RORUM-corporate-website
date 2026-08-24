@@ -88,11 +88,19 @@ function getDateWindow(
 export function EventsClientPage({
   events,
   filters,
+  languageLabels,
+  dateOptionOrder,
+  priceOptionOrder,
+  availabilityOptionOrder,
   eventCardMessages,
   emptyState,
 }: {
   events: RorumEvent[];
   filters?: EventFilterLabels;
+  languageLabels?: Partial<Record<string, string>>;
+  dateOptionOrder?: { value: string; label: string }[];
+  priceOptionOrder?: { value: string; label: string }[];
+  availabilityOptionOrder?: { value: string; label: string }[];
   eventCardMessages?: EventCardMessages;
   emptyState?: EventsEmptyStateText;
 }) {
@@ -180,6 +188,10 @@ export function EventsClientPage({
         languageOptions={languageOptions}
         hasActiveFilters={hasActiveFilters}
         labels={filters}
+        languageLabels={languageLabels}
+        dateOptionOrder={dateOptionOrder}
+        priceOptionOrder={priceOptionOrder}
+        availabilityOptionOrder={availabilityOptionOrder}
       />
       <EventsPaginatedList
         events={visibleEvents}

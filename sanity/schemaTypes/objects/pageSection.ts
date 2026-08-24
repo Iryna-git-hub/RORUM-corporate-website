@@ -122,6 +122,11 @@ export function isPageContact(document: unknown): boolean {
   return doc?._id?.replace(/^drafts\./, "") === "page-contact";
 }
 
+export function isPageEvents(document: unknown): boolean {
+  const doc = document as { _id?: string } | undefined;
+  return doc?._id?.replace(/^drafts\./, "") === "page-events";
+}
+
 // Contact's 2 sections (hero, form) are fixed — never manager-created or
 // -deleted (unlike Catering Menu Examples' categories or FAQ's categories),
 // so sectionKey/sectionKind are hidden unconditionally for them, not gated
@@ -137,6 +142,23 @@ const CONTACT_FIXED_SECTION_KEYS = new Set(["hero", "form"]);
 // by ContactFormSectionInput).
 const CONTACT_HERO_FORCE_HIDDEN_FIELDS = new Set(["media", "actions"]);
 const CONTACT_FORM_FORCE_HIDDEN_FIELDS = new Set(["label", "text"]);
+
+// Events Listing's 3 sections (hero, filters, closingCta) are fixed —
+// same reasoning as Contact's fixed hero/form above.
+const EVENTS_FIXED_SECTION_KEYS = new Set(["hero", "filters", "closingCta"]);
+
+// Live audit (Events Listing Studio task): `app/[locale]/(site)/events/page.tsx`
+// reads the page's own H1 from `sections[sectionKey=="hero"].title` — the
+// `filters` section's own `label`/`title` fields are never read anywhere
+// (only `getItem(filtersSection, key)?.title` for individual filter-label
+// ITEMS, via a completely separate field path) — so `filters`'s own
+// section-level Title/Small label would otherwise mislead a manager into
+// thinking IT controls the page heading. `closingCta`'s `settings` (a
+// `variant` flag) is likewise stored but never read — the frontend hardcodes
+// `variant="host"` directly in JSX; no separate override is needed for it,
+// though — sectionKind "cta"'s own FIELD_VISIBILITY already omits `settings`
+// for every closingCta section on every page (Home/About included).
+const EVENTS_FILTERS_FORCE_HIDDEN_FIELDS = new Set(["label", "title"]);
 
 /**
  * `sectionKind`/`sectionKey` are hidden on `page-catering-menu-examples`
@@ -203,6 +225,9 @@ function fieldHidden(fieldName: string) {
     if (isPageContact(document) && parent?.sectionKey === "form" && CONTACT_FORM_FORCE_HIDDEN_FIELDS.has(fieldName)) {
       return true;
     }
+    if (isPageEvents(document) && parent?.sectionKey === "filters" && EVENTS_FILTERS_FORCE_HIDDEN_FIELDS.has(fieldName)) {
+      return true;
+    }
     const kind = parent?.sectionKind as (typeof SECTION_KINDS)[number] | undefined;
     if (!kind) return false;
     const visible = FIELD_VISIBILITY[kind];
@@ -249,7 +274,8 @@ export default defineType({
       hidden: ({ parent, document }) =>
         isCorrectlyShapedCateringMenuSection(parent, document) ||
         isCorrectlyShapedFaqCategorySection(parent, document) ||
-        (isPageContact(document) && Boolean(parent?.sectionKey && CONTACT_FIXED_SECTION_KEYS.has(parent.sectionKey))),
+        (isPageContact(document) && Boolean(parent?.sectionKey && CONTACT_FIXED_SECTION_KEYS.has(parent.sectionKey))) ||
+        (isPageEvents(document) && Boolean(parent?.sectionKey && EVENTS_FIXED_SECTION_KEYS.has(parent.sectionKey))),
     }),
     defineField({
       name: "sectionKind",
@@ -263,7 +289,8 @@ export default defineType({
       hidden: ({ parent, document }) =>
         isCorrectlyShapedCateringMenuSection(parent, document) ||
         isCorrectlyShapedFaqCategorySection(parent, document) ||
-        (isPageContact(document) && Boolean(parent?.sectionKey && CONTACT_FIXED_SECTION_KEYS.has(parent.sectionKey))),
+        (isPageContact(document) && Boolean(parent?.sectionKey && CONTACT_FIXED_SECTION_KEYS.has(parent.sectionKey))) ||
+        (isPageEvents(document) && Boolean(parent?.sectionKey && EVENTS_FIXED_SECTION_KEYS.has(parent.sectionKey))),
     }),
     defineField({
       name: "label",

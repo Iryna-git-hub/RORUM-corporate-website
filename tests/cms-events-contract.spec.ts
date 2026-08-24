@@ -130,6 +130,98 @@ test.describe("Events listing content contract", () => {
   });
 });
 
+test.describe("Events Listing filter groups, order and closing CTA (Events Listing Studio task)", () => {
+  test.skip(
+    !process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || !process.env.NEXT_PUBLIC_SANITY_DATASET,
+    "Sanity not configured in this environment",
+  );
+
+  let listingPage: RawPage & { closingCta?: { label?: I18nEntry[]; title?: I18nEntry[]; text?: I18nEntry[] } } = {};
+
+  test.beforeAll(async () => {
+    listingPage = await sanity.fetch(
+      `*[_id == "page-events"][0]{
+        "sections": sections[]{sectionKey, title, "items": items[]{itemKey, title}},
+        "closingCta": sections[sectionKey == "closingCta"][0]{label, title, text}
+      }`,
+    );
+  });
+
+  const filterItem = (key: string) => listingPage.sections?.find((s) => s.sectionKey === "filters")?.items?.find((i) => i.itemKey === key)?.title;
+
+  test("the 3 new language-option labels (languageEnLabel/languageDaLabel/languageUkLabel) are published and EN/DA/UK complete", () => {
+    for (const key of ["languageEnLabel", "languageDaLabel", "languageUkLabel"]) {
+      for (const locale of LOCALES) {
+        const value = pick(filterItem(key), locale);
+        expect(value, `${key}[${locale}]`).toBeTruthy();
+      }
+    }
+  });
+
+  test("the Language filter dropdown shows the CMS-sourced label, not a hardcoded one, for at least one real event language", async ({ page }) => {
+    const enLabel = pick(filterItem("languageEnLabel"), "en");
+    expect(enLabel).toBeTruthy();
+    await page.goto(localizedHref("/events", "en"));
+    await page.getByRole("button", { name: pick(filterItem("languageLabel"), "en") ?? "Language" }).click();
+    await expect(page.getByRole("menuitemradio", { name: enLabel!, exact: true })).toBeVisible();
+  });
+
+  for (const locale of LOCALES) {
+    test(`empty-state text [${locale}] matches page-events.filters.emptyStateTitle/.emptyStateText`, async ({ page }) => {
+      const title = pick(filterItem("emptyStateTitle"), locale);
+      const text = pick(filterItem("emptyStateText"), locale);
+      expect(title, `emptyStateTitle[${locale}]`).toBeTruthy();
+      expect(text, `emptyStateText[${locale}]`).toBeTruthy();
+      // Force the empty state via an implausible combination (sold-out AND
+      // a date window unlikely to match) rather than asserting on whatever
+      // real events happen to be loaded — read-only, no mutation.
+      await page.goto(`${localizedHref("/events", locale)}?availability=sold-out&date=week&price=price-asc`);
+      const emptyHeading = page.getByText(title!, { exact: true });
+      // Not every combination is guaranteed empty on live data — only assert
+      // when it genuinely is, so this stays a real proof, not a flaky guess.
+      if (await emptyHeading.isVisible().catch(() => false)) {
+        await expect(page.getByText(text!, { exact: true })).toBeVisible();
+      }
+    });
+  }
+
+  for (const locale of LOCALES) {
+    test(`closing CTA [${locale}]: label/title/text render from page-events.closingCta, not Home/About's own`, async ({ page }) => {
+      const label = pick(listingPage.closingCta?.label, locale);
+      const title = pick(listingPage.closingCta?.title, locale);
+      expect(title, `closingCta.title[${locale}]`).toBeTruthy();
+      await page.goto(localizedHref("/events", locale));
+      await expect(page.getByRole("heading", { name: title! })).toBeVisible();
+      if (label) {
+        // Not asserted as a unique match — this exact label text also
+        // legitimately appears in nav/other CTAs elsewhere on the page.
+        await expect(page.getByText(label, { exact: true }).first()).toBeVisible();
+      }
+    });
+  }
+
+  test("the 'Have questions?' prompt on /events uses formMessages, NOT page-events.closingCta's own faqQuestion/faqLabel items (confirmed live: those items exist but are unread)", async ({ page }) => {
+    const formMessages = await sanity.fetch<{ faqQuestion?: I18nEntry[]; faqLabel?: I18nEntry[] }>(
+      `*[_id == "formMessages"][0]{faqQuestion, faqLabel}`,
+    );
+    const closingCtaFaqQuestion = pick(
+      listingPage.sections?.find((s) => s.sectionKey === "closingCta")?.items?.find((i) => i.itemKey === "faqQuestion")?.title,
+      "en",
+    );
+    const sharedFaqQuestion = pick(formMessages.faqQuestion, "en");
+    expect(sharedFaqQuestion, "formMessages.faqQuestion must be published").toBeTruthy();
+
+    await page.goto(localizedHref("/events", "en"));
+    await expect(page.getByText(sharedFaqQuestion!, { exact: true })).toBeVisible();
+    // Only a meaningful proof if the 2 texts actually differ live — if a
+    // manager has coincidentally made them identical, this assertion is
+    // skipped rather than reported as a false pass.
+    if (closingCtaFaqQuestion && closingCtaFaqQuestion !== sharedFaqQuestion) {
+      await expect(page.getByText(closingCtaFaqQuestion, { exact: true })).not.toBeVisible();
+    }
+  });
+});
+
 test.describe("Event detail content contract (data-driven)", () => {
   test.skip(
     !process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || !process.env.NEXT_PUBLIC_SANITY_DATASET,

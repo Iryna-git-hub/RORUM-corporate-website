@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { EventsClientPage } from "@/components/EventsClientPage";
+import { defaultEventFilterLabels } from "@/components/EventFilters";
 import { defaultEventCardMessages, type EventCardMessages } from "@/components/EventCard";
 import { defaultEventsEmptyStateText, type EventsEmptyStateText } from "@/components/EventsPaginatedList";
 import { Container, CTASection, SectionHeader } from "@/components/ui";
@@ -8,9 +9,11 @@ import { events as staticEvents } from "@/lib/data";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { pickLabel, pickLocalized } from "@/lib/sanity-i18n";
-import { getAction, getItem, getSection } from "@/lib/sanity-sections";
+import { getAction, getSection } from "@/lib/sanity-sections";
 import { defaultFormMessages, resolveFormMessages } from "@/lib/sanityForms";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
+import { resolveEventFilterLabels, resolveEventLanguageLabels, resolveEventsEmptyStateText, resolveOrderedFilterOptions } from "@/lib/eventFilters";
+import { getEventLanguageLabel } from "@/lib/eventLanguage";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
@@ -45,27 +48,13 @@ const fallback = {
   description: "Explore upcoming events at RORUM, find practical information and choose an experience that interests and inspires you.",
 };
 
-const fallbackFilters = {
-  dateLabel: "Date",
-  languageLabel: "Languages",
-  priceLabel: "Price",
-  availabilityLabel: "Availability",
-  soonestLabel: "Soonest first",
-  weekLabel: "This week",
-  monthLabel: "This month",
-  priceAscLabel: "From low to high",
-  priceDescLabel: "From high to low",
-  availableLabel: "Available",
-  soldOutLabel: "Sold out",
-  clearFiltersLabel: "Clear filters",
-};
-
 async function getData(locale: Locale) {
   if (!isSanityConfigured) {
     return {
       ...fallback,
       events: staticEvents,
-      filters: fallbackFilters,
+      filters: defaultEventFilterLabels,
+      languageLabels: undefined,
       faqQuestion: defaultFormMessages.faqQuestion,
       faqLabel: defaultFormMessages.faqLabel,
       eventCardMessages: defaultEventCardMessages,
@@ -91,23 +80,11 @@ async function getData(locale: Locale) {
 
   const messages = resolveFormMessages(formMessagesDoc, locale);
 
-  const filterField = (key: string, fallbackValue: string) =>
-    pickLocalized(getItem(filtersSection, key)?.title, locale) ?? fallbackValue;
-
-  const filters = {
-    dateLabel: filterField("dateLabel", fallbackFilters.dateLabel),
-    languageLabel: filterField("languageLabel", fallbackFilters.languageLabel),
-    priceLabel: filterField("priceLabel", fallbackFilters.priceLabel),
-    availabilityLabel: filterField("availabilityLabel", fallbackFilters.availabilityLabel),
-    soonestLabel: filterField("soonestLabel", fallbackFilters.soonestLabel),
-    weekLabel: filterField("weekLabel", fallbackFilters.weekLabel),
-    monthLabel: filterField("monthLabel", fallbackFilters.monthLabel),
-    priceAscLabel: filterField("priceAscLabel", fallbackFilters.priceAscLabel),
-    priceDescLabel: filterField("priceDescLabel", fallbackFilters.priceDescLabel),
-    availableLabel: filterField("availableLabel", fallbackFilters.availableLabel),
-    soldOutLabel: filterField("soldOutLabel", fallbackFilters.soldOutLabel),
-    clearFiltersLabel: filterField("clearFiltersLabel", fallbackFilters.clearFiltersLabel),
-  };
+  const filters = resolveEventFilterLabels(filtersSection, locale);
+  const languageLabels = resolveEventLanguageLabels(filtersSection, locale, getEventLanguageLabel);
+  const dateOptionOrder = resolveOrderedFilterOptions(filtersSection, locale, "date");
+  const priceOptionOrder = resolveOrderedFilterOptions(filtersSection, locale, "price");
+  const availabilityOptionOrder = resolveOrderedFilterOptions(filtersSection, locale, "availability");
 
   const eventCardMessages: EventCardMessages = {
     soldOutLabel: pickLabel(eventMessagesDoc?.labels, "soldOutLabel", locale, defaultEventCardMessages.soldOutLabel),
@@ -127,10 +104,7 @@ async function getData(locale: Locale) {
     ),
   };
 
-  const emptyState: EventsEmptyStateText = {
-    title: pickLocalized(getItem(filtersSection, "emptyStateTitle")?.title, locale) ?? defaultEventsEmptyStateText.title,
-    text: pickLocalized(getItem(filtersSection, "emptyStateText")?.title, locale) ?? defaultEventsEmptyStateText.text,
-  };
+  const emptyState: EventsEmptyStateText = resolveEventsEmptyStateText(filtersSection, locale, defaultEventsEmptyStateText);
 
   return {
     title: pickLocalized(heroSection?.title, locale) ?? fallback.title,
@@ -148,6 +122,10 @@ async function getData(locale: Locale) {
     faqLabel: messages.faqLabel,
     events,
     filters,
+    languageLabels,
+    dateOptionOrder,
+    priceOptionOrder,
+    availabilityOptionOrder,
     eventCardMessages,
     emptyState,
   };
@@ -185,6 +163,10 @@ export default async function EventsPage({ params }: { params: Promise<{ locale:
             <EventsClientPage
               events={data.events}
               filters={data.filters}
+              languageLabels={data.languageLabels}
+              dateOptionOrder={data.dateOptionOrder}
+              priceOptionOrder={data.priceOptionOrder}
+              availabilityOptionOrder={data.availabilityOptionOrder}
               eventCardMessages={data.eventCardMessages}
               emptyState={data.emptyState}
             />

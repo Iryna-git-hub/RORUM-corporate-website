@@ -158,6 +158,10 @@ export function EventFilters({
   languageOptions,
   hasActiveFilters,
   labels = defaultEventFilterLabels,
+  languageLabels,
+  dateOptionOrder,
+  priceOptionOrder,
+  availabilityOptionOrder,
 }: {
   selectedDate: EventDateFilter;
   selectedLanguage: string;
@@ -166,6 +170,12 @@ export function EventFilters({
   languageOptions: string[];
   hasActiveFilters: boolean;
   labels?: EventFilterLabels;
+  /** CMS-sourced display name per `event.language` value (see lib/eventFilters.ts's `resolveEventLanguageLabels`) — preferred over the hardcoded `getEventLanguageLabel` lookup when provided. Editing these never changes `selectedLanguage`/`languageOptions`, which stay the real stored `event.language` strings throughout. */
+  languageLabels?: Partial<Record<string, string>>;
+  /** Manager-controlled option order + label, from lib/eventFilters.ts's `resolveOrderedFilterOptions` — falls back to this component's own fixed default order (unchanged from before) when absent, e.g. the `!isSanityConfigured` static-fallback path. `value` is always one of the fixed stable strings the filtering/URL logic below already expects — reordering in Studio can never change it. */
+  dateOptionOrder?: { value: string; label: string }[];
+  priceOptionOrder?: { value: string; label: string }[];
+  availabilityOptionOrder?: { value: string; label: string }[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -180,27 +190,30 @@ export function EventFilters({
 
   const languageMenuOptions = languageOptions.map((language) => ({
     value: language,
-    label: getEventLanguageLabel(language, locale) ?? language,
+    label: languageLabels?.[language] ?? getEventLanguageLabel(language, locale) ?? language,
   }));
 
-  const dateOptions: { value: Exclude<EventDateFilter, "all">; label: string }[] = [
-    { value: "soonest", label: labels.soonestLabel },
-    { value: "week", label: labels.weekLabel },
-    { value: "month", label: labels.monthLabel },
-  ];
+  const dateOptions: { value: Exclude<EventDateFilter, "all">; label: string }[] =
+    (dateOptionOrder as { value: Exclude<EventDateFilter, "all">; label: string }[] | undefined) ?? [
+      { value: "soonest", label: labels.soonestLabel },
+      { value: "week", label: labels.weekLabel },
+      { value: "month", label: labels.monthLabel },
+    ];
 
-  const priceOptions: { value: Exclude<EventPriceFilter, "all">; label: string }[] = [
-    { value: "price-asc", label: labels.priceAscLabel },
-    { value: "price-desc", label: labels.priceDescLabel },
-  ];
+  const priceOptions: { value: Exclude<EventPriceFilter, "all">; label: string }[] =
+    (priceOptionOrder as { value: Exclude<EventPriceFilter, "all">; label: string }[] | undefined) ?? [
+      { value: "price-asc", label: labels.priceAscLabel },
+      { value: "price-desc", label: labels.priceDescLabel },
+    ];
 
   const availabilityOptions: {
     value: Exclude<EventAvailabilityFilter, "all">;
     label: string;
-  }[] = [
-    { value: "available", label: labels.availableLabel },
-    { value: "sold-out", label: labels.soldOutLabel },
-  ];
+  }[] =
+    (availabilityOptionOrder as { value: Exclude<EventAvailabilityFilter, "all">; label: string }[] | undefined) ?? [
+      { value: "available", label: labels.availableLabel },
+      { value: "sold-out", label: labels.soldOutLabel },
+    ];
 
   return (
     <div

@@ -112,7 +112,10 @@
     "sanity:backfill-seo:dry-run": "tsx --env-file=.env.local scripts/backfill-seo-copy.ts",
     "sanity:backfill-seo": "tsx --env-file=.env.local scripts/backfill-seo-copy.ts --apply",
     "sanity:repair-home-seo-residue:dry-run": "tsx --env-file=.env.local scripts/repair-home-seo-title-residue.ts",
-    "sanity:repair-home-seo-residue": "tsx --env-file=.env.local scripts/repair-home-seo-title-residue.ts --apply"
+    "sanity:repair-home-seo-residue": "tsx --env-file=.env.local scripts/repair-home-seo-title-residue.ts --apply",
+    "sanity:backup-events-listing": "tsx --env-file=.env.local scripts/backup-events-listing-docs.ts",
+    "sanity:migrate-events-filter-labels:dry-run": "tsx --env-file=.env.local scripts/migrate-events-filter-labels.ts --dry-run",
+    "sanity:migrate-events-filter-labels": "tsx --env-file=.env.local scripts/migrate-events-filter-labels.ts"
   },
   "dependencies": {
     "@portabletext/react": "^7.0.1",
