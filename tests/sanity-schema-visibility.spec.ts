@@ -5,6 +5,7 @@ import pageSectionType from "@/sanity/schemaTypes/objects/pageSection";
 import contentItemType, { ITEM_ROLE_RULES, matchItemRoleInContext } from "@/sanity/schemaTypes/objects/contentItem";
 import { allOrNothingLanguages, allOrNothingForSelectedEventLocales, requireAllLanguages } from "@/sanity/lib/i18nValidation";
 import mediaItemType from "@/sanity/schemaTypes/objects/mediaItem";
+import { isInformativeMedia } from "@/sanity/lib/galleryMediaContext";
 import ctaActionType from "@/sanity/schemaTypes/objects/ctaAction";
 import imageWithAltType from "@/sanity/schemaTypes/objects/imageWithAlt";
 import seoType from "@/sanity/schemaTypes/objects/seo";
@@ -465,6 +466,138 @@ test.describe("mediaItem.ts — a video needs at least one usable source before 
     const context = { parent: { kind: "video" } };
     const result = validate("https://www.youtube.com/watch?v=abc", context);
     expect(result).not.toBe(true);
+  });
+});
+
+test.describe("galleryMediaContext.ts — isInformativeMedia() never diverges from where alt is actually required (Event Decoration Publish-blocker follow-up, Task 2/3 — broadened after a narrower gallery-only scope missed styling.media[image])", () => {
+  function doc(id: string, sections: { sectionKey?: string; media?: { _key?: string }[] }[]) {
+    return { _id: id, sections };
+  }
+
+  test("true for page-catering's gallery media", () => {
+    const document = doc("page-catering", [{ sectionKey: "gallery", media: [{ _key: "m1" }] }]);
+    expect(isInformativeMedia(document, { _key: "m1" })).toBe(true);
+  });
+
+  test("true for page-event-decoration's gallery media", () => {
+    const document = doc("page-event-decoration", [{ sectionKey: "gallery", media: [{ _key: "m1" }] }]);
+    expect(isInformativeMedia(document, { _key: "m1" })).toBe(true);
+  });
+
+  test("true for page-host-at-rorum's gallery media", () => {
+    const document = doc("page-host-at-rorum", [{ sectionKey: "gallery", media: [{ _key: "m1" }] }]);
+    expect(isInformativeMedia(document, { _key: "m1" })).toBe(true);
+  });
+
+  test("draft ids are recognized identically (prefix stripped)", () => {
+    const document = doc("drafts.page-event-decoration", [{ sectionKey: "gallery", media: [{ _key: "m1" }] }]);
+    expect(isInformativeMedia(document, { _key: "m1" })).toBe(true);
+  });
+
+  test("true for Event Decoration's styling.media[image] — the exact real Publish blocker a narrower gallery-only scope missed", () => {
+    const document = doc("drafts.page-event-decoration", [{ sectionKey: "styling", media: [{ _key: "image" }] }]);
+    expect(isInformativeMedia(document, { _key: "image" })).toBe(true);
+  });
+
+  test("true for a non-gallery page's media (e.g. page-about's hero) — no longer scoped to just the 3 HorizontalGallery pages", () => {
+    const document = doc("page-about", [{ sectionKey: "hero", media: [{ _key: "m1" }] }]);
+    expect(isInformativeMedia(document, { _key: "m1" })).toBe(true);
+  });
+
+  test("false for Home's hero/communityTeaser background media — the one carve-out, unchanged", () => {
+    const document = doc("page-home", [
+      { sectionKey: "hero", media: [{ _key: "heroVideo" }] },
+      { sectionKey: "communityTeaser", media: [{ _key: "communityMedia1" }] },
+    ]);
+    expect(isInformativeMedia(document, { _key: "heroVideo" })).toBe(false);
+    expect(isInformativeMedia(document, { _key: "communityMedia1" })).toBe(false);
+  });
+
+  test("true for Home's OTHER (non-decorative) media, e.g. an editorial section", () => {
+    const document = doc("page-home", [{ sectionKey: "editorialAttendEvents", media: [{ _key: "attendMedia1" }] }]);
+    expect(isInformativeMedia(document, { _key: "attendMedia1" })).toBe(true);
+  });
+
+  test("an unmatched media _key on Home is treated as informative (visible), matching isHomeDecorativeBackgroundMedia's own fail-safe default", () => {
+    const document = doc("page-home", [{ sectionKey: "hero", media: [{ _key: "heroVideo" }] }]);
+    expect(isInformativeMedia(document, { _key: "not-a-real-key" })).toBe(true);
+  });
+
+  test("no false positive: every context where this predicate is true also has alt genuinely required (requireAllLanguages, not skipped by isHomeDecorativeBackgroundMedia)", () => {
+    const cateringGalleryDoc = { _id: "page-catering", sections: [{ sectionKey: "gallery", media: [{ _key: "m1" }] }] };
+    const validate = captureCustomValidator(field(mediaItemType, "alt"));
+    // isInformativeMedia(cateringGalleryDoc, {_key:"m1"}) === true here —
+    // confirm the SAME context genuinely blocks Publish when incomplete.
+    const result = validate([{ language: "en", value: "A photo" }], { document: cateringGalleryDoc, parent: { _key: "m1" } });
+    expect(result).not.toBe(true);
+  });
+
+  test("no false negative: the Home decorative context this predicate marks false also genuinely skips validation", () => {
+    const homeHeroDoc = { _id: "page-home", sections: [{ sectionKey: "hero", media: [{ _key: "heroVideo" }] }] };
+    const validate = captureCustomValidator(field(mediaItemType, "alt"));
+    const result = validate(undefined, { document: homeHeroDoc, parent: { _key: "heroVideo" } });
+    expect(result).toBe(true);
+  });
+});
+
+test.describe("Event Decoration Publish-blocker — regression using the exact live-diagnosed data (Task 7.1/7.2)", () => {
+  // Captured verbatim from the live manual-Studio-test report: a real
+  // uploaded video (_key "a9c885303e10") added to drafts.page-event-decoration's
+  // gallery, with complete EN/DA/UK alt, confirmed via `sanity documents
+  // validate` to carry ZERO blocking markers of its own — every one of the
+  // 15 blocking markers found belonged to pre-existing photos (img0-img13,
+  // styling.media[image]), none to this video.
+  const eventDecorationDoc = {
+    _id: "drafts.page-event-decoration",
+    sections: [{ _key: "gallerySectionKey", sectionKey: "gallery", media: [{ _key: "a9c885303e10" }] }],
+  };
+  const newVideo = {
+    _key: "a9c885303e10",
+    kind: "video",
+    videoFile: { asset: { _ref: "file-47d8211862bdddd6a6ffc7f959372373cf0ce27c-mp4" } },
+    alt: [
+      { language: "en", value: "test" },
+      { language: "da", value: "test" },
+      { language: "uk", value: "test" },
+    ],
+  };
+
+  test("the new video's object-level source validator passes", () => {
+    const validate = captureCustomValidator(mediaItemType as unknown as FieldDef);
+    expect(validate(newVideo, { document: eventDecorationDoc })).toBe(true);
+  });
+
+  test("the new video's alt field validator passes (complete EN/DA/UK)", () => {
+    const validate = captureCustomValidator(field(mediaItemType, "alt"));
+    expect(validate(newVideo.alt, { document: eventDecorationDoc, parent: newVideo })).toBe(true);
+  });
+
+  test("an existing gallery photo with EN-only alt (the actual live blocker shape) fails validation — proves the diagnosis, not the new video", () => {
+    const existingPhoto = { _key: "img0", kind: "image", alt: [{ language: "en", value: "Balloon wall decoration for a RORUM event" }] };
+    const validate = captureCustomValidator(field(mediaItemType, "alt"));
+    const result = validate(existingPhoto.alt, {
+      document: { _id: "drafts.page-event-decoration", sections: [{ _key: "gallerySectionKey", sectionKey: "gallery", media: [existingPhoto] }] },
+      parent: existingPhoto,
+    });
+    expect(result).not.toBe(true);
+  });
+
+  test("the same photo passes once DA/UK are backfilled (the approved repair's expected end state)", () => {
+    const backfilledPhoto = {
+      _key: "img0",
+      kind: "image",
+      alt: [
+        { language: "en", value: "Balloon wall decoration for a RORUM event" },
+        { language: "da", value: "Ballonvægdekoration til et RORUM-arrangement" },
+        { language: "uk", value: "Декорація зі стіни з кульок для заходу RORUM" },
+      ],
+    };
+    const validate = captureCustomValidator(field(mediaItemType, "alt"));
+    const result = validate(backfilledPhoto.alt, {
+      document: { _id: "drafts.page-event-decoration", sections: [{ _key: "gallerySectionKey", sectionKey: "gallery", media: [backfilledPhoto] }] },
+      parent: backfilledPhoto,
+    });
+    expect(result).toBe(true);
   });
 });
 

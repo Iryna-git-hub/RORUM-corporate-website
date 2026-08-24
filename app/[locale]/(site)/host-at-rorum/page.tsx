@@ -12,7 +12,7 @@ import {
 } from "@/components/ui";
 import { packages } from "@/lib/data";
 import { hostAtRorumGalleryImages } from "@/lib/galleryImages";
-import { resolveGalleryItems } from "@/lib/sanityGallery";
+import { resolveGalleryItems, resolveCanonicalGalleryItems } from "@/lib/sanityGallery";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { compact, pickLabel, pickLocalized } from "@/lib/sanity-i18n";
@@ -120,15 +120,21 @@ async function getData(locale: Locale) {
   const formSection = getSection(newPage?.sections, "inquiryForm");
 
   // Legacy `page.gallery` (imageWithAlt[], no video concept) is only used
-  // when the new section has no media at all — converted to the same
-  // MediaItem shape resolveGalleryItems expects, preserving its existing
-  // image-only behavior exactly.
+  // when the canonical `gallery` section is genuinely MISSING —
+  // resolveCanonicalGalleryItems (lib/sanityGallery.ts, shared with
+  // Catering/Event Decoration) is what enforces that this legacy tier is
+  // never reached when the canonical section EXISTS but was intentionally
+  // emptied by a manager — see that function's own comment for the exact
+  // bug this replaced.
   const legacyGalleryMedia: MediaItem[] | undefined = page?.gallery?.map(
     (img): MediaItem => ({ _type: "mediaItem", kind: "image", image: { _type: "image", asset: img.asset }, alt: img.alt }),
   );
-  const galleryItems = gallerySection?.media?.length
-    ? resolveGalleryItems(gallerySection.media as unknown as MediaItem[], locale, hostAtRorumGalleryImages)
-    : resolveGalleryItems(legacyGalleryMedia, locale, hostAtRorumGalleryImages);
+  const galleryItems = resolveCanonicalGalleryItems(
+    gallerySection as { media?: MediaItem[] } | undefined,
+    locale,
+    hostAtRorumGalleryImages,
+    legacyGalleryMedia,
+  );
 
   const includedAllFromSections = (sessionSection?.items ?? []).filter((i) => i.itemKey?.startsWith("included"));
   const includedAll = includedAllFromSections.length

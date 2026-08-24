@@ -15,7 +15,7 @@ import { pickLocalized } from "@/lib/sanity-i18n";
 import { getAction, getItem, getSection } from "@/lib/sanity-sections";
 import { getIconCardIcon } from "@/lib/iconCardIcons";
 import { eventDecorationGalleryImages } from "@/lib/galleryImages";
-import { resolveGalleryItems } from "@/lib/sanityGallery";
+import { resolveGalleryItems, resolveCanonicalGalleryItems } from "@/lib/sanityGallery";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
@@ -98,15 +98,25 @@ async function getData(locale: Locale) {
   const formSection = getSection(newPage?.sections, "inquiryForm");
 
   // Legacy `page.gallery` (imageWithAlt[], no video concept) is only used
-  // when the new section has no media at all — converted to the same
-  // MediaItem shape resolveGalleryItems expects, preserving its existing
-  // image-only behavior exactly.
+  // when the canonical `gallery` section is genuinely MISSING — converted
+  // to the same MediaItem shape resolveGalleryItems expects, preserving its
+  // existing image-only behavior exactly. resolveCanonicalGalleryItems
+  // (lib/sanityGallery.ts, shared with Catering/Host at RORUM) is what
+  // enforces that this legacy tier is never reached when the canonical
+  // section EXISTS but was intentionally emptied — the bug this replaced:
+  // the previous `gallerySection?.media?.length ? canonical : legacy`
+  // treated an intentionally-emptied `media: []` exactly like a missing
+  // section, silently resurrecting legacy photos a manager had already
+  // cleared.
   const legacyGalleryMedia: MediaItem[] | undefined = page?.gallery?.map(
     (img): MediaItem => ({ _type: "mediaItem", kind: "image", image: { _type: "image", asset: img.asset }, alt: img.alt }),
   );
-  const galleryItems = gallerySection?.media?.length
-    ? resolveGalleryItems(gallerySection.media as unknown as MediaItem[], locale, eventDecorationGalleryImages)
-    : resolveGalleryItems(legacyGalleryMedia, locale, eventDecorationGalleryImages);
+  const galleryItems = resolveCanonicalGalleryItems(
+    gallerySection as { media?: MediaItem[] } | undefined,
+    locale,
+    eventDecorationGalleryImages,
+    legacyGalleryMedia,
+  );
 
   const introItemsFromSections = stylingSection?.items?.filter((i) => i.itemKey?.startsWith("intro"));
   const stylingIntro = introItemsFromSections?.length

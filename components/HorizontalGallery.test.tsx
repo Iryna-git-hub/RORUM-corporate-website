@@ -220,9 +220,9 @@ describe("HorizontalGallery — Lightbox mixed-media rendering", () => {
     render(<HorizontalGallery items={[photo1]} />);
     await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
     expect(screen.getByRole("dialog", { name: "Media preview" })).toBeInTheDocument();
-    // Both the visible Close button and the full-bleed backdrop button
-    // close the dialog, so both correctly share this accessible name.
-    expect(screen.getAllByRole("button", { name: "Close media preview" })).toHaveLength(2);
+    // Exactly one accessible Close command — the backdrop closes on click
+    // but is a non-interactive, aria-hidden div, not a second Close button.
+    expect(screen.getAllByRole("button", { name: "Close media preview" })).toHaveLength(1);
   });
 
   it("Previous/Next buttons are labeled 'Previous media'/'Next media'", async () => {
@@ -426,6 +426,108 @@ describe("HorizontalGallery — keyboard guard (arrow keys don't fight the activ
     render(<HorizontalGallery items={[photo1]} />);
     await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
     expect(getLightboxCloseButton()).toHaveFocus();
+  });
+});
+
+describe("HorizontalGallery — Lightbox focus trap (Tab/Shift+Tab never reach the page behind the modal)", () => {
+  it("Tab from the last focusable element cycles to the first", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    const nextButton = screen.getByRole("button", { name: "Next media" });
+    act(() => {
+      nextButton.focus();
+    });
+    // No video in this gallery, so the last focusable element is "Next".
+    await userEvent.tab();
+    expect(getLightboxCloseButton()).toHaveFocus();
+  });
+
+  it("Shift+Tab from the first focusable element (Close) cycles to the last", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    getLightboxCloseButton().focus();
+    await userEvent.tab({ shift: true });
+    expect(screen.getByRole("button", { name: "Next media" })).toHaveFocus();
+  });
+
+  it("Tab cycles through Close -> Previous -> Next -> Close for a photo-only pair (no video tab stop)", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    getLightboxCloseButton().focus();
+    await userEvent.tab();
+    expect(screen.getByRole("button", { name: "Previous media" })).toHaveFocus();
+    await userEvent.tab();
+    expect(screen.getByRole("button", { name: "Next media" })).toHaveFocus();
+    await userEvent.tab();
+    expect(getLightboxCloseButton()).toHaveFocus();
+  });
+
+  it("the active video is included as a Tab stop when present", async () => {
+    render(<HorizontalGallery items={[video1, photo1]} />);
+    await openVideoLightbox();
+    getLightboxCloseButton().focus();
+    await userEvent.tab(); // Previous
+    await userEvent.tab(); // Next
+    await userEvent.tab(); // active video
+    const dialog = screen.getByRole("dialog");
+    expect(dialog.querySelector(".gallery-lightbox-slide-active video")).toHaveFocus();
+  });
+
+  it("background controls (outside the dialog) never receive focus via Tab while the Lightbox is open", async () => {
+    render(
+      <>
+        <button type="button">Background button</button>
+        <HorizontalGallery items={[photo1, photo2]} />
+      </>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    getLightboxCloseButton().focus();
+    // Tab all the way around a full cycle plus one extra — should never land on "Background button".
+    for (let i = 0; i < 5; i++) await userEvent.tab();
+    expect(screen.getByRole("button", { name: "Background button" })).not.toHaveFocus();
+  });
+
+  it("one-item gallery: the focus trap still cycles safely (no crash, Close stays reachable)", async () => {
+    render(<HorizontalGallery items={[photo1]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    getLightboxCloseButton().focus();
+    await userEvent.tab();
+    await userEvent.tab();
+    expect(getLightboxCloseButton()).toBeInTheDocument();
+  });
+});
+
+describe("HorizontalGallery — duplicate Close control fix (backdrop is non-interactive)", () => {
+  it("exactly one accessible control is named 'Close media preview'", async () => {
+    render(<HorizontalGallery items={[photo1]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    expect(screen.getAllByRole("button", { name: "Close media preview" })).toHaveLength(1);
+  });
+
+  it("the backdrop is not a button and is hidden from the accessibility tree", async () => {
+    const { container } = render(<HorizontalGallery items={[photo1]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    const backdrop = container.querySelector(".fixed.inset-0.z-2000 > .absolute.inset-0.bg-black\\/68");
+    expect(backdrop).toBeInTheDocument();
+    expect(backdrop?.tagName).not.toBe("BUTTON");
+    expect(backdrop).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("clicking the backdrop closes the Lightbox", async () => {
+    const { container } = render(<HorizontalGallery items={[photo1]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    const backdrop = container.querySelector(".fixed.inset-0.z-2000 > .absolute.inset-0.bg-black\\/68") as HTMLElement;
+    await userEvent.click(backdrop);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("clicking inside the Lightbox content does not close it", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    const dialog = screen.getByRole("dialog");
+    const activeSlide = dialog.querySelector(".gallery-lightbox-slide-active")!;
+    await userEvent.click(activeSlide);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 });
 

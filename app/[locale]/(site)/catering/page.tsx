@@ -19,7 +19,7 @@ import { getAction, getItem, getSection, type RawContentItem } from "@/lib/sanit
 import { getIconCardIcon } from "@/lib/iconCardIcons";
 import { menuCategories as fallbackMenuCategories } from "@/lib/cateringMenu";
 import { cateringGalleryImages } from "@/lib/galleryImages";
-import { resolveGalleryItems } from "@/lib/sanityGallery";
+import { resolveGalleryItems, resolveCanonicalGalleryItems } from "@/lib/sanityGallery";
 import { resolveCateringMenuCategories } from "@/lib/cateringMenuResolve";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
@@ -231,12 +231,13 @@ async function getData(locale: Locale) {
   // rendered as genuinely empty — it must never silently resurrect the old
   // hardcoded set. `!isSanityConfigured` is handled entirely by the early
   // return above; everything below only needs to distinguish "section
-  // missing" from "section present but empty."
-  const galleryItems = !gallerySection
-    ? resolveGalleryItems(undefined, locale, cateringGalleryImages) // section missing -> fallback
-    : gallerySection.media?.length
-      ? resolveGalleryItems(gallerySection.media as unknown as MediaItem[], locale, cateringGalleryImages) // real photos/videos, order preserved
-      : []; // section present, intentionally emptied -> respected, no fallback
+  // missing" from "section present but empty" — resolveCanonicalGalleryItems
+  // (lib/sanityGallery.ts) is the single shared implementation of that
+  // policy, also used by Event Decoration and Host at RORUM. Catering has
+  // no legacy singleton left to read (confirmed dead in production — see
+  // this file's own comment on `newPage`/`newMenuPage` above), so no
+  // `legacyMedia` argument is passed.
+  const galleryItems = resolveCanonicalGalleryItems(gallerySection as { media?: MediaItem[] } | undefined, locale, cateringGalleryImages);
 
   // Extracted to lib/cateringMenuResolve.ts so the "document missing (->
   // fallback) vs document exists with zero categories (-> [], never

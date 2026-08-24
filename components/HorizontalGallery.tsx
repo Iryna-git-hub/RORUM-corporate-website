@@ -188,6 +188,10 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
     activeLightboxVideoRef.current = el;
   }, []);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  // The Lightbox's own focus-trap root — every Tab/Shift+Tab boundary check
+  // queries this subtree, never the whole document, so focus can never
+  // reach the page behind the modal.
+  const dialogContentRef = useRef<HTMLDivElement | null>(null);
   // Keyed by item.id (never src alone) — two items sharing a source URL
   // must still be independent, e.g. an intentionally repeated photo/video.
   const [brokenIds, setBrokenIds] = useState<Set<string>>(() => new Set());
@@ -372,6 +376,34 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
         closeLightbox();
         return;
       }
+      // Focus trap: Tab/Shift+Tab only ever cycle among the dialog's own
+      // focusable elements (Close, Previous, Next, and the active video
+      // when present) — never onto the page behind the modal. Only the
+      // boundary is intercepted (first/last, or focus having somehow
+      // escaped the dialog root entirely); everything in between is left
+      // to the browser's own native tab order, per the standard modal
+      // focus-trap pattern.
+      if (event.key === "Tab") {
+        const root = dialogContentRef.current;
+        if (!root) return;
+        const focusable = Array.from(
+          root.querySelectorAll<HTMLElement>('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'),
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0]!;
+        const last = focusable[focusable.length - 1]!;
+        const focusEscaped = !document.activeElement || !root.contains(document.activeElement);
+        if (event.shiftKey) {
+          if (focusEscaped || document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          }
+        } else if (focusEscaped || document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+        return;
+      }
       // While focus is inside the active <video> (or its native controls),
       // arrow keys are the browser's own seek/volume shortcuts — the
       // Lightbox must not also interpret them as slide navigation.
@@ -529,13 +561,14 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
           aria-modal="true"
           aria-label="Media preview"
         >
-          <button
-            className="absolute inset-0 border-0 bg-black/68"
-            type="button"
-            onClick={closeLightbox}
-            aria-label="Close media preview"
-          />
+          {/* Non-interactive backdrop: closes on click, but is never a
+              focusable/announced Close command of its own — the visible
+              Close button below is the ONE accessible Close control.
+              aria-hidden (not CSS) removes it from the accessibility tree;
+              it was never in the tab order to begin with (plain <div>). */}
+          <div className="absolute inset-0 bg-black/68" onClick={closeLightbox} aria-hidden="true" />
           <div
+            ref={dialogContentRef}
             className="relative z-1 grid h-[min(calc(100dvh-88px),720px)] w-[min(1320px,100%)] cursor-grab touch-pan-y place-items-center overflow-hidden active:cursor-grabbing max-sm:h-[min(calc(100dvh-112px),620px)] max-sm:w-screen max-sm:grid-cols-1 max-sm:overflow-visible"
             onTouchStart={(event: TouchEvent<HTMLDivElement>) => {
               if (isInteractiveMediaTarget(event.target)) return;

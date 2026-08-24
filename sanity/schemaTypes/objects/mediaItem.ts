@@ -1,33 +1,8 @@
 import { defineField, defineType } from "sanity";
 import { requireAllLanguages } from "@/sanity/lib/i18nValidation";
 import { isDirectVideoFileUrl, videoUrlValidationMessage } from "@/sanity/lib/videoUrl";
-
-// Section keys, on the Home page only, whose background media is a plain
-// CSS background-image with no accessible-image semantics anywhere in the
-// component that renders it (no `role="img"`, no aria-label) — confirmed by
-// reading components/ui.tsx's HomeHero and
-// components/HomeEditorialSections.tsx's CommunityTeaserSection before
-// adding either entry. NOT the same as every section literally keyed
-// "hero"/"communityTeaser" site-wide: 11 of the site's other 12 pages also
-// have a "hero" section, and at least About's has 3 media items — clearly
-// not a single decorative background there. Matching on `document._id`
-// first means no other page's media is ever affected by this, regardless of
-// how that page's own components happen to render alt text.
-const HOME_DECORATIVE_BACKGROUND_SECTION_KEYS = new Set(["hero", "communityTeaser"]);
-
-// `parent` here is the mediaItem object itself (has its own `_key`); we find
-// which section contains it by walking `document.sections` — no
-// `path`/grandparent access needed.
-function isHomeDecorativeBackgroundMedia(document: unknown, parent: unknown): boolean {
-  const doc = document as { _id?: string; sections?: { sectionKey?: string; media?: { _key?: string }[] }[] } | undefined;
-  const docId = doc?._id?.replace(/^drafts\./, "");
-  if (docId !== "page-home") return false;
-  const mediaKey = (parent as { _key?: string } | undefined)?._key;
-  if (!mediaKey) return false;
-  return !!doc?.sections?.some(
-    (s) => s.sectionKey && HOME_DECORATIVE_BACKGROUND_SECTION_KEYS.has(s.sectionKey) && s.media?.some((m) => m._key === mediaKey),
-  );
-}
+import { GalleryMediaAltInput } from "@/sanity/components/GalleryMediaAltInput";
+import { isHomeDecorativeBackgroundMedia } from "@/sanity/lib/galleryMediaContext";
 
 // One media slot — a photo, or an uploaded/linked video. Used for hero media
 // and every page-section gallery alike, so a gallery is just
@@ -155,10 +130,26 @@ export default defineType({
       // component that renders them — so an accessible name here would be a
       // redundant, unannounced-anyway duplicate, not a missing one. Every
       // other media item on every other page/section keeps this field,
-      // required, exactly as before (see
-      // HOME_DECORATIVE_BACKGROUND_SECTION_KEYS above for the exact scope).
+      // required, exactly as before (see galleryMediaContext.ts's
+      // HOME_DECORATIVE_BACKGROUND_SECTION_KEYS for the exact scope).
       hidden: ({ document, parent }) => isHomeDecorativeBackgroundMedia(document, parent),
       validation: requireAllLanguages({ skip: ({ document, parent }) => isHomeDecorativeBackgroundMedia(document, parent) }),
+      // Scoped via GalleryMediaAltInput's own isInformativeMedia check —
+      // the EXACT inverse of isHomeDecorativeBackgroundMedia above, so the
+      // always-visible-3-rows input can never drift narrower or broader
+      // than what validation actually requires. Originally scoped only to
+      // the 3 HorizontalGallery pages' "gallery" sections; broadened after
+      // that narrower scope missed a real Publish blocker on Event
+      // Decoration's OWN `styling.media[image]` (informative, alt-
+      // required, outside "gallery") — see MIGRATION_REPORT.md. Now shows
+      // all 3 language rows immediately for every informative mediaItem
+      // site-wide (About's hero media, every gallery, every other page's
+      // media alike), and still falls through to the existing
+      // EventLocaleAwareInput (itself a pass-through to the plugin
+      // default) for the one case that's never informative: Home's
+      // hero/communityTeaser background media (hidden anyway — this input
+      // never even renders there).
+      components: { input: GalleryMediaAltInput },
     }),
     defineField({
       name: "caption",

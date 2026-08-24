@@ -131,6 +131,47 @@ test.describe("gallery lightbox", () => {
       await expect(dialog.first()).toBeHidden();
     }
   });
+
+  // Exercises the real mixed-media Lightbox end-to-end against whatever
+  // live video currently exists in Catering's gallery (a manager-created
+  // manual test fixture as of this writing — see MIGRATION_REPORT.md).
+  // Skips gracefully once that fixture is deleted, per the manual
+  // verification checklist's own "delete the test video" step — this is
+  // real-browser confirmation of the same behavior already proven in
+  // components/HorizontalGallery.test.tsx (jsdom), not a replacement for it.
+  test("a real gallery video: opener button, single accessible Close control, focus trap, Escape restores focus", async ({ page }) => {
+    await gotoAndStabilize(page, "/catering");
+    const opener = page.getByRole("button", { name: /^Open video: / });
+    if ((await opener.count()) === 0) {
+      test.skip(true, "no live test video currently in the Catering gallery — see the manual checklist's cleanup step");
+      return;
+    }
+
+    await opener.first().scrollIntoViewIfNeeded();
+    await opener.first().click();
+
+    const dialog = page.getByRole("dialog", { name: "Media preview" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator(".gallery-lightbox-slide-active video")).toBeVisible();
+
+    // Exactly one accessible Close command (the backdrop is a non-interactive div).
+    await expect(page.getByRole("button", { name: "Close media preview" })).toHaveCount(1);
+
+    // Focus starts on the Close button; Tab a full cycle never escapes the dialog.
+    await expect(page.getByRole("button", { name: "Close media preview" })).toBeFocused();
+    for (let i = 0; i < 6; i++) {
+      await page.keyboard.press("Tab");
+      const isInsideDialog = await page.evaluate(() => {
+        const dialogEl = document.querySelector('[role="dialog"][aria-label="Media preview"]');
+        return !!dialogEl && dialogEl.contains(document.activeElement);
+      });
+      expect(isInsideDialog, `focus escaped the dialog after ${i + 1} Tab press(es)`).toBe(true);
+    }
+
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(opener.first()).toBeFocused();
+  });
 });
 
 test.describe("forms and validation", () => {

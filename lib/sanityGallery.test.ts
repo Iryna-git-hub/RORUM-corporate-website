@@ -19,7 +19,7 @@ vi.mock("@/sanity/lib/image", () => ({
   }),
 }));
 
-import { resolveGalleryItems } from "./sanityGallery";
+import { resolveGalleryItems, resolveCanonicalGalleryItems } from "./sanityGallery";
 import { cateringGalleryImages, eventDecorationGalleryImages, hostAtRorumGalleryImages } from "./galleryImages";
 import type { MediaItem } from "@/sanity.types";
 
@@ -221,5 +221,90 @@ describe("resolveGalleryItems — Event Decoration and Host at RORUM fallback da
     const result = resolveGalleryItems(undefined, LOCALE, hostAtRorumGalleryImages);
     expect(result).toHaveLength(hostAtRorumGalleryImages.length);
     expect(result.every((i) => i.kind === "image")).toBe(true);
+  });
+});
+
+// The shared missing-vs-empty policy used by Catering, Event Decoration,
+// and Host at RORUM alike — regression coverage for the exact bug found on
+// Event Decoration/Host at RORUM: `gallerySection?.media?.length ?
+// canonical : legacy` treated an intentionally-emptied `media: []` exactly
+// like a missing section, silently resurrecting legacy gallery photos a
+// manager had already cleared.
+describe("resolveCanonicalGalleryItems — missing vs. intentionally-empty canonical gallery", () => {
+  const fallback = [{ src: "/static-fallback.png", alt: "Static fallback" }];
+  const legacy = [imageItem({ _key: "legacy0", image: { _type: "image", asset: { _type: "reference", _ref: "legacy-image-jpg" } } })];
+
+  it("canonical section missing (undefined) + legacy media present -> uses the legacy media", () => {
+    const result = resolveCanonicalGalleryItems(undefined, LOCALE, fallback, legacy);
+    expect(result).toHaveLength(1);
+    expect((result[0] as { src: string }).src).toContain("legacy-image-jpg");
+  });
+
+  it("canonical section missing (undefined) + no legacy media -> falls through to the static fallback", () => {
+    const result = resolveCanonicalGalleryItems(undefined, LOCALE, fallback, undefined);
+    expect(result).toEqual([{ id: "fallback-0", kind: "image", src: "/static-fallback.png", alt: "Static fallback" }]);
+  });
+
+  it("canonical section null -> treated the same as undefined (missing)", () => {
+    const result = resolveCanonicalGalleryItems(null, LOCALE, fallback, legacy);
+    expect(result).toHaveLength(1);
+    expect((result[0] as { src: string }).src).toContain("legacy-image-jpg");
+  });
+
+  it("canonical section EXISTS with real media -> uses the canonical media, never legacy or static fallback", () => {
+    const canonical = { media: [imageItem({ _key: "real0", image: { _type: "image", asset: { _type: "reference", _ref: "real-image-jpg" } } })] };
+    const result = resolveCanonicalGalleryItems(canonical, LOCALE, fallback, legacy);
+    expect(result).toHaveLength(1);
+    expect((result[0] as { src: string }).src).toContain("real-image-jpg");
+  });
+
+  it("canonical section EXISTS but media is [] (intentionally emptied) -> returns [], NEVER resurrects legacy or static fallback — the exact bug fixed", () => {
+    const result = resolveCanonicalGalleryItems({ media: [] }, LOCALE, fallback, legacy);
+    expect(result).toEqual([]);
+  });
+
+  it("canonical section EXISTS but media is undefined (never populated, section otherwise present) -> also returns [], not legacy/fallback", () => {
+    const result = resolveCanonicalGalleryItems({ media: undefined }, LOCALE, fallback, legacy);
+    expect(result).toEqual([]);
+  });
+
+  it("canonical section missing, no legacy media, and no static fallback items -> returns [] cleanly (no crash)", () => {
+    const result = resolveCanonicalGalleryItems(undefined, LOCALE, [], undefined);
+    expect(result).toEqual([]);
+  });
+});
+
+// Event-Decoration-specific: calls resolveCanonicalGalleryItems the exact
+// same way app/[locale]/(site)/event-decoration/page.tsx does (its own
+// eventDecorationGalleryImages static fallback, mixed photo+video canonical
+// data) — deliberately not relying only on the generic fixtures above or on
+// Catering's own contract tests, per the explicit requirement that Event
+// Decoration get its own coverage for "intentionally empty canonical
+// gallery never resurrects legacy photos."
+describe("resolveCanonicalGalleryItems — Event Decoration's own call shape", () => {
+  const edLegacyMedia = [imageItem({ _key: "legacyPhoto0", image: { _type: "image", asset: { _type: "reference", _ref: "legacy-decoration-photo-jpg" } } })];
+
+  it("Event Decoration's real static fallback set is used when the canonical section is missing and there's no legacy media", () => {
+    const result = resolveCanonicalGalleryItems(undefined, LOCALE, eventDecorationGalleryImages, undefined);
+    expect(result).toHaveLength(eventDecorationGalleryImages.length);
+    expect(result.every((i) => i.kind === "image")).toBe(true);
+  });
+
+  it("a real Event-Decoration-shaped canonical gallery (mixed photo + video) resolves in order, both kinds preserved", () => {
+    const canonical = {
+      media: [
+        imageItem({ _key: "edPhoto0", image: { _type: "image", asset: { _type: "reference", _ref: "ed-photo-0-jpg" } } }),
+        videoItem({ _key: "edVideo0", videoFile: { _type: "file", asset: { _type: "reference", _ref: "ed-video-0-mp4" } } }),
+        imageItem({ _key: "edPhoto1", image: { _type: "image", asset: { _type: "reference", _ref: "ed-photo-1-jpg" } } }),
+      ],
+    };
+    const result = resolveCanonicalGalleryItems(canonical, LOCALE, eventDecorationGalleryImages, edLegacyMedia);
+    expect(result.map((i) => i.kind)).toEqual(["image", "video", "image"]);
+    expect(result.map((i) => i.id)).toEqual(["edPhoto0", "edVideo0", "edPhoto1"]);
+  });
+
+  it("Event Decoration's canonical gallery intentionally emptied to [] returns [] — never resurrects Event Decoration's own legacy media or its own static fallback set", () => {
+    const result = resolveCanonicalGalleryItems({ media: [] }, LOCALE, eventDecorationGalleryImages, edLegacyMedia);
+    expect(result).toEqual([]);
   });
 });
