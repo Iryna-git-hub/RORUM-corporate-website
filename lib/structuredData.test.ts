@@ -3,20 +3,20 @@ import { eventJsonLd, organizationJsonLd, websiteJsonLd } from "./structuredData
 
 describe("organizationJsonLd / websiteJsonLd — no fabricated fields", () => {
   it("Organization has exactly name/url/logo, nothing invented", () => {
-    const result = organizationJsonLd({ siteUrl: "https://rorum.dk", name: "RORUM", logoUrl: "https://rorum.dk/logo.png" });
-    expect(result).toEqual({ "@context": "https://schema.org", "@type": "Organization", name: "RORUM", url: "https://rorum.dk", logo: "https://rorum.dk/logo.png" });
+    const result = organizationJsonLd({ siteUrl: "https://ro-rum.dk", name: "RORUM", logoUrl: "https://ro-rum.dk/logo.png" });
+    expect(result).toEqual({ "@context": "https://schema.org", "@type": "Organization", name: "RORUM", url: "https://ro-rum.dk", logo: "https://ro-rum.dk/logo.png" });
   });
 
   it("WebSite has exactly name/url", () => {
-    const result = websiteJsonLd({ siteUrl: "https://rorum.dk", name: "RORUM" });
-    expect(result).toEqual({ "@context": "https://schema.org", "@type": "WebSite", name: "RORUM", url: "https://rorum.dk" });
+    const result = websiteJsonLd({ siteUrl: "https://ro-rum.dk", name: "RORUM" });
+    expect(result).toEqual({ "@context": "https://schema.org", "@type": "WebSite", name: "RORUM", url: "https://ro-rum.dk" });
   });
 });
 
 describe("eventJsonLd — startDate/endDate parsing (never a guessed time)", () => {
   it("a clean 'HH:MM-HH:MM' range produces both startDate and endDate", () => {
     const result = eventJsonLd({
-      siteUrl: "https://rorum.dk",
+      siteUrl: "https://ro-rum.dk",
       path: "/events/x",
       name: "Workshop",
       date: "2026-09-10",
@@ -31,7 +31,7 @@ describe("eventJsonLd — startDate/endDate parsing (never a guessed time)", () 
 
   it("a single 'HH:MM' start time (no range) produces startDate only, no fabricated endDate", () => {
     const result = eventJsonLd({
-      siteUrl: "https://rorum.dk",
+      siteUrl: "https://ro-rum.dk",
       path: "/events/x",
       name: "Workshop",
       date: "2026-09-10",
@@ -46,7 +46,7 @@ describe("eventJsonLd — startDate/endDate parsing (never a guessed time)", () 
 
   it("an unparseable time string (e.g. 'TBA') falls back to the bare date, never a guessed time", () => {
     const result = eventJsonLd({
-      siteUrl: "https://rorum.dk",
+      siteUrl: "https://ro-rum.dk",
       path: "/events/x",
       name: "Workshop",
       date: "2026-09-10",
@@ -63,7 +63,7 @@ describe("eventJsonLd — startDate/endDate parsing (never a guessed time)", () 
 describe("eventJsonLd — only proven fields, nothing invented (Section 15)", () => {
   it("no ticketUrl: no offers block at all (never a fabricated price/availability)", () => {
     const result = eventJsonLd({
-      siteUrl: "https://rorum.dk",
+      siteUrl: "https://ro-rum.dk",
       path: "/events/x",
       name: "Workshop",
       date: "2026-09-10",
@@ -77,7 +77,7 @@ describe("eventJsonLd — only proven fields, nothing invented (Section 15)", ()
 
   it("a real ticketUrl produces an offers block whose availability reflects the real isSoldOut flag, never a fabricated price", () => {
     const soldOut = eventJsonLd({
-      siteUrl: "https://rorum.dk",
+      siteUrl: "https://ro-rum.dk",
       path: "/events/x",
       name: "Workshop",
       date: "2026-09-10",
@@ -91,7 +91,7 @@ describe("eventJsonLd — only proven fields, nothing invented (Section 15)", ()
     expect(soldOut.offers).not.toHaveProperty("price");
 
     const available = eventJsonLd({
-      siteUrl: "https://rorum.dk",
+      siteUrl: "https://ro-rum.dk",
       path: "/events/x",
       name: "Workshop",
       date: "2026-09-10",
@@ -106,7 +106,7 @@ describe("eventJsonLd — only proven fields, nothing invented (Section 15)", ()
 
   it("location uses the event's own real address, never a fabricated one", () => {
     const result = eventJsonLd({
-      siteUrl: "https://rorum.dk",
+      siteUrl: "https://ro-rum.dk",
       path: "/events/x",
       name: "Workshop",
       date: "2026-09-10",
@@ -120,7 +120,7 @@ describe("eventJsonLd — only proven fields, nothing invented (Section 15)", ()
 
   it("eventAttendanceMode is always Offline — this project has no online-event concept to draw a different value from", () => {
     const result = eventJsonLd({
-      siteUrl: "https://rorum.dk",
+      siteUrl: "https://ro-rum.dk",
       path: "/events/x",
       name: "Workshop",
       date: "2026-09-10",
@@ -134,7 +134,7 @@ describe("eventJsonLd — only proven fields, nothing invented (Section 15)", ()
 
   it("no description supplied: the field is simply absent, never a fabricated summary", () => {
     const result = eventJsonLd({
-      siteUrl: "https://rorum.dk",
+      siteUrl: "https://ro-rum.dk",
       path: "/events/x",
       name: "Workshop",
       date: "2026-09-10",
@@ -148,7 +148,7 @@ describe("eventJsonLd — only proven fields, nothing invented (Section 15)", ()
 
   it("no image supplied: the field is simply absent", () => {
     const result = eventJsonLd({
-      siteUrl: "https://rorum.dk",
+      siteUrl: "https://ro-rum.dk",
       path: "/events/x",
       name: "Workshop",
       date: "2026-09-10",

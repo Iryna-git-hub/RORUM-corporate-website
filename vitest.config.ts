@@ -14,7 +14,7 @@ import path from "node:path";
 export default defineConfig({
   test: {
     environment: "jsdom",
-    include: ["sanity/components/**/*.test.tsx", "sanity/**/*.unit.test.ts", "lib/**/*.test.ts", "components/**/*.test.tsx"],
+    include: ["sanity/components/**/*.test.tsx", "sanity/**/*.unit.test.ts", "lib/**/*.test.ts", "components/**/*.test.tsx", "shared/**/*.test.ts"],
     globals: false,
   },
   resolve: {

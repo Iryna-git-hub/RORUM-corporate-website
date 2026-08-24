@@ -6,7 +6,7 @@ let mockSiteDefaults: {
   description?: { language?: string; value?: string }[];
   image?: string;
   imageAlt?: { language?: string; value?: string }[];
-} = { siteUrl: "https://rorum.dk" };
+} = { siteUrl: "https://ro-rum.dk" };
 
 vi.mock("@/lib/siteSettings", () => ({
   getSeoSiteDefaults: vi.fn(async () => mockSiteDefaults),
@@ -15,7 +15,7 @@ vi.mock("@/lib/siteSettings", () => ({
 import { localizedPageMetadata } from "./seo";
 
 beforeEach(() => {
-  mockSiteDefaults = { siteUrl: "https://rorum.dk" };
+  mockSiteDefaults = { siteUrl: "https://ro-rum.dk" };
 });
 
 describe("localizedPageMetadata — title/description are used as-is, never re-suffixed", () => {
@@ -31,7 +31,7 @@ describe("localizedPageMetadata — title/description are used as-is, never re-s
   });
 
   it("an empty caller title falls back to siteSettings.defaultSeo.title for this locale", async () => {
-    mockSiteDefaults = { siteUrl: "https://rorum.dk", title: [{ language: "en", value: "Sitewide Default" }] };
+    mockSiteDefaults = { siteUrl: "https://ro-rum.dk", title: [{ language: "en", value: "Sitewide Default" }] };
     const result = await localizedPageMetadata({ path: "/x", locale: "en", title: "", description: "d" });
     expect(result.title).toBe("Sitewide Default");
   });
@@ -42,11 +42,11 @@ describe("localizedPageMetadata — title/description are used as-is, never re-s
   });
 
   it("an empty caller description falls back to siteSettings.defaultSeo.description for this locale, then a static string", async () => {
-    mockSiteDefaults = { siteUrl: "https://rorum.dk", description: [{ language: "en", value: "Sitewide default description" }] };
+    mockSiteDefaults = { siteUrl: "https://ro-rum.dk", description: [{ language: "en", value: "Sitewide default description" }] };
     const result = await localizedPageMetadata({ path: "/x", locale: "en", title: "T", description: "" });
     expect(result.description).toBe("Sitewide default description");
 
-    mockSiteDefaults = { siteUrl: "https://rorum.dk" };
+    mockSiteDefaults = { siteUrl: "https://ro-rum.dk" };
     const result2 = await localizedPageMetadata({ path: "/x", locale: "en", title: "T", description: "" });
     expect(result2.description).toBeTruthy();
   });
@@ -55,12 +55,12 @@ describe("localizedPageMetadata — title/description are used as-is, never re-s
 describe("localizedPageMetadata — canonical, hreflang, x-default", () => {
   it("canonical points at this locale's own URL; hreflang lists every alternate; x-default prefers English", async () => {
     const result = await localizedPageMetadata({ path: "/about", locale: "da", title: "T", description: "D" });
-    expect(result.alternates?.canonical).toBe("https://rorum.dk/da/about");
+    expect(result.alternates?.canonical).toBe("https://ro-rum.dk/da/about");
     expect(result.alternates?.languages).toEqual({
-      en: "https://rorum.dk/about",
-      da: "https://rorum.dk/da/about",
-      uk: "https://rorum.dk/uk/about",
-      "x-default": "https://rorum.dk/about",
+      en: "https://ro-rum.dk/about",
+      da: "https://ro-rum.dk/da/about",
+      uk: "https://ro-rum.dk/uk/about",
+      "x-default": "https://ro-rum.dk/about",
     });
   });
 
@@ -73,9 +73,9 @@ describe("localizedPageMetadata — canonical, hreflang, x-default", () => {
       alternateLocales: ["da", "uk"],
     });
     expect(result.alternates?.languages).toEqual({
-      da: "https://rorum.dk/da/events/x",
-      uk: "https://rorum.dk/uk/events/x",
-      "x-default": "https://rorum.dk/da/events/x",
+      da: "https://ro-rum.dk/da/events/x",
+      uk: "https://ro-rum.dk/uk/events/x",
+      "x-default": "https://ro-rum.dk/da/events/x",
     });
   });
 });
@@ -114,13 +114,13 @@ describe("localizedPageMetadata — Open Graph / Twitter", () => {
   it("a relative local image path gets siteUrl prefixed exactly once", async () => {
     const result = await localizedPageMetadata({ path: "/x", locale: "en", title: "T", description: "D", image: "/images/hero.jpg" });
     const images = result.openGraph?.images as { url: string }[];
-    expect(images[0]!.url).toBe("https://rorum.dk/images/hero.jpg");
+    expect(images[0]!.url).toBe("https://ro-rum.dk/images/hero.jpg");
   });
 
   it("no image supplied at all: falls back to the static hero image, never a missing/broken og:image", async () => {
     const result = await localizedPageMetadata({ path: "/x", locale: "en", title: "T", description: "D" });
     const images = result.openGraph?.images as { url: string }[];
-    expect(images[0]!.url).toBe("https://rorum.dk/images/hero.jpg");
+    expect(images[0]!.url).toBe("https://ro-rum.dk/images/hero.jpg");
   });
 
   it("openGraph.locale/alternateLocale use the exact required BCP47-with-region tags", async () => {
@@ -137,7 +137,7 @@ describe("localizedPageMetadata — image alt precedence", () => {
   });
 
   it("no caller alt: falls back to siteSettings.defaultSeo.ogImage.alt for this locale", async () => {
-    mockSiteDefaults = { siteUrl: "https://rorum.dk", imageAlt: [{ language: "en", value: "Sitewide default alt" }] };
+    mockSiteDefaults = { siteUrl: "https://ro-rum.dk", imageAlt: [{ language: "en", value: "Sitewide default alt" }] };
     const result = await localizedPageMetadata({ path: "/x", locale: "en", title: "T", description: "D" });
     expect((result.openGraph?.images as { alt: string }[])[0]!.alt).toBe("Sitewide default alt");
   });

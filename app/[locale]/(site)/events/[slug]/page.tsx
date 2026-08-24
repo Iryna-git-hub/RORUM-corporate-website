@@ -459,7 +459,14 @@ export async function generateMetadata({
     const event = await getEvent(slug, locale);
     if (!event) return {};
     const title = event.seo?.title || `${event.title} | RORUM`;
-    const description = event.seo?.description || event.longDescription || fallbackDescription;
+    // Deliberately NOT falling back to the page-level `fallbackDescription`
+    // constant here (that stays reserved for the page BODY's own separate
+    // description variable below) — an empty result here correctly falls
+    // through to `localizedPageMetadata`'s own siteDefault/emergencyDefault
+    // tiers instead, matching the documented 4-tier Event SEO precedence
+    // (documentOverride -> documentContent -> siteDefault -> emergencyDefault)
+    // with no extra page-level tier in between.
+    const description = event.seo?.description || event.longDescription || "";
     const image = event.seo?.ogImageUrl || event.image || "/images/hero.jpg";
     const imageAlt = event.seo?.ogImageAlt || event.imageAlt || undefined;
     // Only advertise hreflang alternates for locales this event is actually

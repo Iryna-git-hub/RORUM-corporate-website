@@ -1,5 +1,6 @@
 import { contactDetails } from "@/lib/siteConfig";
 import { computeDurationFromTimeRange, type EventDuration } from "@/lib/eventDuration";
+import { PRODUCTION_ORIGIN } from "@/shared/siteIdentity";
 
 export interface NavChild {
   href: string;
@@ -883,4 +884,4 @@ export const serviceCards: ServiceCard[] = [
   },
 ];
 
-export const siteUrl = "https://rorum.dk";
+export const siteUrl = PRODUCTION_ORIGIN;

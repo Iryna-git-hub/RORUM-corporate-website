@@ -38,11 +38,13 @@ export default defineType({
     }),
     defineField({
       name: "siteUrl",
-      title: "Canonical site URL",
+      title: "Canonical site URL (fixed, not used by the site)",
       type: "url",
       group: "org",
-      description: "Used to build canonical/hreflang/Open Graph URLs and the sitemap. / Використовується для формування canonical/hreflang/Open Graph URL-адрес та карти сайту.",
-      validation: (rule) => rule.required(),
+      readOnly: true,
+      initialValue: "https://ro-rum.dk",
+      description:
+        "Fixed infrastructure, not an editable setting — the live site always uses https://ro-rum.dk for canonical/hreflang/Open Graph URLs and the sitemap, regardless of this field's value. Kept read-only for reference; edit \"Public website domain\" above for display text instead. / Фіксоване технічне значення, а не редаговане налаштування — сайт завжди використовує https://ro-rum.dk для canonical/hreflang/Open Graph URL-адрес і карти сайту, незалежно від значення цього поля. Залишено лише для довідки, доступне тільки для читання — для тексту, що відображається, редагуйте поле «Публічний домен сайту» вище.",
     }),
     defineField({
       name: "defaultSeo",

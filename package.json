@@ -115,7 +115,10 @@
     "sanity:repair-home-seo-residue": "tsx --env-file=.env.local scripts/repair-home-seo-title-residue.ts --apply",
     "sanity:backup-events-listing": "tsx --env-file=.env.local scripts/backup-events-listing-docs.ts",
     "sanity:migrate-events-filter-labels:dry-run": "tsx --env-file=.env.local scripts/migrate-events-filter-labels.ts --dry-run",
-    "sanity:migrate-events-filter-labels": "tsx --env-file=.env.local scripts/migrate-events-filter-labels.ts"
+    "sanity:migrate-events-filter-labels": "tsx --env-file=.env.local scripts/migrate-events-filter-labels.ts",
+    "sanity:backup-site-settings": "tsx --env-file=.env.local scripts/backup-site-settings.ts",
+    "sanity:repair-site-settings-domain:dry-run": "tsx --env-file=.env.local scripts/repair-site-settings-domain.ts",
+    "sanity:repair-site-settings-domain": "tsx --env-file=.env.local scripts/repair-site-settings-domain.ts --apply"
   },
   "dependencies": {
     "@portabletext/react": "^7.0.1",

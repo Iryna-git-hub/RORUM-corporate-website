@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { locales, localeTags, localizedHref, type Locale } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/sanity-i18n";
 import { getSeoSiteDefaults } from "@/lib/siteSettings";
+import { resolveSeoField, EMERGENCY_SEO_DESCRIPTION, EMERGENCY_SEO_TITLE } from "@/shared/seoResolution";
 
 const ogLocaleTags: Record<Locale, string> = { en: "en_US", da: "da_DK", uk: "uk_UA" };
 
 const STATIC_FALLBACK_IMAGE = "/images/hero.jpg";
-const STATIC_FALLBACK_DESCRIPTION = "RORUM — events, community and creative space in Copenhagen.";
 
 /** Strips a trailing " | RORUM" (or any " | <suffix>") brand separator — used only to derive a concise image-alt fallback from an already-suffixed title, never to build the title itself. */
 function deriveConciseAlt(title: string): string {
@@ -62,8 +62,21 @@ export async function localizedPageMetadata({
   const siteDefaults = await getSeoSiteDefaults();
   const siteUrl = siteDefaults.siteUrl;
 
-  const resolvedTitle = title.trim() || pickLocalized(siteDefaults.title, locale) || "RORUM";
-  const resolvedDescription = description.trim() || pickLocalized(siteDefaults.description, locale) || STATIC_FALLBACK_DESCRIPTION;
+  // The one shared precedence rule (shared/seoResolution.ts's
+  // resolveSeoField) — `title`/`description` here are already the caller's
+  // own resolved documentOverride/documentContent/pageDefault tier (see this
+  // function's own doc comment); only the deepest two tiers, siteDefault and
+  // emergencyDefault, are added here.
+  const resolvedTitle = resolveSeoField([
+    { source: "pageDefault", value: title },
+    { source: "siteDefault", value: pickLocalized(siteDefaults.title, locale) },
+    { source: "emergencyDefault", value: EMERGENCY_SEO_TITLE },
+  ]).value;
+  const resolvedDescription = resolveSeoField([
+    { source: "pageDefault", value: description },
+    { source: "siteDefault", value: pickLocalized(siteDefaults.description, locale) },
+    { source: "emergencyDefault", value: EMERGENCY_SEO_DESCRIPTION },
+  ]).value;
   const resolvedImageInput = image || siteDefaults.image || STATIC_FALLBACK_IMAGE;
   // `image` is either a relative local path ("/images/hero.jpg") or an
   // already-absolute Sanity CDN URL (urlForImage(...).url()) — concatenating

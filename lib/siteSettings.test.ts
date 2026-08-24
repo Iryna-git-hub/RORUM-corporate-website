@@ -15,7 +15,7 @@ vi.mock("@/sanity/lib/live", () => ({
 }));
 
 import { getSeoSiteDefaults } from "./siteSettings";
-import { siteUrl as staticSiteUrl } from "./data";
+import { PRODUCTION_ORIGIN } from "@/shared/siteIdentity";
 
 function i18n(en: string) {
   return [{ _key: "en", language: "en", value: en }];
@@ -27,30 +27,36 @@ beforeEach(() => {
 });
 
 describe("getSeoSiteDefaults — Sanity unavailable / siteSettings missing", () => {
-  it("Sanity not configured: falls back to the static site URL, no defaults", async () => {
+  it("Sanity not configured: falls back to the canonical production origin, no defaults", async () => {
     mockIsSanityConfigured = false;
     const result = await getSeoSiteDefaults();
-    expect(result).toEqual({ siteUrl: staticSiteUrl });
+    expect(result).toEqual({ siteUrl: PRODUCTION_ORIGIN });
   });
 
-  it("Sanity configured but siteSettings doc doesn't exist yet: same static fallback", async () => {
+  it("Sanity configured but siteSettings doc doesn't exist yet: same canonical fallback", async () => {
     mockSanityFetchResult = null;
     const result = await getSeoSiteDefaults();
-    expect(result).toEqual({ siteUrl: staticSiteUrl });
+    expect(result).toEqual({ siteUrl: PRODUCTION_ORIGIN });
   });
 });
 
-describe("getSeoSiteDefaults — manager-editable siteUrl", () => {
-  it("a configured siteUrl overrides the static fallback", async () => {
+describe("getSeoSiteDefaults — siteUrl is infrastructure, not manager-editable content (domain-authority fix)", () => {
+  it("a stored siteSettings.siteUrl value is completely ignored — the canonical production origin always wins", async () => {
     mockSanityFetchResult = { siteUrl: "https://example.com" };
     const result = await getSeoSiteDefaults();
-    expect(result.siteUrl).toBe("https://example.com");
+    expect(result.siteUrl).toBe(PRODUCTION_ORIGIN);
   });
 
-  it("a blank/whitespace-only siteUrl still falls back to the static value (never an empty canonical authority)", async () => {
+  it("even a stale/wrong stored siteUrl (e.g. the old no-hyphen domain) can never leak into canonical/hreflang/sitemap URLs", async () => {
+    mockSanityFetchResult = { siteUrl: "https://rorum.dk" };
+    const result = await getSeoSiteDefaults();
+    expect(result.siteUrl).toBe(PRODUCTION_ORIGIN);
+  });
+
+  it("a blank/whitespace-only siteUrl also resolves to the canonical origin, same as any other stored value", async () => {
     mockSanityFetchResult = { siteUrl: "   " };
     const result = await getSeoSiteDefaults();
-    expect(result.siteUrl).toBe(staticSiteUrl);
+    expect(result.siteUrl).toBe(PRODUCTION_ORIGIN);
   });
 });
 

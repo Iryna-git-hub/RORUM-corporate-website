@@ -7,6 +7,7 @@ import { isLocale, locales, localeTags, type Locale } from "@/lib/i18n";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/structuredData";
 import { getSeoSiteDefaults } from "@/lib/siteSettings";
 import { SanityLive } from "@/sanity/lib/live";
+import { PRODUCTION_ORIGIN } from "@/shared/siteIdentity";
 import "@/app/globals.css";
 
 // The site's real root layout. Split out of the old single app/layout.tsx
@@ -36,7 +37,7 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://rorum.dk"),
+  metadataBase: new URL(PRODUCTION_ORIGIN),
   title: { default: "RORUM | Events, Community & Creative Space", template: "%s" },
   description: "Discover RORUM — a place for events, community, hosting, catering and creative collaboration where people and ideas come together.",
   robots: { index: true, follow: true },

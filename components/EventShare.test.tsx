@@ -18,7 +18,7 @@ describe("EventShare — LinkedIn remains available here, independent of the soc
   const linkedinAction: ShareAction = { type: "linkedin", label: "Share on LinkedIn", enabled: true };
 
   it("renders a real LinkedIn share link when the linkedin action is enabled", () => {
-    render(<EventShare title="Test Event" url="https://rorum.dk/events/test" actions={[linkedinAction]} heading="Share with Friends" />);
+    render(<EventShare title="Test Event" url="https://ro-rum.dk/events/test" actions={[linkedinAction]} heading="Share with Friends" />);
     const link = screen.getByRole("link", { name: "Share on LinkedIn" });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute("href", expect.stringContaining("linkedin.com/sharing/share-offsite"));
@@ -26,7 +26,7 @@ describe("EventShare — LinkedIn remains available here, independent of the soc
   });
 
   it("a disabled linkedin action renders nothing for it", () => {
-    render(<EventShare title="Test Event" url="https://rorum.dk/events/test" actions={[{ ...linkedinAction, enabled: false }]} heading="Share with Friends" />);
+    render(<EventShare title="Test Event" url="https://ro-rum.dk/events/test" actions={[{ ...linkedinAction, enabled: false }]} heading="Share with Friends" />);
     expect(screen.queryByRole("link", { name: "Share on LinkedIn" })).not.toBeInTheDocument();
   });
 
@@ -36,7 +36,7 @@ describe("EventShare — LinkedIn remains available here, independent of the soc
       { type: "facebook", label: "Share on Facebook", enabled: true },
       { type: "whatsapp", label: "Share on WhatsApp", enabled: true },
     ];
-    render(<EventShare title="Test Event" url="https://rorum.dk/events/test" actions={actions} heading="Share with Friends" />);
+    render(<EventShare title="Test Event" url="https://ro-rum.dk/events/test" actions={actions} heading="Share with Friends" />);
     expect(screen.getByRole("link", { name: "Share on LinkedIn" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Share on Facebook" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Share on WhatsApp" })).toBeInTheDocument();
