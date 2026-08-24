@@ -427,7 +427,10 @@ test.describe("Home content contract — schema-to-frontend connection (read-onl
       test("SEO title falls back to the hardcoded default when Sanity has no value", async ({ page }) => {
         const value = pick(page_.seo?.title, locale);
         test.skip(!!value, "a value is published for this locale — see the companion 'reflects the published value' test instead");
-        await expect(page).toHaveTitle("RORUM | Creative Event Space in Copenhagen");
+        // Updated (later session, SEO task Section 7) to the approved
+        // "RORUM | Events, Community & Creative Space" copy — the previous
+        // "RORUM | Creative Event Space in Copenhagen" string is retired.
+        await expect(page).toHaveTitle("RORUM | Events, Community & Creative Space");
       });
 
       test("SEO title reflects the published Sanity value when present", async ({ page }) => {

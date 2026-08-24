@@ -46,7 +46,8 @@ const fallback = {
   heroLabel: "Volunteer with us",
   heroTitle: "Volunteer at RORUM",
   applyCta: "Apply to volunteer",
-  description: "Join the RORUM community as a volunteer for events and hospitality moments.",
+  seoTitle: "Volunteer at RORUM | Join the Community",
+  description: "Discover ways to volunteer at RORUM, contribute your skills and energy, and help create welcoming events and communities.",
 };
 
 async function getData(locale: Locale) {
@@ -117,7 +118,13 @@ async function getData(locale: Locale) {
       pickLocalized(getAction(heroSection, "apply")?.label, locale) ??
       pickLocalized(page?.applyCta?.label, locale) ??
       fallback.applyCta,
-    description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? pickLocalized(page?.seo?.title, locale) ?? fallback.seoTitle,
+    description:
+      pickLocalized(newPage?.seo?.description, locale) ?? pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1200)
+      .url(),
+    ogImageAlt: pickLocalized(newPage?.seo?.ogImage?.alt, locale),
     heroParagraphs,
     closingParagraphs,
     highlights,
@@ -142,8 +149,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { heroTitle, description } = await getData(locale);
-  return localizedPageMetadata({ path: "/volunteer", locale, title: `${heroTitle} | RORUM`, description });
+  const { seoTitle, description, ogImageUrl, ogImageAlt } = await getData(locale);
+  return localizedPageMetadata({
+    path: "/volunteer",
+    locale,
+    title: seoTitle,
+    description,
+    ...(ogImageUrl ? { image: ogImageUrl } : {}),
+    ...(ogImageAlt ? { imageAlt: ogImageAlt } : {}),
+  });
 }
 
 export default async function VolunteerPage({ params }: { params: Promise<{ locale: string }> }) {

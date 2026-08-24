@@ -334,7 +334,9 @@ test.describe("About content contract — schema-to-frontend connection (read-on
       test("SEO title falls back to the hardcoded default when Sanity has no value", async ({ page }) => {
         const value = pick(page_.seo?.title, locale);
         test.skip(!!value, "a value is published for this locale — see the companion 'reflects the published value' test instead");
-        await expect(page).toHaveTitle("About");
+        // Updated (later session, SEO task Section 7) to the approved
+        // "About RORUM | Our Space, Purpose & Community" copy.
+        await expect(page).toHaveTitle("About RORUM | Our Space, Purpose & Community");
       });
 
       test("SEO title reflects the published Sanity value when present", async ({ page }) => {
@@ -346,9 +348,10 @@ test.describe("About content contract — schema-to-frontend connection (read-on
       test("SEO description falls back to the hardcoded default when Sanity has no value", async ({ page }) => {
         const value = pick(page_.seo?.description, locale);
         test.skip(!!value, "a value is published for this locale — see the companion 'reflects the published value' test instead");
+        // Updated (later session, SEO task Section 7) to the approved copy.
         await expect(page.locator('head meta[name="description"]')).toHaveAttribute(
           "content",
-          "Learn about RORUM, a small curated ground-floor creative and event space in Copenhagen.",
+          "Learn about RORUM, our purpose and our approach to creating thoughtful events, welcoming experiences and meaningful communities.",
         );
       });
 

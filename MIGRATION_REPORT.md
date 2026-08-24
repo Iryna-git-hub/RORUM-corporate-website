@@ -1464,3 +1464,148 @@ Deleted: `sanity/components/FaqQuestionAllLanguagesInput.tsx` + `.test.tsx`, `sc
 5. Confirm `socialLinks`' Studio Platform dropdown still shows only Instagram/Facebook, and the duplicate-platform validator still fires.
 6. Publish the already-clean `drafts.socialLinks` to clear the 2 published-only LinkedIn validation markers noted above (manager action, not performed by this session).
 7. Confirm FAQ/Catering/Home/About Studio editing is visually and functionally unchanged (spot-check one item add/edit per page).
+
+## Part 24 — Technical, multilingual and editorial SEO (baseline: Part 23 / commit `5c50492`)
+
+Built on top of the pushed `migration` branch per this round's own instruction. Nothing in this Part rewrites or reverts a previously-pushed commit. **Per this task's own explicit ending instruction, nothing in this Part has been committed** — it is working-tree state plus live Sanity draft writes, pending manual Studio verification.
+
+### 1. Repository audit — route inventory re-verified
+
+Independently re-verified: exactly the 14 static routes plus `/events/[slug]` the task's own inventory lists, confirmed via `find app -name page.tsx`. No additional public route exists. `page-catering-menu-examples` is confirmed to be an in-page overlay with no route, no independent `<head>`, and its `seo` field was already correctly hidden in Studio (`page.ts`) and its stray data already removed in a prior session (Part 22-era) — untouched again this Part, per the task's explicit instruction.
+
+### 2. Confirmed gaps (matched the task's own audit exactly)
+
+Read `lib/seo.ts`, `app/[locale]/layout.tsx`, `app/sitemap.ts`, `app/robots.ts`, `app/studio/layout.tsx`, `seo.ts`, `siteSettings.ts`, `legalPage.ts`, `event.ts`, and every route's `generateMetadata()`. Every gap the task described was independently reproduced against the real code before any fix:
+- `seo.title`/`.description`/`.ogImage.alt` used the plugin's default (EN-only) input for every non-`event` document (`EventLocaleAwareInput` only replaces the UI for `event` docs).
+- Fully connected: Home, About, Events, Catering. Description-only-connected (title/ogImage ignored): Event Decoration, Host at RORUM, Community Membership, Volunteer, Work With Us, Contact, FAQ (several of these read from the *legacy* singleton's `seo`, not `page-*`'s). Completely disconnected: Contact (`title: "Contact"` hardcoded), 3 legal routes (`seo` field existed on `legalPage.ts` but was never read — title was always `${title} | RORUM` regardless of any override, a real double-suffix bug once an override existed).
+- `seo.ogImage.alt` was stored but never read anywhere — OG/Twitter image alt was always the page title.
+- No Twitter Card metadata anywhere.
+- `siteSettings.siteUrl`/`.defaultSeo` existed in Studio but `lib/seo.ts`/`app/sitemap.ts`/`app/robots.ts` all used a separate hardcoded `https://rorum.dk` from `lib/data.ts`.
+- `app/studio/layout.tsx`: `robots: {index:true, follow:true}`. `app/robots.ts`: no `/studio` disallow.
+
+### 3. Shared Studio SEO UI
+
+- `sanity/schemaTypes/objects/seo.ts`: object title renamed "SEO" → **"Search engine & social sharing"**; field titles kept ("Search Result Title"/"Search Result Description"/"Social Sharing Image", `ogImage.alt` relabeled "Social Sharing Image Alt") — stored field **names** (`title`/`description`/`ogImage`/`ogImage.alt`) are byte-identical, so nothing about how any consumer reads this object changed. Every field's `description` rewritten to the task's exact bilingual EN/UK copy, including the non-blocking ~30–60/~120–160 character length guidance folded into the description text (no hard max-length validation added — the existing English-length *warning* rule is unchanged).
+- New `sanity/components/SeoAllLanguagesInput.tsx`: for `event` documents, delegates entirely to the existing `EventLocaleAwareInput` (preserves `visibleLocales`-gated behavior, never weakened); for every other document (page/legalPage/siteSettings), always shows EN/DA/UK immediately via the existing shared `AllLanguagesRows` (the same component `RoleAwareAllLanguagesInput`/`SocialLinkLabelInput` already use — no new rendering logic, no schema duplication). Wired onto `title`, `description`, and `ogImage.alt`.
+- New `sanity/components/SeoObjectInput.tsx`: object-level wrapper (chained onto `props.renderDefault`) adding a locale-selectable search-result preview card above the default fields — shows the real stored title/description/URL for the selected locale and an explicit "your override" vs "using fallback" badge per field. **Disclosed simplification**: the preview does not re-implement each document type's own multi-tier fallback chain (that logic lives once, in `lib/seo.ts`, and duplicating it in Studio would risk drifting from what the resolver actually does) — when a field is unset it says so honestly ("the page's own default title... will show instead") rather than fabricating a guess at the exact fallback string. The URL half is fully real: a `pageKey`/legalPage-`pageKey` → route map (mirroring the actual `pageByKeyQuery`/`legalPageQuery` call sites) plus the same `en`-unprefixed/`da`+`uk`-prefixed logic the frontend uses.
+- Test coverage: `tests/sanity-schema-visibility.spec.ts` updated (the object's renamed title, the `ogImage.alt` relabel) — 259 tests passing.
+
+### 4. One shared metadata resolver
+
+`lib/seo.ts`'s `localizedPageMetadata()` (kept its name — a "clean successor" in place, not a second competing function) is now **async** and:
+- Accepts everything it did before, plus optional `imageAlt`.
+- Resolves `siteUrl` from the new `lib/siteSettings.ts`'s `getSeoSiteDefaults()` (manager-editable `siteSettings.siteUrl`, falling back to the static `lib/data.ts` value) instead of a second hardcoded constant.
+- Title/description precedence: the caller-resolved value (already `seo.override ?? page's own approved fallback`, unchanged from before) is used **verbatim** — this function never appends a brand suffix. Only if the caller passes an empty string does it fall through to `siteSettings.defaultSeo` for that locale, then a single hardcoded `"RORUM"` as the absolute last resort. This means "Stored Search Result Title is the complete intended final title" and "fallback-generated titles may append `| RORUM` exactly once" are both satisfied structurally: the ONLY place that ever appends `| RORUM` is each route's own hardcoded fallback constant (see §6), never this shared function, so a stored override can never be double-suffixed.
+- Image precedence: `seo.ogImage ?? siteSettings.defaultSeo.ogImage ?? "/images/hero.jpg"`, with the pre-existing absolute-vs-relative URL check preserved (a Sanity CDN URL is never re-prefixed).
+- Image-alt precedence: caller-resolved (`seo.ogImage.alt ?? page's own image alt`) `?? siteSettings default alt ?? a concise derivation of the final title` (strips the trailing `" | RORUM"` segment) — never the raw full title as before.
+- Builds `openGraph.alternateLocale` (the other 2 site locales, using `en_US`/`da_DK`/`uk_UA`) and a full `twitter: {card: "summary_large_image", ...}` block matching Open Graph exactly.
+- 14 new unit tests in `lib/seo.test.ts` (mocking `getSeoSiteDefaults`) cover every precedence tier, canonical/hreflang/x-default (including the `alternateLocales`-restricted case Event Detail uses), the "never re-suffix a stored title" guarantee, absolute-vs-relative image handling, and Twitter-matches-OG.
+- New `lib/siteSettings.ts` (`getSeoSiteDefaults()`) is the one shared authority for `siteUrl` and the sitewide Default SEO fallback — used by `lib/seo.ts`, `app/sitemap.ts`, and `app/robots.ts` so all three agree. 6 unit tests in `lib/siteSettings.test.ts`.
+
+### 5. Every route connected
+
+All 14 static routes + Event Detail now resolve `seo.title`/`.description`/`.ogImage`/`.ogImage.alt` from their own `page`/`legalPage`/`event` document (Event Detail's title/description precedence was already correct from a prior session — only `ogImage.alt` and Twitter were added there). Fixed per-route:
+- **Contact, Event Decoration, Host at RORUM, Community Membership, Volunteer, Work With Us, FAQ**: were hardcoded titles (`"Contact"`, `"Space Decoration"`, etc.) or read `heroTitle`/legacy-singleton `seo` instead of `page-*.seo` — now read `newPage?.seo?.title ?? legacy-page?.seo?.title ?? fallback.seoTitle` (same `?? legacy ?? fallback` chain every other field in these files already used), plus `ogImageUrl`/`ogImageAlt`.
+- **Terms, Privacy Policy, Cookie Policy**: previously ignored `legalPage.seo` entirely and always computed `${legalPage.title} | RORUM` — now reads `doc?.seo?.title ?? fallback.seoTitle` (a *separate* `seoTitle`/`seoDescription` pair from the page's own displayed `title`/`subtitle`), fixing the double-suffix risk at its root (an SEO override can never be re-suffixed, because the H1 title and the SEO title are no longer the same variable).
+- `lib/sanityEvents.ts`'s `seo` mapping gained `ogImageAlt` (was previously silently dropped even though the schema stored it); `RorumEvent.seo`'s type (`lib/data.ts`) updated to match.
+- `page-catering-menu-examples` remains excluded — no SEO code path was ever added for it.
+
+### 6. Approved SEO copy — live dataset audit, backup, dry-run, apply (Section 16)
+
+Order followed exactly: `npm run sanity:backup-seo` → `sanity:backfill-seo:dry-run` (reviewed) → `sanity:backfill-seo -- --apply` → re-run dry-run (idempotency) → official validation.
+
+- **Backup**: `scripts/backup-seo-docs.ts` (new) wrote every `page`/`legalPage` document, published + draft, to `scripts/backups/seo-copy-pre-seo-backfill-<timestamp>.json` (23 documents) *before* any write.
+- **Live audit finding, not assumed**: the raw-perspective backup revealed 8 of these 17 documents already had a **draft** — none of which this session created (their own `_system.base`/`_updatedAt` predate this session's writes). Several EN entries existed as *structural rows with no `value`* (e.g. `page-home.seo.title`'s English row) rather than being fully absent — the initial script design would have inserted a *second* English entry alongside the empty one; caught and fixed before applying (see below).
+- **Real bug found and fixed mid-task**: `scripts/backfill-seo-copy.ts`'s first `--apply` run used one `@sanity/client` patch builder with multiple `.insert()` calls per document — `@sanity/client`'s `PatchOperations` has exactly one `insert` slot per patch mutation, so only the **last** `.insert()` call per document survived; every earlier one was silently discarded (confirmed live: `page-contact` finished with 0 of 6 fields written, `page-about` with only its 2 `set`-type fields written). Fixed by giving each distinct insert path (`seo.title`, `seo.description`) its own patch mutation inside one atomic `client.transaction()` — a `set`-vs-`insert` decision is now also made per-locale (an already-present-but-empty row is filled via `set(...".value")` by `_key`; a genuinely absent locale is `insert`ed) so no duplicate entry is ever created for the same language. Re-ran `--apply`; a follow-up dry-run then showed **0 remaining fields**, proving correctness and idempotency.
+- **Backfill counts (before apply)**: missing title — en: 11, da: 14, uk: 14; missing description — en: 11, da: 14, uk: 14. **78 fields written** across the 14 non-conflicting `page`/`legalPage` documents (drafts only — 6 created fresh as full copies of their published document with the missing SEO fields folded in, 8 patched in place).
+- **6 fields skipped, never overwritten** (existing non-empty value differs materially from the approved copy — printed both values per the task's own rule, stopped for owner review rather than guessing): `legalPage-terms`/`legalPage-privacy-policy`/`legalPage-cookie-policy`'s EN `title`/`description` (their current values are the short original MVP copy — e.g. `"Terms"` vs the approved `"Terms and Conditions | RORUM"`). **These 6 fields still need an explicit owner decision** — apply the approved copy or keep the current short copy — before Studio publish, since this script will never overwrite them automatically.
+- **One adjacent, pre-existing Publish blocker found and fixed** (separately, narrowly, with its own dry-run/apply — not folded into the copy backfill): official validation flagged `drafts.page-home`'s `seo.title` array had a stray, valueless residue entry (`{_key:"7ca7a0c040e2"}`, no `language`/`value`) — present in the pre-backfill backup already, so not created by this session's writes, but it was the one remaining validation error blocking that draft's Publish. Fixed via new `scripts/repair-home-seo-title-residue.ts`, an exact copy of the established `repair-event-decoration-seo-residue.ts` pattern (dry-run confirmed the target's exact shape and its untouched siblings first). Re-validated clean afterward.
+- **No document was published.** Every write targeted `drafts.<id>` only; the manager reviews and publishes each draft themselves (checklist below).
+
+### 7. Event Detail SEO
+
+Already using the correct 3-tier precedence from a prior session (`event.seo.title/description ?? event.title/longDescription ?? fallbackDescription`) — confirmed, not re-derived. This Part only added: `seo.ogImage.alt` (previously unread), Twitter Card (via the shared resolver), and `Event` JSON-LD (below). `visibleLocales`-scoped hreflang/canonical/sitemap and the unsupported-locale 404 were already correct and are unchanged.
+
+### 8. Social-image alt
+
+`seo.ogImage.alt` is now read everywhere it's stored (pages, legal pages, events, siteSettings default). No hard length limit added. No alt text was invented anywhere — every currently-empty alt field simply falls through the precedence chain to the next real source, ending at a *derived* (not fabricated) concise title, never a guessed image description.
+
+### 9. Open Graph / Twitter
+
+Every route now emits `openGraph.{title,description,url,siteName,images[].{url,width,height,alt},locale,alternateLocale,type}` and a matching `twitter: {card: "summary_large_image", title, description, images:[{url,alt}]}` block. Verified against real generated HTML (not just TypeScript types) for `/contact` and the sample event route — see §12.
+
+### 10. International SEO
+
+`en` unprefixed / `da`+`uk` prefixed architecture untouched. Every static route now has a self-referencing canonical, reciprocal `hreflang` for all 3 locales, and `x-default` (pointing at English, or the first available locale when English isn't in the alternate set — Event Detail's `visibleLocales`-restricted case). One real Next.js normalization confirmed (not a bug): the bare English root canonical renders as `https://rorum.dk` with no trailing slash, while `/da/`'s own root keeps its trailing slash — both proven against real generated HTML, and the new Playwright spec asserts the exact (locale-dependent) expected value rather than assuming uniform behavior.
+
+### 11. Authoritative site settings
+
+`lib/siteSettings.ts`'s `getSeoSiteDefaults()` is the one shared source for `siteUrl` (manager-editable `siteSettings.siteUrl`, static fallback) and the sitewide Default SEO fallback, used identically by `lib/seo.ts`, `app/sitemap.ts`, and `app/robots.ts`. No localhost/preview URL is used anywhere; the static fallback stays `https://rorum.dk`.
+
+### 12. Robots and Studio indexing
+
+- `app/studio/layout.tsx`: `robots: {index:true,follow:true}` → `{index:false, follow:false, noarchive:true, noimageindex:true}`.
+- `app/robots.ts`: now `async`, resolves `siteUrl` from `getSeoSiteDefaults()`, and adds `disallow: "/studio"` alongside the existing `allow: "/"` — `/_next` is deliberately not disallowed.
+- Verified against the real generated output (`.next/server/app/robots.txt.body` and a running server): `/studio` renders `<meta name="robots" content="noindex, nofollow">`, robots.txt contains `Disallow: /studio`, and `/sitemap.xml` contains no `/studio`/`menu-examples` entries.
+
+### 13. Sitemap
+
+`app/sitemap.ts`: `lastModified` no longer computed as `new Date()` on every regeneration (the exact issue the task flagged) — static routes use their backing `page`/`legalPage` document's real `_updatedAt` (new `pagesUpdatedAtQuery`, one query for all 14 routes, mapped by a `route → pageKey` table); events use their own `_updatedAt` (`allEventsForSitemapQuery` extended to select it). `x-default` added to every entry's `alternates.languages`. `siteUrl` now comes from `getSeoSiteDefaults()`, matching robots.txt/metadata. Catering Menu Examples, Studio, and unsupported Event locales remain excluded exactly as before (already correct, re-verified rather than re-derived). Verified against real generated XML: a real ISO `lastmod` (not "now"), `x-default` present, zero `/studio`/`menu-examples` entries, 143 `<loc>` entries total (42 static + ~101 event pages).
+
+### 14. Structured data — audited, decided, applied narrowly
+
+No JSON-LD existed anywhere before this Part (confirmed via a full-codebase grep). Added, using only fields provable from already-displayed, real content (new `lib/structuredData.ts`, new `components/JsonLd.tsx`):
+- **Organization** + **WebSite** (site-wide, in `app/[locale]/layout.tsx`) — `name`/`url`/`logo` only, using the real `public/logos/rorum-logo.png` asset.
+- **Event** (Event Detail pages) — `name`, `description` (only if set), `startDate` (always; from the event's real `date` + a best-effort parse of the free-text `time` field — `startDate` falls back to the bare date, never a guessed time, when the string doesn't cleanly match `HH:MM` or `HH:MM-HH:MM`), `endDate` (only when a full range parses), `eventStatus` (always "Scheduled" — this project has no cancelled/postponed concept), `eventAttendanceMode` (always Offline — every RORUM event is venue-based), `image`, `location` (the event's own real, already-displayed address), `organizer`, and `offers` (only when a real `ticketUrl` exists — `availability` reflects the real `isSoldOut` flag; price/rating/review are never emitted, since nothing in the schema provides them). 11 unit tests in `lib/structuredData.test.ts` specifically assert the *absence* of every field this data can't prove (no `offers` without a ticket URL, no `description` when unset, no fabricated end time).
+- **BreadcrumbList: declined.** No breadcrumb UI exists anywhere on the site (confirmed via grep) — adding breadcrumb structured data with nothing matching in the visible page would misrepresent the page to search engines. Not added.
+- **FAQPage: declined**, per the task's own explicit "first verify current Google eligibility... report the decision" instruction. Google's FAQ rich-result eligibility has been narrowed to a small set of authoritative government/health sites since 2023 — a general business FAQ page like `/faq` is not eligible, so adding it would add maintenance surface (keeping structured data in sync with `resolveCanonicalFaqGroups()`'s output) for a rich result Google would never actually render. Not added; can be revisited if Google's policy changes.
+
+### 15. Validation — official, published/draft reported separately
+
+`sanity documents validate --yes --level error --format json`, filtered to every document this Part touched:
+
+| Document | Published | Draft |
+|---|---|---|
+| `page-home` | clean | clean (after the residue repair, §6) |
+| `page-about` | clean | clean |
+| `page-catering` | clean | clean |
+| `page-contact` | clean | clean |
+| `page-events` | clean | clean |
+| `page-faq` | clean | clean |
+| `page-host-at-rorum`* | clean | clean |
+| `page-community-membership`* | clean | clean |
+| `page-volunteer`* | clean | clean |
+| `page-work-with-us`* | clean | clean |
+| `page-event-decoration` | clean | clean |
+| `legalPage-terms` | clean | clean |
+| `legalPage-privacy-policy` | clean | clean |
+| `legalPage-cookie-policy` | clean | clean |
+
+*`page-host-at-rorum`, `page-community-membership`, `page-volunteer`, `page-work-with-us` each have a number of **pre-existing, unrelated** validation errors on both published and draft — missing DA/UK translations on various `media.alt`/`items.title`/`items.text`/`items.image.alt` fields. **Confirmed unrelated to this Part**: none of these paths are SEO fields, none were touched by the backfill or by any code change in this Part, and the same errors were already present in the pre-backfill backup snapshot. Reported here per the task's own "unrelated failures separately" instruction — not fixed (fixing would require inventing translations, which is explicitly out of scope).
+
+### 16. Files changed
+
+New: `lib/siteSettings.ts` (+`.test.ts`), `lib/structuredData.ts` (+`.test.ts`), `components/JsonLd.tsx`, `sanity/components/SeoAllLanguagesInput.tsx`, `sanity/components/SeoObjectInput.tsx`, `scripts/backup-seo-docs.ts`, `scripts/backfill-seo-copy.ts`, `scripts/repair-home-seo-title-residue.ts`, `tests/seo.spec.ts`, `lib/seo.test.ts`.
+
+Modified: `lib/seo.ts` (rewritten, now async), `lib/data.ts` (`RorumEvent.seo` gained `ogImageAlt`), `lib/sanityEvents.ts` (`seo` mapping gained `ogImageAlt`), `sanity/schemaTypes/objects/seo.ts`, `app/[locale]/layout.tsx` (title/description updated to approved copy, JSON-LD added), `app/studio/layout.tsx` (noindex), `app/robots.ts` (async, disallow `/studio`), `app/sitemap.ts` (real `lastModified`, `x-default`, shared `siteUrl`), `sanity/queries/page.ts` (+`pagesUpdatedAtQuery`), `sanity/queries/events.ts` (`allEventsForSitemapQuery` +`_updatedAt`), every one of the 14 static routes' `page.tsx` (+`events/[slug]/page.tsx`) `generateMetadata()`/`getData()`, `package.json` (5 new npm scripts), `tests/sanity-schema-visibility.spec.ts`, `tests/cms-home-contract.spec.ts`/`cms-about-contract.spec.ts`/`cms-events-contract.spec.ts` (3 stale hardcoded-fallback-title assertions updated to the new approved copy — see §17).
+
+`sanity.types.ts`/`schema.json` regenerated (`npm run sanity:typegen`) to pick up the 2 query changes above.
+
+### 17. Test results
+
+- `npm run typecheck`: clean throughout.
+- `npm run build`: succeeded at every checkpoint; final build produces all 14 static routes × 3 locales + `/events/[slug]` (102 slugs) + `/studio`, no errors.
+- `npx vitest run`: **412/414 passed** (2 files). The 2 failures were a single test (`ContactFormItemsInput.test.tsx`, unrelated to this Part — a Contact-task component from Part 23) that timed out under heavy parallel load from the concurrent build/validate runs this session was also running; re-run in isolation immediately after: **12/12 passed**. Not a real regression.
+- New tests this Part: `lib/seo.test.ts` (14), `lib/siteSettings.test.ts` (6), `lib/structuredData.test.ts` (11), `tests/seo.spec.ts` (49, Playwright — every static route × 3 locales' title/description/canonical/hreflang/OG/Twitter, robots.txt, sitemap.xml, Studio noindex, Organization/WebSite JSON-LD, Event JSON-LD).
+- `npx playwright test tests/sanity-schema-visibility.spec.ts`: **259/259 passed** (1 new test for the `seo` object's renamed title + `ogImage.alt` relabel).
+- `npx playwright test tests/cms-home-contract.spec.ts tests/cms-about-contract.spec.ts tests/cms-events-contract.spec.ts tests/cms-catering-contract.spec.ts tests/cms-event-decoration-contract.spec.ts`: 3 pre-existing tests asserted the OLD hardcoded SEO-title fallback strings (Home: `"RORUM | Creative Event Space in Copenhagen"`, About: `"About"`/old description, Events: `"Events"`) — updated to the new approved-copy fallbacks, since those code constants were deliberately changed in §5/§6. **1 test in `cms-catering-contract.spec.ts` ("every SEO field visible in Studio for page-catering affects a real rendered `<head>` element") still fails, expectedly**: it reads from the `published` perspective, and per this task's own explicit rule this Part never published anything — `page-catering.seo` is genuinely still empty on the *published* document; `drafts.page-catering` now has the full approved copy, ready for the manager to publish. This test will pass again the moment that draft is published — not before, by design. **1 unrelated pre-existing failure** in `cms-event-decoration-contract.spec.ts` (a gallery photo/video count mismatch, nothing to do with SEO/metadata — not investigated further, flagged here per "unrelated failures separately").
+
+### 18. Manual Studio checklist
+
+1. Open each of the 17 `page`/`legalPage` documents' **drafts** — confirm the "Search engine & social sharing" section shows EN/DA/UK immediately for Search Result Title/Description, and the search-result preview card renders with the correct URL per locale.
+2. Review the 6 skipped legal-page fields (Terms/Privacy Policy/Cookie Policy EN title+description) — decide whether to apply the approved Section 7 copy over the current short originals, or keep them; nothing was changed automatically.
+3. Publish `drafts.page-home`, `page-about`, `page-catering`, `page-contact`, `page-events`, `page-faq`, `page-host-at-rorum`, `page-community-membership`, `page-volunteer`, `page-work-with-us`, `page-event-decoration`, `legalPage-terms`, `legalPage-privacy-policy`, `legalPage-cookie-policy` once reviewed — none were auto-published.
+4. After publishing a page, load its live EN/DA/UK URLs and confirm `<title>`/meta description/canonical/hreflang/OG/Twitter tags match what Studio's preview showed.
+5. Confirm `/studio` is not indexable (already verified programmatically — spot-check with a real crawler tool if desired) and that `/robots.txt`/`/sitemap.xml` look correct in a browser.
+6. Confirm Social Sharing Image is set (or left absent, falling back to the static hero image) on each page as intended — no image alt was invented, so any page without a real image asset shows the derived-from-title alt until a manager sets one.
+7. Separately (not part of this Part): the pre-existing DA/UK translation gaps on Host at RORUM/Community Membership/Volunteer/Work With Us (§15) still need manager attention — unrelated to SEO, flagged for visibility only.

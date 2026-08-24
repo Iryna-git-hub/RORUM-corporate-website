@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { merriweather, nunito, quicksand } from "@/app/fonts";
+import { JsonLd } from "@/components/JsonLd";
 import { isLocale, locales, localeTags, type Locale } from "@/lib/i18n";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/structuredData";
+import { getSeoSiteDefaults } from "@/lib/siteSettings";
 import { SanityLive } from "@/sanity/lib/live";
 import "@/app/globals.css";
 
@@ -34,8 +37,8 @@ export function generateStaticParams() {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://rorum.dk"),
-  title: { default: "RORUM | Creative Event Space in Copenhagen", template: "%s" },
-  description: "Warm Copenhagen event space for workshops, gatherings, catering and community-led hosting.",
+  title: { default: "RORUM | Events, Community & Creative Space", template: "%s" },
+  description: "Discover RORUM — a place for events, community, hosting, catering and creative collaboration where people and ideas come together.",
   robots: { index: true, follow: true },
 };
 
@@ -52,10 +55,13 @@ export default async function LocaleLayout({
   // Quicksand has no Cyrillic glyphs (see app/fonts.ts), so `uk` swaps in
   // Nunito under the same `--font-body` variable instead.
   const bodyFont = locale === "uk" ? nunito.variable : quicksand.variable;
+  const { siteUrl } = await getSeoSiteDefaults();
 
   return (
     <html lang={localeTags[locale]} data-scroll-behavior="smooth">
       <body className={`${merriweather.variable} ${bodyFont}`}>
+        <JsonLd data={organizationJsonLd({ siteUrl, name: "RORUM", logoUrl: `${siteUrl}/logos/rorum-logo.png` })} />
+        <JsonLd data={websiteJsonLd({ siteUrl, name: "RORUM" })} />
         {children}
         <SanityLive />
       </body>

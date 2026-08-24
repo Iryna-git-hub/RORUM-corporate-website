@@ -7,12 +7,15 @@ import { isLocale, localeTags, type Locale } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/sanity-i18n";
 import { getUiText } from "@/lib/uiText";
 import { isSanityConfigured } from "@/sanity/env";
+import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { legalPageQuery } from "@/sanity/queries/pages";
 
 const fallback = {
   title: "Terms and conditions",
   subtitle: "Terms for using the RORUM website, submitting inquiries and following external ticket links.",
+  seoTitle: "Terms and Conditions | RORUM",
+  seoDescription: "Read the terms and conditions that apply when using the RORUM website, services and related features.",
 };
 
 function formatLastUpdated(dateString: string | null | undefined, locale: Locale): string | undefined {
@@ -33,6 +36,12 @@ async function getData(locale: Locale) {
     subtitle: pickLocalized(doc?.subtitle, locale) ?? fallback.subtitle,
     body: pickLocalized(doc?.body, locale) ?? null,
     lastUpdated: formatLastUpdated(doc?.lastUpdated, locale),
+    seoTitle: pickLocalized(doc?.seo?.title, locale) ?? fallback.seoTitle,
+    seoDescription: pickLocalized(doc?.seo?.description, locale) ?? fallback.seoDescription,
+    ogImageUrl: urlForImage(doc?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1200)
+      .url(),
+    ogImageAlt: pickLocalized(doc?.seo?.ogImage?.alt, locale),
     facts,
   };
 }
@@ -44,8 +53,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { title, subtitle } = await getData(locale);
-  return localizedPageMetadata({ path: "/terms", locale, title: `${title} | RORUM`, description: subtitle });
+  const { seoTitle, seoDescription, ogImageUrl, ogImageAlt } = await getData(locale);
+  return localizedPageMetadata({
+    path: "/terms",
+    locale,
+    title: seoTitle,
+    description: seoDescription,
+    ...(ogImageUrl ? { image: ogImageUrl } : {}),
+    ...(ogImageAlt ? { imageAlt: ogImageAlt } : {}),
+  });
 }
 
 export default async function TermsPage({ params }: { params: Promise<{ locale: string }> }) {

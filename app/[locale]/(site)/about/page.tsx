@@ -62,8 +62,8 @@ const fallback = {
   pillarsLabel: "Experience principles",
   locationTitle: "Thoughtful and practical",
   locationText: "These principles shape the way RORUM approaches meetings, hosted events, catering, decoration and community collaborations.",
-  description: "Learn about RORUM, a small curated ground-floor creative and event space in Copenhagen.",
-  seoTitle: "About",
+  description: "Learn about RORUM, our purpose and our approach to creating thoughtful events, welcoming experiences and meaningful communities.",
+  seoTitle: "About RORUM | Our Space, Purpose & Community",
   closingEyebrow: "Not sure where to start?",
   closingTitle: "Let's shape your idea together",
   closingText:
@@ -217,6 +217,7 @@ async function getData(locale: Locale) {
     ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
       ?.width(1200)
       .url(),
+    ogImageAlt: pickLocalized(newPage?.seo?.ogImage?.alt, locale),
     closingEyebrow:
       pickLocalized(closingCtaSection?.label, locale) ?? pickLocalized(page?.closingSection?.eyebrow, locale) ?? fallback.closingEyebrow,
     closingTitle:
@@ -258,8 +259,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { seoTitle, description, ogImageUrl } = await getData(locale);
-  return localizedPageMetadata({ path: "/about", locale, title: seoTitle, description, ...(ogImageUrl ? { image: ogImageUrl } : {}) });
+  const { seoTitle, description, ogImageUrl, ogImageAlt } = await getData(locale);
+  return localizedPageMetadata({
+    path: "/about",
+    locale,
+    title: seoTitle,
+    description,
+    ...(ogImageUrl ? { image: ogImageUrl } : {}),
+    ...(ogImageAlt ? { imageAlt: ogImageAlt } : {}),
+  });
 }
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {

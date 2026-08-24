@@ -8,6 +8,7 @@ import { isLocale, type Locale } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/sanity-i18n";
 import { getItem, getSection } from "@/lib/sanity-sections";
 import { isSanityConfigured } from "@/sanity/env";
+import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
 import { contactPageQuery } from "@/sanity/queries/pages";
@@ -32,7 +33,8 @@ const fallback = {
   formTitle: "We want to hear from you",
   successMessage: "Thank you. Your message is ready for the RORUM team.",
   submitLabel: "Send message",
-  description: "Contact RORUM for event inquiries, space booking and collaborations in Copenhagen.",
+  seoTitle: "Contact RORUM | Get in Touch",
+  description: "Contact RORUM with questions about events, hosting, catering, membership, collaboration or visiting the space.",
 };
 
 async function getData(locale: Locale) {
@@ -75,7 +77,13 @@ async function getData(locale: Locale) {
       pickLocalized(getItem(formSection, "submitLabel")?.title, locale) ??
       pickLocalized(page?.submitLabel, locale) ??
       fallback.submitLabel,
-    description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? pickLocalized(page?.seo?.title, locale) ?? fallback.seoTitle,
+    description:
+      pickLocalized(newPage?.seo?.description, locale) ?? pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1200)
+      .url(),
+    ogImageAlt: pickLocalized(newPage?.seo?.ogImage?.alt, locale),
     contactDetails: resolveContactDetails(contactInfoDoc),
     contactDetailOrder: resolveContactDetailOrder(heroSection),
     socialLinks: resolveSocialLinks(socialLinksDoc, locale),
@@ -92,8 +100,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { description } = await getData(locale);
-  return localizedPageMetadata({ path: "/contact", locale, title: "Contact", description });
+  const { seoTitle, description, ogImageUrl, ogImageAlt } = await getData(locale);
+  return localizedPageMetadata({
+    path: "/contact",
+    locale,
+    title: seoTitle,
+    description,
+    ...(ogImageUrl ? { image: ogImageUrl } : {}),
+    ...(ogImageAlt ? { imageAlt: ogImageAlt } : {}),
+  });
 }
 
 export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {

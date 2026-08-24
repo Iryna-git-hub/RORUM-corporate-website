@@ -53,7 +53,7 @@ export interface SanityEventLike {
   // sanity/schemaTypes/documents/event.ts's "LEGACY FIELDS" comment.
   practicalDetails?: { label?: Localized; value?: Localized }[] | null;
   ticketProvider?: string | null;
-  seo?: { title?: Localized; description?: Localized; ogImage?: Image | null } | null;
+  seo?: { title?: Localized; description?: Localized; ogImage?: (Image & { alt?: Localized }) | null } | null;
   visibleLocales?: string[] | null;
 }
 
@@ -153,6 +153,7 @@ export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale): R
       title: pickLocalized(doc.seo?.title, locale) ?? undefined,
       description: pickLocalized(doc.seo?.description, locale) ?? undefined,
       ogImageUrl: urlForImage(doc.seo?.ogImage)?.width(1200).url() ?? undefined,
+      ogImageAlt: pickLocalized(doc.seo?.ogImage?.alt, locale) ?? undefined,
     },
     visibleLocales: doc.visibleLocales ?? undefined,
   };

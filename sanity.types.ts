@@ -943,7 +943,7 @@ export type CateringMenuCategory = {
 
 export type SocialLink = {
   _type: "socialLink";
-  icon?: "instagram" | "facebook" | "linkedin" | "whatsapp";
+  icon?: "instagram" | "facebook";
   href?: string;
   label?: InternationalizedArrayString;
   brandColor?: string;
@@ -974,6 +974,7 @@ export type PageSection = {
     | "menuCategory"
     | "donation"
     | "filters"
+    | "faqCategory"
     | "custom";
   label?: InternationalizedArrayString;
   title?: InternationalizedArrayString;
@@ -1506,10 +1507,11 @@ export type AllEventSlugsQueryResult = Array<string | null>;
 
 // Source: sanity/queries/events.ts
 // Variable: allEventsForSitemapQuery
-// Query: *[_type == "event" && defined(slug.current)]{"slug": slug.current, visibleLocales}
+// Query: *[_type == "event" && defined(slug.current)]{"slug": slug.current, visibleLocales, _updatedAt}
 export type AllEventsForSitemapQueryResult = Array<{
   slug: string | null;
   visibleLocales: Array<string> | null;
+  _updatedAt: string;
 }>;
 
 // Source: sanity/queries/faq.ts
@@ -1713,6 +1715,20 @@ export type PageByKeyQueryResult = {
   >;
   seo?: Seo;
 } | null;
+
+// Source: sanity/queries/page.ts
+// Variable: pagesUpdatedAtQuery
+// Query: *[_type in ["page", "legalPage"]]{pageKey, _updatedAt}
+export type PagesUpdatedAtQueryResult = Array<
+  | {
+      pageKey: string | null;
+      _updatedAt: string;
+    }
+  | {
+      pageKey: "cookie-policy" | "privacy-policy" | "terms" | null;
+      _updatedAt: string;
+    }
+>;
 
 // Source: sanity/queries/pages.ts
 // Variable: homePageQuery
@@ -2244,7 +2260,7 @@ declare module "@sanity/client" {
     '*[_type == "event" && $locale in visibleLocales] | order(date asc)': AllEventsQueryResult;
     '*[_type == "event" && slug.current == $slug][0]': EventBySlugQueryResult;
     '*[_type == "event"].slug.current': AllEventSlugsQueryResult;
-    '*[_type == "event" && defined(slug.current)]{"slug": slug.current, visibleLocales}': AllEventsForSitemapQueryResult;
+    '*[_type == "event" && defined(slug.current)]{"slug": slug.current, visibleLocales, _updatedAt}': AllEventsForSitemapQueryResult;
     '*[_type == "faqPage"][0]': FaqPageQueryResult;
     '*[_type == "siteSettings"][0]': SiteSettingsQueryResult;
     '*[_type == "contactInfo"][0]': ContactInfoQueryResult;
@@ -2254,6 +2270,7 @@ declare module "@sanity/client" {
     '*[_type == "formMessages"][0]': FormMessagesQueryResult;
     '*[_type == "eventMessages"][0]': EventMessagesQueryResult;
     '*[_type == "page" && pageKey == $pageKey][0]': PageByKeyQueryResult;
+    '*[_type in ["page", "legalPage"]]{pageKey, _updatedAt}': PagesUpdatedAtQueryResult;
     '*[_type == "homePage"][0]': HomePageQueryResult;
     '*[_type == "aboutPage"][0]': AboutPageQueryResult;
     '*[_type == "cateringPage"][0]': CateringPageQueryResult;

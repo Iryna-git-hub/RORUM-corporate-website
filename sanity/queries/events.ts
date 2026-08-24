@@ -19,5 +19,5 @@ export const allEventSlugsQuery = defineQuery(`*[_type == "event"].slug.current`
 // URLs (see app/sitemap.ts) — deliberately not locale-filtered here, that
 // happens per-URL in the sitemap builder itself.
 export const allEventsForSitemapQuery = defineQuery(
-  `*[_type == "event" && defined(slug.current)]{"slug": slug.current, visibleLocales}`,
+  `*[_type == "event" && defined(slug.current)]{"slug": slug.current, visibleLocales, _updatedAt}`,
 );

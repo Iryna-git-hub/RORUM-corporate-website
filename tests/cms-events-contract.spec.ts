@@ -123,7 +123,9 @@ test.describe("Events listing content contract", () => {
     } else {
       // Documented empty state, same as Home/About's seo.title before population —
       // not a skip, an explicit assertion of the known fallback behavior.
-      await expect(page).toHaveTitle("Events");
+      // Updated (later session, SEO task Section 7) to the approved
+      // "Upcoming Events at RORUM | Find Your Next Event" copy.
+      await expect(page).toHaveTitle("Upcoming Events at RORUM | Find Your Next Event");
     }
   });
 });

@@ -142,7 +142,7 @@ const fallback = {
     "Every catering concept is created individually based on your event, location, guest count and wishes.",
   stepsTitle: "3-step setup",
   description:
-    "Warm Scandinavian catering for workshops, meetings and intimate events.",
+    "Explore RORUM catering for meetings, receptions, dinners and events, with menus tailored to the occasion and your guests.",
   inquiryTitle: "Request catering",
   inquirySubmitLabel: "Request Catering",
   messagePlaceholder: "Describe your event, timing and catering wishes.",
@@ -150,7 +150,7 @@ const fallback = {
     "Thank you. We've received your catering request and will contact you soon.",
   footerNote:
     "We'll only use your details to respond to your catering request.",
-  seoTitle: "Catering",
+  seoTitle: "Catering for Events | RORUM",
 };
 
 const fallbackOverlayText: CateringMenuOverlayText = {
@@ -350,6 +350,7 @@ async function getData(locale: Locale) {
     ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
       ?.width(1200)
       .url(),
+    ogImageAlt: pickLocalized(newPage?.seo?.ogImage?.alt, locale),
   };
 }
 
@@ -360,13 +361,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { seoTitle, description, ogImageUrl } = await getData(locale);
+  const { seoTitle, description, ogImageUrl, ogImageAlt } = await getData(locale);
   return localizedPageMetadata({
     path: "/catering",
     locale,
     title: seoTitle,
     description,
     ...(ogImageUrl ? { image: ogImageUrl } : {}),
+    ...(ogImageAlt ? { imageAlt: ogImageAlt } : {}),
   });
 }
 

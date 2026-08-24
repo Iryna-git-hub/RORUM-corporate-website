@@ -51,7 +51,8 @@ const fallback = {
   heroLabel: "Work with us",
   heroTitle: "Work with us",
   cvUploadCta: "Send your CV",
-  description: "Collaborate with RORUM as a facilitator, chef, creative partner or event professional.",
+  seoTitle: "Work With Us | Opportunities at RORUM",
+  description: "Explore opportunities to work and collaborate with RORUM and contribute to events, hospitality and community experiences.",
 };
 
 async function getData(locale: Locale) {
@@ -149,7 +150,13 @@ async function getData(locale: Locale) {
       pickLocalized(getItem(heroSection, "cvUploadCta")?.title, locale) ??
       pickLocalized(page?.cvUploadCta, locale) ??
       fallback.cvUploadCta,
-    description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? pickLocalized(page?.seo?.title, locale) ?? fallback.seoTitle,
+    description:
+      pickLocalized(newPage?.seo?.description, locale) ?? pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1200)
+      .url(),
+    ogImageAlt: pickLocalized(newPage?.seo?.ogImage?.alt, locale),
     heroParagraphs,
     featureItems,
     collaborationImages,
@@ -164,8 +171,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { heroTitle, description } = await getData(locale);
-  return localizedPageMetadata({ path: "/work-with-us", locale, title: `${heroTitle} | RORUM`, description });
+  const { seoTitle, description, ogImageUrl, ogImageAlt } = await getData(locale);
+  return localizedPageMetadata({
+    path: "/work-with-us",
+    locale,
+    title: seoTitle,
+    description,
+    ...(ogImageUrl ? { image: ogImageUrl } : {}),
+    ...(ogImageAlt ? { imageAlt: ogImageAlt } : {}),
+  });
 }
 
 export default async function WorkWithUsPage({ params }: { params: Promise<{ locale: string }> }) {

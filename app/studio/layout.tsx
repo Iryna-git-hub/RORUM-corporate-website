@@ -3,11 +3,17 @@ import type { ReactNode } from "react";
 import { merriweather, quicksand } from "@/app/fonts";
 import "@/app/globals.css";
 
+// Studio is an internal authoring tool, never a public search result — see
+// app/robots.ts's `disallow: "/studio"` for the crawl-level half of this;
+// `noindex`/`nofollow` here additionally covers the (unlikely, but
+// possible) case of a crawler that ignores robots.txt or a stray inbound
+// link. `noarchive`/`noimageindex` further ensure no cached copy or image
+// from Studio's own UI ever surfaces in search results.
 export const metadata: Metadata = {
   metadataBase: new URL("https://rorum.dk"),
-  title: { default: "RORUM | Creative Event Space in Copenhagen", template: "%s" },
-  description: "Warm Copenhagen event space for workshops, gatherings, catering and community-led hosting.",
-  robots: { index: true, follow: true },
+  title: { default: "RORUM | Events, Community & Creative Space", template: "%s" },
+  description: "Discover RORUM — a place for events, community, hosting, catering and creative collaboration where people and ideas come together.",
+  robots: { index: false, follow: false, noarchive: true, noimageindex: true },
 };
 
 // Studio's own root layout — independent of app/[locale]/layout.tsx (the

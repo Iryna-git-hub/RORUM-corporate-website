@@ -155,8 +155,8 @@ const fallback = {
   closingText:
     "Whether you are planning a workshop, private session, community gathering, catering request or event styling idea — tell us what you have in mind, and we'll help you find the right format.",
   closingCta: "Let's talk",
-  seoTitle: "RORUM | Creative Event Space in Copenhagen",
-  description: "RORUM is a warm Copenhagen space for meaningful events, hosted gatherings and community experiences.",
+  seoTitle: "RORUM | Events, Community & Creative Space",
+  description: "Discover RORUM — a place for events, community, hosting, catering and creative collaboration where people and ideas come together.",
   servicesLabel: "Services",
   servicesTitle: "Services for thoughtful gatherings",
   communityLabel: "Community",
@@ -429,6 +429,7 @@ async function getData(locale: Locale) {
     ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
       ?.width(1200)
       .url(),
+    ogImageAlt: pickLocalized(newPage?.seo?.ogImage?.alt, locale),
     servicesLabel: pickLocalized(servicesTeaserSection?.label, locale) ?? fallback.servicesLabel,
     servicesTitle: pickLocalized(servicesTeaserSection?.title, locale) ?? fallback.servicesTitle,
     communityLabel: pickLocalized(communityTeaserSection?.label, locale) ?? fallback.communityLabel,
@@ -455,13 +456,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { seoTitle, description, ogImageUrl } = await getData(locale);
+  const { seoTitle, description, ogImageUrl, ogImageAlt } = await getData(locale);
   return localizedPageMetadata({
     path: "/",
     locale,
     title: seoTitle,
     description,
     ...(ogImageUrl ? { image: ogImageUrl } : {}),
+    ...(ogImageAlt ? { imageAlt: ogImageAlt } : {}),
   });
 }
 

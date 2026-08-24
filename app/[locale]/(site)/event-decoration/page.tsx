@@ -67,7 +67,8 @@ const fallback = {
   tailoredText: "We create each setup individually according to your event format, location and wishes.",
   stepsTitle: "3-step setup",
   inquiryIntro: "Tell us what you are planning and we will suggest the right visual setup for your event.",
-  description: "Thoughtful table settings, florals and atmosphere styling for RORUM events.",
+  seoTitle: "Event Decoration & Styling | RORUM",
+  description: "Create the right atmosphere for your event with RORUM decoration and styling tailored to your format, space and vision.",
   inquiryTitle: "Decoration request",
   inquirySubmitLabel: "Send request",
   messagePlaceholder: "Describe your event, location and desired visual setup.",
@@ -198,7 +199,13 @@ async function getData(locale: Locale) {
     howItWorksLabel: pickLocalized(stepsSection?.label, locale) ?? "How it works",
     inquiryIntro:
       pickLocalized(formSection?.text, locale) ?? pickLocalized(page?.inquiryIntro, locale) ?? fallback.inquiryIntro,
-    description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? pickLocalized(page?.seo?.title, locale) ?? fallback.seoTitle,
+    description:
+      pickLocalized(newPage?.seo?.description, locale) ?? pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1200)
+      .url(),
+    ogImageAlt: pickLocalized(newPage?.seo?.ogImage?.alt, locale),
     inquiryTitle:
       pickLocalized(formSection?.title, locale) ?? pickLocalized(page?.inquiryTitle, locale) ?? fallback.inquiryTitle,
     inquirySubmitLabel:
@@ -227,8 +234,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { description } = await getData(locale);
-  return localizedPageMetadata({ path: "/event-decoration", locale, title: "Space Decoration", description });
+  const { seoTitle, description, ogImageUrl, ogImageAlt } = await getData(locale);
+  return localizedPageMetadata({
+    path: "/event-decoration",
+    locale,
+    title: seoTitle,
+    description,
+    ...(ogImageUrl ? { image: ogImageUrl } : {}),
+    ...(ogImageAlt ? { imageAlt: ogImageAlt } : {}),
+  });
 }
 
 export default async function DecorationPage({ params }: { params: Promise<{ locale: string }> }) {

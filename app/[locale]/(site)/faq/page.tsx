@@ -7,6 +7,7 @@ import { pickLocalized } from "@/lib/sanity-i18n";
 import { getSection } from "@/lib/sanity-sections";
 import { resolveCanonicalFaqGroups } from "@/lib/sanityFaq";
 import { isSanityConfigured } from "@/sanity/env";
+import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { faqPageQuery } from "@/sanity/queries/faq";
 import { pageByKeyQuery } from "@/sanity/queries/page";
@@ -15,7 +16,8 @@ const fallback = {
   heroLabel: "FAQ",
   heroTitle: "Frequently asked questions",
   heroText: "",
-  description: "Answers about RORUM events, hosting, booking, services and volunteering.",
+  seoTitle: "Frequently Asked Questions | RORUM",
+  description: "Find answers to common questions about RORUM events, hosted programmes, volunteering, services and practical information.",
 };
 
 async function getData(locale: Locale) {
@@ -38,7 +40,13 @@ async function getData(locale: Locale) {
     heroLabel: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
     heroTitle: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
     heroText: pickLocalized(heroSection?.text, locale) ?? pickLocalized(page?.heroText, locale) ?? fallback.heroText,
-    description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? pickLocalized(page?.seo?.title, locale) ?? fallback.seoTitle,
+    description:
+      pickLocalized(newPage?.seo?.description, locale) ?? pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1200)
+      .url(),
+    ogImageAlt: pickLocalized(newPage?.seo?.ogImage?.alt, locale),
     groups,
   };
 }
@@ -50,8 +58,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { heroTitle, description } = await getData(locale);
-  return localizedPageMetadata({ path: "/faq", locale, title: `${heroTitle} | RORUM`, description });
+  const { seoTitle, description, ogImageUrl, ogImageAlt } = await getData(locale);
+  return localizedPageMetadata({
+    path: "/faq",
+    locale,
+    title: seoTitle,
+    description,
+    ...(ogImageUrl ? { image: ogImageUrl } : {}),
+    ...(ogImageAlt ? { imageAlt: ogImageAlt } : {}),
+  });
 }
 
 export default async function FAQPage({ params }: { params: Promise<{ locale: string }> }) {

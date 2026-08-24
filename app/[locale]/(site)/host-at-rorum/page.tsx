@@ -85,7 +85,8 @@ const fallback = {
   sessionImage: sessionDetailsImage,
   sessionImageAlt: "Hosted meeting room setup at RORUM",
   inquiryIntro: "",
-  description: "Host workshops, meetings and intimate gatherings at RORUM.",
+  seoTitle: "Host Your Event at RORUM | Venue & Support",
+  description: "Plan and host your event at RORUM with a flexible setting, practical support and an experience shaped around your guests.",
   inquiryTitle: "Apply to Host at RORUM",
   inquirySubmitLabel: "Submit Hosting Request",
   messagePlaceholder: "Tell us about your meeting format, timing and preferences.",
@@ -250,7 +251,11 @@ async function getData(locale: Locale) {
       fallback.sessionImageAlt,
     inquiryIntro:
       pickLocalized(formSection?.text, locale) ?? pickLocalized(page?.inquiryIntro, locale) ?? fallback.inquiryIntro,
-    description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? pickLocalized(page?.seo?.title, locale) ?? fallback.seoTitle,
+    description:
+      pickLocalized(newPage?.seo?.description, locale) ?? pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])?.width(1200).url(),
+    ogImageAlt: pickLocalized(newPage?.seo?.ogImage?.alt, locale),
     inquiryTitle:
       pickLocalized(formSection?.title, locale) ?? pickLocalized(page?.inquiryTitle, locale) ?? fallback.inquiryTitle,
     inquirySubmitLabel:
@@ -282,8 +287,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { description } = await getData(locale);
-  return localizedPageMetadata({ path: "/host-at-rorum", locale, title: "Host at RORUM", description });
+  const { seoTitle, description, ogImageUrl, ogImageAlt } = await getData(locale);
+  return localizedPageMetadata({
+    path: "/host-at-rorum",
+    locale,
+    title: seoTitle,
+    description,
+    ...(ogImageUrl ? { image: ogImageUrl } : {}),
+    ...(ogImageAlt ? { imageAlt: ogImageAlt } : {}),
+  });
 }
 
 export default async function HostAtRorumPage({ params }: { params: Promise<{ locale: string }> }) {

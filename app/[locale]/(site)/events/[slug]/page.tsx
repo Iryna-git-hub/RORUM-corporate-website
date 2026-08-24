@@ -5,9 +5,12 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Container } from "@/components/ui";
 import { EventShare } from "@/components/EventShare";
-import { events as staticEvents, siteUrl, type RorumEvent } from "@/lib/data";
+import { JsonLd } from "@/components/JsonLd";
+import { events as staticEvents, type RorumEvent } from "@/lib/data";
 import { contactDetails } from "@/lib/siteConfig";
 import { localizedPageMetadata } from "@/lib/seo";
+import { eventJsonLd } from "@/lib/structuredData";
+import { getSeoSiteDefaults } from "@/lib/siteSettings";
 import { isLocale, localeTags, type Locale } from "@/lib/i18n";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
 import { isEventVisibleInLocale } from "@/lib/eventVisibility";
@@ -458,6 +461,7 @@ export async function generateMetadata({
     const title = event.seo?.title || `${event.title} | RORUM`;
     const description = event.seo?.description || event.longDescription || fallbackDescription;
     const image = event.seo?.ogImageUrl || event.image || "/images/hero.jpg";
+    const imageAlt = event.seo?.ogImageAlt || event.imageAlt || undefined;
     // Only advertise hreflang alternates for locales this event is actually
     // shown on — an alternate pointing at a locale that itself 404s for
     // this event would mislead search engines about which URLs exist.
@@ -468,6 +472,7 @@ export async function generateMetadata({
         title,
         description,
         image,
+        ...(imageAlt ? { imageAlt } : {}),
         ...(alternateLocales.length ? { alternateLocales } : {}),
     });
 }
@@ -482,6 +487,7 @@ export default async function EventDetailPage({
     const event = await getEvent(slug, locale);
     if (!event) notFound();
     const messages = await getEventMessages(locale);
+    const { siteUrl } = await getSeoSiteDefaults();
 
     const fullDate = formatFullDate(event.date, locale);
     const time = formatTime(event.time, messages.timeToBeAnnouncedLabel);
@@ -496,9 +502,25 @@ export default async function EventDetailPage({
         : typeof event.ticketsLeft === "number"
           ? `${event.ticketsLeft} ${event.ticketsLeft === 1 ? messages.spotsLeftOne : messages.spotsLeftOther}`
           : null;
+    const structuredDataImage = event.image ? (/^https?:\/\//.test(event.image) ? event.image : `${siteUrl}${event.image}`) : undefined;
 
     return (
       <>
+        <JsonLd
+          data={eventJsonLd({
+            siteUrl,
+            path: `/events/${event.slug}`,
+            name: event.title,
+            description: event.longDescription || undefined,
+            date: event.date,
+            time: event.time,
+            image: structuredDataImage,
+            address: location,
+            isSoldOut: event.isSoldOut,
+            ticketUrl: event.ticketUrl || undefined,
+            organizerName: "RORUM",
+          })}
+        />
         <section className="event-detail-hero" aria-label={`${event.title} ${messages.eventImageAriaSuffix}`}>
           <Image
             className={

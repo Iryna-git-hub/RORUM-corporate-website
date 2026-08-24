@@ -236,7 +236,7 @@ export interface RorumEvent {
   // set when the Sanity `seo` block has a value; consumers fall back to
   // title/longDescription/image (above) when a piece is unset. Never
   // populated by the static fallback data below.
-  seo?: { title?: string; description?: string; ogImageUrl?: string };
+  seo?: { title?: string; description?: string; ogImageUrl?: string; ogImageAlt?: string };
   // Which localized website versions this event is shown on ("Show on
   // website languages" in Studio) — the authoritative visibility rule, see
   // lib/eventVisibility.ts's isEventVisibleInLocale(). Undefined for the

@@ -898,8 +898,14 @@ test.describe("seo.ts — Studio labels renamed, stored field names unchanged", 
     expect(field(seoType, "ogImage").name).toBe("ogImage");
   });
 
-  test("the SEO block's own title is unchanged", () => {
-    expect((seoType as unknown as { title?: string }).title).toBe("SEO");
+  test("the SEO block's own title is renamed to 'Search engine & social sharing' (later session, SEO task Section 4) — its stored field name ('seo', asserted below) is unchanged", () => {
+    expect((seoType as unknown as { title?: string }).title).toBe("Search engine & social sharing");
+  });
+
+  test("the ogImage.alt field is relabeled to 'Social Sharing Image Alt', stored field name unchanged", () => {
+    const ogImageField = field(seoType, "ogImage") as unknown as { fields?: { name: string; title?: string }[] };
+    const altField = ogImageField.fields?.find((f) => f.name === "alt");
+    expect(altField?.title).toBe("Social Sharing Image Alt");
   });
 
   test("Social Sharing Image stays optional — no unconditional required() rule", () => {

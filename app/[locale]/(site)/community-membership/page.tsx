@@ -92,7 +92,8 @@ const fallback = {
   benefitsTitle: "What You Gain as a Member",
   applicationTitle: "Application Process",
   applicationCta: "Become a Member",
-  description: "Join the RORUM community for events, collaboration and practical creative support in Copenhagen.",
+  seoTitle: "Community Membership | Join RORUM",
+  description: "Become part of the RORUM community, meet people, exchange ideas and take part in activities and shared experiences.",
   introSectionLabel: "WECODA community",
   introSectionTitle: "Connecting Women Who Inspire, Build and Lead.",
   galleryLabel: "Gallery",
@@ -290,7 +291,13 @@ async function getData(locale: Locale) {
       pickLocalized(getAction(applicationSection, "apply")?.label, locale) ??
       pickLocalized(page?.applicationCta?.label, locale) ??
       fallback.applicationCta,
-    description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? pickLocalized(page?.seo?.title, locale) ?? fallback.seoTitle,
+    description:
+      pickLocalized(newPage?.seo?.description, locale) ?? pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1200)
+      .url(),
+    ogImageAlt: pickLocalized(newPage?.seo?.ogImage?.alt, locale),
     introSectionLabel:
       pickLocalized(introSection?.label, locale) ?? pickLocalized(page?.introSectionLabel, locale) ?? fallback.introSectionLabel,
     introSectionTitle:
@@ -349,8 +356,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { description } = await getData(locale);
-  return localizedPageMetadata({ path: "/community-membership", locale, title: "Community Membership", description });
+  const { seoTitle, description, ogImageUrl, ogImageAlt } = await getData(locale);
+  return localizedPageMetadata({
+    path: "/community-membership",
+    locale,
+    title: seoTitle,
+    description,
+    ...(ogImageUrl ? { image: ogImageUrl } : {}),
+    ...(ogImageAlt ? { imageAlt: ogImageAlt } : {}),
+  });
 }
 
 export default async function CommunityMembershipPage({ params }: { params: Promise<{ locale: string }> }) {
