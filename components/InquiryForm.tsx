@@ -1,28 +1,39 @@
 "use client";
 
 import type { FormEvent, ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   PrivacyConsent,
   validatePrivacyConsent,
 } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
 
-// Deliberately left as fixed English identifiers, not localized: this form
-// has no real backend (`onSubmit` only ever calls `form.reset()` — see
-// below), but `getInitialPackage()` still matches these values against a
-// `?package=` URL query param that PackageGrid's CTA links build from the
-// (localized) package tier titles elsewhere on the page. Translating these
-// labels without also making that matching locale-aware would silently break
-// deep-linking a package selection from the pricing table.
-const bookingPackageOptions = [
-  "Morning session",
-  "Afternoon session",
-  "Full day session",
-  "Not sure yet",
+// Fallback only — used when the caller doesn't supply `packageOptions`
+// (Sanity unavailable/not yet migrated). The canonical, Sanity-backed
+// source is `app/[locale]/(site)/host-at-rorum/page.tsx`'s own
+// `packageOptions`, derived from the SAME `packagesSection.items` array
+// PackageGrid's cards already use — one source, not two independently
+// maintained lists (see MIGRATION_REPORT.md for the defect this replaces:
+// this array used to be the ONLY source, with no `value` distinct from its
+// display text, so `?package=` deep-linking broke the moment a package was
+// renamed).
+const FALLBACK_PACKAGE_OPTIONS = [
+  { value: "package0", label: "Morning session" },
+  { value: "package1", label: "Afternoon session" },
+  { value: "package2", label: "Full day session" },
 ];
+const NOT_SURE_OPTION = { value: "not-sure", label: "Not sure yet" };
 
-const bookingServiceOptions = ["Breakfast", "Snacks", "Lunch", "Coffee setup"];
+// Fallback only — used when the caller doesn't supply `serviceOptions`. The
+// canonical, localized source is the same page's own `serviceOptions`,
+// read from `page-host-at-rorum`'s `inquiryForm` section's own
+// "service0".."service3" rows.
+const FALLBACK_SERVICE_OPTIONS = [
+  { value: "service0", label: "Breakfast" },
+  { value: "service1", label: "Snacks" },
+  { value: "service2", label: "Lunch" },
+  { value: "service3", label: "Coffee setup" },
+];
 
 const CARD_FORM_CLASS =
   "grid gap-4 border-0 rounded-none bg-white p-[clamp(20px,3vw,4rem)] text-text-primary shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] overflow-hidden";
@@ -77,6 +88,12 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 
 export type InquiryFormType = "default" | "booking" | "decoration";
 
+export interface SelectableOption {
+  /** Stable, non-localized identifier — the submitted form value and the `?package=` deep-link value. Never changes when the label is edited/renamed. */
+  value: string;
+  label: string;
+}
+
 export function InquiryForm({
   type = "default",
   title,
@@ -84,6 +101,8 @@ export function InquiryForm({
   submitLabel = "Send inquiry",
   successMessage,
   messagePlaceholder,
+  packageOptions,
+  serviceOptions,
 }: {
   type?: InquiryFormType;
   title: ReactNode;
@@ -91,11 +110,23 @@ export function InquiryForm({
   submitLabel?: string;
   successMessage?: string;
   messagePlaceholder?: string;
+  /** Booking form only — canonical, Sanity-backed package options (same array PackageGrid's cards render). Falls back to FALLBACK_PACKAGE_OPTIONS when absent (Sanity unavailable). */
+  packageOptions?: SelectableOption[];
+  /** Booking form only — canonical, Sanity-backed Additional Services options. Falls back to FALLBACK_SERVICE_OPTIONS when absent. */
+  serviceOptions?: SelectableOption[];
 }) {
   const { messages } = useFormContent();
   const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedPackage, setSelectedPackage] = useState("");
+  // Memoized on the actual `packageOptions` prop (stable server-provided
+  // data, never changes after mount) so the mount-only effect below can
+  // safely depend on it without re-running every render.
+  const resolvedPackageOptions = useMemo(
+    () => [...(packageOptions?.length ? packageOptions : FALLBACK_PACKAGE_OPTIONS), NOT_SURE_OPTION],
+    [packageOptions],
+  );
+  const resolvedServiceOptions = serviceOptions?.length ? serviceOptions : FALLBACK_SERVICE_OPTIONS;
   const isBooking = type === "booking";
   const isDecoration = type === "decoration";
   const resolvedSuccessMessage =
@@ -113,14 +144,14 @@ export function InquiryForm({
 
   useEffect(() => {
     if (!isBooking || typeof window === "undefined") return undefined;
-    const packageName = getInitialPackage(bookingPackageOptions);
+    const packageName = getInitialPackage(resolvedPackageOptions.map((o) => o.value));
     if (!packageName) return undefined;
     const timeoutId = window.setTimeout(
       () => setSelectedPackage(packageName),
       0,
     );
     return () => window.clearTimeout(timeoutId);
-  }, [isBooking]);
+  }, [isBooking, resolvedPackageOptions]);
 
   function validateRequired(
     formData: FormData,
@@ -267,9 +298,9 @@ export function InquiryForm({
               <option value="" disabled className={OPTION_CLASS}>
                 {messages.selectPackagePlaceholder}
               </option>
-              {bookingPackageOptions.map((option) => (
-                <option key={option} className={OPTION_CLASS}>
-                  {option}
+              {resolvedPackageOptions.map((option) => (
+                <option key={option.value} value={option.value} className={OPTION_CLASS}>
+                  {option.label}
                 </option>
               ))}
             </select>
@@ -320,19 +351,19 @@ export function InquiryForm({
           <legend className="col-span-full mb-0.5 text-[rgba(var(--rgb-dark-brown),0.5)] text-[0.82rem] font-semibold">
             {messages.additionalServicesLabel}
           </legend>
-          {bookingServiceOptions.map((service) => (
+          {resolvedServiceOptions.map((service) => (
             <label
-              key={service}
+              key={service.value}
               className="flex items-center justify-start flex-nowrap gap-2.5 min-h-10 py-2.25 px-2.75 bg-[rgba(var(--rgb-beige),0.18)] border border-[rgba(var(--rgb-beige),0.3)] rounded-none cursor-pointer"
             >
               <input
                 name="additionalServices"
                 type="checkbox"
-                value={service}
+                value={service.value}
                 className="appearance-none flex-none w-4.5 h-4.5 min-w-4.5 m-0 grid place-content-center border border-[rgba(var(--rgb-red),0.48)] bg-white cursor-pointer before:content-[''] before:w-2.5 before:h-2.5 before:bg-red before:scale-0 before:transition-transform before:duration-140 checked:before:scale-100"
               />
               <span className="inline-flex items-center min-w-0 text-text-primary text-base font-medium leading-[1.45] whitespace-nowrap">
-                {service}
+                {service.label}
               </span>
             </label>
           ))}

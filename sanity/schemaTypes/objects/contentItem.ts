@@ -104,6 +104,15 @@ const ITEM_KEY_PREVIEW_LABELS: Record<string, string> = {
   clearFiltersLabel: "Clear filters",
   emptyStateTitle: "Empty-state title",
   emptyStateText: "Empty-state text",
+  // Event Decoration
+  tailoredNote: "Tailored upon request note",
+  // Host at RORUM
+  optionalLabel: "Optional — column heading",
+  footerCtaLabel: "Footer CTA link text",
+  footerText: "Footer text (after the CTA link)",
+  selectPackageCta: "Select-package button label",
+  cancellationTitle: "Cancellation policy heading",
+  requestProcessAriaLabel: "Accessibility label (not visibly shown)",
 };
 
 export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
@@ -143,7 +152,29 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
   { role: "Catering gallery chip-group aria label", sectionKeys: ["gallery"], itemKeyPattern: /^ariaLabel$/, visible: ["title"] },
   { role: "Catering \"suitable for\" chip", sectionKeys: ["gallery"], itemKeyPattern: /^suitableFor\d+$/, visible: ["icon", "title"] },
   { role: "Catering menu format card", sectionKeys: ["menuFormats"], itemKeyPattern: /^format[0-2]$/, visible: ["title", "text", "image"] },
-  { role: "Catering \"tailored upon request\" note", sectionKeys: ["philosophy"], itemKeyPattern: /^tailoredNote$/, visible: ["title", "text"] },
+  // Shared between Catering's "philosophy" section and Event Decoration's
+  // "styling" section — both use the exact same closing note role (title +
+  // text, e.g. "Tailored upon request") — one rule, not two near-duplicates.
+  { role: "\"Tailored upon request\" note (Catering + Event Decoration)", sectionKeys: ["philosophy", "styling"], itemKeyPattern: /^tailoredNote$/, visible: ["title", "text"] },
+  // Event Decoration's "What we style" cards (Table styling/Florals/Balloon
+  // accents/Atmosphere details/Personal touches) — icon + Title + Text, plus
+  // an OPTIONAL Link destination/text (not currently used by any live item,
+  // but kept genuinely visible and functional per explicit product
+  // decision, not a fake field — see EventDecorationStyleCard's own
+  // conditional rendering in the frontend for the "if present" half of that
+  // contract). `documentIds`-scoped since "styling" is not (yet) a shared
+  // sectionKey the way "gallery"/"steps"/"inquiryForm" already are.
+  {
+    role: "Event Decoration 'What We Style' item",
+    documentIds: ["page-event-decoration"],
+    sectionKeys: ["styling"],
+    // The outer `(...)?` makes the whole match optional, so a manager-added
+    // card with no itemKey yet (added via the generic array control) also
+    // matches — same "" branch as Catering's own "what we offer" bullet role.
+    itemKeyPattern: /^(format\d*)?$/,
+    visible: ["icon", "title", "text", "href", "label"],
+    fieldLabels: { label: "Link text" },
+  },
   // Matches both the 6 existing "format0".."format5" bullets AND a
   // manager-added new one (no itemKey at all — see
   // CateringOfferItemsInput.tsx, which always inserts blank). Previously
@@ -185,6 +216,72 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
   // editable icon lives with its category without adding a new attribute
   // path to pageSection.ts itself (see CateringMenuOverlay.tsx / page.tsx).
   { role: "Catering menu category tab icon", sectionKinds: ["menuCategory"], itemKeyPattern: /^categoryIcon$/, visible: ["icon"] },
+  // Host at RORUM's "Each Session Includes" section (sectionKey "session") —
+  // 7 "includedN" rows (rendered as 2 visual columns by position, see
+  // app/[locale]/(site)/host-at-rorum/page.tsx's own `.slice(0,4)`/`.slice(4,7)`
+  // split — the icons themselves are a fixed, code-side ordered list with no
+  // schema field), 2 "optionalN" rows, and the "optionalLabel" heading row
+  // for the Optional column — all title-only.
+  {
+    role: "Host at RORUM session-includes item",
+    documentIds: ["page-host-at-rorum"],
+    sectionKeys: ["session"],
+    itemKeyPattern: /^(included\d+|optional\d+|optionalLabel)$/,
+    visible: ["title"],
+    requiredFields: ["title"],
+  },
+  // Host at RORUM's "Hosting Packages" section (sectionKey "packages") — the
+  // package cards themselves (Title = package name, Link text / value =
+  // price, Text = one included item per line — see PackageGrid.tsx) need
+  // their own 3-field role; every other row in this section (footer CTA/
+  // text, "Select Package" button, cancellation policy title + its own
+  // bullet rows) is title-only.
+  {
+    role: "Host at RORUM package",
+    documentIds: ["page-host-at-rorum"],
+    sectionKeys: ["packages"],
+    itemKeyPattern: /^package\d*$/,
+    visible: ["title", "label", "text"],
+    requiredFields: ["title", "label"],
+    fieldLabels: { title: "Package name", label: "Price", text: "Included items (one per line)" },
+  },
+  {
+    role: "Host at RORUM packages title-only row",
+    documentIds: ["page-host-at-rorum"],
+    sectionKeys: ["packages"],
+    itemKeyPattern: /^(footerCtaLabel|footerText|selectPackageCta|cancellationTitle|cancellation\d+)$/,
+    visible: ["title"],
+  },
+  // Host at RORUM's "Additional Services" checkboxes (Breakfast/Snacks/
+  // Lunch/Coffee setup) — added to `inquiryForm` (sectionKey, not a new
+  // section) as itemKey "service0".."service3" so the booking form's
+  // checkboxes read localized EN/DA/UK labels from Sanity instead of
+  // components/InquiryForm.tsx's own hardcoded, English-only
+  // `bookingServiceOptions` array (see
+  // scripts/migrate-host-additional-services.ts). `itemKey` itself is the
+  // stable submitted checkbox value — editing/reordering the Title never
+  // changes it.
+  {
+    role: "Host at RORUM additional service",
+    documentIds: ["page-host-at-rorum"],
+    sectionKeys: ["inquiryForm"],
+    itemKeyPattern: /^service\d+$/,
+    visible: ["title"],
+    requiredFields: ["title"],
+    fieldLabels: { title: "Service name" },
+  },
+  // The Steps section's own aria-label row (itemKey "requestProcessAriaLabel")
+  // — same "one row, title-only, read as an accessibility string not a
+  // visible chip" pattern as Catering's gallery ariaLabel role, just scoped
+  // to Host at RORUM's own steps section instead.
+  {
+    role: "Host at RORUM step-list aria label",
+    documentIds: ["page-host-at-rorum"],
+    sectionKeys: ["steps"],
+    itemKeyPattern: /^requestProcessAriaLabel$/,
+    visible: ["title"],
+    fieldLabels: { title: "Accessibility label (not visibly shown)" },
+  },
   // A FAQ question row: Question (title) + Answer (text), plus an optional
   // link (href/label) rendered under the answer — see
   // components/FAQAccordion.tsx. Matched by sectionKind (open,

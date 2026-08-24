@@ -118,7 +118,15 @@
     "sanity:migrate-events-filter-labels": "tsx --env-file=.env.local scripts/migrate-events-filter-labels.ts",
     "sanity:backup-site-settings": "tsx --env-file=.env.local scripts/backup-site-settings.ts",
     "sanity:repair-site-settings-domain:dry-run": "tsx --env-file=.env.local scripts/repair-site-settings-domain.ts",
-    "sanity:repair-site-settings-domain": "tsx --env-file=.env.local scripts/repair-site-settings-domain.ts --apply"
+    "sanity:repair-site-settings-domain": "tsx --env-file=.env.local scripts/repair-site-settings-domain.ts --apply",
+    "sanity:backup-ed-styling": "tsx --env-file=.env.local scripts/backup-event-decoration-styling.ts",
+    "sanity:migrate-ed-styling-text:dry-run": "tsx --env-file=.env.local scripts/migrate-event-decoration-styling-text.ts",
+    "sanity:migrate-ed-styling-text": "tsx --env-file=.env.local scripts/migrate-event-decoration-styling-text.ts --apply",
+    "sanity:backup-host": "tsx --env-file=.env.local scripts/backup-host-at-rorum-docs.ts",
+    "sanity:backfill-host-gallery-alt:dry-run": "tsx --env-file=.env.local scripts/backfill-host-gallery-alt.ts",
+    "sanity:backfill-host-gallery-alt": "tsx --env-file=.env.local scripts/backfill-host-gallery-alt.ts --apply",
+    "sanity:migrate-host-additional-services:dry-run": "tsx --env-file=.env.local scripts/migrate-host-additional-services.ts",
+    "sanity:migrate-host-additional-services": "tsx --env-file=.env.local scripts/migrate-host-additional-services.ts --apply"
   },
   "dependencies": {
     "@portabletext/react": "^7.0.1",

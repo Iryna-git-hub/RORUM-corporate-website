@@ -104,6 +104,8 @@ async function getData(locale: Locale) {
       steps: fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text })),
       cancellation: fallbackCancellation,
       packageItems: packages.booking,
+      packageOptions: packages.booking.map((p) => ({ value: p.value, label: p.title })),
+      serviceOptions: undefined as { value: string; label: string }[] | undefined,
       galleryItems: resolveGalleryItems(undefined, locale, hostAtRorumGalleryImages),
     };
   }
@@ -174,15 +176,35 @@ async function getData(locale: Locale) {
       ? compact(page.cancellationItems.map((b) => pickLocalized(b?.text, locale)))
       : fallbackCancellation;
 
+  // `value` is the one stable identifier shared by the package CARDS
+  // (below) and the booking FORM's own package selector — see
+  // components/InquiryForm.tsx's `packageOptions` prop and
+  // components/Cards.tsx's PackageGrid, both of which now read this same
+  // canonical array instead of each keeping their own list. Sourced from
+  // each item's own stable `itemKey` (e.g. "package0") when it's Sanity-
+  // backed, never from the (renameable, localized) title.
+  // Additional Services checkboxes — canonical source (Sanity-backed):
+  // inquiryForm's own "service0".."service3" rows, stable value = itemKey,
+  // localized label = Title. Falls back to the previous hardcoded,
+  // English-only list only when Sanity is unavailable/not yet migrated —
+  // see components/InquiryForm.tsx's own `bookingServiceOptions` constant
+  // for that fallback tier.
+  const serviceItemsFromSections = (formSection?.items ?? []).filter((i) => i.itemKey?.startsWith("service"));
+  const serviceOptions = serviceItemsFromSections.length
+    ? serviceItemsFromSections.map((s) => ({ value: s.itemKey!, label: pickLocalized(s.title, locale) ?? "" }))
+    : undefined;
+
   const packageItemsFromSections = (packagesSection?.items ?? []).filter((i) => i.itemKey?.startsWith("package"));
   const packageItems: PackageItem[] = packageItemsFromSections.length
-    ? packageItemsFromSections.map((p) => ({
+    ? packageItemsFromSections.map((p, i) => ({
+        value: p.itemKey ?? `package${i}`,
         title: pickLocalized(p.title, locale) ?? "",
         price: pickLocalized(p.label, locale) ?? "",
         items: (pickLocalized(p.text, locale) ?? "").split("\n").filter(Boolean),
       }))
     : page?.packages?.length
-      ? page.packages.map((p) => ({
+      ? page.packages.map((p, i) => ({
+          value: `legacy-package${i}`,
           title: pickLocalized(p?.title, locale) ?? "",
           price: pickLocalized(p?.price, locale) ?? "",
           items: p?.items?.length ? compact(p.items.map((i) => pickLocalized(i?.text, locale))) : [],
@@ -276,6 +298,11 @@ async function getData(locale: Locale) {
     steps,
     cancellation,
     packageItems,
+    // Same canonical array `packageItems` (cards) already uses — the
+    // booking form's `<select>` and PackageGrid's cards can never drift
+    // apart, since both are derived from this one source.
+    packageOptions: packageItems.map((p) => ({ value: p.value, label: p.title })),
+    serviceOptions,
     galleryItems,
   };
 }
@@ -554,6 +581,8 @@ export default async function HostAtRorumPage({ params }: { params: Promise<{ lo
               submitLabel={data.inquirySubmitLabel}
               successMessage={data.successMessage}
               messagePlaceholder={data.messagePlaceholder}
+              packageOptions={data.packageOptions}
+              serviceOptions={data.serviceOptions}
             />
           </div>
         </Container>

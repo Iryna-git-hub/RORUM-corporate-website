@@ -192,6 +192,9 @@ test.describe("contentItem.ts — ITEM_ROLE_RULES matrix (mocked document+parent
       "requestCta", "featuredDishesLabel", "backToCateringCta", "disclaimerNote", "emptyStateMessage",
       "followUsTitle", "contactDetail-address", "contactDetail-phone", "contactDetail-email", "field-name",
       "faqPromptQuestion", "faqPromptLabel",
+      "included0", "included6", "optional0", "optional1", "optionalLabel",
+      "package0", "package1", "package2", "footerCtaLabel", "footerText", "selectPackageCta",
+      "cancellationTitle", "cancellation0", "cancellation1", "cancellation2", "requestProcessAriaLabel",
     ];
     const rawItemKey = candidates.find((c) => rule.itemKeyPattern.test(c));
     if (rawItemKey === undefined) throw new Error(`no test candidate matches rule "${rule.role}"'s pattern — fix the test fixture list`);
@@ -257,9 +260,9 @@ test.describe("contentItem.ts — ITEM_ROLE_RULES matrix (mocked document+parent
 
   test("a blank-itemKey What We Offer bullet still doesn't leak into the sibling tailoredNote role or vice versa", () => {
     const blank = docWithItem("philosophy", undefined, "the-item");
-    expect(matchItemRoleInContext(blank, blank.sections[0]!.items[0]!)?.role).not.toBe('Catering "tailored upon request" note');
+    expect(matchItemRoleInContext(blank, blank.sections[0]!.items[0]!)?.role).not.toBe('"Tailored upon request" note (Catering + Event Decoration)');
     const noted = docWithItem("philosophy", "tailoredNote", "the-item");
-    expect(matchItemRoleInContext(noted, noted.sections[0]!.items[0]!)?.role).toBe('Catering "tailored upon request" note');
+    expect(matchItemRoleInContext(noted, noted.sections[0]!.items[0]!)?.role).toBe('"Tailored upon request" note (Catering + Event Decoration)');
   });
 
   test("an item with no audited role shows every field, unchanged", () => {
@@ -2062,9 +2065,9 @@ test.describe("Event Decoration — real document shape unaffected by Contact's 
     expect(isPageContact({ _id: "drafts.page-event-decoration" })).toBe(false);
   });
 
-  test("Event Decoration's hero section keeps media/actions VISIBLE — proves the new Contact hero hide (media/actions) is scoped by document, not by sectionKey \"hero\" alone", () => {
+  test("Event Decoration's hero section keeps actions VISIBLE (never hidden by Contact's own document-scoped rule) — media is hidden for a SEPARATE, later reason (this session's own Phase 1/2 work — see the dedicated 'hero: media/items hidden' describe block above), not by Contact's rule leaking across documents", () => {
     const parent = eventDecorationDoc.sections[0]!;
-    expect(callHidden(field(pageSectionType, "media"), { parent, document: eventDecorationDoc })).toBe(false);
+    expect(callHidden(field(pageSectionType, "media"), { parent, document: eventDecorationDoc })).toBe(true);
     expect(callHidden(field(pageSectionType, "actions"), { parent, document: eventDecorationDoc })).toBe(false);
   });
 
@@ -2282,5 +2285,174 @@ test.describe("contentItem.ts — Events filter/empty-state label role (Events L
     const doc = docWithItem("someUnknownKey");
     const parent = doc.sections[0]!.items[0]!;
     expect(matchItemRoleInContext(doc, parent)).toBeUndefined();
+  });
+});
+
+// ============================================================================
+// pageSection.ts / contentItem.ts — Event Decoration + Host at RORUM Studio
+// workflow (Phase 2/3, this session's own task). Both pages' hero sections
+// never use media/items (their real gallery photos live in a separate
+// "gallery" section; their CTA lives in `actions`, not `items`) — hidden by
+// document, not by sectionKey "hero" alone, so Home's own hero (which
+// genuinely uses media) stays unaffected. Every item role below reuses an
+// EXISTING shared (non-documentId-scoped) Catering rule wherever the shape
+// is identical (gallery ariaLabel/suitableFor chips, 3-step rows, inquiry
+// form submitLabel/messagePlaceholder/successMessage) — only the roles with
+// no existing equivalent (What We Style cards, Host's session-includes/
+// package/aria-label rows) get a new, documentIds-scoped rule.
+// ============================================================================
+test.describe("pageSection.ts — Event Decoration / Host at RORUM hero: media/items hidden, Home's hero unaffected", () => {
+  function mediaField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "media");
+  }
+  function itemsField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "items");
+  }
+
+  test("Event Decoration's hero: media and items are hidden", () => {
+    const parent = { sectionKey: "hero", sectionKind: "hero" };
+    for (const docId of ["page-event-decoration", "drafts.page-event-decoration"]) {
+      const ctx = { parent, document: { _id: docId } };
+      expect(callHidden(mediaField(), ctx), docId).toBe(true);
+      expect(callHidden(itemsField(), ctx), docId).toBe(true);
+    }
+  });
+
+  test("Host at RORUM's hero: media and items are hidden", () => {
+    const parent = { sectionKey: "hero", sectionKind: "hero" };
+    for (const docId of ["page-host-at-rorum", "drafts.page-host-at-rorum"]) {
+      const ctx = { parent, document: { _id: docId } };
+      expect(callHidden(mediaField(), ctx), docId).toBe(true);
+      expect(callHidden(itemsField(), ctx), docId).toBe(true);
+    }
+  });
+
+  test("regression: Home's hero keeps media/items visible — the hide is scoped by document, not by sectionKey \"hero\" alone", () => {
+    const parent = { sectionKey: "hero", sectionKind: "hero" };
+    const ctx = { parent, document: { _id: "page-home" } };
+    expect(callHidden(mediaField(), ctx)).toBe(false);
+    expect(callHidden(itemsField(), ctx)).toBe(false);
+  });
+
+  test("regression: Event Decoration's/Host's own other sections (gallery/styling/session) are unaffected — the force-hide is scoped to sectionKey \"hero\" only", () => {
+    for (const [docId, sectionKey] of [
+      ["page-event-decoration", "styling"],
+      ["page-host-at-rorum", "session"],
+    ] as const) {
+      const parent = { sectionKey, sectionKind: "split" };
+      const ctx = { parent, document: { _id: docId } };
+      expect(callHidden(mediaField(), ctx), docId).toBe(false);
+      expect(callHidden(itemsField(), ctx), docId).toBe(false);
+    }
+  });
+});
+
+test.describe("contentItem.ts — Event Decoration 'What We Style' item + shared 'tailored upon request' note", () => {
+  function docWithStylingItem(itemKey: string | undefined, documentId = "page-event-decoration") {
+    return { _id: documentId, sections: [{ sectionKey: "styling", sectionKind: "split", items: [{ _key: "x", itemKey }] }] };
+  }
+
+  test("a format item (e.g. \"format0\") matches the role: icon/title/text/href/label visible, itemKey/image/value hidden", () => {
+    const doc = docWithStylingItem("format0");
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)?.role).toBe("Event Decoration 'What We Style' item");
+    for (const fieldName of ["icon", "title", "text", "href", "label"] as const) {
+      expect(callHidden(field(contentItemType, fieldName), { document: doc, parent }), fieldName).toBe(false);
+    }
+    for (const fieldName of ["itemKey", "image", "value"] as const) {
+      expect(callHidden(field(contentItemType, fieldName), { document: doc, parent }), fieldName).toBe(true);
+    }
+  });
+
+  test("a manager-added format item with no itemKey yet also matches (via the empty-string branch of the pattern)", () => {
+    const doc = docWithStylingItem(undefined);
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)?.role).toBe("Event Decoration 'What We Style' item");
+  });
+
+  test("the same sectionKey/itemKey on a DIFFERENT document never activates this role — documentIds scoping", () => {
+    const doc = docWithStylingItem("format0", "page-catering");
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)).toBeUndefined();
+  });
+
+  test("the shared \"tailored upon request\" note role now also matches Event Decoration's own styling section, not just Catering's philosophy section", () => {
+    const doc = docWithStylingItem("tailoredNote");
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)?.role).toBe('"Tailored upon request" note (Catering + Event Decoration)');
+    expect(callHidden(field(contentItemType, "title"), { document: doc, parent })).toBe(false);
+    expect(callHidden(field(contentItemType, "text"), { document: doc, parent })).toBe(false);
+    expect(callHidden(field(contentItemType, "icon"), { document: doc, parent })).toBe(true);
+  });
+
+  test("the existing Catering gallery ariaLabel/suitableFor chip roles apply unchanged to Event Decoration's own gallery section (same sectionKey, no documentIds scoping needed — shape is identical)", () => {
+    const doc = { _id: "page-event-decoration", sections: [{ sectionKey: "gallery", sectionKind: "gallery", items: [{ _key: "x", itemKey: "suitableFor0" }] }] };
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)?.role).toBe('Catering "suitable for" chip');
+  });
+
+  test("the existing shared 3-step-row role applies unchanged to Event Decoration's own steps section", () => {
+    const doc = { _id: "page-event-decoration", sections: [{ sectionKey: "steps", sectionKind: "steps", items: [{ _key: "x", itemKey: "step0" }] }] };
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)?.role).toBe("Catering 3-step setup row");
+  });
+});
+
+test.describe("contentItem.ts — Host at RORUM session-includes / package / step-aria-label roles", () => {
+  function docWithItemIn(sectionKey: string, itemKey: string | undefined, documentId = "page-host-at-rorum") {
+    return { _id: documentId, sections: [{ sectionKey, sectionKind: sectionKey === "packages" ? "cta" : "split", items: [{ _key: "x", itemKey }] }] };
+  }
+
+  test("a session-includes row (includedN/optionalN/optionalLabel) shows only Title, required", () => {
+    for (const itemKey of ["included0", "included6", "optional0", "optionalLabel"]) {
+      const doc = docWithItemIn("session", itemKey);
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBe("Host at RORUM session-includes item");
+      expect(callHidden(field(contentItemType, "title"), { document: doc, parent }), itemKey).toBe(false);
+      expect(callHidden(field(contentItemType, "icon"), { document: doc, parent }), itemKey).toBe(true);
+      expect(isFieldRequiredByItemRole("title")(doc, parent), itemKey).toBe(true);
+    }
+  });
+
+  test("a package item shows Title/Label(price)/Text, hides itemKey/icon/image/href/value", () => {
+    const doc = docWithItemIn("packages", "package0");
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)?.role).toBe("Host at RORUM package");
+    for (const fieldName of ["title", "label", "text"] as const) {
+      expect(callHidden(field(contentItemType, fieldName), { document: doc, parent }), fieldName).toBe(false);
+    }
+    for (const fieldName of ["itemKey", "icon", "image", "href", "value"] as const) {
+      expect(callHidden(field(contentItemType, fieldName), { document: doc, parent }), fieldName).toBe(true);
+    }
+    expect(fieldLabelForItemRole("label", doc, parent)).toBe("Price");
+  });
+
+  test("packages' title-only rows (footerCtaLabel/footerText/selectPackageCta/cancellationTitle/cancellationN) show only Title", () => {
+    for (const itemKey of ["footerCtaLabel", "footerText", "selectPackageCta", "cancellationTitle", "cancellation0"]) {
+      const doc = docWithItemIn("packages", itemKey);
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBe("Host at RORUM packages title-only row");
+    }
+  });
+
+  test("the steps section's own aria-label row is title-only, distinct from the shared step0-N role", () => {
+    const doc = docWithItemIn("steps", "requestProcessAriaLabel");
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)?.role).toBe("Host at RORUM step-list aria label");
+    const stepDoc = docWithItemIn("steps", "step0");
+    const stepParent = stepDoc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(stepDoc, stepParent)?.role).toBe("Catering 3-step setup row");
+  });
+
+  test("none of these 3 new Host at RORUM roles activate on a different document with the same sectionKey/itemKey", () => {
+    for (const [sectionKey, itemKey] of [
+      ["session", "included0"],
+      ["packages", "package0"],
+      ["steps", "requestProcessAriaLabel"],
+    ] as const) {
+      const doc = docWithItemIn(sectionKey, itemKey, "page-catering");
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent), `${sectionKey}/${itemKey}`).toBeUndefined();
+    }
   });
 });

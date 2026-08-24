@@ -127,6 +127,16 @@ export function isPageEvents(document: unknown): boolean {
   return doc?._id?.replace(/^drafts\./, "") === "page-events";
 }
 
+export function isPageEventDecoration(document: unknown): boolean {
+  const doc = document as { _id?: string } | undefined;
+  return doc?._id?.replace(/^drafts\./, "") === "page-event-decoration";
+}
+
+export function isPageHostAtRorum(document: unknown): boolean {
+  const doc = document as { _id?: string } | undefined;
+  return doc?._id?.replace(/^drafts\./, "") === "page-host-at-rorum";
+}
+
 // Contact's hero ("Contact intro") genuinely uses label/title/text/items
 // (the default "hero"-kind visibility already covers those) but never
 // media/actions — confirmed by the live audit (no media/actions ever
@@ -136,6 +146,14 @@ export function isPageEvents(document: unknown): boolean {
 // by ContactFormSectionInput).
 const CONTACT_HERO_FORCE_HIDDEN_FIELDS = new Set(["media", "actions"]);
 const CONTACT_FORM_FORCE_HIDDEN_FIELDS = new Set(["label", "text"]);
+
+// Event Decoration's and Host at RORUM's hero sections both genuinely use
+// label/title/text/actions (the default "hero"-kind visibility already
+// covers those) but never media or items — confirmed by the live audit (no
+// media/items ever stored on either hero section; their own real gallery
+// photos live in a separate "gallery" section, and their real CTA is the
+// hero's own `actions` array, not `items`).
+const HERO_MEDIA_ITEMS_FORCE_HIDDEN_FIELDS = new Set(["media", "items"]);
 
 // Live audit (Events Listing Studio task): `app/[locale]/(site)/events/page.tsx`
 // reads the page's own H1 from `sections[sectionKey=="hero"].title` — the
@@ -210,6 +228,9 @@ function fieldHidden(fieldName: string) {
       return true;
     }
     if (isPageEvents(document) && parent?.sectionKey === "filters" && EVENTS_FILTERS_FORCE_HIDDEN_FIELDS.has(fieldName)) {
+      return true;
+    }
+    if ((isPageEventDecoration(document) || isPageHostAtRorum(document)) && parent?.sectionKey === "hero" && HERO_MEDIA_ITEMS_FORCE_HIDDEN_FIELDS.has(fieldName)) {
       return true;
     }
     const kind = parent?.sectionKind as (typeof SECTION_KINDS)[number] | undefined;

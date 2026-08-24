@@ -743,11 +743,14 @@ export interface PackageTier {
   title: string;
   price: string;
   items: string[];
+  /** Stable identifier for the `?package=` deep-link / form-selector value — never the (renameable) title. Deterministic per position since this static fallback array is never manager-edited. */
+  value: string;
 }
 
 export const packages: { host: PackageTier[]; booking: PackageTier[] } = {
   host: [
     {
+      value: "host-0",
       title: "Single session",
       price: "From 1,800 kr.",
       items: [
@@ -758,6 +761,7 @@ export const packages: { host: PackageTier[]; booking: PackageTier[] } = {
       ],
     },
     {
+      value: "host-1",
       title: "Evening series",
       price: "Custom quote",
       items: [
@@ -768,6 +772,7 @@ export const packages: { host: PackageTier[]; booking: PackageTier[] } = {
       ],
     },
     {
+      value: "host-2",
       title: "Weekend event",
       price: "Custom quote",
       items: [
@@ -780,6 +785,7 @@ export const packages: { host: PackageTier[]; booking: PackageTier[] } = {
   ],
   booking: [
     {
+      value: "package0",
       title: "Morning session",
       price: "Price: 2000 kr. ex VAT",
       items: [
@@ -790,6 +796,7 @@ export const packages: { host: PackageTier[]; booking: PackageTier[] } = {
       ],
     },
     {
+      value: "package1",
       title: "Afternoon session",
       price: "Price: 2000 kr. ex VAT",
       items: [
@@ -800,6 +807,7 @@ export const packages: { host: PackageTier[]; booking: PackageTier[] } = {
       ],
     },
     {
+      value: "package2",
       title: "Full day session",
       price: "Price: 3700 kr. ex VAT",
       items: [

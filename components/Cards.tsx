@@ -60,6 +60,8 @@ export interface PackageItem {
   title: string;
   price: string;
   items: string[];
+  /** Stable identifier used for the `?package=` deep-link value and matched against the booking form's own package selector — never the (localized, renameable) `title`. */
+  value: string;
 }
 
 export function PackageCard({
@@ -148,11 +150,11 @@ export function PackageGrid({
         const packageHref = ctaHref
           ? ctaHref.includes("?")
             ? ctaHref
-            : `${ctaHref.split("#")[0]}?package=${encodeURIComponent(item.title)}#${ctaHref.split("#")[1]}`
+            : `${ctaHref.split("#")[0]}?package=${encodeURIComponent(item.value)}#${ctaHref.split("#")[1]}`
           : "";
         return (
           <PackageCard
-            key={item.title}
+            key={item.value}
             {...item}
             ctaHref={packageHref}
             ctaLabel={ctaLabel}

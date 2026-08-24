@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ArrowRight } from "lucide-react";
 import { HorizontalGallery } from "@/components/HorizontalGallery";
 import { InquiryForm } from "@/components/InquiryForm";
+import { LocaleLink } from "@/components/LocaleLink";
 import {
   Button,
   Container,
@@ -80,7 +81,7 @@ async function getData(locale: Locale) {
     return {
       ...fallback,
       howItWorksLabel: "How it works",
-      formats: fallbackFormats.map((f) => ({ title: f.title, text: f.text, Icon: getIconCardIcon(f.icon) })),
+      formats: fallbackFormats.map((f) => ({ title: f.title, text: f.text, Icon: getIconCardIcon(f.icon), href: undefined as string | undefined, linkLabel: undefined as string | undefined })),
       suitableFor: fallbackSuitableFor.map(([label, icon]) => ({ label, Icon: getIconCardIcon(icon) })),
       steps: fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text })),
       galleryItems: resolveGalleryItems(undefined, locale, eventDecorationGalleryImages),
@@ -119,23 +120,48 @@ async function getData(locale: Locale) {
     legacyGalleryMedia,
   );
 
-  const introItemsFromSections = stylingSection?.items?.filter((i) => i.itemKey?.startsWith("intro"));
-  const stylingIntro = introItemsFromSections?.length
-    ? introItemsFromSections.map((i) => pickLocalized(i.text, locale)).filter((v): v is NonNullable<typeof v> => v != null)
-    : page?.stylingIntro?.length
-      ? page.stylingIntro.map((p) => pickLocalized(p?.text, locale)).filter((v): v is NonNullable<typeof v> => v != null)
-      : fallback.stylingIntro;
+  // Canonical source (current): the section's own real `text` field,
+  // migrated from the old "intro0"/"intro1" generic-item rows into one
+  // localized value per language, paragraphs joined with a real blank-line
+  // separator (`\n\n`) — see scripts/migrate-event-decoration-styling-text.ts.
+  // Split back into an array here so rendering (one `<p>` per paragraph)
+  // stays byte-identical to before the migration. The old itemKey-based read
+  // is kept ONLY as a legacy fallback for a still-unmigrated document (e.g.
+  // a fresh Sanity dataset restored from an old backup) — remove once every
+  // environment has run the migration and this fallback is confirmed dead.
+  const stylingTextValue = pickLocalized(stylingSection?.text, locale);
+  const legacyIntroItems = stylingSection?.items?.filter((i) => i.itemKey?.startsWith("intro"));
+  const stylingIntro = stylingTextValue
+    ? stylingTextValue.split("\n\n").filter(Boolean)
+    : legacyIntroItems?.length
+      ? legacyIntroItems.map((i) => pickLocalized(i.text, locale)).filter((v): v is NonNullable<typeof v> => v != null)
+      : page?.stylingIntro?.length
+        ? page.stylingIntro.map((p) => pickLocalized(p?.text, locale)).filter((v): v is NonNullable<typeof v> => v != null)
+        : fallback.stylingIntro;
 
   const formatItemsFromSections = stylingSection?.items?.filter((i) => i.itemKey?.startsWith("format"));
   const formats = formatItemsFromSections?.length
-    ? formatItemsFromSections.map((f) => ({ title: pickLocalized(f.title, locale) ?? "", text: pickLocalized(f.text, locale) ?? "", Icon: getIconCardIcon(f.icon ?? undefined) }))
+    ? formatItemsFromSections.map((f) => ({
+        title: pickLocalized(f.title, locale) ?? "",
+        text: pickLocalized(f.text, locale) ?? "",
+        Icon: getIconCardIcon(f.icon ?? undefined),
+        // Optional per-card link (Studio: "Link destination"/"Link text") —
+        // not currently set on any live item, rendered only when both a
+        // destination and localized text are present. See contentItem.ts's
+        // "Event Decoration 'What We Style' item" role for why this stays a
+        // real, functional field rather than a hidden/fake one.
+        href: f.href?.trim() || undefined,
+        linkLabel: pickLocalized(f.label, locale) || undefined,
+      }))
     : page?.formats?.length
       ? page.formats.map((f) => ({
           title: pickLocalized(f?.title, locale) ?? "",
           text: pickLocalized(f?.text, locale) ?? "",
           Icon: getIconCardIcon(f?.icon),
+          href: undefined as string | undefined,
+          linkLabel: undefined as string | undefined,
         }))
-      : fallbackFormats.map((f) => ({ title: f.title, text: f.text, Icon: getIconCardIcon(f.icon) }));
+      : fallbackFormats.map((f) => ({ title: f.title, text: f.text, Icon: getIconCardIcon(f.icon), href: undefined as string | undefined, linkLabel: undefined as string | undefined }));
 
   const suitableForItems = gallerySection?.items?.filter((i) => i.itemKey?.startsWith("suitableFor"));
   const suitableFor = suitableForItems?.length
@@ -326,7 +352,7 @@ export default async function DecorationPage({ params }: { params: Promise<{ loc
                 </p>
               ))}
               <div className="grid gap-0 mt-2 border-t border-[rgba(var(--rgb-beige),0.64)]">
-                {data.formats.map(({ title, text, Icon }) => (
+                {data.formats.map(({ title, text, Icon, href, linkLabel }) => (
                   <div
                     className="grid grid-cols-[54px_minmax(0,1fr)] gap-[18px] items-start py-[18px] border-b border-[rgba(var(--rgb-beige),0.64)]"
                     key={title}
@@ -345,6 +371,14 @@ export default async function DecorationPage({ params }: { params: Promise<{ loc
                       <p className="m-0 text-text-primary text-[15px] leading-[1.55]">
                         {text}
                       </p>
+                      {href && linkLabel ? (
+                        <LocaleLink
+                          href={href}
+                          className="inline-block mt-1.5 text-red text-[13.5px] font-bold underline underline-offset-[3px] transition-colors duration-180 hover:text-primary-dark focus-visible:text-primary-dark"
+                        >
+                          {linkLabel}
+                        </LocaleLink>
+                      ) : null}
                     </div>
                   </div>
                 ))}
