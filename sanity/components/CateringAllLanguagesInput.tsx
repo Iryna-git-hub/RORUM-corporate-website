@@ -2,7 +2,7 @@
 
 import { insert, set, useFormValue, type ArrayOfObjectsInputProps } from "sanity";
 import { Box, Card, Stack, Text, TextArea, TextInput } from "@sanity/ui";
-import { EventLocaleAwareInput } from "@/sanity/components/EventLocaleAwareInput";
+import { FaqQuestionAllLanguagesInput } from "@/sanity/components/FaqQuestionAllLanguagesInput";
 
 const LOCALE_ORDER = ["en", "da", "uk"] as const;
 const LOCALE_TITLES: Record<string, string> = { en: "English", da: "Danish", uk: "Ukrainian" };
@@ -53,7 +53,11 @@ export function CateringAllLanguagesInput(props: ArrayOfObjectsInputProps) {
   const documentId = useFormValue(["_id"]) as string | undefined;
 
   if (!isPageCateringMenuExamples(documentId)) {
-    return <EventLocaleAwareInput {...props} />;
+    // Chained (not both wired independently) — an internationalizedArray*
+    // field can only have one components.input. FaqQuestionAllLanguagesInput
+    // itself falls through to EventLocaleAwareInput for every non-FAQ-
+    // question item, so every other document/field is unaffected.
+    return <FaqQuestionAllLanguagesInput {...props} />;
   }
 
   const entries = ((props.value as unknown as I18nEntry[] | undefined) ?? []).filter(

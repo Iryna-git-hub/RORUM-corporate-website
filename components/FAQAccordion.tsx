@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { faqs } from "@/lib/data";
+import { LocaleLink as Link } from "@/components/LocaleLink";
 
 export interface FaqGroupData {
   title: string;
-  items: { question: string; answer: string }[];
+  items: { question: string; answer: string; link?: { href: string; label: string } }[];
 }
 
 const staticGroups: FaqGroupData[] = Object.entries(faqs).map(([title, entries]) => ({
@@ -24,7 +25,7 @@ export function FAQAccordion({ groups = staticGroups }: { groups?: FaqGroupData[
           <h2 className="mb-3 text-red font-body text-[clamp(15px,1.4vw,18px)] leading-tight font-black tracking-[0.03em]">
             {title}
           </h2>
-          {items.map(({ question, answer }) => {
+          {items.map(({ question, answer, link }) => {
             const id = `${title}-${question}`;
             const isOpen = openItem === id;
 
@@ -58,6 +59,24 @@ export function FAQAccordion({ groups = staticGroups }: { groups?: FaqGroupData[
                     <p className="m-0 pr-12 pb-5 max-lg:pr-0 text-text-primary leading-[1.65]">
                       {answer}
                     </p>
+                    {link ? (
+                      <p className="m-0 pr-12 pb-5 max-lg:pr-0 -mt-2.5">
+                        {link.href.startsWith("/") && !link.href.startsWith("//") ? (
+                          <Link href={link.href} className="font-bold text-red underline underline-offset-2">
+                            {link.label}
+                          </Link>
+                        ) : (
+                          <a
+                            href={link.href}
+                            target={link.href.startsWith("http") ? "_blank" : undefined}
+                            rel="noreferrer"
+                            className="font-bold text-red underline underline-offset-2"
+                          >
+                            {link.label}
+                          </a>
+                        )}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               </article>

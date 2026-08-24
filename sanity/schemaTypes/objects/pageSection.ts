@@ -32,6 +32,7 @@ const SECTION_KINDS = [
   "menuCategory",
   "donation",
   "filters",
+  "faqCategory",
   "custom",
 ] as const;
 
@@ -51,6 +52,13 @@ const FIELD_VISIBILITY: Record<(typeof SECTION_KINDS)[number], Set<string>> = {
   menuCategory: new Set(["label", "title", "text", "items"]),
   donation: new Set(["label", "title", "text", "media", "items"]),
   filters: new Set(["label", "title", "items"]),
+  // A FAQ category: only its Title and its Questions (items) — label/text/
+  // media/actions/settings are all genuinely unused for this role (see
+  // Task 1's audit — every existing category section only ever stores
+  // title/items). See isCorrectlyShapedFaqCategorySection below for why
+  // sectionKey/sectionKind are ALSO hidden once a category is correctly
+  // shaped.
+  faqCategory: new Set(["title", "items"]),
   custom: new Set(["label", "title", "text", "media", "actions", "items", "settings"]),
 };
 
@@ -104,6 +112,11 @@ export function isPageCateringMenuExamples(document: unknown): boolean {
   return doc?._id?.replace(/^drafts\./, "") === "page-catering-menu-examples";
 }
 
+export function isPageFaq(document: unknown): boolean {
+  const doc = document as { _id?: string } | undefined;
+  return doc?._id?.replace(/^drafts\./, "") === "page-faq";
+}
+
 /**
  * `sectionKind`/`sectionKey` are hidden on `page-catering-menu-examples`
  * specifically — a non-technical manager editing this document should never
@@ -119,6 +132,23 @@ export function isPageCateringMenuExamples(document: unknown): boolean {
  */
 function isCorrectlyShapedCateringMenuSection(parent: { sectionKind?: string } | undefined, document: unknown): boolean {
   return isPageCateringMenuExamples(document) && Boolean(parent?.sectionKind);
+}
+
+/**
+ * Same reasoning as isCorrectlyShapedCateringMenuSection above, for FAQ
+ * categories: sectionKey/sectionKind are hidden once a category is already
+ * correctly shaped (sectionKind set — always true for every category
+ * FaqSectionsInput's "+ Add FAQ category" button creates), but stay visible
+ * on any section that somehow lacks one (e.g. one added through Sanity's own
+ * generic array control, still technically reachable) so it's never
+ * hidden-but-required.
+ */
+function isCorrectlyShapedFaqCategorySection(parent: { sectionKind?: string } | undefined, document: unknown): boolean {
+  return isPageFaq(document) && Boolean(parent?.sectionKind);
+}
+
+export function isFaqCategorySection(parent: { sectionKind?: string } | undefined): boolean {
+  return parent?.sectionKind === "faqCategory";
 }
 
 /**
@@ -189,7 +219,7 @@ export default defineType({
       readOnly: ({ value }) => Boolean(value),
       validation: (rule) => rule.required(),
       description: "Stable identifier the website looks this section up by. / Стабільний ідентифікатор, за яким сайт знаходить цей розділ.",
-      hidden: ({ parent, document }) => isCorrectlyShapedCateringMenuSection(parent, document),
+      hidden: ({ parent, document }) => isCorrectlyShapedCateringMenuSection(parent, document) || isCorrectlyShapedFaqCategorySection(parent, document),
     }),
     defineField({
       name: "sectionKind",
@@ -200,7 +230,7 @@ export default defineType({
       },
       validation: (rule) => rule.required(),
       description: "What kind of section this is — controls which fields below apply. / Тип розділу — визначає, які поля нижче застосовуються.",
-      hidden: ({ parent, document }) => isCorrectlyShapedCateringMenuSection(parent, document),
+      hidden: ({ parent, document }) => isCorrectlyShapedCateringMenuSection(parent, document) || isCorrectlyShapedFaqCategorySection(parent, document),
     }),
     defineField({
       name: "label",
@@ -217,8 +247,14 @@ export default defineType({
       title: "Title",
       type: "internationalizedArrayString",
       description:
-        "Optional for most sections. For a menu category, this is the category heading, and is required. / Необов'язково для більшості розділів. Для категорії меню це заголовок категорії, і він обов'язковий.",
-      validation: requiredWhen(({ parent }) => isMenuCategorySection(parent as { sectionKind?: string } | undefined), { skip: skipValidationWhenHidden("title") }),
+        "Optional for most sections. For a menu category, this is the category heading, and is required. For a FAQ category, this is the category heading (e.g. \"Events\"), and is required. / Необов'язково для більшості розділів. Для категорії меню це заголовок категорії, і він обов'язковий. Для категорії FAQ це заголовок категорії (напр. «Події»), і він обов'язковий.",
+      validation: requiredWhen(
+        ({ parent }) => {
+          const p = parent as { sectionKind?: string } | undefined;
+          return isMenuCategorySection(p) || isFaqCategorySection(p);
+        },
+        { skip: skipValidationWhenHidden("title") },
+      ),
       hidden: fieldHidden("title"),
       components: { input: CateringAllLanguagesInput },
     }),
@@ -283,12 +319,14 @@ export default defineType({
     }),
   ],
   preview: {
-    select: { title: "title", kind: "sectionKind", key: "sectionKey" },
-    prepare({ title, kind, key }) {
+    select: { title: "title", kind: "sectionKind", key: "sectionKey", items: "items" },
+    prepare({ title, kind, key, items }) {
       const en = (title as { _key: string; language?: string; value?: string }[] | undefined)?.find(
         (v) => v.language === "en" || v._key === "en",
       );
-      return { title: en?.value ?? key ?? "(untitled section)", subtitle: kind as string | undefined };
+      const itemCount = (items as unknown[] | undefined)?.length ?? 0;
+      const subtitle = kind === "faqCategory" ? `${itemCount} question${itemCount === 1 ? "" : "s"}` : (kind as string | undefined);
+      return { title: en?.value ?? key ?? "(untitled section)", subtitle };
     },
   },
 });

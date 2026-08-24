@@ -5,6 +5,7 @@ import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/sanity-i18n";
 import { getSection } from "@/lib/sanity-sections";
+import { resolveCanonicalFaqGroups } from "@/lib/sanityFaq";
 import { isSanityConfigured } from "@/sanity/env";
 import { sanityFetch } from "@/sanity/lib/live";
 import { faqPageQuery } from "@/sanity/queries/faq";
@@ -26,28 +27,12 @@ async function getData(locale: Locale) {
   ]);
 
   const heroSection = getSection(newPage?.sections, "hero");
-  const groupSections = (newPage?.sections ?? []).filter((s) => s.sectionKey?.startsWith("group-"));
-
-  const groupsFromSections: FaqGroupData[] | undefined = groupSections.length
-    ? groupSections.map((group) => ({
-        title: pickLocalized(group.title, locale) ?? "",
-        items: (group.items ?? []).map((item) => ({
-          question: pickLocalized(item.title, locale) ?? "",
-          answer: pickLocalized(item.text, locale) ?? "",
-        })),
-      }))
-    : undefined;
-  const groups: FaqGroupData[] | undefined =
-    groupsFromSections ??
-    (page?.groups?.length
-      ? page.groups.map((group) => ({
-          title: pickLocalized(group.title, locale) ?? "",
-          items: (group.items ?? []).map((item) => ({
-            question: pickLocalized(item?.question, locale) ?? "",
-            answer: pickLocalized(item?.answer, locale) ?? "",
-          })),
-        }))
-      : undefined);
+  // Canonical-vs-legacy authority, matching the same missing/empty/present
+  // policy this session's gallery work established (see lib/sanityFaq.ts):
+  // page-faq missing entirely -> legacy faqPage.groups; page-faq exists but
+  // has zero "group-" sections -> intentionally empty, never resurrects
+  // legacy content.
+  const groups = resolveCanonicalFaqGroups(newPage?.sections, page?.groups, locale);
 
   return {
     heroLabel: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,

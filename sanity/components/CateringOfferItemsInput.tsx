@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { insert, useFormValue, type ArrayOfObjectsInputProps, type ArraySchemaType } from "sanity";
 import { Box, Button, Card, Stack, Text } from "@sanity/ui";
+import { FaqQuestionItemsInput } from "@/sanity/components/FaqQuestionItemsInput";
 
 // Every new offering bullet gets this icon by default — a neutral starting
 // point the manager immediately sees and can change via the Lucide picker
@@ -71,7 +72,12 @@ export function CateringOfferItemsInput(props: ArrayOfObjectsInputProps) {
   const [adding, setAdding] = useState(false);
 
   if (!isWhatWeOfferSection) {
-    return props.renderDefault(props);
+    // Chained (not both wired independently) — see
+    // CateringMenuDishItemsInput.tsx's own doc comment for why `items` can
+    // only have one components.input. FaqQuestionItemsInput itself
+    // delegates to props.renderDefault for every non-FAQ-category items
+    // array, so every other section's items are unaffected.
+    return <FaqQuestionItemsInput {...props} />;
   }
 
   function addOffering() {

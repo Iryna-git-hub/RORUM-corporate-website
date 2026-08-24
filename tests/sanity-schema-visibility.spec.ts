@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import pageSectionType from "@/sanity/schemaTypes/objects/pageSection";
-import contentItemType, { ITEM_ROLE_RULES, matchItemRoleInContext } from "@/sanity/schemaTypes/objects/contentItem";
+import pageSectionType, { isFaqCategorySection, isPageFaq } from "@/sanity/schemaTypes/objects/pageSection";
+import contentItemType, { ITEM_ROLE_RULES, matchItemRoleInContext, isFaqQuestionRole } from "@/sanity/schemaTypes/objects/contentItem";
 import { allOrNothingLanguages, allOrNothingForSelectedEventLocales, requireAllLanguages } from "@/sanity/lib/i18nValidation";
 import mediaItemType from "@/sanity/schemaTypes/objects/mediaItem";
 import { isInformativeMedia } from "@/sanity/lib/galleryMediaContext";
@@ -601,19 +601,35 @@ test.describe("Event Decoration Publish-blocker — regression using the exact l
   });
 });
 
-/** Captures the function passed to `rule.custom(...)` so it can be invoked directly with a mocked (value, context) pair. */
+/**
+ * Captures the function(s) passed to `rule.custom(...)` so they can be
+ * invoked directly with a mocked (value, context) pair. A field's
+ * `validation` can register more than one independent `rule.custom(...)`
+ * call (e.g. `(rule) => [a(rule), b(rule)]` — contentItem.ts's `label` field
+ * does this for FAQ questions: the existing i18n-completeness check plus a
+ * new href/label pairing check). Every captured function is run and ANDed
+ * together (first non-`true` result wins) — the same semantics Sanity
+ * itself applies to an array of Rules, so this stays a faithful stand-in
+ * regardless of how many `rule.custom(...)` calls one field registers.
+ */
 function captureCustomValidator(f: FieldDef): (value: unknown, context: unknown) => unknown {
   const withValidation = f as unknown as { validation?: (rule: unknown) => unknown };
-  let captured: ((value: unknown, context: unknown) => unknown) | undefined;
+  const captured: ((value: unknown, context: unknown) => unknown)[] = [];
   const mockRule = {
     custom(fn: (value: unknown, context: unknown) => unknown) {
-      captured = fn;
+      captured.push(fn);
       return mockRule;
     },
   };
   withValidation.validation?.(mockRule);
-  if (!captured) throw new Error(`expected field "${f.name}" to call rule.custom(...)`);
-  return captured;
+  if (!captured.length) throw new Error(`expected field "${f.name}" to call rule.custom(...)`);
+  return (value: unknown, context: unknown) => {
+    for (const fn of captured) {
+      const result = fn(value, context);
+      if (result !== true) return result;
+    }
+    return true;
+  };
 }
 
 // ============================================================================
@@ -1535,6 +1551,200 @@ test.describe("page.ts — seo field hidden on page-catering-menu-examples only"
     for (const id of ["page-home", "page-about", "page-events"]) {
       expect(seoField().hidden?.({ document: { _id: id } }), id).toBe(false);
     }
+  });
+});
+
+// ============================================================================
+// FAQ page workflow — pageSection.ts's new "faqCategory" sectionKind and
+// contentItem.ts's new "FAQ question" ITEM_ROLE_RULES row (see
+// MIGRATION_REPORT.md for the full task). Exercised against the real
+// document-id (page-faq) and sectionKind ("faqCategory") the migration/new
+// FaqSectionsInput+FaqQuestionItemsInput always produce.
+// ============================================================================
+test.describe("pageSection.ts — faqCategory section visibility (Task 2/4)", () => {
+  function faqCategoryParent(sectionKey = "group-a") {
+    return { sectionKey, sectionKind: "faqCategory" };
+  }
+  const faqDoc = { _id: "page-faq" };
+  const faqDraftDoc = { _id: "drafts.page-faq" };
+  // Deliberately NOT page-catering-menu-examples: that document hides
+  // sectionKey/sectionKind for ANY correctly-shaped section regardless of
+  // sectionKind value (see the existing "applies to every section on this
+  // document" regression test below) — using it here would exercise the
+  // Catering rule, not prove the FAQ rule is correctly scoped.
+  const nonFaqDoc = { _id: "page-home" };
+
+  test("isFaqCategorySection is true only for sectionKind faqCategory", () => {
+    expect(isFaqCategorySection({ sectionKind: "faqCategory" })).toBe(true);
+    expect(isFaqCategorySection({ sectionKind: "custom" })).toBe(false);
+    expect(isFaqCategorySection(undefined)).toBe(false);
+  });
+
+  test("isPageFaq recognizes both the published and draft id, and rejects other documents", () => {
+    expect(isPageFaq(faqDoc)).toBe(true);
+    expect(isPageFaq(faqDraftDoc)).toBe(true);
+    expect(isPageFaq(nonFaqDoc)).toBe(false);
+  });
+
+  test("only title/items are visible on a faqCategory section — label/text/media/actions/settings are all hidden", () => {
+    for (const fieldName of ["label", "title", "text", "media", "actions", "items", "settings"] as const) {
+      const expectedVisible = fieldName === "title" || fieldName === "items";
+      const hidden = callHidden(field(pageSectionType, fieldName), { parent: faqCategoryParent(), document: faqDoc });
+      expect(hidden, fieldName).toBe(!expectedVisible);
+    }
+  });
+
+  test("sectionKey/sectionKind are hidden once a faqCategory section is correctly shaped, on page-faq only", () => {
+    expect(callHidden(field(pageSectionType, "sectionKey"), { parent: faqCategoryParent(), document: faqDoc })).toBe(true);
+    expect(callHidden(field(pageSectionType, "sectionKind"), { parent: faqCategoryParent(), document: faqDraftDoc })).toBe(true);
+  });
+
+  test("sectionKey/sectionKind stay visible on a faqCategory-shaped section that isn't actually on page-faq (defensive — should never happen, but never hidden-but-required elsewhere)", () => {
+    expect(callHidden(field(pageSectionType, "sectionKey"), { parent: faqCategoryParent(), document: nonFaqDoc })).toBe(false);
+  });
+
+  test("sectionKey/sectionKind stay visible on page-faq's hero section too (no sectionKind mismatch — hidden once ANY sectionKind is set, matching the Catering precedent)", () => {
+    expect(callHidden(field(pageSectionType, "sectionKind"), { parent: { sectionKey: "hero", sectionKind: "hero" }, document: faqDoc })).toBe(true);
+  });
+
+  test("Title is required (en/da/uk) for a faqCategory section, optional-if-empty for a plain custom section", () => {
+    const validate = captureCustomValidator(field(pageSectionType, "title"));
+    const complete = [
+      { _key: "en", language: "en", value: "Events" },
+      { _key: "da", language: "da", value: "Events (da)" },
+      { _key: "uk", language: "uk", value: "Події" },
+    ];
+    expect(validate(complete, { parent: faqCategoryParent(), document: faqDoc })).toBe(true);
+    expect(validate(undefined, { parent: faqCategoryParent(), document: faqDoc }), "empty title on a faqCategory section must be invalid").not.toBe(true);
+    expect(validate(undefined, { parent: { sectionKind: "custom" }, document: faqDoc }), "empty title on a plain custom section stays optional").toBe(true);
+  });
+
+  test("a hidden faqCategory field (e.g. text) never blocks publishing even with stray residue", () => {
+    const validate = captureCustomValidator(field(pageSectionType, "text"));
+    const strayResidue = [{ _key: "en", language: "en", value: "" }];
+    expect(validate(strayResidue, { parent: faqCategoryParent(), document: faqDoc })).toBe(true);
+  });
+
+  test("faqCategory preview shows a question count as its subtitle, not the raw sectionKind", () => {
+    const prepare = (pageSectionType.preview as { prepare: (v: Record<string, unknown>) => { title: string; subtitle?: string } }).prepare;
+    const result = prepare({
+      title: [{ _key: "en", language: "en", value: "Events" }],
+      kind: "faqCategory",
+      key: "group-a",
+      items: [{ _key: "q0" }, { _key: "q1" }],
+    });
+    expect(result.title).toBe("Events");
+    expect(result.subtitle).toBe("2 questions");
+  });
+
+  test("a non-faqCategory section's preview subtitle is unaffected — still the raw sectionKind", () => {
+    const prepare = (pageSectionType.preview as { prepare: (v: Record<string, unknown>) => { title: string; subtitle?: string } }).prepare;
+    const result = prepare({ title: [{ _key: "en", language: "en", value: "Philosophy" }], kind: "custom", key: "philosophy", items: [{ _key: "a" }] });
+    expect(result.subtitle).toBe("custom");
+  });
+});
+
+test.describe("contentItem.ts — FAQ question role (Task 5)", () => {
+  function faqQuestionDoc(item: { _key: string; itemKey?: string; href?: string; label?: unknown[] }) {
+    return { _id: "page-faq", sections: [{ sectionKey: "group-a", sectionKind: "faqCategory", items: [item] }] };
+  }
+
+  test("a question with a real q0-style itemKey matches the FAQ question role", () => {
+    const document = faqQuestionDoc({ _key: "q0", itemKey: "q0" });
+    const parent = document.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(document, parent)?.role).toBe("FAQ question");
+  });
+
+  test("a question with no itemKey at all (added via the '+ Add question' button) also matches", () => {
+    const document = faqQuestionDoc({ _key: "q7" });
+    const parent = document.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(document, parent)?.role).toBe("FAQ question");
+  });
+
+  test("isFaqQuestionRole matches the same cases matchItemRoleInContext does", () => {
+    const document = faqQuestionDoc({ _key: "q0", itemKey: "q0" });
+    const parent = document.sections[0]!.items[0]!;
+    expect(isFaqQuestionRole(document, parent)).toBe(true);
+    expect(isFaqQuestionRole({ _id: "page-home" }, { _key: "x" })).toBe(false);
+  });
+
+  test("only title/text/href/label are visible — itemKey/icon/image/value are hidden", () => {
+    const document = faqQuestionDoc({ _key: "q0", itemKey: "q0" });
+    const parent = document.sections[0]!.items[0]!;
+    for (const fieldName of ["itemKey", "icon", "title", "text", "image", "href", "label", "value"] as const) {
+      const expectedVisible = ["title", "text", "href", "label"].includes(fieldName);
+      expect(callHidden(field(contentItemType, fieldName), { document, parent }), fieldName).toBe(!expectedVisible);
+    }
+  });
+
+  test("Question (title) and Answer (text) are required en/da/uk for a FAQ question", () => {
+    const document = faqQuestionDoc({ _key: "q0", itemKey: "q0" });
+    const parent = document.sections[0]!.items[0]!;
+    const validateTitle = captureCustomValidator(field(contentItemType, "title"));
+    expect(validateTitle(undefined, { document, parent }), "empty question text must be invalid").not.toBe(true);
+    const complete = [
+      { _key: "en", language: "en", value: "Q" },
+      { _key: "da", language: "da", value: "Q da" },
+      { _key: "uk", language: "uk", value: "Q uk" },
+    ];
+    expect(validateTitle(complete, { document, parent })).toBe(true);
+  });
+
+  test("title/text stay optional-if-empty for a non-FAQ-question item (regression — e.g. a Catering menu dish)", () => {
+    const document = { _id: "page-catering-menu-examples", sections: [{ sectionKey: "category-a", sectionKind: "menuCategory", items: [{ _key: "dish0", itemKey: "dish0" }] }] };
+    const parent = document.sections[0]!.items[0]!;
+    const validateTitle = captureCustomValidator(field(contentItemType, "title"));
+    expect(validateTitle(undefined, { document, parent })).toBe(true);
+  });
+
+  test("link pair: no href, no label -> valid", () => {
+    const document = faqQuestionDoc({ _key: "q0", itemKey: "q0" });
+    const parent = document.sections[0]!.items[0]!;
+    expect(captureCustomValidator(field(contentItemType, "href"))(undefined, { document, parent })).toBe(true);
+  });
+
+  test("link pair: href with a full label -> valid on both fields", () => {
+    const label = [{ _key: "en", language: "en", value: "See events" }];
+    const document = faqQuestionDoc({ _key: "q0", itemKey: "q0", href: "/events", label });
+    const parent = document.sections[0]!.items[0]!;
+    expect(captureCustomValidator(field(contentItemType, "href"))("/events", { document, parent })).toBe(true);
+  });
+
+  test("link pair: href without label -> visible error on href", () => {
+    const document = faqQuestionDoc({ _key: "q0", itemKey: "q0", href: "/events", label: [] });
+    const parent = document.sections[0]!.items[0]!;
+    const result = captureCustomValidator(field(contentItemType, "href"))("/events", { document, parent });
+    expect(result).not.toBe(true);
+  });
+
+  test("link pair: label without href -> visible error on label (the pairing rule, not the allOrNothing i18n-completeness rule)", () => {
+    const label = [
+      { _key: "en", language: "en", value: "See events" },
+      { _key: "da", language: "da", value: "Se events" },
+      { _key: "uk", language: "uk", value: "Дивитись події" },
+    ];
+    const document = faqQuestionDoc({ _key: "q0", itemKey: "q0", label });
+    const parent = document.sections[0]!.items[0]!;
+    // captureCustomValidator captures the LAST rule.custom() registered for
+    // this field — contentItem.ts's label validation is `(rule) =>
+    // [allOrNothingLanguages(...)(rule), <pairing rule>(rule)]`, so this
+    // exercises the pairing rule specifically.
+    const result = captureCustomValidator(field(contentItemType, "label"))(label, { document, parent });
+    expect(result).not.toBe(true);
+  });
+
+  test("link pair: whitespace-only label counts as absent — href-with-whitespace-label behaves like href-without-label", () => {
+    const label = [{ _key: "en", language: "en", value: "   " }];
+    const document = faqQuestionDoc({ _key: "q0", itemKey: "q0", href: "/events", label });
+    const parent = document.sections[0]!.items[0]!;
+    const result = captureCustomValidator(field(contentItemType, "href"))("/events", { document, parent });
+    expect(result).not.toBe(true);
+  });
+
+  test("link pair validation is skipped entirely for a non-FAQ-question item (href/label are hidden there anyway)", () => {
+    const document = { _id: "page-home", sections: [{ sectionKey: "hero", sectionKind: "hero", items: [{ _key: "trust0", itemKey: "trust0" }] }] };
+    const parent = document.sections[0]!.items[0]!;
+    expect(captureCustomValidator(field(contentItemType, "href"))("anything", { document, parent })).toBe(true);
   });
 });
 

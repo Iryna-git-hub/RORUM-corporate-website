@@ -1,7 +1,7 @@
 import { defineField, defineType } from "sanity";
 import { IconPickerInput } from "@/sanity/components/IconPickerInput";
 import { CateringAllLanguagesInput } from "@/sanity/components/CateringAllLanguagesInput";
-import { allOrNothingLanguages } from "@/sanity/lib/i18nValidation";
+import { allOrNothingLanguages, requiredWhen } from "@/sanity/lib/i18nValidation";
 
 // The one generic "list row" shape reused across every page section's
 // `items[]` — icon cards, numbered steps, quick-path cards, menu dishes,
@@ -124,7 +124,24 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
   // editable icon lives with its category without adding a new attribute
   // path to pageSection.ts itself (see CateringMenuOverlay.tsx / page.tsx).
   { role: "Catering menu category tab icon", sectionKinds: ["menuCategory"], itemKeyPattern: /^categoryIcon$/, visible: ["icon"] },
+  // A FAQ question row: Question (title) + Answer (text), plus an optional
+  // link (href/label) rendered under the answer — see
+  // components/FAQAccordion.tsx. Matched by sectionKind (open,
+  // manager-extensible set of categories, same reasoning as "Catering menu
+  // dish"), matching both existing rows (itemKey "q0"/"q1"/...) and a
+  // manager-added question with no itemKey at all (via the "+ Add question"
+  // button — see FaqQuestionItemsInput.tsx, which never sets one).
+  { role: "FAQ question", sectionKinds: ["faqCategory"], itemKeyPattern: /^(q\d*)?$/, visible: ["title", "text", "href", "label"] },
 ];
+
+/** True when this contentItem's ITEM_ROLE_RULES role is exactly "FAQ question" — used by the href/label link-pair validation and the always-3-languages Studio input, both below. */
+export function isFaqQuestionRole(document: unknown, parent: unknown): boolean {
+  return matchItemRoleInContext(document, parent)?.role === "FAQ question";
+}
+
+function hasNonEmptyI18nValue(entries: { value?: unknown }[] | null | undefined): boolean {
+  return (entries ?? []).some((e) => (typeof e.value === "string" ? e.value.trim() !== "" : Boolean(e.value)));
+}
 
 export function matchItemRole(
   sectionKey: string | undefined,
@@ -209,8 +226,13 @@ export default defineType({
       name: "title",
       title: "Title",
       type: "internationalizedArrayString",
-      description: "Optional heading. / Необов'язковий заголовок.",
-      validation: allOrNothingLanguages({ skip: skipValidationWhenHiddenByItemRole("title") }),
+      description: "Optional heading. For a FAQ question, this is the question text, and is required. / Необов'язковий заголовок. Для запитання FAQ це текст запитання, і він обов'язковий.",
+      // requiredWhen(isFaqQuestionRole, ...) behaves exactly like the
+      // allOrNothingLanguages() this replaces for every non-FAQ role (see
+      // requiredWhen's own doc comment: !isRequired + fully empty => valid,
+      // same missing/empty checks otherwise) — only a FAQ question's
+      // Question text becomes genuinely required in all 3 languages.
+      validation: requiredWhen(({ document, parent }) => isFaqQuestionRole(document, parent), { skip: skipValidationWhenHiddenByItemRole("title") }),
       hidden: hiddenByItemRole("title"),
       components: { input: CateringAllLanguagesInput },
     }),
@@ -218,8 +240,8 @@ export default defineType({
       name: "text",
       title: "Text",
       type: "internationalizedArrayText",
-      description: "Optional longer text (e.g. a description or answer). / Необов'язковий довший текст (напр. опис або відповідь).",
-      validation: allOrNothingLanguages({ skip: skipValidationWhenHiddenByItemRole("text") }),
+      description: "Optional longer text (e.g. a description or answer). For a FAQ question, this is the answer text, and is required. / Необов'язковий довший текст (напр. опис або відповідь). Для запитання FAQ це текст відповіді, і він обов'язковий.",
+      validation: requiredWhen(({ document, parent }) => isFaqQuestionRole(document, parent), { skip: skipValidationWhenHiddenByItemRole("text") }),
       hidden: hiddenByItemRole("text"),
       components: { input: CateringAllLanguagesInput },
     }),
@@ -234,16 +256,37 @@ export default defineType({
       name: "href",
       title: "Link destination",
       type: "string",
-      description: "Optional — set only if this item links somewhere. / Необов'язково — заповніть, лише якщо елемент веде на іншу сторінку.",
+      description: "Optional — set only if this item links somewhere. For a FAQ question, this is an optional link shown under the answer — requires Link text below too. / Необов'язково — заповніть, лише якщо елемент веде на іншу сторінку. Для запитання FAQ це необов'язкове посилання під відповіддю — також потрібен текст посилання нижче.",
       hidden: hiddenByItemRole("href"),
+      validation: (rule) =>
+        rule.custom((value: string | undefined, context) => {
+          if (skipValidationWhenHiddenByItemRole("href")(context)) return true;
+          if (!isFaqQuestionRole(context.document, context.parent)) return true;
+          const parent = context.parent as { label?: { value?: unknown }[] } | undefined;
+          const hasHref = Boolean(value?.trim());
+          const hasLabel = hasNonEmptyI18nValue(parent?.label);
+          if (hasHref && !hasLabel) return "Add link text (in English, Danish and Ukrainian) below, or clear this link destination.";
+          return true;
+        }),
     }),
     defineField({
       name: "label",
       title: "Link text / value",
       type: "internationalizedArrayString",
       description:
-        "Optional — link text if this item has its own link, or the trilingual value for a small labeled row. / Необов'язково — текст посилання (якщо є) або текст значення для невеликого підпису.",
-      validation: allOrNothingLanguages({ skip: skipValidationWhenHiddenByItemRole("label") }),
+        "Optional — link text if this item has its own link, or the trilingual value for a small labeled row. For a FAQ question, this is the optional link's text — requires Link destination above too. / Необов'язково — текст посилання (якщо є) або текст значення для невеликого підпису. Для запитання FAQ це текст необов'язкового посилання — також потрібне посилання-призначення вище.",
+      validation: (rule) => [
+        allOrNothingLanguages({ skip: skipValidationWhenHiddenByItemRole("label") })(rule),
+        rule.custom((value: { value?: unknown }[] | undefined, context) => {
+          if (skipValidationWhenHiddenByItemRole("label")(context)) return true;
+          if (!isFaqQuestionRole(context.document, context.parent)) return true;
+          const parent = context.parent as { href?: string } | undefined;
+          const hasHref = Boolean(parent?.href?.trim());
+          const hasLabel = hasNonEmptyI18nValue(value);
+          if (hasLabel && !hasHref) return "Add a link destination above, or clear this link text.";
+          return true;
+        }),
+      ],
       hidden: hiddenByItemRole("label"),
     }),
     defineField({

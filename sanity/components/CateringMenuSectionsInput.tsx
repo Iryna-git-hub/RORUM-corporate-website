@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { insert, useFormValue, type ArrayOfObjectsInputProps, type ArraySchemaType } from "sanity";
 import { Box, Button, Card, Stack, Text } from "@sanity/ui";
+import { FaqSectionsInput } from "@/sanity/components/FaqSectionsInput";
 
 // Every category a manager adds through this component gets this icon by
 // default — a neutral, genuinely food-related starting point they can
@@ -62,7 +63,11 @@ export function CateringMenuSectionsInput(props: ArrayOfObjectsInputProps) {
   const [adding, setAdding] = useState(false);
 
   if (!isCateringMenuExamples) {
-    return props.renderDefault(props);
+    // Chained (not both wired independently) — `sections` can only ever
+    // have one components.input. FaqSectionsInput itself delegates to
+    // props.renderDefault for every non-FAQ page, so every other document
+    // is unaffected.
+    return <FaqSectionsInput {...props} />;
   }
 
   function addCategory() {
