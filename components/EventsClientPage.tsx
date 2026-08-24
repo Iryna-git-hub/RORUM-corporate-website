@@ -88,7 +88,7 @@ function getDateWindow(
 export function EventsClientPage({
   events,
   filters,
-  languageLabels,
+  languageOptionOrder,
   dateOptionOrder,
   priceOptionOrder,
   availabilityOptionOrder,
@@ -97,7 +97,8 @@ export function EventsClientPage({
 }: {
   events: RorumEvent[];
   filters?: EventFilterLabels;
-  languageLabels?: Partial<Record<string, string>>;
+  /** The manager's own stored Language order, resolved server-side by lib/eventFilters.ts's `resolveOrderedEventLanguageOptions` — this is now the SOLE authority for both which languages are offered and in what order; this component no longer computes or sorts that list itself (see that function's own doc comment for the alphabetical-sort bug this replaces). */
+  languageOptionOrder?: { value: string; label: string }[];
   dateOptionOrder?: { value: string; label: string }[];
   priceOptionOrder?: { value: string; label: string }[];
   availabilityOptionOrder?: { value: string; label: string }[];
@@ -123,9 +124,16 @@ export function EventsClientPage({
       ? rawAvailability
       : "all";
 
-  const languageOptions = Array.from(
-    new Set(events.map((event) => event.language).filter(Boolean)),
-  ).sort((a, b) => a.localeCompare(b));
+  // The manager's own stored order (via `languageOptionOrder`, resolved
+  // server-side) is the sole authority for both WHICH languages are valid
+  // and in WHAT order — never re-derived or re-sorted here. A caller that
+  // somehow doesn't provide it (shouldn't happen — app/[locale]/(site)/events/page.tsx
+  // always computes it now) falls back to first-seen order among the loaded
+  // events, deliberately NOT an alphabetical sort, so an accidental omission
+  // can never quietly resurrect the exact bug this replaced.
+  const languageOptions =
+    languageOptionOrder?.map((o) => o.value) ??
+    Array.from(new Set(events.map((event) => event.language).filter(Boolean)));
 
   const rawLanguage = searchParams.get("language");
   const selectedLanguage =
@@ -185,10 +193,9 @@ export function EventsClientPage({
         selectedLanguage={selectedLanguage}
         selectedPrice={selectedPrice}
         selectedAvailability={selectedAvailability}
-        languageOptions={languageOptions}
+        languageOptionOrder={languageOptionOrder}
         hasActiveFilters={hasActiveFilters}
         labels={filters}
-        languageLabels={languageLabels}
         dateOptionOrder={dateOptionOrder}
         priceOptionOrder={priceOptionOrder}
         availabilityOptionOrder={availabilityOptionOrder}

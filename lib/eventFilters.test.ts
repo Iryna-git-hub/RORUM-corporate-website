@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EVENT_FILTER_GROUPS, EVENT_FILTER_MESSAGE_KEYS, resolveEventFilterLabels, resolveEventLanguageLabels, resolveEventsEmptyStateText, resolveOrderedFilterOptions } from "./eventFilters";
+import { resolveEventFilterLabels, resolveEventsEmptyStateText, resolveOrderedEventLanguageOptions, resolveOrderedFilterOptions } from "./eventFilters";
+import { EVENT_FILTER_GROUPS, EVENT_FILTER_MESSAGE_ROWS } from "@/shared/eventFilterDefinitions";
 import { defaultEventFilterLabels } from "@/components/EventFilters";
 import { defaultEventsEmptyStateText } from "@/components/EventsPaginatedList";
 import type { RawPageSection } from "./sanity-sections";
@@ -15,18 +16,22 @@ function filtersSection(items: { itemKey: string; title: string }[]): RawPageSec
   } as unknown as RawPageSection;
 }
 
-describe("EVENT_FILTER_GROUPS / EVENT_FILTER_MESSAGE_KEYS — stable structure", () => {
+describe("shared/eventFilterDefinitions.ts — imported here as the canonical structure, not redefined (architecture fix)", () => {
   it("defines exactly the 4 groups in the documented order, each with a heading + its options", () => {
     expect(EVENT_FILTER_GROUPS.map((g) => g.groupKey)).toEqual(["date", "language", "price", "availability"]);
   });
 
-  it("the language group's 3 options are the languageXxLabel keys, in En/Da/Uk order", () => {
+  it("the language group's 3 options carry their own stable event.language value, in canonical En/Da/Uk order", () => {
     const languageGroup = EVENT_FILTER_GROUPS.find((g) => g.groupKey === "language")!;
-    expect(languageGroup.optionKeys).toEqual(["languageEnLabel", "languageDaLabel", "languageUkLabel"]);
+    expect(languageGroup.options.map((o) => ({ itemKey: o.itemKey, value: o.value }))).toEqual([
+      { itemKey: "languageEnLabel", value: "English" },
+      { itemKey: "languageDaLabel", value: "Danish" },
+      { itemKey: "languageUkLabel", value: "Ukrainian" },
+    ]);
   });
 
-  it("message keys are exactly clearFiltersLabel/emptyStateTitle/emptyStateText", () => {
-    expect(EVENT_FILTER_MESSAGE_KEYS).toEqual(["clearFiltersLabel", "emptyStateTitle", "emptyStateText"]);
+  it("message rows are exactly clearFiltersLabel/emptyStateTitle/emptyStateText", () => {
+    expect(EVENT_FILTER_MESSAGE_ROWS.map((m) => m.itemKey)).toEqual(["clearFiltersLabel", "emptyStateTitle", "emptyStateText"]);
   });
 });
 
@@ -107,38 +112,80 @@ describe("resolveOrderedFilterOptions — manager-controlled order is real, stab
   });
 });
 
-describe("resolveEventLanguageLabels — CMS override vs. hardcoded fallback, stable filter value untouched", () => {
-  const fallbackLabel = (value: string) => (value === "English" ? "English (fallback)" : value === "Danish" ? "Danish (fallback)" : "Ukrainian (fallback)");
+describe("resolveOrderedEventLanguageOptions — the manager's stored order is real authority (fixes the alphabetical-sort bug)", () => {
+  function languageSection(itemKeysInOrder: string[]): RawPageSection {
+    return filtersSection(itemKeysInOrder.map((itemKey) => ({ itemKey, title: itemKey })));
+  }
 
-  it("no filtersSection at all: every value uses the fallback function", () => {
-    const result = resolveEventLanguageLabels(undefined, "en", fallbackLabel);
-    expect(result).toEqual({ English: "English (fallback)", Danish: "Danish (fallback)", Ukrainian: "Ukrainian (fallback)" });
+  it("stored order English/Danish/Ukrainian renders in that exact order when all 3 are available", () => {
+    const section = languageSection(["languageEnLabel", "languageDaLabel", "languageUkLabel"]);
+    const result = resolveOrderedEventLanguageOptions(section, "en", ["English", "Danish", "Ukrainian"]);
+    expect(result.map((o) => o.value)).toEqual(["English", "Danish", "Ukrainian"]);
   });
 
-  it("a configured languageEnLabel overrides only the English display name", () => {
-    const section = filtersSection([{ itemKey: "languageEnLabel", title: "Engelsk (custom)" }]);
-    const result = resolveEventLanguageLabels(section, "en", fallbackLabel);
-    expect(result.English).toBe("Engelsk (custom)");
-    expect(result.Danish).toBe("Danish (fallback)");
+  it("stored order Ukrainian/English/Danish renders in that exact order — proves the manager's own Move up/down choice is the real authority, not a hardcoded/alphabetical one", () => {
+    const section = languageSection(["languageUkLabel", "languageEnLabel", "languageDaLabel"]);
+    const result = resolveOrderedEventLanguageOptions(section, "en", ["English", "Danish", "Ukrainian"]);
+    expect(result.map((o) => o.value)).toEqual(["Ukrainian", "English", "Danish"]);
   });
 
-  it("the returned object's keys are always the real event.language values (English/Danish/Ukrainian) — editing a label never changes these", () => {
-    const section = filtersSection([
-      { itemKey: "languageEnLabel", title: "X" },
-      { itemKey: "languageDaLabel", title: "Y" },
-      { itemKey: "languageUkLabel", title: "Z" },
-    ]);
-    const result = resolveEventLanguageLabels(section, "en", fallbackLabel);
-    expect(Object.keys(result).sort()).toEqual(["Danish", "English", "Ukrainian"]);
+  it("only languages actually present among the currently loaded events are returned — a stored-but-unavailable language is omitted", () => {
+    const section = languageSection(["languageUkLabel", "languageEnLabel", "languageDaLabel"]);
+    const result = resolveOrderedEventLanguageOptions(section, "en", ["English"]);
+    expect(result.map((o) => o.value)).toEqual(["English"]);
   });
 
-  it("all 3 configured: all 3 override, none falls back", () => {
-    const section = filtersSection([
-      { itemKey: "languageEnLabel", title: "Engelsk" },
-      { itemKey: "languageDaLabel", title: "Dansk" },
-      { itemKey: "languageUkLabel", title: "Українська (custom)" },
-    ]);
-    const result = resolveEventLanguageLabels(section, "en", fallbackLabel);
-    expect(result).toEqual({ English: "Engelsk", Danish: "Dansk", Ukrainian: "Українська (custom)" });
+  it("available English+Ukrainian (Danish not loaded) follow their own relative stored order, skipping the absent one", () => {
+    const section = languageSection(["languageUkLabel", "languageEnLabel", "languageDaLabel"]);
+    const result = resolveOrderedEventLanguageOptions(section, "en", ["English", "Ukrainian"]);
+    expect(result.map((o) => o.value)).toEqual(["Ukrainian", "English"]);
+  });
+
+  it("editing a label never changes its stable value — value is always the real event.language string, label is whatever's stored", () => {
+    const section: RawPageSection = filtersSection([{ itemKey: "languageEnLabel", title: "Custom English Label Text" }]);
+    const result = resolveOrderedEventLanguageOptions(section, "en", ["English"]);
+    expect(result).toEqual([{ value: "English", label: "Custom English Label Text" }]);
+  });
+
+  it("returned values are always the real event.language strings (\"English\"/\"Danish\"/\"Ukrainian\") — the same values used as URL query params — never a translated or locale-code form", () => {
+    const section = languageSection(["languageEnLabel", "languageDaLabel", "languageUkLabel"]);
+    const result = resolveOrderedEventLanguageOptions(section, "uk", ["English", "Danish", "Ukrainian"]);
+    expect(result.map((o) => o.value)).toEqual(["English", "Danish", "Ukrainian"]);
+  });
+
+  it("an unrecognized event.language value (unexpected/legacy data) is appended deterministically (alphabetically) after every known one", () => {
+    const section = languageSection(["languageDaLabel", "languageEnLabel"]);
+    const result = resolveOrderedEventLanguageOptions(section, "en", ["Danish", "English", "Zzz-Legacy", "Aaa-Legacy"]);
+    expect(result.map((o) => o.value)).toEqual(["Danish", "English", "Aaa-Legacy", "Zzz-Legacy"]);
+  });
+
+  it("an unrecognized value's own label falls back to itself (no crash, no invented translation)", () => {
+    const result = resolveOrderedEventLanguageOptions(undefined, "en", ["Klingon"]);
+    expect(result).toEqual([{ value: "Klingon", label: "Klingon" }]);
+  });
+
+  it("no filtersSection at all (Sanity unavailable): canonical order (English/Danish/Ukrainian) is used, filtered to what's available, with the existing hardcoded lib/eventLanguage.ts labels", () => {
+    const result = resolveOrderedEventLanguageOptions(undefined, "en", ["Ukrainian", "English"]);
+    expect(result.map((o) => o.value)).toEqual(["English", "Ukrainian"]);
+    expect(result.map((o) => o.label)).toEqual(["English", "Ukrainian"]);
+  });
+
+  it("filtersSection exists but has NONE of the 3 known language rows stored yet: canonical order is used, not an arbitrary one", () => {
+    const section = filtersSection([{ itemKey: "dateLabel", title: "Date" }]);
+    const result = resolveOrderedEventLanguageOptions(section, "en", ["Ukrainian", "Danish", "English"]);
+    expect(result.map((o) => o.value)).toEqual(["English", "Danish", "Ukrainian"]);
+  });
+
+  it("a known row missing from storage (2 of 3 stored) is appended in canonical position, never dropped", () => {
+    const section = languageSection(["languageUkLabel"]);
+    const result = resolveOrderedEventLanguageOptions(section, "en", ["English", "Danish", "Ukrainian"]);
+    // Ukrainian is stored (first); English/Danish are missing from storage,
+    // appended afterward in canonical (English, then Danish) order.
+    expect(result.map((o) => o.value)).toEqual(["Ukrainian", "English", "Danish"]);
+  });
+
+  it("no available languages at all: returns an empty array, never a fabricated default", () => {
+    const section = languageSection(["languageEnLabel"]);
+    expect(resolveOrderedEventLanguageOptions(section, "en", [])).toEqual([]);
   });
 });

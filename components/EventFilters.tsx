@@ -7,7 +7,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useLayoutEffect, useRef, useState } from "react";
 import { localizedHref } from "@/lib/i18n";
 import { useLocale } from "@/lib/useLocale";
-import { getEventLanguageLabel } from "@/lib/eventLanguage";
 
 export type EventDateFilter = "soonest" | "week" | "month" | "all";
 export type EventPriceFilter = "price-asc" | "price-desc" | "all";
@@ -155,10 +154,9 @@ export function EventFilters({
   selectedLanguage,
   selectedPrice,
   selectedAvailability,
-  languageOptions,
+  languageOptionOrder,
   hasActiveFilters,
   labels = defaultEventFilterLabels,
-  languageLabels,
   dateOptionOrder,
   priceOptionOrder,
   availabilityOptionOrder,
@@ -167,11 +165,10 @@ export function EventFilters({
   selectedLanguage: string;
   selectedPrice: EventPriceFilter;
   selectedAvailability: EventAvailabilityFilter;
-  languageOptions: string[];
+  /** The manager's own stored Language order + CMS label, from lib/eventFilters.ts's `resolveOrderedEventLanguageOptions` — the sole authority for which languages are offered and in what order (never re-derived or re-sorted here). `value` is always one of `event.language`'s own real stored strings, unaffected by relabeling or reordering. Falls back to an empty list only if genuinely absent (shouldn't happen — the caller always computes it now). */
+  languageOptionOrder?: { value: string; label: string }[];
   hasActiveFilters: boolean;
   labels?: EventFilterLabels;
-  /** CMS-sourced display name per `event.language` value (see lib/eventFilters.ts's `resolveEventLanguageLabels`) — preferred over the hardcoded `getEventLanguageLabel` lookup when provided. Editing these never changes `selectedLanguage`/`languageOptions`, which stay the real stored `event.language` strings throughout. */
-  languageLabels?: Partial<Record<string, string>>;
   /** Manager-controlled option order + label, from lib/eventFilters.ts's `resolveOrderedFilterOptions` — falls back to this component's own fixed default order (unchanged from before) when absent, e.g. the `!isSanityConfigured` static-fallback path. `value` is always one of the fixed stable strings the filtering/URL logic below already expects — reordering in Studio can never change it. */
   dateOptionOrder?: { value: string; label: string }[];
   priceOptionOrder?: { value: string; label: string }[];
@@ -188,10 +185,7 @@ export function EventFilters({
     router.push(`${localizedHref(path, locale)}?${params.toString()}`);
   }
 
-  const languageMenuOptions = languageOptions.map((language) => ({
-    value: language,
-    label: languageLabels?.[language] ?? getEventLanguageLabel(language, locale) ?? language,
-  }));
+  const languageMenuOptions = languageOptionOrder ?? [];
 
   const dateOptions: { value: Exclude<EventDateFilter, "all">; label: string }[] =
     (dateOptionOrder as { value: Exclude<EventDateFilter, "all">; label: string }[] | undefined) ?? [

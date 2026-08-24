@@ -1647,10 +1647,10 @@ Order followed exactly: `npm run sanity:backup-events-listing` → `sanity:migra
 
 - **Backup**: new `scripts/backup-events-listing-docs.ts` wrote both `page-events` and `drafts.page-events` (2 documents) to a timestamped JSON file before any write.
 - **Dry-run** printed the exact plan for both documents: 3 rows to insert (`languageDaLabel`/`languageEnLabel`/`languageUkLabel`), each with its full approved EN/DA/UK copy (Danish/Dansk/Данська, English/Engelsk/Англійська, Ukrainian/Ukrainsk/Українська) — which **matches `lib/eventLanguage.ts`'s existing hardcoded table exactly**, so there was no existing-value conflict to report.
-- **Applied** to both `page-events` and `drafts.page-events` directly (same established precedent as `scripts/migrate-contact-details-order.ts` — a structural-completeness migration, not pending editorial content; no document was published via Sanity's own publish action, published and draft were patched independently, each revision-guarded).
+- **Applied** to both `page-events` and `drafts.page-events` directly (same established precedent as `scripts/migrate-contact-details-order.ts` — a structural-completeness migration, not pending editorial content). **Exact truth, stated precisely (correcting an earlier, potentially-misleading "nothing was published" framing)**: no Sanity **Publish action** was ever invoked by this session — but the **published** `page-events` document itself *was* directly patched (`client.transaction()`, one `.patch()` per document, revision-guarded), exactly as `drafts.page-events` was. Both are separate documents in Sanity's data model, and "not published" only describes the Publish *action* (which merges a draft into its published counterpart) — it does not mean the published document's content was left alone. Exactly 3 rows (`languageDaLabel`/`languageEnLabel`/`languageUkLabel`) were added to each. Their visible EN/DA/UK values matched the previous hardcoded `lib/eventLanguage.ts` labels exactly (see the dry-run bullet above), so no visible public-site behavior changed as a result of this migration alone — the dropdown showed the same 3 English/Danish/Ukrainian labels before and after, just now sourced from Sanity instead of hardcoded. No `event` document was touched.
 - **Re-run dry-run**: 3/3 rows already present on both documents — confirmed idempotent, zero pending.
 - **Official validation** (`sanity documents validate`): `page-events` clean, `drafts.page-events` clean, both after the migration.
-- No `event` document, no other section of `page-events` (hero/closingCta, or `filters`'s other 14 pre-existing rows), and no other Sanity document was touched.
+- No other section of `page-events` (hero/closingCta, or `filters`'s other 14 pre-existing rows), and no other Sanity document was touched.
 
 ### 7. Files changed
 
@@ -1669,6 +1669,6 @@ Modified: `app/[locale]/(site)/events/page.tsx` (now uses `lib/eventFilters.ts`'
 3. Move an option up/down within its own group — confirm it can't cross into another group, and confirm the other groups' rows are untouched.
 4. Confirm no generic "+ Add item" control exists anywhere in Filters.
 5. Open Closing CTA — confirm Label/Title/Text/Buttons are editable as before, and the "Have questions? prompt" area shows the read-only note + "Edit shared form messages" link (not an editable Question/Link text pair).
-6. Publish `page-events` once reviewed (nothing was auto-published this Part).
+6. Publish `drafts.page-events` once reviewed — note this is a normal Studio publish of ongoing draft edits, not a step this migration depends on: the published `page-events` document already received the same 3 rows directly (see §6 above), independently of any Publish action.
 7. On the live `/events` page (EN/DA/UK), confirm the Language filter dropdown shows the 3 new labels, reordering a Date/Price/Availability option in Studio changes its position on the live filter menu, and the "Have questions?" text still matches Shared form messages (unaffected by anything in Closing CTA's own items).
 8. Reopen Studio afterward and confirm the reordered option's new position persisted.

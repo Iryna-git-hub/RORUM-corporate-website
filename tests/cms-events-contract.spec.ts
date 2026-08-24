@@ -166,6 +166,26 @@ test.describe("Events Listing filter groups, order and closing CTA (Events Listi
     await expect(page.getByRole("menuitemradio", { name: enLabel!, exact: true })).toBeVisible();
   });
 
+  test("the Language dropdown renders the 3 language options in page-events.filters' own stored order (regression: EventsClientPage.tsx used to alphabetically re-sort, silently ignoring this stored order)", async ({ page }) => {
+    const storedItemKeysInOrder = (listingPage.sections?.find((s) => s.sectionKey === "filters")?.items ?? [])
+      .map((i) => i.itemKey)
+      .filter((k): k is string => k === "languageEnLabel" || k === "languageDaLabel" || k === "languageUkLabel");
+    expect(storedItemKeysInOrder.length, "expected all 3 language rows to be published").toBe(3);
+    const storedLabelsInOrder = storedItemKeysInOrder.map((k) => pick(filterItem(k), "en")!);
+
+    await page.goto(localizedHref("/events", "en"));
+    await page.getByRole("button", { name: pick(filterItem("languageLabel"), "en") ?? "Language" }).click();
+    const renderedLabels = await page.getByRole("menuitemradio").allTextContents();
+
+    // Only languages that actually have a loaded event render at all — the
+    // proof is that whichever DO render stay in their own relative stored
+    // order, never re-sorted (e.g. alphabetically) by the frontend.
+    const renderedStoredLabels = storedLabelsInOrder.filter((label) => renderedLabels.includes(label));
+    expect(renderedStoredLabels.length, "expected at least one language to have a loaded event").toBeGreaterThan(0);
+    const renderedOrderOfStoredLabels = renderedLabels.filter((label) => renderedStoredLabels.includes(label));
+    expect(renderedOrderOfStoredLabels, "Language dropdown order must match page-events.filters' own stored order").toEqual(renderedStoredLabels);
+  });
+
   for (const locale of LOCALES) {
     test(`empty-state text [${locale}] matches page-events.filters.emptyStateTitle/.emptyStateText`, async ({ page }) => {
       const title = pick(filterItem("emptyStateTitle"), locale);

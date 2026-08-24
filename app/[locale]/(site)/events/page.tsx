@@ -12,8 +12,7 @@ import { pickLabel, pickLocalized } from "@/lib/sanity-i18n";
 import { getAction, getSection } from "@/lib/sanity-sections";
 import { defaultFormMessages, resolveFormMessages } from "@/lib/sanityForms";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
-import { resolveEventFilterLabels, resolveEventLanguageLabels, resolveEventsEmptyStateText, resolveOrderedFilterOptions } from "@/lib/eventFilters";
-import { getEventLanguageLabel } from "@/lib/eventLanguage";
+import { resolveEventFilterLabels, resolveEventsEmptyStateText, resolveOrderedEventLanguageOptions, resolveOrderedFilterOptions } from "@/lib/eventFilters";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
@@ -48,13 +47,18 @@ const fallback = {
   description: "Explore upcoming events at RORUM, find practical information and choose an experience that interests and inspires you.",
 };
 
+/** Distinct, non-empty `event.language` values among the given events, in first-seen order — the raw "what's actually available" set `resolveOrderedEventLanguageOptions` filters its stored/canonical order down to. No sorting here: order is entirely that function's job now. */
+function availableEventLanguagesOf(events: { language: string }[]): string[] {
+  return Array.from(new Set(events.map((event) => event.language).filter(Boolean)));
+}
+
 async function getData(locale: Locale) {
   if (!isSanityConfigured) {
     return {
       ...fallback,
       events: staticEvents,
       filters: defaultEventFilterLabels,
-      languageLabels: undefined,
+      languageOptionOrder: resolveOrderedEventLanguageOptions(undefined, locale, availableEventLanguagesOf(staticEvents)),
       faqQuestion: defaultFormMessages.faqQuestion,
       faqLabel: defaultFormMessages.faqLabel,
       eventCardMessages: defaultEventCardMessages,
@@ -81,7 +85,7 @@ async function getData(locale: Locale) {
   const messages = resolveFormMessages(formMessagesDoc, locale);
 
   const filters = resolveEventFilterLabels(filtersSection, locale);
-  const languageLabels = resolveEventLanguageLabels(filtersSection, locale, getEventLanguageLabel);
+  const languageOptionOrder = resolveOrderedEventLanguageOptions(filtersSection, locale, availableEventLanguagesOf(events));
   const dateOptionOrder = resolveOrderedFilterOptions(filtersSection, locale, "date");
   const priceOptionOrder = resolveOrderedFilterOptions(filtersSection, locale, "price");
   const availabilityOptionOrder = resolveOrderedFilterOptions(filtersSection, locale, "availability");
@@ -122,7 +126,7 @@ async function getData(locale: Locale) {
     faqLabel: messages.faqLabel,
     events,
     filters,
-    languageLabels,
+    languageOptionOrder,
     dateOptionOrder,
     priceOptionOrder,
     availabilityOptionOrder,
@@ -163,7 +167,7 @@ export default async function EventsPage({ params }: { params: Promise<{ locale:
             <EventsClientPage
               events={data.events}
               filters={data.filters}
-              languageLabels={data.languageLabels}
+              languageOptionOrder={data.languageOptionOrder}
               dateOptionOrder={data.dateOptionOrder}
               priceOptionOrder={data.priceOptionOrder}
               availabilityOptionOrder={data.availabilityOptionOrder}

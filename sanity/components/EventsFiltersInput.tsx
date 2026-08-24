@@ -3,36 +3,21 @@
 import { insert, PatchEvent, unset, useFormValue, type ArrayOfObjectsInputProps, type ArraySchemaType } from "sanity";
 import { Box, Button, Card, Flex, Stack, Text } from "@sanity/ui";
 import { EventsClosingCtaItemsInput } from "@/sanity/components/EventsClosingCtaItemsInput";
+import { EVENT_FILTER_GROUPS as FILTER_GROUPS, EVENT_FILTER_MESSAGE_ROWS as MESSAGE_ROWS } from "@/shared/eventFilterDefinitions";
 
 // Never add/duplicate/copy/remove — these 17 rows are a fixed, closed
 // semantic set the filtering algorithm itself depends on (see
-// lib/eventFilters.ts's own doc comment); a manager can edit label text and
-// reorder options within their own group, never add a new option or delete
-// one the code still expects to exist. Kept in sync with the identical list
-// this file's own scoping mirrors from contentItem.ts's "Events filter/
-// empty-state label" role — see this file's own header comment for why
-// duplicating a short list here (rather than importing lib/eventFilters.ts,
-// a Next-specific file) is the deliberate, disclosed choice.
+// shared/eventFilterDefinitions.ts's own doc comment); a manager can edit
+// label text and reorder options within their own group, never add a new
+// option or delete one the code still expects to exist.
 const DISABLE_ALL_GENERIC_ACTIONS = ["add", "addBefore", "addAfter", "duplicate", "copy", "remove"] as const;
 
-// Mirrors lib/eventFilters.ts's EVENT_FILTER_GROUPS — duplicated rather than
-// imported, since sanity/components/* is a separately bundled Studio app
-// that (by this project's own established convention — see
-// SeoObjectInput.tsx's identical reasoning for its own PAGE_ROUTES map)
-// never imports from the Next-specific lib/ directory. Keep both lists in
-// sync by hand if a filter option is ever added/removed/renamed.
-const FILTER_GROUPS = [
-  { groupKey: "date", label: "Date", headingKey: "dateLabel", options: [{ itemKey: "soonestLabel", label: "Soonest first" }, { itemKey: "weekLabel", label: "This week" }, { itemKey: "monthLabel", label: "This month" }] },
-  { groupKey: "language", label: "Language", headingKey: "languageLabel", options: [{ itemKey: "languageEnLabel", label: "English" }, { itemKey: "languageDaLabel", label: "Danish" }, { itemKey: "languageUkLabel", label: "Ukrainian" }] },
-  { groupKey: "price", label: "Price", headingKey: "priceLabel", options: [{ itemKey: "priceAscLabel", label: "Price: low to high" }, { itemKey: "priceDescLabel", label: "Price: high to low" }] },
-  { groupKey: "availability", label: "Availability", headingKey: "availabilityLabel", options: [{ itemKey: "availableLabel", label: "Available" }, { itemKey: "soldOutLabel", label: "Sold out" }] },
-] as const;
-
-const MESSAGE_ROWS = [
-  { itemKey: "clearFiltersLabel", label: "Clear filters" },
-  { itemKey: "emptyStateTitle", label: "Empty-state title" },
-  { itemKey: "emptyStateText", label: "Empty-state text" },
-] as const;
+// FILTER_GROUPS/MESSAGE_ROWS now come from shared/eventFilterDefinitions.ts —
+// the one dependency-free module both this Studio component and
+// lib/eventFilters.ts import, so the two can never drift out of sync again
+// (see MIGRATION_REPORT.md's Events Listing follow-up for the incident this
+// replaces). Note the shared module's groups also carry each option's stable
+// filter `value`, unused here — this component only needs itemKey/label.
 
 function isPageEvents(documentId: string | undefined): boolean {
   return documentId?.replace(/^drafts\./, "") === "page-events";
@@ -100,7 +85,7 @@ export function EventsFiltersInput(props: ArrayOfObjectsInputProps) {
 
   const memberByItemKey = new Map(props.members.map((m) => [itemKeyOf(m), m] as const));
   const knownItemKeys = new Set<string>([
-    ...FILTER_GROUPS.flatMap((g) => [g.headingKey as string, ...g.options.map((o) => o.itemKey as string)]),
+    ...FILTER_GROUPS.flatMap((g) => [g.headingItemKey as string, ...g.options.map((o) => o.itemKey as string)]),
     ...MESSAGE_ROWS.map((m) => m.itemKey as string),
   ]);
   const otherMembers = props.members.filter((m) => !knownItemKeys.has(itemKeyOf(m) ?? ""));
@@ -158,7 +143,7 @@ export function EventsFiltersInput(props: ArrayOfObjectsInputProps) {
                 <Text size={1} muted>
                   Group heading shown above these options. / Заголовок групи, що показується над цими варіантами.
                 </Text>
-                {renderRow(group.headingKey)}
+                {renderRow(group.headingItemKey)}
               </Stack>
             </Card>
             <Stack space={2}>
