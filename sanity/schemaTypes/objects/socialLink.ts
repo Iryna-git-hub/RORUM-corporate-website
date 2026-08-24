@@ -1,5 +1,6 @@
 import { defineField, defineType } from "sanity";
 import { SOCIAL_LINK_ICONS } from "@/sanity/components/actionIcons";
+import { SocialLinkLabelInput } from "@/sanity/components/SocialLinkLabelInput";
 import { requireAllLanguages } from "@/sanity/lib/i18nValidation";
 
 // Kept for every platform this object type has EVER stored (including
@@ -87,6 +88,7 @@ export default defineType({
       type: "internationalizedArrayString",
       description: 'E.g. "Instagram" — read by screen readers. Required in English, Danish and Ukrainian. / Напр. «Instagram» — читається програмами читання з екрана. Обов\'язково англійською, данською та українською.',
       validation: requireAllLanguages(),
+      components: { input: SocialLinkLabelInput },
     }),
     defineField({
       name: "brandColor",

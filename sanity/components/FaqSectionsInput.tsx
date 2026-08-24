@@ -50,7 +50,7 @@ function generateFaqCategorySectionKey(): string {
  *   2. "+ Add FAQ category" inserts a minimal, correctly-shaped, EMPTY
  *      category in one step — a generated collision-safe `sectionKey`,
  *      `sectionKind: "faqCategory"`, and an empty `items` array. No title is
- *      pre-populated (FaqQuestionAllLanguagesInput shows all 3 empty
+ *      pre-populated (RoleAwareAllLanguagesInput shows all 3 empty
  *      language rows the instant the manager opens Title, with nothing
  *      pre-written to the document until they actually type).
  */

@@ -16,6 +16,8 @@ export interface ResolvedContactDetails {
 }
 
 export interface ResolvedSocialLink {
+  /** The Sanity `_key` — stable across reorders/edits, used as the React list key instead of `label` (a manager could give two links the same localized label text). */
+  id: string;
   href: string;
   label: string;
   icon: SocialIconName;
@@ -74,6 +76,7 @@ export function resolveSocialLinks(
   return (doc.links ?? []).map((l) => {
     const icon = (l?.icon as SocialIconName | undefined) ?? "instagram";
     return {
+      id: l?._key ?? l?.href ?? icon,
       href: l?.href ?? "",
       label: pickLocalized(l?.label, locale) ?? PLATFORM_LABELS[icon],
       icon,
@@ -104,12 +107,36 @@ const CONTACT_DETAIL_ITEM_KEY_PREFIX = "contactDetail-";
  * result at that point means the manager intentionally hid every detail,
  * and must never resurrect all 3.
  */
+const SUPPORTED_CONTACT_DETAIL_KEYS: readonly ContactDetailKey[] = ["address", "phone", "email"];
+
+function isContactDetailKey(value: string): value is ContactDetailKey {
+  return (SUPPORTED_CONTACT_DETAIL_KEYS as readonly string[]).includes(value);
+}
+
 export function resolveContactDetailOrder(heroSection: RawPageSection | undefined): ContactDetailKey[] {
   if (!heroSection) return DEFAULT_CONTACT_DETAIL_ORDER;
-  return (heroSection.items ?? [])
-    .map((item) => item.itemKey)
-    .filter((key): key is string => Boolean(key?.startsWith(CONTACT_DETAIL_ITEM_KEY_PREFIX)))
-    .map((key) => key.slice(CONTACT_DETAIL_ITEM_KEY_PREFIX.length) as ContactDetailKey);
+  const seen = new Set<ContactDetailKey>();
+  const result: ContactDetailKey[] = [];
+  for (const item of heroSection.items ?? []) {
+    const key = item.itemKey;
+    if (!key?.startsWith(CONTACT_DETAIL_ITEM_KEY_PREFIX)) continue;
+    const type = key.slice(CONTACT_DETAIL_ITEM_KEY_PREFIX.length);
+    if (!isContactDetailKey(type)) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(`resolveContactDetailOrder: ignoring unrecognized contact-detail marker "${key}"`);
+      }
+      continue;
+    }
+    if (seen.has(type)) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(`resolveContactDetailOrder: ignoring duplicate contact-detail marker "${key}"`);
+      }
+      continue;
+    }
+    seen.add(type);
+    result.push(type);
+  }
+  return result;
 }
 
 export interface ResolvedPrivacyConsentSettings {
@@ -163,6 +190,17 @@ export interface ResolvedContactFormField {
 
 const CONTACT_FORM_FIELD_ITEM_KEY_PREFIX = "field-";
 
+// Duplicated (not imported) from sanity/components/ContactFormFieldTypeInput.tsx's
+// own CONTACT_FORM_FIELD_TYPES on purpose — that file is a "use client"
+// Sanity Studio component and shouldn't be pulled into server-rendered site
+// code just for this list of 4 values. Keep both lists in sync by hand if a
+// 5th type is ever added.
+const SUPPORTED_CONTACT_FORM_FIELD_TYPES: readonly ContactFormFieldType[] = ["text", "email", "phone", "multiline"];
+
+function isSupportedContactFormFieldType(value: string | null | undefined): value is ContactFormFieldType {
+  return Boolean(value) && (SUPPORTED_CONTACT_FORM_FIELD_TYPES as readonly string[]).includes(value as string);
+}
+
 function defaultContactFormFields(messages: ResolvedFormMessages): ResolvedContactFormField[] {
   return [
     { name: "name", type: "text", label: messages.fullNameLabel, placeholder: messages.fullNameLabel },
@@ -190,12 +228,28 @@ export function resolveContactFormFields(
   locale: Locale,
 ): ResolvedContactFormField[] {
   if (!formSection) return defaultContactFormFields(messages);
-  return (formSection.items ?? [])
-    .filter((item) => item.itemKey?.startsWith(CONTACT_FORM_FIELD_ITEM_KEY_PREFIX))
-    .map((item) => ({
-      name: item.itemKey!.slice(CONTACT_FORM_FIELD_ITEM_KEY_PREFIX.length),
-      type: (item.value as ContactFormFieldType | undefined) ?? "text",
+  const seenNames = new Set<string>();
+  const result: ResolvedContactFormField[] = [];
+  for (const item of formSection.items ?? []) {
+    const key = item.itemKey;
+    if (!key?.startsWith(CONTACT_FORM_FIELD_ITEM_KEY_PREFIX)) continue;
+    const name = key.slice(CONTACT_FORM_FIELD_ITEM_KEY_PREFIX.length);
+    // A malformed/duplicate id could otherwise produce two form fields
+    // sharing one HTML id/name (the second silently shadowing the first's
+    // submitted value) — never let that reach the rendered form.
+    if (!name || seenNames.has(name)) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(`resolveContactFormFields: ignoring form field with ${!name ? "an empty" : "a duplicate"} id ("${key}")`);
+      }
+      continue;
+    }
+    seenNames.add(name);
+    result.push({
+      name,
+      type: isSupportedContactFormFieldType(item.value) ? item.value : "text",
       label: pickLocalized(item.title, locale) ?? "",
       placeholder: pickLocalized(item.text, locale) ?? "",
-    }));
+    });
+  }
+  return result;
 }

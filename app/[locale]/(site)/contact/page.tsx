@@ -186,9 +186,9 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                   className="flex flex-wrap gap-[10px] mt-1"
                   aria-label="Social links"
                 >
-                  {data.socialLinks.map(({ href, label, icon, brandColor }) => (
+                  {data.socialLinks.map(({ id, href, label, icon, brandColor }) => (
                     <a
-                      key={label}
+                      key={id}
                       href={href}
                       target="_blank"
                       rel="noreferrer"

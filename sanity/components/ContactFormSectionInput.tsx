@@ -83,7 +83,9 @@ export function ContactFormSectionInput(props: ObjectInputProps) {
             </Text>
             <Text size={1} muted>
               The checkbox text and the linked policy are edited in Shared form messages / Privacy Policy — this only
-              controls whether the checkbox appears on Contact and whether it&rsquo;s required to submit.
+              controls whether the checkbox appears on Contact and whether it&rsquo;s required to submit. / Текст
+              прапорця та посилання на політику редагуються у Shared form messages / Privacy Policy — тут керується
+              лише те, чи показувати прапорець на сторінці контактів і чи є він обов&rsquo;язковим для надсилання.
             </Text>
             <Flex align="center" gap={2}>
               <Checkbox
@@ -92,7 +94,7 @@ export function ContactFormSectionInput(props: ObjectInputProps) {
                 onChange={(event) => setFlag(PRIVACY_SHOWN_KEY, event.currentTarget.checked)}
               />
               <Text as="label" size={1} htmlFor="contact-privacy-shown">
-                Show the privacy consent checkbox
+                Show the privacy consent checkbox / Показувати прапорець згоди з політикою конфіденційності
               </Text>
             </Flex>
             <Flex align="center" gap={2}>
@@ -103,7 +105,7 @@ export function ContactFormSectionInput(props: ObjectInputProps) {
                 onChange={(event) => setFlag(PRIVACY_REQUIRED_KEY, event.currentTarget.checked)}
               />
               <Text as="label" size={1} htmlFor="contact-privacy-required">
-                Require it before the form can be submitted
+                Require it before the form can be submitted / Зробити обов&rsquo;язковим для надсилання форми
               </Text>
             </Flex>
           </Stack>
@@ -113,7 +115,10 @@ export function ContactFormSectionInput(props: ObjectInputProps) {
             </Text>
             <Text size={1} muted>
               The question/link text below Items uses Contact&rsquo;s own &ldquo;FAQ prompt question&rdquo;/&ldquo;FAQ
-              prompt link text&rdquo; rows when filled in, otherwise the shared default from Shared form messages.
+              prompt link text&rdquo; rows when filled in, otherwise the shared default from Shared form messages. /
+              Текст запитання/посилання нижче, у блоці Items, використовує власні рядки сторінки контактів &laquo;FAQ
+              prompt question&raquo;/&laquo;FAQ prompt link text&raquo;, якщо вони заповнені, інакше — спільний текст
+              за замовчуванням із Shared form messages.
             </Text>
             <Flex align="center" gap={2}>
               <Checkbox
@@ -122,7 +127,7 @@ export function ContactFormSectionInput(props: ObjectInputProps) {
                 onChange={(event) => setFlag(FAQ_PROMPT_SHOWN_KEY, event.currentTarget.checked)}
               />
               <Text as="label" size={1} htmlFor="contact-faq-prompt-shown">
-                Show the FAQ prompt below the form
+                Show the FAQ prompt below the form / Показувати запрошення до FAQ під формою
               </Text>
             </Flex>
           </Stack>

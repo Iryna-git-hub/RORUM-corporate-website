@@ -1,12 +1,15 @@
-// Component-level tests for the real FaqQuestionAllLanguagesInput code —
+// Component-level tests for the real RoleAwareAllLanguagesInput code —
 // mounts it with React Testing Library, mocking only `useFormValue`.
+// Renamed from "FaqQuestionAllLanguagesInput" (see the component's own doc
+// comment) — this file was extended to cover the Contact roles this
+// component now also serves, not just replaced in place.
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { insert, set } from "sanity";
 import { ThemeProvider, studioTheme } from "@sanity/ui";
-import { FaqQuestionAllLanguagesInput } from "./FaqQuestionAllLanguagesInput";
+import { RoleAwareAllLanguagesInput } from "./RoleAwareAllLanguagesInput";
 
 const mockUseFormValue = vi.fn();
 vi.mock("sanity", async (importOriginal) => {
@@ -17,7 +20,7 @@ vi.mock("sanity", async (importOriginal) => {
 function renderInput(props: import("sanity").ArrayOfObjectsInputProps) {
   return render(
     <ThemeProvider theme={studioTheme}>
-      <FaqQuestionAllLanguagesInput {...props} />
+      <RoleAwareAllLanguagesInput {...props} />
     </ThemeProvider>,
   );
 }
@@ -39,6 +42,8 @@ const QUESTION_TITLE_PATH = ["sections", { _key: "group1" }, "items", { _key: "q
 const QUESTION_TEXT_PATH = ["sections", { _key: "group1" }, "items", { _key: "q0" }, "text"];
 const CATEGORY_TITLE_PATH = ["sections", { _key: "group1" }, "title"];
 const OTHER_ITEM_TITLE_PATH = ["sections", { _key: "hero" }, "items", { _key: "trust0" }, "title"];
+const CONTACT_SUBMIT_TITLE_PATH = ["sections", { _key: "form" }, "items", { _key: "submitLabel" }, "title"];
+const CONTACT_FORM_FIELD_TITLE_PATH = ["sections", { _key: "form" }, "items", { _key: "field-city" }, "title"];
 
 /** Distinguishes the exact top-level `["sections"]` document read from a longer parent-path lookup, unlike a naive `path[0] === "sections"` check. */
 function mockFormValue(documentId: string | undefined, sections: unknown[] | undefined, parentByPath: (path: unknown[]) => unknown) {
@@ -51,6 +56,7 @@ function mockFormValue(documentId: string | undefined, sections: unknown[] | und
 
 const QUESTION_SECTIONS = [{ _key: "group1", sectionKey: "group-x", sectionKind: "faqCategory", items: [{ _key: "q0" }] }];
 const OTHER_SECTIONS = [{ _key: "hero", sectionKey: "hero", sectionKind: "hero", items: [{ _key: "trust0" }] }];
+const CONTACT_FORM_SECTIONS = [{ _key: "form", sectionKey: "form", sectionKind: "form", items: [{ _key: "submitLabel", itemKey: "submitLabel" }, { _key: "field-city", itemKey: "field-city" }] }];
 
 beforeEach(() => {
   mockUseFormValue.mockReset();
@@ -59,7 +65,7 @@ afterEach(() => {
   cleanup();
 });
 
-describe("FaqQuestionAllLanguagesInput — scoping", () => {
+describe("RoleAwareAllLanguagesInput — FAQ scoping (unchanged from before the rename)", () => {
   it("a FAQ question's Question (title) field: shows the always-present EN/DA/UK rows", () => {
     mockFormValue("page-faq", QUESTION_SECTIONS, () => ({ _key: "q0", itemKey: "q0" }));
     const { props } = fakeProps({ path: QUESTION_TITLE_PATH } as never);
@@ -85,7 +91,7 @@ describe("FaqQuestionAllLanguagesInput — scoping", () => {
     expect(screen.getByText("Ukrainian")).toBeInTheDocument();
   });
 
-  it("a non-FAQ item's title (e.g. Home's hero trust badge): falls through to EventLocaleAwareInput, which itself passes through to the default input for a non-event document", () => {
+  it("a non-FAQ, non-Contact item's title (e.g. Home's hero trust badge): falls through to EventLocaleAwareInput, which itself passes through to the default input for a non-event document", () => {
     mockFormValue("page-home", OTHER_SECTIONS, () => ({ _key: "trust0", itemKey: "trust0" }));
     const { props } = fakeProps({ path: OTHER_ITEM_TITLE_PATH } as never);
     renderInput(props);
@@ -93,7 +99,7 @@ describe("FaqQuestionAllLanguagesInput — scoping", () => {
     expect(screen.queryByText("English")).not.toBeInTheDocument();
   });
 
-  it("an unrecognized/missing path (e.g. a test double with no path): falls through to EventLocaleAwareInput, never assumed to be FAQ", () => {
+  it("an unrecognized/missing path (e.g. a test double with no path): falls through to EventLocaleAwareInput, never assumed to be a matched role", () => {
     mockFormValue(undefined, undefined, () => undefined);
     const { props } = fakeProps();
     renderInput(props);
@@ -102,7 +108,34 @@ describe("FaqQuestionAllLanguagesInput — scoping", () => {
   });
 });
 
-describe("FaqQuestionAllLanguagesInput — lazy creation, never a silent auto-mutation from merely opening a field", () => {
+describe("RoleAwareAllLanguagesInput — Contact roles (generic role-prefix check, Task 4)", () => {
+  it("Contact's Submit button title: shows the always-present EN/DA/UK rows", () => {
+    mockFormValue("page-contact", CONTACT_FORM_SECTIONS, () => ({ _key: "submitLabel", itemKey: "submitLabel" }));
+    const { props } = fakeProps({ path: CONTACT_SUBMIT_TITLE_PATH } as never);
+    renderInput(props);
+    expect(screen.getByText("English")).toBeInTheDocument();
+    expect(screen.getByText("Danish")).toBeInTheDocument();
+    expect(screen.getByText("Ukrainian")).toBeInTheDocument();
+  });
+
+  it("a Contact form field's Label title: shows the always-present EN/DA/UK rows", () => {
+    mockFormValue("page-contact", CONTACT_FORM_SECTIONS, () => ({ _key: "field-city", itemKey: "field-city" }));
+    const { props } = fakeProps({ path: CONTACT_FORM_FIELD_TITLE_PATH } as never);
+    renderInput(props);
+    expect(screen.getByText("English")).toBeInTheDocument();
+    expect(screen.getByText("Danish")).toBeInTheDocument();
+    expect(screen.getByText("Ukrainian")).toBeInTheDocument();
+  });
+
+  it("the identical sectionKey/itemKey (\"form\"/\"submitLabel\") on a DIFFERENT document falls through — document-scoping applies here too", () => {
+    mockFormValue("page-catering", CONTACT_FORM_SECTIONS, () => ({ _key: "submitLabel", itemKey: "submitLabel" }));
+    const { props } = fakeProps({ path: CONTACT_SUBMIT_TITLE_PATH } as never);
+    renderInput(props);
+    expect(screen.getByTestId("rendered-default")).toBeInTheDocument();
+  });
+});
+
+describe("RoleAwareAllLanguagesInput — lazy creation, never a silent auto-mutation from merely opening a field", () => {
   it("with an empty value, no onChange is called just from rendering", () => {
     mockFormValue("page-faq", QUESTION_SECTIONS, () => ({ _key: "q0", itemKey: "q0" }));
     const { props, onChange } = fakeProps({ path: QUESTION_TITLE_PATH } as never);
@@ -136,7 +169,7 @@ describe("FaqQuestionAllLanguagesInput — lazy creation, never a silent auto-mu
   });
 });
 
-describe("FaqQuestionAllLanguagesInput — readOnly is respected", () => {
+describe("RoleAwareAllLanguagesInput — readOnly is respected", () => {
   it("readOnly disables all 3 inputs", () => {
     mockFormValue("page-faq", QUESTION_SECTIONS, () => ({ _key: "q0", itemKey: "q0" }));
     const { props } = fakeProps({ path: QUESTION_TITLE_PATH, readOnly: true } as never);

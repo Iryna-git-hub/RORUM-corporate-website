@@ -13,7 +13,7 @@ import { fieldLabelForItemRole, type ContentItemField } from "@/sanity/schemaTyp
  * text passed to it.
  *
  * `props.path`'s last segment is this field's own name (title/text/value);
- * `document`/`parent` are rebuilt the same way FaqQuestionAllLanguagesInput
+ * `document`/`parent` are rebuilt the same way RoleAwareAllLanguagesInput
  * does, since a React field/input component doesn't get them for free the
  * way a schema `validation`/`hidden` callback does.
  */

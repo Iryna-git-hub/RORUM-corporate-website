@@ -152,9 +152,9 @@ export function Footer({
               className="flex items-center gap-2.5 mt-2"
               aria-label="Social links"
             >
-              {socialLinks.map(({ href, label, icon, brandColor }) => (
+              {socialLinks.map(({ id, href, label, icon, brandColor }) => (
                 <a
-                  key={label}
+                  key={id}
                   href={href}
                   target="_blank"
                   rel="noreferrer"

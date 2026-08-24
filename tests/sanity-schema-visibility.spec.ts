@@ -162,10 +162,10 @@ test.describe("contentItem.ts — ITEM_ROLE_RULES matrix (mocked document+parent
   // `itemKey: undefined` (omitted entirely) mirrors a real free-form list
   // item that never had a key assigned (e.g. a catering menu dish) —
   // `matchItemRole` treats a missing itemKey as "" for pattern matching.
-  function docWithItem(sectionKey: string, itemKey: string | undefined, itemObjectKey = "the-item", sectionKind?: string) {
+  function docWithItem(sectionKey: string, itemKey: string | undefined, itemObjectKey = "the-item", sectionKind?: string, documentId?: string) {
     const item: { _key: string; itemKey?: string } = { _key: itemObjectKey };
     if (itemKey !== undefined) item.itemKey = itemKey;
-    return { sections: [{ sectionKey, sectionKind, items: [item] }] };
+    return { _id: documentId, sections: [{ sectionKey, sectionKind, items: [item] }] };
   }
 
   for (const rule of ITEM_ROLE_RULES) {
@@ -201,7 +201,7 @@ test.describe("contentItem.ts — ITEM_ROLE_RULES matrix (mocked document+parent
     const sectionKind = rule.sectionKeys ? undefined : rule.sectionKinds![0];
 
     test(`role="${rule.role}" (sectionKey in [${(rule.sectionKeys ?? []).join(",")}]${rule.sectionKinds ? `, sectionKind in [${rule.sectionKinds.join(",")}]` : ""}, itemKey=${JSON.stringify(itemKey)})`, () => {
-      const document = docWithItem(sectionKey, itemKey, "the-item", sectionKind);
+      const document = docWithItem(sectionKey, itemKey, "the-item", sectionKind, rule.documentIds?.[0]);
       const parent = document.sections[0]!.items[0]!;
 
       const matched = matchItemRoleInContext(document, parent);
@@ -1901,9 +1901,34 @@ test.describe("contentItem.ts — Contact reserved item roles (Task 5/6/7/10)", 
     expect(callHidden(field(contentItemType, "title"), { document: linkDoc, parent: linkParent })).toBe(false);
   });
 
-  test("regression: an unrelated page's item with itemKey \"followUsTitle\" but sectionKey \"hero\" still matches no rule other than Contact's own (proves scoping is itemKey-pattern + sectionKey driven, not accidentally cross-page)", () => {
-    const document = { _id: "page-home", sections: [{ sectionKey: "hero", items: [{ _key: "x", itemKey: "followUsTitle" }] }] };
-    expect(matchItemRoleInContext(document, document.sections[0]!.items[0]!)?.role).toBe("Contact Follow-us heading");
+  // Document-scoping (this session's follow-up task) fixes what used to be a
+  // real gap here: an earlier version of this exact test asserted that an
+  // identical sectionKey+itemKey on page-home's OWN hero DID match "Contact
+  // Follow-us heading" — proving the architecture was, at the time, unsafe
+  // for any future page reusing "hero"/"followUsTitle". `documentIds` on
+  // every Contact role now closes that gap; this test proves the fix.
+  test("an identical sectionKey/itemKey (\"hero\"/\"followUsTitle\") on a DIFFERENT page's document never activates the Contact role — documentIds scoping", () => {
+    const otherPageDoc = { _id: "page-home", sections: [{ sectionKey: "hero", items: [{ _key: "x", itemKey: "followUsTitle" }] }] };
+    expect(matchItemRoleInContext(otherPageDoc, otherPageDoc.sections[0]!.items[0]!)).toBeUndefined();
+
+    const otherPageDraftDoc = { _id: "drafts.page-home", sections: [{ sectionKey: "hero", items: [{ _key: "x", itemKey: "followUsTitle" }] }] };
+    expect(matchItemRoleInContext(otherPageDraftDoc, otherPageDraftDoc.sections[0]!.items[0]!)).toBeUndefined();
+
+    // The exact same shape DOES match on page-contact and its draft.
+    const contactDoc = { _id: "page-contact", sections: [{ sectionKey: "hero", items: [{ _key: "x", itemKey: "followUsTitle" }] }] };
+    expect(matchItemRoleInContext(contactDoc, contactDoc.sections[0]!.items[0]!)?.role).toBe("Contact Follow-us heading");
+    const contactDraftDoc = { _id: "drafts.page-contact", sections: [{ sectionKey: "hero", items: [{ _key: "x", itemKey: "followUsTitle" }] }] };
+    expect(matchItemRoleInContext(contactDraftDoc, contactDraftDoc.sections[0]!.items[0]!)?.role).toBe("Contact Follow-us heading");
+  });
+
+  test("an identical sectionKey/itemKey (\"form\"/\"field-city\") on a different page never activates the Contact form field role", () => {
+    const otherPageDoc = { _id: "page-catering", sections: [{ sectionKey: "form", items: [{ _key: "x", itemKey: "field-city" }] }] };
+    expect(matchItemRoleInContext(otherPageDoc, otherPageDoc.sections[0]!.items[0]!)).toBeUndefined();
+  });
+
+  test("a document with no _id at all never satisfies a documentIds-scoped rule (fail-safe direction: unknown document is never assumed to be Contact)", () => {
+    const noIdDoc = { sections: [{ sectionKey: "hero", items: [{ _key: "x", itemKey: "followUsTitle" }] }] };
+    expect(matchItemRoleInContext(noIdDoc, noIdDoc.sections[0]!.items[0]!)).toBeUndefined();
   });
 });
 

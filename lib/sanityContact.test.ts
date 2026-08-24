@@ -37,6 +37,29 @@ describe("resolveContactDetailOrder — missing page vs. configured order (Task 
     const hero = { _key: "hero", items: [{ _key: "followUsTitle", itemKey: "followUsTitle" }] } as unknown as RawPageSection;
     expect(resolveContactDetailOrder(hero)).toEqual([]);
   });
+
+  it("a malformed marker (contactDetail-fax, not one of address/phone/email) is omitted, not passed through as-is (Task 9)", () => {
+    const hero = {
+      _key: "hero",
+      items: [
+        { _key: "contactDetail-address", itemKey: "contactDetail-address" },
+        { _key: "contactDetail-fax", itemKey: "contactDetail-fax" },
+      ],
+    } as unknown as RawPageSection;
+    expect(resolveContactDetailOrder(hero)).toEqual(["address"]);
+  });
+
+  it("a duplicate marker for the same type is deduplicated — only the first occurrence is kept (Task 9)", () => {
+    const hero = {
+      _key: "hero",
+      items: [
+        { _key: "a", itemKey: "contactDetail-address" },
+        { _key: "b", itemKey: "contactDetail-phone" },
+        { _key: "c", itemKey: "contactDetail-address" },
+      ],
+    } as unknown as RawPageSection;
+    expect(resolveContactDetailOrder(hero)).toEqual(["address", "phone"]);
+  });
 });
 
 describe("resolvePrivacyConsentSettings — absent settings preserve current behavior", () => {
@@ -111,6 +134,29 @@ describe("resolveContactFormFields — missing page vs. configured fields (Task 
     const form = { _key: "form", items: [{ _key: "field-x", itemKey: "field-x", title: i18n("X") }] } as unknown as RawPageSection;
     expect(resolveContactFormFields(form, defaultFormMessages, "en")[0]!.type).toBe("text");
   });
+
+  it("a stray/unsupported type value (not one of text/email/phone/multiline) also falls back to \"text\", not passed through as-is (Task 9)", () => {
+    const form = { _key: "form", items: [{ _key: "field-x", itemKey: "field-x", value: "url", title: i18n("X") }] } as unknown as RawPageSection;
+    expect(resolveContactFormFields(form, defaultFormMessages, "en")[0]!.type).toBe("text");
+  });
+
+  it("two items whose itemKey slices to the same name (e.g. malformed duplicate \"field-city\") never produce two fields sharing one HTML id/name — only the first is kept (Task 9)", () => {
+    const form = {
+      _key: "form",
+      items: [
+        { _key: "a", itemKey: "field-city", title: i18n("City") },
+        { _key: "b", itemKey: "field-city", title: i18n("City (duplicate)") },
+      ],
+    } as unknown as RawPageSection;
+    const result = resolveContactFormFields(form, defaultFormMessages, "en");
+    expect(result).toHaveLength(1);
+    expect(result[0]!.label).toBe("City");
+  });
+
+  it("an itemKey of exactly \"field-\" (empty name) is omitted, never producing a field with a blank HTML id/name (Task 9)", () => {
+    const form = { _key: "form", items: [{ _key: "a", itemKey: "field-", title: i18n("Blank") }] } as unknown as RawPageSection;
+    expect(resolveContactFormFields(form, defaultFormMessages, "en")).toEqual([]);
+  });
 });
 
 describe("resolveSocialLinks — missing vs. intentionally-empty, and derived brand color (Task 5)", () => {
@@ -132,6 +178,25 @@ describe("resolveSocialLinks — missing vs. intentionally-empty, and derived br
   it("a link with no localized label falls back to the platform's own display name, not a raw href", () => {
     const doc = { _id: "socialLinks", links: [{ _key: "x", icon: "facebook", href: "https://facebook.com/rorum", label: [] }] } as never;
     expect(resolveSocialLinks(doc, "en")[0]!.label).toBe("Facebook");
+  });
+
+  it("preserves the Sanity _key as a stable id, for use as the React list key instead of the (possibly duplicate) localized label (Task 6/9)", () => {
+    const doc = {
+      _id: "socialLinks",
+      links: [
+        { _key: "abc123", icon: "instagram", href: "https://instagram.com/rorum", label: i18n("Instagram") },
+        { _key: "def456", icon: "facebook", href: "https://facebook.com/rorum", label: i18n("Instagram") },
+      ],
+    } as never;
+    const result = resolveSocialLinks(doc, "en");
+    expect(result.map((l) => l.id)).toEqual(["abc123", "def456"]);
+  });
+
+  it("the hardcoded fallback list also has a stable, unique id per entry", () => {
+    const result = resolveSocialLinks(null, "en");
+    const ids = result.map((l) => l.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.every((id) => Boolean(id))).toBe(true);
   });
 });
 

@@ -1372,3 +1372,95 @@ Task 4's browser proof (Add City / remove Email / reorder / FormData contents / 
 Cleaning up a temporary git worktree (created to compare the current schema against clean commit `c7e78f8` for Part 1's Event Decoration regression check) deleted `node_modules/.bin` in the *main* worktree via a Windows junction-deletion side effect — unrelated to any Contact/Event Decoration code. Fixed via `npm install` (added/changed only already-declared dependencies, no version bumps); left one incidental, cosmetic `package-lock.json` diff (`"peer": true` metadata on an already-declared dev dependency) which was reviewed and reverted (`git checkout -- package-lock.json`) since it reflected tool restoration only, not an intentional dependency change. `app/globals.css` was never touched this session; the event-card shadow change referenced in prior context is already committed separately (`c7e78f8`) and carries no diff in this working tree.
 
 New this pass: `scripts/repair-social-links.ts` (LinkedIn href/label repair — since superseded by the business decision above, its data effect on *published* `socialLinks` will itself be undone once the manager publishes `drafts.socialLinks`), `scripts/repair-event-decoration-seo-residue.ts`, `components/EventShare.test.tsx`, plus new test coverage in `tests/sanity-schema-visibility.spec.ts` (`socialLink.ts` platform-narrowing, `captureCustomValidator`'s mock gained a `.required()` no-op to support fields that chain it ahead of `.custom()`).
+
+**Update (later session, Contact Task 7):** `scripts/repair-social-links.ts` and its 2 npm commands (`sanity:repair-social-links:dry-run`/`sanity:repair-social-links`) have been **deleted**. The paragraph above is kept only as a historical record of why the script once existed — it is not runnable and must not be recreated; LinkedIn stays removed from the shared `socialLinks` singleton per the business decision, and remains supported only by Event Share's separate, unrelated architecture (see Part 22).
+
+## Part 23 — Contact: document-scoped roles, a real form-items editor, hardened resolvers, shared social-link navigation (baseline `f457760`)
+
+Built on top of `f457760` per this round's own instruction. No commit prior to this Part touched a previously-pushed commit; nothing here rewrites history.
+
+### 1. Root cause / architecture: document-scoped item roles
+
+`ITEM_ROLE_RULES` (contentItem.ts) previously matched only by `sectionKey`/`itemKey` — safe in practice only because no two pages had ever reused the same pair, not because the mechanism enforced it. `sectionKey: "hero"`/`"form"` are generic strings other pages (Home, Event Decoration) already use for unrelated sections. Fixed by adding an optional `documentIds?: readonly string[]` predicate to `ItemRoleRule`, a `normalizeDocumentId()` helper (strips `drafts.`), and a 4th `documentId` parameter threaded through `matchItemRole`/`matchItemRoleInContext`. All 7 Contact-only roles (`followUsTitle`, `submitLabel`, `successMessage`, the 3 `contactDetail-*` types, `field-*`, `faqPromptQuestion`, `faqPromptLabel`) are now scoped to `page-contact` specifically. Fail-safe direction preserved: an unknown/absent document id never satisfies a scoped rule (same pattern as `GalleryMediaAltInput.tsx`'s `recognized` check). `imageWithAlt.ts` (the only other `matchItemRole` call site) was updated to pass its own already-resolved `docId`. Genuinely shared roles (FAQ question, Catering menu dish) were deliberately left un-scoped, per the task's own exception. New tests prove an identical `sectionKey`/`itemKey` on a different document never activates a Contact role, and that a document with no `_id` never satisfies a scoped rule.
+
+### 2. A real Contact form-items editor: `ContactFormItemsInput.tsx`
+
+Previously the "form" section's `items` array used Sanity's generic default editor — a blank added item had no role, exposing every generic `contentItem` field. New `sanity/components/ContactFormItemsInput.tsx`, chained as the last link in the existing `pageSection.items` custom-input chain (`CateringMenuDishItemsInput` → `CateringOfferItemsInput` → `FaqQuestionItemsInput` → `ContactDetailsOrderInput` → **`ContactFormItemsInput`** → `props.renderDefault`), scoped to `page-contact`'s own "form" section only. Renders 5 manager-facing groups:
+
+1. **Form fields** — the `field-*` rows in stored order, generic add/duplicate/copy disabled via `ArrayOptions.disableActions` (not CSS), native remove/reorder preserved; the sole creation path is "+ Add form field", which inserts `{_key: "field-"+<uuid>, _type: "contentItem", itemKey: "field-"+<uuid>}` with label/placeholder left entirely unset. Keys are full `crypto.randomUUID()` (collision-safe by construction, matching `FaqSectionsInput.tsx`'s convention) and additionally checked against the array's current keys before use.
+2. **Privacy consent** — informational only (the actual toggle already lives in `ContactFormSectionInput`'s settings card above; not duplicated here).
+3. **FAQ prompt** — the optional `faqPromptQuestion`/`faqPromptLabel` reserved rows, each with its own explicit "+ Add" action when absent.
+4. **Submit button** — the required `submitLabel` reserved row; if unexpectedly absent, shows a critical-toned banner with an explicit "+ Add submit button text" action instead of silently recreating it on mount.
+5. **Success message** — the required `successMessage` reserved row, same explicit-absence treatment.
+
+Any item with an unrecognized `itemKey` (stray/legacy data) is shown under a 6th "Other items" group via the untouched default renderer rather than silently disappearing. Per-field visibility inside each reserved row is entirely governed by the existing `ITEM_ROLE_RULES` table (title/text/href only, never itemKey/icon/image/value) — this component only decides grouping and creation, never field-level visibility, so it can't drift from what validation already allows. 12 new component tests in `ContactFormItemsInput.test.tsx` cover scoping, the single-creation-path guarantee, key-collision handling, semantic reserved-row labeling, explicit-absence banners, and native remove/reorder preservation for field rows.
+
+### 3. Shared always-3-languages input, generalized and renamed
+
+Extracted the ~30-line EN/DA/UK Card/Stack/TextInput-or-TextArea JSX (previously duplicated across `CateringAllLanguagesInput.tsx` and the old `FaqQuestionAllLanguagesInput.tsx`) into a new, pure, stateless `sanity/components/AllLanguagesRows.tsx`. Renamed `FaqQuestionAllLanguagesInput.tsx` → `RoleAwareAllLanguagesInput.tsx` and generalized its applicability check to `isFaqQuestionRole(...) || isFaqCategoryTitleField(...) || isContactRole(...)`, where the new `isContactRole()` helper is a single `matchItemRoleInContext(...)?.role.startsWith("Contact ")` check — this one prefix test automatically covers all 7 current Contact roles' title/text fields (Follow-us heading, Submit button, Success message, a form field's Label/Placeholder, both FAQ-prompt rows) with no per-role enumeration, satisfying the task's explicit "don't keep expanding a Catering-named component into unrelated business domains" instruction. The old file and its test file were deleted; the test file was recreated as `RoleAwareAllLanguagesInput.test.tsx` with the original 9 FAQ-scoping/lazy-creation/readOnly cases preserved plus 3 new cases proving the generalized Contact-role condition (a Contact form field's title, a Submit-button title, and cross-document non-activation on `page-catering`).
+
+A new, separately scoped `sanity/components/SocialLinkLabelInput.tsx` wires `socialLink.ts`'s `label` field (the accessible label, required EN/DA/UK) to the same `AllLanguagesRows` renderer — no role check needed there, since that object type is used only by the `socialLinks` singleton.
+
+### 4. `ContactDetailsOrderInput.tsx` hardening (Task 5)
+
+- Reorder no longer does a full-array `set(next)` overwrite. `moveDetail()` now emits one `PatchEvent.from([unset([{_key: sourceKey}]), insert([item], "before"|"after", [{_key: neighborKey}])])` — the same key-addressed unset+insert primitive Sanity's own array-reorder machinery uses internally. `followUsTitle` (or any other unrelated item) is never touched, addressed purely by `_key`.
+- `isDetailMember()` now only recognizes the 3 supported types (`contactDetail-address/phone/email`); an unrecognized `contactDetail-*` marker is left in the untouched default item list instead of being silently treated as (or hidden as) one of the 3 known cards.
+- Added a "Follow us — social links" card (read-only, live-fetched summary of currently-enabled Instagram/Facebook platforms) and an "Edit shared contact information" / "Edit shared social links" `IntentLink` pair (from `sanity/router`) pointing at the `contactInfo`/`socialLinks` singletons — this component only navigates to those documents, it never patches them.
+- All new/changed help text follows the bilingual "English sentence. / Українське пояснення." convention, replacing the previous technical wording ("drag order not supported here — use Move up/down").
+- 13 new component tests cover: key-addressed reorder patch shape, unrelated-item preservation across a reorder, unknown-marker rejection, the empty-state message (never a hardcoded fallback), add/remove, and both IntentLinks' `intent`/`params`.
+
+### 5. `lib/sanityContact.ts` resolver hardening (Task 9)
+
+- `resolveContactDetailOrder()`: now validates each marker against the 3 supported types and deduplicates by type (first occurrence wins), with a development-only `console.warn` for anything malformed or duplicate — previously an unrecognized `contactDetail-fax` would have been cast through as-is.
+- `resolveContactFormFields()`: validates `item.value` against the 4 supported field types (falls back to `"text"`, previously any stray string passed through unvalidated); rejects a blank or duplicate `field-*` id (dev-only warning) so two malformed items can never produce two form fields sharing one HTML `id`/`name` (the second silently shadowing the first's submitted value).
+- `resolveSocialLinks()`: `ResolvedSocialLink` gained an `id` field sourced from the Sanity `_key` (falling back to `href`/platform for the hardcoded starter list) — see next section.
+- 9 new/updated tests in `sanityContact.test.ts` cover malformed/duplicate contact-detail markers, an unsupported form-field type value, duplicate/blank field ids, and stable social-link ids (28 tests total in that file, all passing).
+
+### 6. Social-link `_key`-as-React-key fix (Task 6/9)
+
+Audit found all 3 frontend consumers (`app/[locale]/(site)/contact/page.tsx`, `components/Footer.tsx`, `components/Header.tsx`) keyed their social-link `.map()` by `label` — a manager could give two links the same localized label text, which would silently produce duplicate React keys and let React misattribute state across reorders. Fixed by threading the new `ResolvedSocialLink.id` (the Sanity `_key`) through and using `key={id}` in all 3 places. The hardcoded fallback list in `lib/siteConfig.ts`'s `SocialLink` also gained a stable `id` (the platform name) so `resolveSocialLinks(null, locale)`'s Sanity-unavailable fallback keeps the same shape.
+
+### 7. Obsolete LinkedIn repair path removed (Task 7)
+
+`scripts/repair-social-links.ts` and its 2 npm commands (`sanity:repair-social-links:dry-run`/`sanity:repair-social-links`) are deleted — see the Part 22 update note above. Confirmed via a full-codebase grep that nothing else referenced the script before deletion.
+
+### 8. Truthful submission behavior re-confirmed (Task 10)
+
+Re-audited: no API route, Netlify function, server action, or email provider exists for Contact's own submission — `ContactForm.tsx`'s success state was, and remains, client-only. Added an explicit test (`ContactForm.test.tsx`, "truthful submission behavior") that spies on `global.fetch` and throws if it's ever called, then asserts the success message still appears — proving the current behavior in code, not just by inspection. **Delivery proposal (not implemented, not authorized):** the codebase already has a ready, unused-by-Contact mechanism — `lib/formspree.ts` (`submitToFormspree`, `isFormspreeConfigured`, gated by `NEXT_PUBLIC_FORMSPREE_ENDPOINT`), currently used only by `VolunteerApplicationForm.tsx`. Wiring Contact to the same mechanism would need: (a) a Formspree form id / endpoint set as `NEXT_PUBLIC_FORMSPREE_ENDPOINT` (or a second, Contact-specific env var if the two forms should route to different inboxes); (b) client-side spam protection (Formspree's own honeypot/reCAPTCHA option, already available at no extra integration cost); (c) the existing server-side validation Formspree performs on required fields, layered under the client-side validation `ContactForm.tsx` already has; (d) explicit failure-state UI (the current success-only state has no path for a rejected/failed POST — `VolunteerApplicationForm.tsx`'s own error handling is the nearest existing pattern to copy); (e) a explicit decision on what PII (name/phone/email/message) is acceptable to send to a third-party (Formspree) versus a first-party mailer, which is a business decision, not a technical one. This proposal is not applied — no third-party service was connected, no new "message sent" copy was added beyond the existing (already-disclosed-as-fake) client-only state.
+
+### 9. Official Sanity validation — re-run, published/draft reported separately (Task 11)
+
+`sanity documents validate --yes --level error --format json` (whole-dataset, filtered to this Part's target documents):
+
+| Document | Published | Draft |
+|---|---|---|
+| `page-contact` | clean | clean |
+| `contactInfo` | clean | clean |
+| `socialLinks` | 2 markers: `links[].icon` "linkedin" not in allowed values | clean |
+| `formMessages` | clean | clean |
+| `privacy-policy` | clean | clean |
+| `page-event-decoration` | clean | clean |
+
+The 2 published `socialLinks` markers are the already-documented, expected state from Part 22 (`options.list` retroactively invalidates the stored-but-unwanted LinkedIn entry) — not a regression, not touched this Part, and resolved automatically the moment the manager publishes the already-clean draft. No document was mutated or published by this validation run.
+
+### 10. Files changed
+
+Modified: `sanity/schemaTypes/objects/contentItem.ts`, `imageWithAlt.ts`, `socialLink.ts`; `sanity/components/CateringAllLanguagesInput.tsx`, `ContactDetailsOrderInput.tsx`, `ContactFormSectionInput.tsx`, `FaqQuestionItemsInput.tsx` (doc-comment only), `FaqSectionsInput.tsx` (doc-comment only), `ItemRoleAwareFieldLabel.tsx` (doc-comment only); `lib/sanityContact.ts`, `lib/siteConfig.ts`; `app/[locale]/(site)/contact/page.tsx`, `components/Footer.tsx`, `components/Header.tsx` (React-key fix); `package.json` (2 npm scripts removed); `tests/sanity-schema-visibility.spec.ts`; `lib/sanityContact.test.ts`; `components/ContactForm.test.tsx`.
+
+New: `sanity/components/ContactFormItemsInput.tsx` (+ `.test.tsx`), `AllLanguagesRows.tsx`, `RoleAwareAllLanguagesInput.tsx` (+ `.test.tsx`), `SocialLinkLabelInput.tsx` (+ `.test.tsx`), `ContactDetailsOrderInput.test.tsx`.
+
+Deleted: `sanity/components/FaqQuestionAllLanguagesInput.tsx` + `.test.tsx`, `scripts/repair-social-links.ts`.
+
+### 11. Test results
+
+`npx vitest run`: **382 passed** (27 files). `npx playwright test tests/sanity-schema-visibility.spec.ts`: **258 passed**. `npm run typecheck`: clean. `npm run lint`: 0 errors, 9 pre-existing warnings (all `<img>`/unused-import warnings in files this Part didn't touch). `npm run build`: succeeded, all 14 static routes + `/events/[slug]` + `/studio` generated with no errors.
+
+### 12. Manual Studio checklist
+
+1. Open `page-contact` → Hero → confirm the "Contact details shown" cards, the new "Follow us — social links" summary card, and the "Edit shared contact information" / "Edit shared social links" buttons navigate to `contactInfo`/`socialLinks` correctly.
+2. Open `page-contact` → Form → confirm the 5 groups (Form fields / Privacy consent / FAQ prompt / Submit button / Success message) render, "+ Add form field" produces a working new row, and Label/Placeholder immediately show EN/DA/UK.
+3. Try adding a form field twice quickly — confirm both rows are independently editable (no key collision).
+4. Remove Email from the form fields, confirm only Email disappears from the live `/contact` page, others unaffected.
+5. Confirm `socialLinks`' Studio Platform dropdown still shows only Instagram/Facebook, and the duplicate-platform validator still fires.
+6. Publish the already-clean `drafts.socialLinks` to clear the 2 published-only LinkedIn validation markers noted above (manager action, not performed by this session).
+7. Confirm FAQ/Catering/Home/About Studio editing is visually and functionally unchanged (spot-check one item add/edit per page).

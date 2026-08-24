@@ -37,6 +37,8 @@ export const contactDetails: ContactDetails = {
 export type SocialIconName = "instagram" | "facebook" | "linkedin" | "whatsapp";
 
 export interface SocialLink {
+  /** Stable across renders — this hardcoded list has no Sanity `_key`, so the platform name doubles as one (matches lib/sanityContact.ts's `ResolvedSocialLink.id`). */
+  id: string;
   href: string;
   label: string;
   icon: SocialIconName;
@@ -45,12 +47,14 @@ export interface SocialLink {
 
 export const socialLinks: SocialLink[] = [
   {
+    id: "instagram",
     href: "https://www.instagram.com/rorum_dk",
     label: "Instagram",
     icon: "instagram",
     brandColor: "#E4405F",
   },
   {
+    id: "facebook",
     href: "https://www.facebook.com/rorum2025",
     label: "Facebook",
     icon: "facebook",

@@ -91,6 +91,25 @@ describe("ContactForm — validation derived from field type", () => {
   });
 });
 
+describe("ContactForm — truthful submission behavior: no delivery endpoint exists yet (Task 10)", () => {
+  it("a valid submission makes ZERO network requests — the success state is client-only, not a real delivery", async () => {
+    const fetchSpy = vi.spyOn(global, "fetch").mockImplementation(() => {
+      throw new Error("ContactForm must not call fetch — no delivery endpoint exists yet");
+    });
+    render(<ContactForm successMessage="All good!" />);
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Jane Doe");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 12 34 56 78");
+    await userEvent.type(screen.getByLabelText(/^Email/), "jane@example.com");
+    await userEvent.type(screen.getByLabelText(/Message/), "Hello there");
+    await userEvent.click(screen.getByRole("checkbox"));
+    await userEvent.click(screen.getByRole("button", { name: /Send message/ }));
+
+    expect(await screen.findByText("All good!")).toBeInTheDocument();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
+  });
+});
+
 describe("ContactForm — Privacy consent shown/required settings (Task 9)", () => {
   it("privacyConsent.shown=false: the checkbox is not rendered at all, and submitting never blocks on it", async () => {
     render(<ContactForm formSection={{ _key: "form", items: [] } as unknown as RawPageSection} privacyConsent={{ shown: false, required: true }} />);

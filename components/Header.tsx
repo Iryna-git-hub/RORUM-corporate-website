@@ -494,7 +494,7 @@ export function Header({
           {socialLinks.map((link) => (
             <a
               href={link.href}
-              key={link.label}
+              key={link.id}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={link.label}

@@ -29,7 +29,7 @@ function generateQuestionItemKey(): string {
  * "+ Add question" inserts a minimal, correctly-shaped question in one
  * step — a random, stable `_key`/`itemKey` matching contentItem.ts's
  * "FAQ question" role pattern (`/^(q\d*)?$/`), with Question/Answer/link
- * left entirely unset (FaqQuestionAllLanguagesInput shows all 3 empty
+ * left entirely unset (RoleAwareAllLanguagesInput shows all 3 empty
  * language rows the instant the manager opens Question/Answer).
  */
 export function FaqQuestionItemsInput(props: ArrayOfObjectsInputProps) {

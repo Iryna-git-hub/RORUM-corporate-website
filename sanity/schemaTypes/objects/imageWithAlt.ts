@@ -64,7 +64,7 @@ function isDecorativeContentItemImageAlt(document: unknown, path: PathSegment[] 
 function isImageFieldHiddenByItemRole(document: unknown, path: PathSegment[] | undefined): boolean {
   const ctx = resolveEnclosingSectionAndItem(document, path);
   if (!ctx) return false;
-  const rule = matchItemRole(ctx.sectionKey, ctx.itemKey);
+  const rule = matchItemRole(ctx.sectionKey, ctx.itemKey, undefined, ctx.docId);
   return !!rule && !rule.visible.includes("image");
 }
 

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { insert, set, unset, useClient, useFormValue, type ArrayOfObjectsInputProps, type ArraySchemaType } from "sanity";
+import { insert, PatchEvent, unset, useClient, useFormValue, type ArrayOfObjectsInputProps, type ArraySchemaType } from "sanity";
+import { IntentLink } from "sanity/router";
 import { Box, Button, Card, Flex, Stack, Text } from "@sanity/ui";
+import { ContactFormItemsInput } from "@/sanity/components/ContactFormItemsInput";
 
 const DISABLED_ARRAY_ACTIONS = ["add", "addBefore", "addAfter", "duplicate", "copy"] as const;
 
@@ -16,6 +18,11 @@ const PREVIEW_FIELD: Record<string, string> = {
   "contactDetail-address": "address",
   "contactDetail-phone": "phone",
   "contactDetail-email": "email",
+};
+
+const SOCIAL_PLATFORM_TITLES: Record<string, string> = {
+  instagram: "Instagram",
+  facebook: "Facebook",
 };
 
 function isPageContact(documentId: string | undefined): boolean {
@@ -35,18 +42,30 @@ interface ContentItemMember {
  * itself out; see pageSection.ts's own comment on why `items` can only have
  * one `components.input`).
  *
- * Two independent things live in this one array:
+ * Three independent things live in/around this one array:
  *   - the "followUsTitle" reserved row (its own ITEM_ROLE_RULES role) —
  *     rendered via the untouched default single-item list, so its own
- *     editing chrome (open/edit) is unaffected.
+ *     editing chrome (open/edit) is unaffected. Immediately below it, a
+ *     "Follow us — social links" card summarizes which platforms are
+ *     currently enabled (read-only, live-fetched) and links out to the
+ *     `socialLinks` singleton via IntentLink — this component never patches
+ *     `socialLinks` itself, only navigates to it (Task 6).
  *   - up to 3 "contactDetail-{address,phone,email}" reserved rows — pure
  *     display/order markers (see contentItem.ts's "Contact detail display
  *     row" role, `visible: []`): presence = shown, array order = display
  *     order, no content of their own (the underlying facts live in the
  *     separate `contactInfo` singleton). Rendered as friendly cards with a
  *     read-only live preview of the current contactInfo value, "Move up"/
- *     "Move down"/"Remove" controls, and an "Add" row offering only the
- *     currently-absent supported details.
+ *     "Move down"/"Remove" controls, an "Add" row offering only the
+ *     currently-absent supported details, and an "Edit shared contact
+ *     information" IntentLink that opens the `contactInfo` singleton
+ *     directly (with an explanation that the Footer reads the same values)
+ *     — this never patches `contactInfo` from here, only navigates to it.
+ *
+ * An unrecognized `contactDetail-*` marker (anything other than
+ * address/phone/email) is never treated as one of the 3 known cards — it's
+ * left in the untouched default item list below instead, so stray/malformed
+ * data stays visible and editable rather than silently disappearing.
  *
  * Simplification (disclosed, matching FaqSectionsInput's precedent): native
  * drag-and-drop reorder isn't used for the contactDetail-* subset — Sanity's
@@ -54,7 +73,9 @@ interface ContentItemMember {
  * safely reordering only a filtered subset (while followUsTitle stays
  * fixed) isn't something the native mechanism supports without
  * reimplementing drag-and-drop. Up/down buttons are a fully correct,
- * simpler substitute for reordering exactly 3 possible rows.
+ * simpler substitute for reordering exactly 3 possible rows — each move is
+ * still a key-addressed `unset`+`insert` PatchEvent (see `moveDetail`
+ * below), never a full-array `set(next)` overwrite.
  */
 export function ContactDetailsOrderInput(props: ArrayOfObjectsInputProps) {
   const documentId = useFormValue(["_id"]) as string | undefined;
@@ -63,6 +84,7 @@ export function ContactDetailsOrderInput(props: ArrayOfObjectsInputProps) {
   const isContactHero = isPageContact(documentId) && parent?.sectionKey === "hero";
   const client = useClient({ apiVersion: "2025-02-19" });
   const [preview, setPreview] = useState<Record<string, string | undefined>>({});
+  const [socialLinksSummary, setSocialLinksSummary] = useState<{ icon?: string }[] | undefined>(undefined);
 
   useEffect(() => {
     if (!isContactHero) return;
@@ -75,19 +97,36 @@ export function ContactDetailsOrderInput(props: ArrayOfObjectsInputProps) {
       .catch(() => {
         if (!cancelled) setPreview({});
       });
+    client
+      .fetch<{ links?: { icon?: string }[] } | null>(`*[_id == "socialLinks"][0]{links[]{icon}}`)
+      .then((doc) => {
+        if (!cancelled) setSocialLinksSummary(doc?.links ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setSocialLinksSummary([]);
+      });
     return () => {
       cancelled = true;
     };
   }, [isContactHero, client]);
 
   if (!isContactHero) {
-    return props.renderDefault(props);
+    // Chained (not both wired independently) — see this file's own doc
+    // comment for why `items` can only have one components.input.
+    // ContactFormItemsInput itself delegates to props.renderDefault for
+    // every non-Contact-form items array, so every other section's items
+    // are unaffected.
+    return <ContactFormItemsInput {...props} />;
   }
 
   function isDetailMember(member: (typeof props.members)[number]): boolean {
     if (member.kind !== "item") return false;
     const value = member.item.value as ContentItemMember | undefined;
-    return Boolean(value?.itemKey?.startsWith("contactDetail-"));
+    // Only the 3 supported detail types — an unrecognized
+    // "contactDetail-something" (stray/malformed data) is left in the
+    // "other members" group instead, rendered by the untouched default item
+    // list rather than silently treated as one of the 3 known cards.
+    return Boolean(value?.itemKey && SUPPORTED_DETAILS.some((d) => d.itemKey === value.itemKey));
   }
 
   const otherMembers = props.members.filter((m) => !isDetailMember(m));
@@ -107,29 +146,30 @@ export function ContactDetailsOrderInput(props: ArrayOfObjectsInputProps) {
   }
 
   /**
-   * Reorders by swapping two adjacent contactDetail-* entries' positions
-   * within the FULL underlying array (props.value), then writing the whole
-   * array back in one atomic `set` — the simplest fully-correct way to
-   * reorder a subset when Sanity's own array patches address items by
-   * position or `_key`, not "the Nth item of a filtered view". followUsTitle
-   * (or any other non-detail item) never moves, since only the positions of
-   * the two swapped contactDetail entries change.
+   * Reorders by moving one contactDetail-* entry to just before/after its
+   * detail-list neighbor — a key-addressed `unset` + `insert` combined into
+   * one atomic PatchEvent (the same primitive Sanity's own array-reorder
+   * machinery uses internally), never a full-array `set(next)` overwrite.
+   * followUsTitle (or any other non-detail item) is addressed by `_key`
+   * throughout, so it's never touched or repositioned by this.
    */
   function moveDetail(itemObjectKey: string, direction: -1 | 1) {
     const fullArray = (props.value ?? []) as ContentItemMember[];
-    const detailIndexes = fullArray
-      .map((item, index) => ({ item, index }))
-      .filter(({ item }) => item.itemKey?.startsWith("contactDetail-"))
-      .map(({ index }) => index);
-    const currentPositionInDetails = detailIndexes.findIndex((i) => fullArray[i]?._key === itemObjectKey);
-    const swapWithPositionInDetails = currentPositionInDetails + direction;
-    if (currentPositionInDetails === -1 || swapWithPositionInDetails < 0 || swapWithPositionInDetails >= detailIndexes.length) return;
+    const detailKeys = fullArray.filter((item) => item.itemKey && SUPPORTED_DETAILS.some((d) => d.itemKey === item.itemKey)).map((item) => item._key);
+    const currentPosition = detailKeys.indexOf(itemObjectKey);
+    const neighborPosition = currentPosition + direction;
+    if (currentPosition === -1 || neighborPosition < 0 || neighborPosition >= detailKeys.length) return;
 
-    const arrayIndexA = detailIndexes[currentPositionInDetails]!;
-    const arrayIndexB = detailIndexes[swapWithPositionInDetails]!;
-    const next = [...fullArray];
-    [next[arrayIndexA], next[arrayIndexB]] = [next[arrayIndexB]!, next[arrayIndexA]!];
-    props.onChange(set(next));
+    const itemToMove = fullArray.find((item) => item._key === itemObjectKey);
+    const neighborKey = detailKeys[neighborPosition]!;
+    if (!itemToMove) return;
+
+    props.onChange(
+      PatchEvent.from([
+        unset([{ _key: itemObjectKey }]),
+        insert([itemToMove], direction === -1 ? "before" : "after", [{ _key: neighborKey }]),
+      ]),
+    );
   }
 
   const schemaTypeWithDisabledActions: ArraySchemaType = {
@@ -141,13 +181,44 @@ export function ContactDetailsOrderInput(props: ArrayOfObjectsInputProps) {
     <Stack space={4}>
       <Box>{props.renderDefault({ ...props, schemaType: schemaTypeWithDisabledActions, members: otherMembers })}</Box>
 
+      <Card padding={3} radius={2} border tone="transparent">
+        <Stack space={2}>
+          <Text size={1} weight="semibold">
+            Follow us — social links
+          </Text>
+          <Text size={1} muted>
+            The heading above is edited here on Contact; the actual Instagram/Facebook links are edited in one shared
+            place, also used by the site&rsquo;s header and footer. / Заголовок вище редагується тут, на сторінці
+            контактів; самі посилання на Instagram/Facebook редагують в одному спільному місці, яке також
+            використовують шапка і підвал сайту.
+          </Text>
+          {socialLinksSummary === undefined ? null : socialLinksSummary.length === 0 ? (
+            <Text size={1} muted>
+              No social links are currently shown anywhere on the site. / Наразі жодні посилання на соцмережі на сайті
+              не показуються.
+            </Text>
+          ) : (
+            <Text size={1} muted>
+              Currently shown: {socialLinksSummary.map((l) => SOCIAL_PLATFORM_TITLES[l.icon ?? ""] ?? l.icon).filter(Boolean).join(", ")}
+            </Text>
+          )}
+          <Box>
+            <Button as={IntentLink} intent="edit" params={{ id: "socialLinks", type: "socialLinks" }} text="Edit shared social links" tone="primary" mode="ghost" />
+          </Box>
+        </Stack>
+      </Card>
+
       <Stack space={3}>
         <Text size={1} weight="semibold">
-          Contact details shown (drag order not supported here — use Move up/down)
+          Contact details shown on this page
+        </Text>
+        <Text size={1} muted>
+          Choose which details appear and in what order, using Up/Down below each one. / Виберіть, які контактні дані
+          показувати і в якому порядку — кнопками «Вгору»/«Вниз» під кожним пунктом.
         </Text>
         {detailMembers.length === 0 ? (
           <Text size={1} muted>
-            No contact details are shown on the page right now.
+            No contact details are shown on the page right now. / Наразі жодні контактні дані на сторінці не показуються.
           </Text>
         ) : null}
         {detailMembers.map((m, index) => {
@@ -167,7 +238,7 @@ export function ContactDetailsOrderInput(props: ArrayOfObjectsInputProps) {
                     </Text>
                   ) : (
                     <Text size={1} muted>
-                      (set in Contact information)
+                      Not set yet — set it in Contact information. / Ще не заповнено — заповніть у Контактній інформації.
                     </Text>
                   )}
                 </Stack>
@@ -205,6 +276,22 @@ export function ContactDetailsOrderInput(props: ArrayOfObjectsInputProps) {
           </Flex>
         ) : null}
       </Stack>
+
+      <Card padding={3} radius={2} border tone="transparent">
+        <Stack space={2}>
+          <Text size={1} weight="semibold">
+            Address, phone and email themselves
+          </Text>
+          <Text size={1} muted>
+            The actual address, phone number and email are edited in one shared place, also used by the site&rsquo;s
+            footer. / Саму адресу, телефон і email редагують в одному спільному місці, яке також використовує підвал
+            сайту.
+          </Text>
+          <Box>
+            <Button as={IntentLink} intent="edit" params={{ id: "contactInfo", type: "contactInfo" }} text="Edit shared contact information" tone="primary" mode="ghost" />
+          </Box>
+        </Stack>
+      </Card>
     </Stack>
   );
 }

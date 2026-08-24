@@ -57,6 +57,18 @@ interface ItemRoleRule {
    */
   sectionKeys?: readonly string[];
   sectionKinds?: readonly string[];
+  /**
+   * When given, this rule only matches on these documents (draft-prefix
+   * stripped before comparing — a rule written as `["page-contact"]`
+   * matches both `page-contact` and `drafts.page-contact`). Required for
+   * any role whose `sectionKeys` string is NOT provably unique across the
+   * whole site — `"hero"` and `"form"` in particular are generic section
+   * keys plenty of future pages could reasonably reuse. Omit only for
+   * roles that are genuinely meant to be shared/open across documents
+   * (FAQ questions, Catering menu dishes, the Home/About closingCta rows)
+   * where the existing contract already relies on that.
+   */
+  documentIds?: readonly string[];
   itemKeyPattern: RegExp;
   visible: readonly ContentItemField[];
   /** Of `visible`, which fields are genuinely required (all 3 languages, for i18n fields) — read by title/text's shared `requiredWhen` validation below instead of one-off per-role predicates. */
@@ -70,6 +82,8 @@ const ITEM_KEY_PREVIEW_LABELS: Record<string, string> = {
   followUsTitle: "Follow us heading",
   submitLabel: "Submit button",
   successMessage: "Success message",
+  faqPromptQuestion: "FAQ prompt question",
+  faqPromptLabel: "FAQ prompt link",
 };
 
 export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
@@ -147,17 +161,23 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
   { role: "FAQ question", sectionKinds: ["faqCategory"], itemKeyPattern: /^(q\d*)?$/, visible: ["title", "text", "href", "label"], requiredFields: ["title", "text"] },
   // Contact page reserved rows — see components/ContactForm.tsx,
   // app/[locale]/(site)/contact/page.tsx. All 3 are fixed, singular rows
-  // (never manager-created), so itemKey is never shown.
-  { role: "Contact Follow-us heading", sectionKeys: ["hero"], itemKeyPattern: /^followUsTitle$/, visible: ["title"], requiredFields: ["title"], fieldLabels: { title: "Follow us heading" } },
-  { role: "Contact submit button", sectionKeys: ["form"], itemKeyPattern: /^submitLabel$/, visible: ["title"], requiredFields: ["title"], fieldLabels: { title: "Submit button text" } },
-  { role: "Contact success message", sectionKeys: ["form"], itemKeyPattern: /^successMessage$/, visible: ["text"], requiredFields: ["text"], fieldLabels: { text: "Success message" } },
+  // (never manager-created), so itemKey is never shown. Every Contact role
+  // below is `documentIds`-scoped to `page-contact` specifically — unlike
+  // "FAQ question"/"Catering menu dish" above, `sectionKeys: ["hero"]`/
+  // `["form"]` are generic strings plenty of OTHER pages already use for
+  // unrelated purposes (Home's hero, Event Decoration's hero, etc.) — a
+  // live regression test proves an identical sectionKey+itemKey on another
+  // page's document does NOT activate a Contact role.
+  { role: "Contact Follow-us heading", documentIds: ["page-contact"], sectionKeys: ["hero"], itemKeyPattern: /^followUsTitle$/, visible: ["title"], requiredFields: ["title"], fieldLabels: { title: "Follow us heading" } },
+  { role: "Contact submit button", documentIds: ["page-contact"], sectionKeys: ["form"], itemKeyPattern: /^submitLabel$/, visible: ["title"], requiredFields: ["title"], fieldLabels: { title: "Submit button text" } },
+  { role: "Contact success message", documentIds: ["page-contact"], sectionKeys: ["form"], itemKeyPattern: /^successMessage$/, visible: ["text"], requiredFields: ["text"], fieldLabels: { text: "Success message" } },
   // Display-order-only markers for the 3 supported contact-detail rows
   // (Address/Phone/Email) — the underlying facts stay in the contactInfo
   // singleton; presence + array order here is the entire signal (see
   // lib/sanityContact.ts's resolveContactDetailOrder). No generic field is
   // shown at all — ContactDetailsOrderInput renders its own friendly cards
   // instead of the default per-item form.
-  { role: "Contact detail display row", sectionKeys: ["hero"], itemKeyPattern: /^contactDetail-(address|phone|email)$/, visible: [] },
+  { role: "Contact detail display row", documentIds: ["page-contact"], sectionKeys: ["hero"], itemKeyPattern: /^contactDetail-(address|phone|email)$/, visible: [] },
   // A configurable Contact form field (Task 7) — Label (title)/Placeholder
   // (text)/Field type (value, one of "text"|"email"|"phone"|"multiline").
   // itemKey is a generated stable id used as the HTML name/id (see
@@ -167,6 +187,7 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
   // sectionKey, not an open manager-extensible kind).
   {
     role: "Contact form field",
+    documentIds: ["page-contact"],
     sectionKeys: ["form"],
     itemKeyPattern: /^field-.+$/,
     visible: ["title", "text", "value"],
@@ -180,8 +201,8 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
   // ContactFormSectionInput) since presence-as-signal here only tells the
   // frontend "Contact-specific text is configured", not "show the prompt at
   // all" (the shared default is still shown when this is absent).
-  { role: "Contact FAQ prompt question", sectionKeys: ["form"], itemKeyPattern: /^faqPromptQuestion$/, visible: ["title"], fieldLabels: { title: "FAQ prompt question" } },
-  { role: "Contact FAQ prompt link", sectionKeys: ["form"], itemKeyPattern: /^faqPromptLabel$/, visible: ["title", "href"], fieldLabels: { title: "FAQ prompt link text", href: "FAQ prompt destination (defaults to /faq)" } },
+  { role: "Contact FAQ prompt question", documentIds: ["page-contact"], sectionKeys: ["form"], itemKeyPattern: /^faqPromptQuestion$/, visible: ["title"], fieldLabels: { title: "FAQ prompt question" } },
+  { role: "Contact FAQ prompt link", documentIds: ["page-contact"], sectionKeys: ["form"], itemKeyPattern: /^faqPromptLabel$/, visible: ["title", "href"], fieldLabels: { title: "FAQ prompt link text", href: "FAQ prompt destination (defaults to /faq)" } },
 ];
 
 /** True when this contentItem's ITEM_ROLE_RULES role is exactly "FAQ question" — used by the href/label link-pair validation and the always-3-languages Studio input, both below. */
@@ -203,17 +224,30 @@ function hasNonEmptyI18nValue(entries: { value?: unknown }[] | null | undefined)
   return (entries ?? []).some((e) => (typeof e.value === "string" ? e.value.trim() !== "" : Boolean(e.value)));
 }
 
+/** Strips the `drafts.` prefix so a rule's `documentIds` (canonical ids only) matches both the published and draft copy of a document. */
+export function normalizeDocumentId(id: string | undefined): string | undefined {
+  return id?.replace(/^drafts\./, "");
+}
+
 export function matchItemRole(
   sectionKey: string | undefined,
   itemKey: string | undefined,
   sectionKind?: string,
+  documentId?: string,
 ): ItemRoleRule | undefined {
   if (!sectionKey) return undefined;
   const key = itemKey ?? "";
+  const normalizedDocId = normalizeDocumentId(documentId);
   return ITEM_ROLE_RULES.find(
     (rule) =>
       (rule.sectionKeys?.includes(sectionKey) || (sectionKind && rule.sectionKinds?.includes(sectionKind))) &&
-      rule.itemKeyPattern.test(key),
+      rule.itemKeyPattern.test(key) &&
+      // A `documentIds`-scoped rule only matches when we actually know
+      // which document this is AND it's in the list — an unknown/absent
+      // document id must never accidentally satisfy a document-scoped
+      // rule (same fail-safe direction as every other "recognized"-gated
+      // predicate in this project — see GalleryMediaAltInput.tsx).
+      (!rule.documentIds || (normalizedDocId !== undefined && rule.documentIds.includes(normalizedDocId))),
   );
 }
 
@@ -235,7 +269,8 @@ function findEnclosingSection(
 export function matchItemRoleInContext(document: unknown, parent: unknown): ItemRoleRule | undefined {
   const section = findEnclosingSection(document, parent);
   const itemKey = (parent as { itemKey?: string } | undefined)?.itemKey;
-  return matchItemRole(section?.sectionKey, itemKey, section?.sectionKind);
+  const documentId = (document as { _id?: string } | undefined)?._id;
+  return matchItemRole(section?.sectionKey, itemKey, section?.sectionKind, documentId);
 }
 
 function hiddenByItemRole(fieldName: ContentItemField) {

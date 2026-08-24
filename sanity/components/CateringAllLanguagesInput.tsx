@@ -1,18 +1,8 @@
 "use client";
 
-import { insert, set, useFormValue, type ArrayOfObjectsInputProps } from "sanity";
-import { Box, Card, Stack, Text, TextArea, TextInput } from "@sanity/ui";
-import { FaqQuestionAllLanguagesInput } from "@/sanity/components/FaqQuestionAllLanguagesInput";
-
-const LOCALE_ORDER = ["en", "da", "uk"] as const;
-const LOCALE_TITLES: Record<string, string> = { en: "English", da: "Danish", uk: "Ukrainian" };
-
-interface I18nEntry {
-  _key: string;
-  _type: string;
-  language?: string;
-  value?: string;
-}
+import { useFormValue, type ArrayOfObjectsInputProps } from "sanity";
+import { AllLanguagesRows } from "@/sanity/components/AllLanguagesRows";
+import { RoleAwareAllLanguagesInput } from "@/sanity/components/RoleAwareAllLanguagesInput";
 
 function isPageCateringMenuExamples(documentId: string | undefined): boolean {
   return documentId?.replace(/^drafts\./, "") === "page-catering-menu-examples";
@@ -54,66 +44,11 @@ export function CateringAllLanguagesInput(props: ArrayOfObjectsInputProps) {
 
   if (!isPageCateringMenuExamples(documentId)) {
     // Chained (not both wired independently) — an internationalizedArray*
-    // field can only have one components.input. FaqQuestionAllLanguagesInput
-    // itself falls through to EventLocaleAwareInput for every non-FAQ-
-    // question item, so every other document/field is unaffected.
-    return <FaqQuestionAllLanguagesInput {...props} />;
+    // field can only have one components.input. RoleAwareAllLanguagesInput
+    // itself falls through to EventLocaleAwareInput for every unmatched
+    // field/item, so every other document/field is unaffected.
+    return <RoleAwareAllLanguagesInput {...props} />;
   }
 
-  const entries = ((props.value as unknown as I18nEntry[] | undefined) ?? []).filter(
-    (entry): entry is I18nEntry => Boolean(entry?.language),
-  );
-  const isMultiline = props.schemaType.name === "internationalizedArrayText";
-  const valueTypeName = `${props.schemaType.name}Value`;
-  const readOnly = Boolean(props.readOnly);
-
-  function entryFor(locale: string) {
-    return entries.find((entry) => entry.language === locale);
-  }
-
-  function handleValueChange(locale: string, nextValue: string) {
-    const existing = entryFor(locale);
-    if (existing) {
-      props.onChange(set(nextValue, [{ _key: existing._key }, "value"]));
-    } else {
-      // Lazily creates the entry on the manager's first keystroke — never on
-      // mere mount/open, so opening a blank field never mutates the document.
-      const newEntry: I18nEntry = { _key: locale, _type: valueTypeName, language: locale, value: nextValue };
-      props.onChange(insert([newEntry], "after", [-1]));
-    }
-  }
-
-  return (
-    <Stack space={3}>
-      {LOCALE_ORDER.map((locale) => {
-        const entry = entryFor(locale);
-        const title = LOCALE_TITLES[locale] ?? locale;
-        return (
-          <Card key={locale} padding={3} radius={2} border>
-            <Stack space={2}>
-              <Text size={1} weight="semibold">
-                {title}
-              </Text>
-              <Box>
-                {isMultiline ? (
-                  <TextArea
-                    rows={4}
-                    value={entry?.value ?? ""}
-                    readOnly={readOnly}
-                    onChange={(event) => handleValueChange(locale, event.currentTarget.value)}
-                  />
-                ) : (
-                  <TextInput
-                    value={entry?.value ?? ""}
-                    readOnly={readOnly}
-                    onChange={(event) => handleValueChange(locale, event.currentTarget.value)}
-                  />
-                )}
-              </Box>
-            </Stack>
-          </Card>
-        );
-      })}
-    </Stack>
-  );
+  return <AllLanguagesRows {...props} />;
 }
