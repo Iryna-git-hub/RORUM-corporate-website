@@ -99,6 +99,54 @@ export function allOrNothingLanguages(options?: { skip?: (context: ValidationCon
 }
 
 /**
+ * Same field, same shared type — but genuinely required for SOME roles and
+ * genuinely optional for others, decided per-context. E.g. `pageSection`'s
+ * `label`/`title`/`text` are optional for most section kinds (a hero's
+ * eyebrow label, say) but the Catering Menu Examples frontend contract
+ * treats a menu category's label/title/text as required — a manager-added
+ * category left blank renders an empty navigation tab, an empty heading and
+ * an empty description (confirmed by reading
+ * lib/cateringMenuResolve.ts/components/CateringMenuOverlay.tsx: there is no
+ * fallback text for a category beyond the original 6 hardcoded ones, `??
+ * fb?.title ?? ""` resolves straight to an empty string). Registering two
+ * separate validators (`requireAllLanguages` for one role,
+ * `allOrNothingLanguages` for the rest) on the same shared field definition
+ * isn't possible — this combinator lets one field definition apply either
+ * rule depending on its own value/parent/document context, without
+ * duplicating the field.
+ *
+ * `requiredPredicate`: given the same `ValidationContext` every custom rule
+ * receives, returns whether all 3 languages are required for THIS instance.
+ * `skip`: same purpose as the other validators' — opts a hidden-field
+ * context out entirely, checked first.
+ */
+export function requiredWhen(
+  requiredPredicate: (context: ValidationContext) => boolean,
+  options?: { skip?: (context: ValidationContext) => boolean },
+) {
+  return (rule: Rule) =>
+    rule.custom((value: I18nEntry[] | undefined, context: ValidationContext) => {
+      if (options?.skip?.(context)) return true;
+      const list = value ?? [];
+      const isRequired = requiredPredicate(context);
+      if (!isRequired && (list.length === 0 || list.every((e) => isEmptyValue(e.value)))) return true;
+      const { missing, emptyLanguages, duplicates } = analyze(list);
+      if (duplicates.length) return `There's more than one entry for ${namesFor(duplicates)} — please remove the extra one.`;
+      if (missing.length) {
+        return isRequired
+          ? `Please add the ${namesFor(missing)} translation${missing.length > 1 ? "s" : ""}.`
+          : `This field is filled in for some languages but not all — please add the ${namesFor(missing)} translation${missing.length > 1 ? "s" : ""}, or clear the field completely.`;
+      }
+      if (emptyLanguages.length) {
+        return isRequired
+          ? `The ${namesFor(emptyLanguages)} text is empty — please fill it in.`
+          : `The ${namesFor(emptyLanguages)} text is empty — please fill it in or clear the field completely.`;
+      }
+      return true;
+    });
+}
+
+/**
  * Reads an `event` document's `visibleLocales` ("Show on website languages")
  * field — the single source of truth for which locales that event requires
  * content in. Returns `undefined` when the document isn't an event, or when

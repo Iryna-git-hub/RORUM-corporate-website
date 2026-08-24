@@ -1,5 +1,6 @@
 import { defineField, defineType } from "sanity";
 import { IconPickerInput } from "@/sanity/components/IconPickerInput";
+import { CateringAllLanguagesInput } from "@/sanity/components/CateringAllLanguagesInput";
 import { allOrNothingLanguages } from "@/sanity/lib/i18nValidation";
 
 // The one generic "list row" shape reused across every page section's
@@ -211,6 +212,7 @@ export default defineType({
       description: "Optional heading. / Необов'язковий заголовок.",
       validation: allOrNothingLanguages({ skip: skipValidationWhenHiddenByItemRole("title") }),
       hidden: hiddenByItemRole("title"),
+      components: { input: CateringAllLanguagesInput },
     }),
     defineField({
       name: "text",
@@ -219,6 +221,7 @@ export default defineType({
       description: "Optional longer text (e.g. a description or answer). / Необов'язковий довший текст (напр. опис або відповідь).",
       validation: allOrNothingLanguages({ skip: skipValidationWhenHiddenByItemRole("text") }),
       hidden: hiddenByItemRole("text"),
+      components: { input: CateringAllLanguagesInput },
     }),
     defineField({
       name: "image",

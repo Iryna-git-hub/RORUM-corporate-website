@@ -1,5 +1,6 @@
 import { defineField, defineType } from "sanity";
 import { requireAllLanguages } from "@/sanity/lib/i18nValidation";
+import { videoUrlValidationMessage } from "@/sanity/lib/videoUrl";
 
 // Section keys, on the Home page only, whose background media is a plain
 // CSS background-image with no accessible-image semantics anywhere in the
@@ -28,18 +29,24 @@ function isHomeDecorativeBackgroundMedia(document: unknown, parent: unknown): bo
   );
 }
 
-// One media slot — a photo, or an uploaded video with a poster image. Used
-// for hero media and every page-section gallery alike, so a gallery is just
+// One media slot — a photo, or an uploaded/linked video. Used for hero media
+// and every page-section gallery alike, so a gallery is just
 // `media: array<mediaItem>` rather than a dedicated per-page gallery type.
 // Distinct from the older `mediaGalleryItem` (still used by the
 // not-yet-migrated Community Membership gallery) mainly in supporting a real
 // uploaded video file instead of only an external URL string.
+//
+// Videos render with their own frame, no separate poster (see `posterImage`
+// below for why — a decision reversal, not an oversight): the frame a
+// browser shows before/after playback is whatever the video's own first
+// frame/native controls provide, matching HorizontalGallery's rendering
+// (components/HorizontalGallery.tsx) and Home hero's autoplaying background
+// video (components/ui.tsx's HomeHero) alike.
 export default defineType({
   name: "mediaItem",
   title: "Photo or video",
   type: "object",
-  description:
-    "One photo, or one video with a poster image. / Одне фото або одне відео із зображенням-заставкою.",
+  description: "One photo, or one video. / Одне фото або одне відео.",
   fields: [
     defineField({
       name: "kind",
@@ -68,17 +75,47 @@ export default defineType({
       name: "videoUrl",
       title: "Video URL (alternative to an uploaded file)",
       type: "string",
-      description: "A direct link to a video file, used only if no file is uploaded above. / Пряме посилання на відеофайл, використовується, лише якщо файл вище не завантажено.",
+      description:
+        'A direct link to a video file, e.g. https://example.com/video.mp4 — used only if no file is uploaded above. A YouTube/Vimeo page link will not work here. / Пряме посилання на відеофайл, напр. https://example.com/video.mp4 — використовується, лише якщо файл вище не завантажено. Посилання на сторінку YouTube/Vimeo тут не працюватиме.',
       hidden: ({ parent }) => (parent as { kind?: string } | undefined)?.kind !== "video",
+      // Keeps the promise this field's own description makes ("a direct
+      // link to a video file") honest: without this, a manager could paste
+      // a YouTube/Vimeo watch-page URL (or any other non-file webpage) and
+      // it would save successfully, then silently fail to play — a
+      // <video src> pointed at an HTML page just shows a blank player.
+      // Shares its exact matching/message logic with the frontend's own
+      // resolution (sanity/lib/videoUrl.ts) so what's accepted here is
+      // exactly what the site will actually try to play.
+      validation: (rule) =>
+        rule.custom((value: string | undefined, context) => {
+          if ((context.parent as { kind?: string } | undefined)?.kind !== "video") return true;
+          if (!value?.trim()) return true; // optional — only used when no file is uploaded
+          return videoUrlValidationMessage(value) ?? true;
+        }),
     }),
     defineField({
       name: "posterImage",
-      title: "Poster / fallback image",
+      title: "Poster image (unused)",
       type: "image",
       options: { hotspot: true },
       description:
-        "Shown while the video loads and if it fails to play — required for videos. / Показується під час завантаження відео та якщо воно не відтворюється — обов'язково для відео.",
-      hidden: ({ parent }) => (parent as { kind?: string } | undefined)?.kind !== "video",
+        "Not used anywhere on the site — every video (Catering/Event Decoration/Host at RORUM galleries, Home hero) shows its own frame instead, since a separate poster can have a different crop/aspect ratio and look wrong. Hidden from the editing form; kept only so no data is lost if it's ever reconnected. / Ніде на сайті не використовується — кожне відео (галереї «Кейтеринг»/«Оформлення подій»/«Прийом у RORUM», головна відео на Home) показує власний кадр, бо окреме зображення-заставка може мати інше кадрування й виглядати неправильно. Приховано з форми редагування; поле збережено, щоб не втратити дані, якщо його колись знову підключать.",
+      // Hidden unconditionally, site-wide — not just in the 3
+      // HorizontalGallery galleries. A read-only audit (raw perspective,
+      // published + draft, every `page`/`communityMembershipPage` document,
+      // every section's media[]) found ZERO stored posterImage assets
+      // anywhere in the live dataset, and grep across the whole frontend
+      // confirms no component reads `.posterImage` at all — not
+      // lib/sanityGallery.ts (poster removed from its resolution, see that
+      // file), not HomeHero (its own `poster` prop comes from a *different*
+      // mediaItem's `.image`, see components/ui.tsx), not Community
+      // Membership (a different schema type, `mediaGalleryItem`, with no
+      // posterImage field at all). So there is no "genuine other consumer"
+      // to preserve visibility for — this matches `caption` below exactly
+      // (visible-unused → hidden site-wide, field/data preserved, never
+      // deleted). No `validation` at all: an optional, unused, hidden field
+      // has nothing to enforce.
+      hidden: () => true,
     }),
     defineField({
       name: "alt",
@@ -112,12 +149,12 @@ export default defineType({
     }),
   ],
   preview: {
-    select: { media: "image", poster: "posterImage", alt: "alt", kind: "kind" },
-    prepare({ media, poster, alt, kind }) {
+    select: { media: "image", alt: "alt", kind: "kind" },
+    prepare({ media, alt, kind }) {
       const en = (alt as { _key: string; language?: string; value?: string }[] | undefined)?.find(
         (v) => v.language === "en" || v._key === "en",
       );
-      return { title: en?.value ?? (kind === "video" ? "(video)" : "(untitled)"), media: media ?? poster };
+      return { title: en?.value ?? (kind === "video" ? "(video)" : "(untitled)"), media };
     },
   },
 });

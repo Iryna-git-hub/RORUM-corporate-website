@@ -19,13 +19,13 @@ import { getAction, getItem, getSection, type RawContentItem } from "@/lib/sanit
 import { getIconCardIcon } from "@/lib/iconCardIcons";
 import { menuCategories as fallbackMenuCategories } from "@/lib/cateringMenu";
 import { cateringGalleryImages } from "@/lib/galleryImages";
-import { resolveGalleryImages } from "@/lib/sanityGallery";
+import { resolveGalleryItems } from "@/lib/sanityGallery";
 import { resolveCateringMenuCategories } from "@/lib/cateringMenuResolve";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
-import type { ImageWithAlt } from "@/sanity.types";
+import type { MediaItem } from "@/sanity.types";
 
 const menuFormatImages = [
   {
@@ -196,7 +196,7 @@ async function getData(locale: Locale) {
       })),
       menuOverlayText: fallbackOverlayText,
       menuCategories: fallbackMenuCategories,
-      galleryImages: cateringGalleryImages,
+      galleryItems: resolveGalleryItems(undefined, locale, cateringGalleryImages),
     };
   }
 
@@ -232,13 +232,10 @@ async function getData(locale: Locale) {
   // hardcoded set. `!isSanityConfigured` is handled entirely by the early
   // return above; everything below only needs to distinguish "section
   // missing" from "section present but empty."
-  const galleryMediaImages = gallerySection?.media
-    ?.filter((m) => m.kind !== "video")
-    .map((m) => ({ _type: "image" as const, asset: m.image?.asset, alt: m.alt }) as unknown as ImageWithAlt);
-  const galleryImages = !gallerySection
-    ? resolveGalleryImages(undefined, locale, cateringGalleryImages) // section missing -> fallback
-    : galleryMediaImages?.length
-      ? resolveGalleryImages(galleryMediaImages, locale, cateringGalleryImages) // real images
+  const galleryItems = !gallerySection
+    ? resolveGalleryItems(undefined, locale, cateringGalleryImages) // section missing -> fallback
+    : gallerySection.media?.length
+      ? resolveGalleryItems(gallerySection.media as unknown as MediaItem[], locale, cateringGalleryImages) // real photos/videos, order preserved
       : []; // section present, intentionally emptied -> respected, no fallback
 
   // Extracted to lib/cateringMenuResolve.ts so the "document missing (->
@@ -347,7 +344,7 @@ async function getData(locale: Locale) {
     formats,
     suitableFor,
     steps,
-    galleryImages,
+    galleryItems,
     seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
     ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
       ?.width(1200)
@@ -427,7 +424,7 @@ export default async function CateringPage({
 
       <section id="catering-gallery" className="catering-gallery-section">
         <Container>
-          <HorizontalGallery images={data.galleryImages} />
+          <HorizontalGallery items={data.galleryItems} locale={locale} />
           <div className="grid gap-2.5 mt-[clamp(18px,3vw,28px)]">
             <p className="m-0 text-text-primary text-[15px] font-black">
               {data.suitableForLabel}

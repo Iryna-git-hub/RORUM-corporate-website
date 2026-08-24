@@ -1,7 +1,7 @@
 import { defineField, defineType } from "sanity";
 import { matchItemRole } from "@/sanity/schemaTypes/objects/contentItem";
 import { getEventVisibleLocales } from "@/sanity/lib/i18nValidation";
-import { EventLocaleAwareInput } from "@/sanity/components/EventLocaleAwareInput";
+import { CateringAllLanguagesInput } from "@/sanity/components/CateringAllLanguagesInput";
 
 // `contentItem.image` (type imageWithAlt) is Studio-visible for two Home item
 // roles where the photo itself IS used but only ever as a plain CSS
@@ -107,7 +107,7 @@ export default defineType({
       // Scoped internally to `event` documents only (checks the live
       // document `_type`) — Home/About/etc. render this exact same field
       // completely unchanged, since imageWithAlt is a shared type.
-      components: { input: EventLocaleAwareInput },
+      components: { input: CateringAllLanguagesInput },
       validation: (rule) =>
         rule.custom((value, context) => {
           if (shouldSkipAltRequirement(context.document, context.path as PathSegment[] | undefined)) return true;

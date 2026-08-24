@@ -1230,6 +1230,82 @@ button.btn,
   pointer-events: none;
   user-select: none;
 }
+/*
+ * Video gallery cards deliberately size themselves from a fixed
+ * `aspect-ratio` (16/9, the most common web-video ratio) instead of the
+ * photo cards' "auto width, driven by the loaded image's own intrinsic
+ * ratio" behavior (see `.horizontal-gallery-item img` above). With `height`
+ * already fixed by `.horizontal-gallery-item` and `aspect-ratio` set here,
+ * the browser can compute this card's width immediately at layout time —
+ * before the video's metadata has even started downloading — so neither
+ * mounting the card nor the video's own first frame arriving ever causes a
+ * width/layout jump in the surrounding track. The `<video>` itself then
+ * fills that fixed box via `object-fit: contain` (never `cover`: cropping a
+ * video was exactly the visual defect a separate poster image already
+ * risked, so the video's own real proportions are always shown in full,
+ * never stretched or cropped). A vertical/portrait video letterboxes inside
+ * the 16:9 box; a wider-than-16:9 video letterboxes top/bottom instead —
+ * both cases show the shared neutral background below, never an image.
+ */
+.horizontal-gallery-video-item {
+  position: relative;
+  cursor: default;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: rgb(var(--rgb-dark-brown));
+}
+.horizontal-gallery-video-item video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: transparent;
+}
+.horizontal-gallery-video-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(var(--rgb-dark-brown));
+  pointer-events: none;
+}
+.horizontal-gallery-video-loading-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid rgba(var(--rgb-cream), 0.3);
+  border-top-color: rgba(var(--rgb-cream), 0.9);
+  animation: horizontal-gallery-video-spin 0.8s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .horizontal-gallery-video-loading-spinner {
+    animation: none;
+  }
+}
+@keyframes horizontal-gallery-video-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.horizontal-gallery-video-fallback {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+.horizontal-gallery-video-fallback-message {
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(var(--rgb-cream), 0.14);
+  color: var(--color-cream);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
 .section-head h3,
 .card h3 {
   text-transform: none;

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui";
 import { packages } from "@/lib/data";
 import { hostAtRorumGalleryImages } from "@/lib/galleryImages";
-import { resolveGalleryImages } from "@/lib/sanityGallery";
+import { resolveGalleryItems } from "@/lib/sanityGallery";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { compact, pickLabel, pickLocalized } from "@/lib/sanity-i18n";
@@ -22,6 +22,7 @@ import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
 import { hostAtRorumPageQuery } from "@/sanity/queries/pages";
+import type { MediaItem } from "@/sanity.types";
 import {
   ArrowRight,
   Armchair,
@@ -102,7 +103,7 @@ async function getData(locale: Locale) {
       steps: fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text })),
       cancellation: fallbackCancellation,
       packageItems: packages.booking,
-      galleryImages: hostAtRorumGalleryImages,
+      galleryItems: resolveGalleryItems(undefined, locale, hostAtRorumGalleryImages),
     };
   }
 
@@ -118,16 +119,16 @@ async function getData(locale: Locale) {
   const stepsSection = getSection(newPage?.sections, "steps");
   const formSection = getSection(newPage?.sections, "inquiryForm");
 
-  const galleryImagesFromSections = gallerySection?.media?.length
-    ? gallerySection.media
-        .filter((m) => m.kind !== "video")
-        .map((m) => ({ _type: "image" as const, asset: m.image?.asset, alt: m.alt }) as unknown as Parameters<typeof resolveGalleryImages>[0])
-    : undefined;
-  const galleryImages = resolveGalleryImages(
-    (galleryImagesFromSections as never) ?? page?.gallery,
-    locale,
-    hostAtRorumGalleryImages,
+  // Legacy `page.gallery` (imageWithAlt[], no video concept) is only used
+  // when the new section has no media at all — converted to the same
+  // MediaItem shape resolveGalleryItems expects, preserving its existing
+  // image-only behavior exactly.
+  const legacyGalleryMedia: MediaItem[] | undefined = page?.gallery?.map(
+    (img): MediaItem => ({ _type: "mediaItem", kind: "image", image: { _type: "image", asset: img.asset }, alt: img.alt }),
   );
+  const galleryItems = gallerySection?.media?.length
+    ? resolveGalleryItems(gallerySection.media as unknown as MediaItem[], locale, hostAtRorumGalleryImages)
+    : resolveGalleryItems(legacyGalleryMedia, locale, hostAtRorumGalleryImages);
 
   const includedAllFromSections = (sessionSection?.items ?? []).filter((i) => i.itemKey?.startsWith("included"));
   const includedAll = includedAllFromSections.length
@@ -264,7 +265,7 @@ async function getData(locale: Locale) {
     steps,
     cancellation,
     packageItems,
-    galleryImages,
+    galleryItems,
   };
 }
 
@@ -333,7 +334,7 @@ export default async function HostAtRorumPage({ params }: { params: Promise<{ lo
               </Button>
             </div>
           </div>
-          <HorizontalGallery images={data.galleryImages} />
+          <HorizontalGallery items={data.galleryItems} locale={locale} />
         </Container>
       </section>
       <section className="section bg-white p-0!">

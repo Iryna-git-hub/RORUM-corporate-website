@@ -15,7 +15,8 @@ export type UiTextKey =
   | "shareWithFriendsHeading"
   | "viewOnMap"
   | "developedBy"
-  | "lastUpdatedLabel";
+  | "lastUpdatedLabel"
+  | "videoUnavailable";
 
 const UI_TEXT: Record<UiTextKey, Record<Locale, string>> = {
   eventOverviewHeading: { en: "Event Overview", da: "Oversigt over arrangementet", uk: "Огляд події" },
@@ -25,6 +26,7 @@ const UI_TEXT: Record<UiTextKey, Record<Locale, string>> = {
   viewOnMap: { en: "View on map", da: "Se på kortet", uk: "Відкрити на карті" },
   developedBy: { en: "Developed by", da: "Udviklet af", uk: "Розроблено" },
   lastUpdatedLabel: { en: "Last updated", da: "Sidst opdateret", uk: "Востаннє оновлено" },
+  videoUnavailable: { en: "Video unavailable", da: "Video utilgængelig", uk: "Відео недоступне" },
 };
 
 export function getUiText(key: UiTextKey, locale: Locale): string {

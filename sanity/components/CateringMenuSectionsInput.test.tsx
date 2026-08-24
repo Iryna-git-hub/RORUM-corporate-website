@@ -182,3 +182,37 @@ describe("CateringMenuSectionsInput — the generic array add path is disabled (
     expect(passed.schemaType).toBe(props.schemaType);
   });
 });
+
+describe("CateringMenuSectionsInput — the Add control is below the list, in real DOM order (no CSS positioning trick)", () => {
+  it("with an empty category list, the Add category button still renders", () => {
+    setDocumentId("page-catering-menu-examples");
+    const { props } = fakeProps({ value: [], members: [] } as never);
+    renderInput(props);
+    expect(screen.getByRole("button", { name: "+ Add category" })).toBeInTheDocument();
+  });
+
+  it("with a populated list, the rendered default list markup precedes the Add category button in DOM order", () => {
+    setDocumentId("page-catering-menu-examples");
+    const members = [
+      { kind: "item", key: "category-a", item: { value: { _key: "category-a", sectionKey: "category-a" } } },
+      { kind: "item", key: "category-b", item: { value: { _key: "category-b", sectionKey: "category-b" } } },
+    ] as unknown as import("sanity").ArrayOfObjectsInputProps["members"];
+    const { props } = fakeProps({ members });
+    renderInput(props);
+
+    const listNode = screen.getByTestId("rendered-default");
+    const button = screen.getByRole("button", { name: "+ Add category" });
+    // DOCUMENT_POSITION_FOLLOWING (4) means `button` comes AFTER `listNode`.
+    expect(listNode.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("a new category is appended after the final existing category (insert path targets the end, [-1])", async () => {
+    setDocumentId("page-catering-menu-examples");
+    const { props, onChange } = fakeProps();
+    renderInput(props);
+    await userEvent.click(screen.getByRole("button", { name: "+ Add category" }));
+    const patch = onChange.mock.calls[0]![0] as ReturnType<typeof insert>;
+    expect(patch.position).toBe("after");
+    expect(patch.path).toEqual([-1]);
+  });
+});

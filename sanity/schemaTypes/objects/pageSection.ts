@@ -1,7 +1,9 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
-import { allOrNothingLanguages } from "@/sanity/lib/i18nValidation";
+import { requiredWhen } from "@/sanity/lib/i18nValidation";
 import { EventsStripLabelField } from "@/sanity/components/EventsStripLabelField";
-import { CateringOfferItemsInput } from "@/sanity/components/CateringOfferItemsInput";
+import { CateringMenuDishItemsInput } from "@/sanity/components/CateringMenuDishItemsInput";
+import { CateringMenuCategoryInput } from "@/sanity/components/CateringMenuCategoryInput";
+import { CateringAllLanguagesInput } from "@/sanity/components/CateringAllLanguagesInput";
 
 // The one section shape every page in the new `page` document type is built
 // from. `sectionKind` picks what the section visually is; the remaining
@@ -119,6 +121,20 @@ function isCorrectlyShapedCateringMenuSection(parent: { sectionKind?: string } |
   return isPageCateringMenuExamples(document) && Boolean(parent?.sectionKind);
 }
 
+/**
+ * A menu category's label/title/text are NOT optional the way most
+ * sections' are — see requiredWhen()'s own doc comment in i18nValidation.ts
+ * for the frontend proof (no fallback text exists beyond the original 6
+ * hardcoded categories; a blank one renders an empty nav tab/heading/
+ * description). Scoped by `sectionKind` alone (not document id) so this
+ * requirement follows the role wherever a `menuCategory`-kind section
+ * exists, matching contentItem.ts's ITEM_ROLE_RULES `sectionKinds`
+ * precedent for the same open, manager-extensible-set reasoning.
+ */
+function isMenuCategorySection(parent: { sectionKind?: string } | undefined): boolean {
+  return parent?.sectionKind === "menuCategory";
+}
+
 function fieldHidden(fieldName: string) {
   return ({ parent, document }: { parent?: { sectionKind?: string; sectionKey?: string }; document?: unknown }) => {
     if (fieldName === "text" && parent?.sectionKey && ABOUT_TEXT_FORCE_VISIBLE_SECTION_KEYS.has(parent.sectionKey) && isPageAbout(document)) {
@@ -153,6 +169,12 @@ export default defineType({
   title: "Section",
   type: "object",
   description: "One section of the page, shown in the order sections appear below. / Один розділ сторінки — показується в тому порядку, у якому розділи розташовані нижче.",
+  // CateringMenuCategoryInput is scoped internally to page-catering-menu-
+  // examples's menuCategory sections only — it renders the reserved
+  // categoryIcon item as a real Icon field above the rest of the (otherwise
+  // unmodified) default form. Every other pageSection instance on every
+  // other document/section renders exactly as before.
+  components: { input: CateringMenuCategoryInput },
   fields: [
     defineField({
       name: "sectionKey",
@@ -184,24 +206,31 @@ export default defineType({
       name: "label",
       title: "Small label",
       type: "internationalizedArrayString",
-      description: 'Small eyebrow text above the title, e.g. "Catering". / Невеликий напис над заголовком.',
-      validation: allOrNothingLanguages({ skip: skipValidationWhenHidden("label") }),
+      description:
+        'Small eyebrow text above the title, e.g. "Catering" (optional for most sections). For a menu category, this is the short label shown in the horizontal navigation tab, and is required. / Невеликий напис над заголовком (необов\'язково для більшості розділів). Для категорії меню це короткий напис на вкладці горизонтальної навігації, і він обов\'язковий.',
+      validation: requiredWhen(({ parent }) => isMenuCategorySection(parent as { sectionKind?: string } | undefined), { skip: skipValidationWhenHidden("label") }),
       hidden: fieldHidden("label"),
-      components: { field: EventsStripLabelField },
+      components: { field: EventsStripLabelField, input: CateringAllLanguagesInput },
     }),
     defineField({
       name: "title",
       title: "Title",
       type: "internationalizedArrayString",
-      validation: allOrNothingLanguages({ skip: skipValidationWhenHidden("title") }),
+      description:
+        "Optional for most sections. For a menu category, this is the category heading, and is required. / Необов'язково для більшості розділів. Для категорії меню це заголовок категорії, і він обов'язковий.",
+      validation: requiredWhen(({ parent }) => isMenuCategorySection(parent as { sectionKind?: string } | undefined), { skip: skipValidationWhenHidden("title") }),
       hidden: fieldHidden("title"),
+      components: { input: CateringAllLanguagesInput },
     }),
     defineField({
       name: "text",
       title: "Text",
       type: "internationalizedArrayText",
-      validation: allOrNothingLanguages({ skip: skipValidationWhenHidden("text") }),
+      description:
+        "Optional for most sections. For a menu category, this is the category description, and is required. / Необов'язково для більшості розділів. Для категорії меню це опис категорії, і він обов'язковий.",
+      validation: requiredWhen(({ parent }) => isMenuCategorySection(parent as { sectionKind?: string } | undefined), { skip: skipValidationWhenHidden("text") }),
       hidden: fieldHidden("text"),
+      components: { input: CateringAllLanguagesInput },
     }),
     defineField({
       name: "media",
@@ -223,10 +252,14 @@ export default defineType({
       type: "array",
       of: [defineArrayMember({ type: "contentItem" })],
       hidden: fieldHidden("items"),
-      // Scoped internally to page-catering's "philosophy" (What We Offer)
-      // section only — every other section's items array renders with the
-      // unmodified default input, unaffected.
-      components: { input: CateringOfferItemsInput },
+      // CateringMenuDishItemsInput is scoped internally to
+      // page-catering-menu-examples's menuCategory sections (Dishes) — for
+      // every other items array (including page-catering's "philosophy"
+      // section) it delegates unchanged to CateringOfferItemsInput, which
+      // itself is scoped to that one case and otherwise renders the
+      // unmodified default input. Chained (not both wired independently)
+      // because `items` can only ever have one `components.input`.
+      components: { input: CateringMenuDishItemsInput },
     }),
     defineField({
       name: "settings",

@@ -15,13 +15,13 @@ import { pickLocalized } from "@/lib/sanity-i18n";
 import { getAction, getItem, getSection } from "@/lib/sanity-sections";
 import { getIconCardIcon } from "@/lib/iconCardIcons";
 import { eventDecorationGalleryImages } from "@/lib/galleryImages";
-import { resolveGalleryImages } from "@/lib/sanityGallery";
+import { resolveGalleryItems } from "@/lib/sanityGallery";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
 import { eventDecorationPageQuery } from "@/sanity/queries/pages";
-import type { ImageWithAlt } from "@/sanity.types";
+import type { MediaItem } from "@/sanity.types";
 
 const fallbackFormats: { title: string; text: string; icon: string }[] = [
   { title: "Table styling", text: "Elegant table setups with flowers, candles, place details and carefully selected visual accents.", icon: "UtensilsCrossed" },
@@ -82,7 +82,7 @@ async function getData(locale: Locale) {
       formats: fallbackFormats.map((f) => ({ title: f.title, text: f.text, Icon: getIconCardIcon(f.icon) })),
       suitableFor: fallbackSuitableFor.map(([label, icon]) => ({ label, Icon: getIconCardIcon(icon) })),
       steps: fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text })),
-      galleryImages: eventDecorationGalleryImages,
+      galleryItems: resolveGalleryItems(undefined, locale, eventDecorationGalleryImages),
     };
   }
 
@@ -97,12 +97,16 @@ async function getData(locale: Locale) {
   const stepsSection = getSection(newPage?.sections, "steps");
   const formSection = getSection(newPage?.sections, "inquiryForm");
 
-  const galleryImagesFromSections = gallerySection?.media?.length
-    ? gallerySection.media
-        .filter((m) => m.kind !== "video")
-        .map((m) => ({ _type: "image" as const, asset: m.image?.asset, alt: m.alt }) as unknown as ImageWithAlt)
-    : undefined;
-  const galleryImages = resolveGalleryImages(galleryImagesFromSections ?? page?.gallery, locale, eventDecorationGalleryImages);
+  // Legacy `page.gallery` (imageWithAlt[], no video concept) is only used
+  // when the new section has no media at all — converted to the same
+  // MediaItem shape resolveGalleryItems expects, preserving its existing
+  // image-only behavior exactly.
+  const legacyGalleryMedia: MediaItem[] | undefined = page?.gallery?.map(
+    (img): MediaItem => ({ _type: "mediaItem", kind: "image", image: { _type: "image", asset: img.asset }, alt: img.alt }),
+  );
+  const galleryItems = gallerySection?.media?.length
+    ? resolveGalleryItems(gallerySection.media as unknown as MediaItem[], locale, eventDecorationGalleryImages)
+    : resolveGalleryItems(legacyGalleryMedia, locale, eventDecorationGalleryImages);
 
   const introItemsFromSections = stylingSection?.items?.filter((i) => i.itemKey?.startsWith("intro"));
   const stylingIntro = introItemsFromSections?.length
@@ -202,7 +206,7 @@ async function getData(locale: Locale) {
     formats,
     suitableFor,
     steps,
-    galleryImages,
+    galleryItems,
   };
 }
 
@@ -257,7 +261,7 @@ export default async function DecorationPage({ params }: { params: Promise<{ loc
 
       <section id="decoration-gallery" className="catering-gallery-section">
         <Container>
-          <HorizontalGallery images={data.galleryImages} />
+          <HorizontalGallery items={data.galleryItems} locale={locale} />
           <div className="grid gap-2.5 mt-[clamp(18px,3vw,28px)]">
             <p className="m-0 text-text-primary text-[15px] font-black">
               {data.suitableForLabel}

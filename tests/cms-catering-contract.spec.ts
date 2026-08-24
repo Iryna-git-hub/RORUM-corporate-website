@@ -112,13 +112,25 @@ test.describe("Catering content contract — schema-to-frontend connection (read
       }
     });
 
-    test(`locale: ${locale} — gallery renders real uploaded photos, "suitable for" chips render icon+label by stable key`, async ({ page }) => {
+    test(`locale: ${locale} — gallery renders real uploaded photos AND videos (mixed media, not images-only), "suitable for" chips render icon+label by stable key`, async ({ page }) => {
       const gallery = section(cateringPage, "gallery");
       await gotoAndStabilize(page, localizedHref("/catering", locale));
 
       const galleryImages = page.locator("#catering-gallery img");
       await expect(galleryImages.first()).toBeVisible();
       expect(await galleryImages.count(), "at least one real gallery image must render").toBeGreaterThan(0);
+
+      // Schema-driven, not hardcoded: whatever the live document's photo/
+      // video split currently is, the rendered gallery must match it exactly
+      // — this is the assertion that would have caught the original defect
+      // (video items silently filtered out before rendering). If a real
+      // video item exists in the live document, this proves it actually
+      // renders as a <video>, not that it's merely absent from the count.
+      const mediaItems = gallery?.media ?? [];
+      const photoCount = mediaItems.filter((m) => m.kind !== "video").length;
+      const videoCount = mediaItems.filter((m) => m.kind === "video").length;
+      expect(await galleryImages.count(), "rendered <img> count must match the document's photo-kind media count").toBe(photoCount);
+      expect(await page.locator("#catering-gallery video").count(), "rendered <video> count must match the document's video-kind media count — proves video items are never silently dropped").toBe(videoCount);
 
       const suitableForItems = (gallery?.items ?? []).filter((i) => i.itemKey?.startsWith("suitableFor"));
       expect(suitableForItems.length, "live suitableFor chips in Sanity").toBeGreaterThan(0);

@@ -354,6 +354,56 @@ test.describe("mediaItem.ts — isHomeDecorativeBackgroundMedia() + caption hidd
   });
 });
 
+test.describe("mediaItem.ts — posterImage is hidden and unvalidated everywhere (poster-removal product decision, superseding the earlier poster-required work)", () => {
+  function galleryDoc(id: string, mediaKeys: { _key: string }[]) {
+    return { _id: id, sections: [{ sectionKey: "gallery", media: mediaKeys }] };
+  }
+
+  const cateringDoc = galleryDoc("page-catering", [{ _key: "video1" }, { _key: "photo1" }]);
+  const eventDecorationDoc = galleryDoc("page-event-decoration", [{ _key: "video1" }]);
+  const hostAtRorumDoc = galleryDoc("page-host-at-rorum", [{ _key: "video1" }]);
+  const homeDoc = {
+    _id: "page-home",
+    sections: [{ sectionKey: "hero", media: [{ _key: "heroVideo" }] }],
+  };
+  const communityMembershipDoc = {
+    _id: "page-community-membership",
+    sections: [{ sectionKey: "gallery", media: [{ _key: "video1" }] }],
+  };
+
+  const contexts: { name: string; document: unknown; parent: unknown }[] = [
+    { name: "page-catering gallery video", document: cateringDoc, parent: { _key: "video1", kind: "video" } },
+    { name: "drafts.page-catering gallery video", document: { ...cateringDoc, _id: "drafts.page-catering" }, parent: { _key: "video1", kind: "video" } },
+    { name: "page-event-decoration gallery video", document: eventDecorationDoc, parent: { _key: "video1", kind: "video" } },
+    { name: "page-host-at-rorum gallery video", document: hostAtRorumDoc, parent: { _key: "video1", kind: "video" } },
+    { name: "page-catering gallery photo (non-video)", document: cateringDoc, parent: { _key: "photo1", kind: "image" } },
+    { name: "Home hero video (not one of the 3 scoped galleries)", document: homeDoc, parent: { _key: "heroVideo", kind: "video" } },
+    { name: "Community Membership video (different schema type entirely)", document: communityMembershipDoc, parent: { _key: "video1", kind: "video" } },
+    { name: "an unrelated/unmatched document", document: { _id: "page-about" }, parent: { _key: "anything", kind: "video" } },
+  ];
+
+  for (const { name, document, parent } of contexts) {
+    test(`posterImage is hidden for: ${name}`, () => {
+      expect(callHidden(field(mediaItemType, "posterImage"), { document, parent })).toBe(true);
+    });
+  }
+
+  test("posterImage has no validation rule at all — nothing left to enforce on an unused, hidden field", () => {
+    const posterField = field(mediaItemType, "posterImage") as unknown as { validation?: unknown };
+    expect(posterField.validation).toBeUndefined();
+  });
+
+  test("a video with a valid source and complete alt but no poster is otherwise unblocked (regression guard for the superseded poster-required behavior)", () => {
+    // No posterImage validation exists any more, so there is nothing to
+    // invoke here — this test exists so a future re-introduction of a
+    // poster requirement fails loudly (this assertion would need to change)
+    // rather than silently reintroducing the superseded behavior unnoticed.
+    const posterField = field(mediaItemType, "posterImage") as unknown as { validation?: unknown };
+    expect(posterField.validation).toBeUndefined();
+    expect(callHidden(field(mediaItemType, "posterImage"), { document: cateringDoc, parent: { _key: "video1", kind: "video" } })).toBe(true);
+  });
+});
+
 /** Captures the function passed to `rule.custom(...)` so it can be invoked directly with a mocked (value, context) pair. */
 function captureCustomValidator(f: FieldDef): (value: unknown, context: unknown) => unknown {
   const withValidation = f as unknown as { validation?: (rule: unknown) => unknown };

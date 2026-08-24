@@ -40,8 +40,10 @@ function generateSectionKey(): string {
  *      its generic add/duplicate/copy controls entirely when told to.
  *      Reordering (native drag) and per-item open/edit/delete are
  *      untouched, since those aren't in this array's disabled-action list.
- *   2. The "+ Add category" button above the list inserts a FULLY VALID
- *      menu category in one step — `_type`, a generated stable
+ *   2. The "+ Add category" button, rendered BELOW the existing category
+ *      list (real DOM order — the list is rendered first, the button
+ *      after; not a CSS reorder), inserts a FULLY VALID menu category in
+ *      one step, appended to the end: `_type`, a generated stable
  *      `sectionKey`, `sectionKind: "menuCategory"`, and a `categoryIcon`
  *      item — none of which a non-technical manager should ever need to
  *      type in by hand. `sectionKind`/`sectionKey` are hidden on this
@@ -91,24 +93,23 @@ export function CateringMenuSectionsInput(props: ArrayOfObjectsInputProps) {
 
   return (
     <Stack space={4}>
+      <Text size={1} weight="semibold">
+        Menu categories
+      </Text>
+      {props.renderDefault({ ...props, schemaType: schemaTypeWithDisabledActions })}
       <Card padding={3} radius={2} border tone="primary">
         <Stack space={3}>
-          <Text size={1} weight="semibold">
-            Menu categories
-          </Text>
           <Text size={1} muted>
-            Each category becomes a tab in the Catering Menu Examples popup. Use the button below to add one — it starts empty
-            with a default icon you can change right away. To add dishes, open a category and use its own &ldquo;Add
-            item&rdquo; under Items. / Кожна категорія стає вкладкою у спливному вікні прикладів меню кейтерингу. Скористайтеся
-            кнопкою нижче, щоб додати нову — вона починається порожньою, зі стандартною іконкою, яку можна одразу змінити. Щоб
-            додати страви, відкрийте категорію та скористайтеся власною кнопкою &laquo;Додати елемент&raquo; у розділі Items.
+            Adds a new category card at the end of the list — it starts empty with a default icon you can change right away.
+            To add dishes, open the category and use its own &ldquo;+ Add dish&rdquo; button. / Додає нову картку категорії в
+            кінець списку — вона починається порожньою, зі стандартною іконкою, яку можна одразу змінити. Щоб додати страви,
+            відкрийте категорію та скористайтеся власною кнопкою &laquo;+ Додати страву&raquo;.
           </Text>
           <Box>
             <Button text="+ Add category" tone="primary" disabled={adding} onClick={addCategory} />
           </Box>
         </Stack>
       </Card>
-      {props.renderDefault({ ...props, schemaType: schemaTypeWithDisabledActions })}
     </Stack>
   );
 }
