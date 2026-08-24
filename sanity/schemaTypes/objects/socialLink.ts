@@ -2,12 +2,44 @@ import { defineField, defineType } from "sanity";
 import { SOCIAL_LINK_ICONS } from "@/sanity/components/actionIcons";
 import { requireAllLanguages } from "@/sanity/lib/i18nValidation";
 
+// Kept for every platform this object type has EVER stored (including
+// "linkedin", currently unwanted per RORUM's own business decision — see
+// MIGRATION_REPORT.md) so an old/legacy stored value still gets a real
+// preview title instead of falling back to "(no platform selected)". Only
+// the *selectable* list below (`options.list`) is narrowed to what a
+// manager should be able to pick going forward.
 const PLATFORM_TITLES: Record<string, string> = {
   instagram: "Instagram",
   facebook: "Facebook",
   linkedin: "LinkedIn",
   whatsapp: "WhatsApp",
 };
+
+// This object type is used ONLY by the `socialLinks` singleton (Contact/
+// Header/Footer's shared profile list) — confirmed by a full-codebase
+// search: Event Share's own share-platform list (event.ts's
+// SHARE_ACTION_TYPES, rendered by components/EventShare.tsx) is a
+// completely separate, hardcoded schema that does not reuse this type, and
+// still supports LinkedIn unchanged. RORUM does not currently have a
+// LinkedIn profile that should appear via the shared socialLinks list —
+// narrowed to exactly the 2 platforms that do.
+//
+// Confirmed live (not assumed): Sanity's `options.list` on a plain string
+// field DOES retroactively invalidate an already-stored value that isn't
+// in the list ("Value ... did not match any allowed values") — it is NOT
+// picker-only. This currently puts the *published* socialLinks document
+// (which still has a stray "linkedin" entry) into an error state — that is
+// expected and correct, not a bug to route around: Studio's Publish button
+// is governed by the *draft's* own validation (drafts.socialLinks has
+// neither the field-value error above nor the field at all, since the
+// draft already only has Instagram/Facebook — see MIGRATION_REPORT.md Part
+// 22), so the manager can still publish the clean draft normally; the
+// published doc's transient error disappears the moment they do, since
+// publishing replaces it with the draft's content entirely.
+const SELECTABLE_PLATFORMS = [
+  { title: "Instagram", value: "instagram" },
+  { title: "Facebook", value: "facebook" },
+] as const;
 
 // Not localized: platform, URL and brand color are identical regardless of
 // language. Only `label` (used as the link's accessible name) is localized.
@@ -24,12 +56,7 @@ export default defineType({
       type: "string",
       description: "Which platform this link is for. / Для якої платформи це посилання.",
       options: {
-        list: [
-          { title: "Instagram", value: "instagram" },
-          { title: "Facebook", value: "facebook" },
-          { title: "LinkedIn", value: "linkedin" },
-          { title: "WhatsApp", value: "whatsapp" },
-        ],
+        list: [...SELECTABLE_PLATFORMS],
       },
       validation: (rule) => [
         rule.required(),

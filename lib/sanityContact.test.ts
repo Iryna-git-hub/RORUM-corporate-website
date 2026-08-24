@@ -134,3 +134,45 @@ describe("resolveSocialLinks — missing vs. intentionally-empty, and derived br
     expect(resolveSocialLinks(doc, "en")[0]!.label).toBe("Facebook");
   });
 });
+
+describe("intentionally-empty vs. compatibility-fallback — explicit proofs (verification round)", () => {
+  it("removing ONLY Email from a full 4-field config leaves Name/Phone/Message untouched, in their original relative order", () => {
+    const form = {
+      _key: "form",
+      items: [
+        { _key: "field-name", itemKey: "field-name", value: "text", title: i18n("Full Name") },
+        { _key: "field-phone", itemKey: "field-phone", value: "phone", title: i18n("Phone number") },
+        { _key: "field-message", itemKey: "field-message", value: "multiline", title: i18n("Message") },
+      ],
+    } as unknown as RawPageSection;
+    const result = resolveContactFormFields(form, defaultFormMessages, "en");
+    expect(result.map((f) => f.name)).toEqual(["name", "phone", "message"]);
+    expect(result.find((f) => f.name === "email")).toBeUndefined();
+  });
+
+  it("resolveContactFormFields never falls back to hardcoded defaults once page-contact exists, even with only 1 configured field remaining", () => {
+    const form = { _key: "form", items: [{ _key: "field-email", itemKey: "field-email", value: "email", title: i18n("Email") }] } as unknown as RawPageSection;
+    const result = resolveContactFormFields(form, defaultFormMessages, "en");
+    expect(result).toHaveLength(1);
+    expect(result[0]!.name).toBe("email");
+  });
+
+  it("resolveContactDetailOrder: removing ONLY Phone from a full 3-detail config leaves Address/Email, in original order", () => {
+    const hero = {
+      _key: "hero",
+      items: [
+        { _key: "contactDetail-address", itemKey: "contactDetail-address" },
+        { _key: "contactDetail-email", itemKey: "contactDetail-email" },
+      ],
+    } as unknown as RawPageSection;
+    expect(resolveContactDetailOrder(hero)).toEqual(["address", "email"]);
+  });
+
+  it("missing page-contact (undefined section) uses the documented compatibility fallback for every resolver, not an empty/broken state", () => {
+    expect(resolveContactDetailOrder(undefined)).toEqual(["address", "phone", "email"]);
+    expect(resolveContactFormFields(undefined, defaultFormMessages, "en").map((f) => f.name)).toEqual(["name", "phone", "email", "message"]);
+    expect(resolvePrivacyConsentSettings(undefined)).toEqual({ shown: true, required: true });
+    expect(resolveFaqPrompt(undefined, "en")).toEqual({ shown: true, question: undefined, label: undefined, href: "/faq" });
+    expect(resolveSocialLinks(null, "en").length).toBeGreaterThan(0);
+  });
+});

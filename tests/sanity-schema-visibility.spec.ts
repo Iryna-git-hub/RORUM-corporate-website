@@ -3,6 +3,7 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 import pageSectionType, { isFaqCategorySection, isPageFaq, isPageContact } from "@/sanity/schemaTypes/objects/pageSection";
 import contentItemType, { ITEM_ROLE_RULES, matchItemRoleInContext, isFaqQuestionRole, isFieldRequiredByItemRole, fieldLabelForItemRole } from "@/sanity/schemaTypes/objects/contentItem";
+import socialLinkType from "@/sanity/schemaTypes/objects/socialLink";
 import { allOrNothingLanguages, allOrNothingForSelectedEventLocales, requireAllLanguages } from "@/sanity/lib/i18nValidation";
 import mediaItemType from "@/sanity/schemaTypes/objects/mediaItem";
 import { isInformativeMedia } from "@/sanity/lib/galleryMediaContext";
@@ -620,6 +621,13 @@ function captureCustomValidator(f: FieldDef): (value: unknown, context: unknown)
   const mockRule = {
     custom(fn: (value: unknown, context: unknown) => unknown) {
       captured.push(fn);
+      return mockRule;
+    },
+    // No-op passthrough — some fields chain `.required()` ahead of
+    // `.custom(...)` in the same validation array (e.g. socialLink.ts's
+    // icon field); this mock only needs to capture the custom() call(s),
+    // not actually enforce requiredness itself.
+    required() {
       return mockRule;
     },
   };
@@ -1896,5 +1904,172 @@ test.describe("contentItem.ts — Contact reserved item roles (Task 5/6/7/10)", 
   test("regression: an unrelated page's item with itemKey \"followUsTitle\" but sectionKey \"hero\" still matches no rule other than Contact's own (proves scoping is itemKey-pattern + sectionKey driven, not accidentally cross-page)", () => {
     const document = { _id: "page-home", sections: [{ sectionKey: "hero", items: [{ _key: "x", itemKey: "followUsTitle" }] }] };
     expect(matchItemRoleInContext(document, document.sections[0]!.items[0]!)?.role).toBe("Contact Follow-us heading");
+  });
+});
+
+// ============================================================================
+// Event Decoration Publish-blocker re-diagnosis (this session) — the exact
+// live document shape (raw-fetched 2026-08-24) proving the Contact page
+// schema work (pageSection.ts/contentItem.ts's new Contact-only hides and
+// 6 new ITEM_ROLE_RULES rows, all scoped by isPageContact()/sectionKeys
+// "hero"/"form") never touches Event Decoration's own sections/items, and
+// that this document's real gallery/styling/steps/inquiryForm shape
+// validates with zero errors under the CURRENT (Contact-inclusive) schema.
+//
+// The actual Publish blocker — confirmed via the official `sanity
+// documents validate` engine against BOTH the current working tree AND a
+// clean `c7e78f8` git worktree (git worktree add, no stash/reset, Contact
+// work never touched) — is a single pre-existing stray entry in
+// drafts.page-event-decoration's `seo.title` array:
+//   { "_key": "01705d3487af", "_type": "internationalizedArrayStringValue" }
+// (no `language`, no `value` — Studio residue from a field opened but never
+// filled in). This fails `sanity-plugin-internationalized-array`'s own
+// built-in per-entry schema (node_modules/sanity-plugin-internationalized-array/
+// dist/index.js's `object_default()`: a hidden `language` field with
+// `validation: (Rule) => Rule.required()`) — third-party plugin schema,
+// not any file this project owns, and identical (same path, same message,
+// same document revision) under both the c7e78f8 and current schema —
+// proving it is NOT a Contact regression and predates this session's work
+// entirely. `page-event-decoration` (published) has `seo.title: undefined`
+// (never set) and 0 validation errors. `sanity.config.ts`'s
+// `document.actions` filter only removes "duplicate"/"delete" for `page`-
+// type documents — "publish" is never removed, confirming Publish is
+// disabled by Studio's own standard "has validation errors" behavior, not
+// a config/permission issue.
+// ============================================================================
+test.describe("Event Decoration — real document shape unaffected by Contact's schema work (this session's re-diagnosis)", () => {
+  // Real section/item shapes, raw-fetched from page-event-decoration
+  // 2026-08-24 (see this describe block's own comment above for the full
+  // diagnosis). sectionKey "inquiryForm" (not "form") and every itemKey
+  // below are exactly what's live today.
+  const eventDecorationDoc = {
+    _id: "page-event-decoration",
+    sections: [
+      { _key: "hero", sectionKey: "hero", sectionKind: "hero", items: [] },
+      {
+        _key: "gallery",
+        sectionKey: "gallery",
+        sectionKind: "gallery",
+        items: [
+          { _key: "ariaLabel", itemKey: "ariaLabel" },
+          { _key: "suitableFor0", itemKey: "suitableFor0" },
+          { _key: "suitableFor1", itemKey: "suitableFor1" },
+        ],
+      },
+      {
+        _key: "styling",
+        sectionKey: "styling",
+        sectionKind: "split",
+        items: [
+          { _key: "intro0", itemKey: "intro0" },
+          { _key: "intro1", itemKey: "intro1" },
+          { _key: "format0", itemKey: "format0" },
+          { _key: "tailoredNote", itemKey: "tailoredNote" },
+        ],
+      },
+      { _key: "steps", sectionKey: "steps", sectionKind: "steps", items: [{ _key: "step0", itemKey: "step0" }] },
+      {
+        _key: "inquiryForm",
+        sectionKey: "inquiryForm",
+        sectionKind: "form",
+        items: [
+          { _key: "submitLabel", itemKey: "submitLabel" },
+          { _key: "messagePlaceholder", itemKey: "messagePlaceholder" },
+          { _key: "successMessage", itemKey: "successMessage" },
+        ],
+      },
+    ],
+  };
+
+  test("isPageContact is false for page-event-decoration (and its draft) — none of the new Contact-only section hides can ever activate here", () => {
+    expect(isPageContact(eventDecorationDoc)).toBe(false);
+    expect(isPageContact({ _id: "drafts.page-event-decoration" })).toBe(false);
+  });
+
+  test("Event Decoration's hero section keeps media/actions VISIBLE — proves the new Contact hero hide (media/actions) is scoped by document, not by sectionKey \"hero\" alone", () => {
+    const parent = eventDecorationDoc.sections[0]!;
+    expect(callHidden(field(pageSectionType, "media"), { parent, document: eventDecorationDoc })).toBe(false);
+    expect(callHidden(field(pageSectionType, "actions"), { parent, document: eventDecorationDoc })).toBe(false);
+  });
+
+  test("Event Decoration's inquiryForm section (sectionKey \"inquiryForm\", NOT \"form\") is untouched by the new Contact form hide (label/text)", () => {
+    // "form"-kind visibility already hides label/text for every section of
+    // this kind (pre-existing, unrelated to Contact) — the test here is
+    // that the CONTACT-SPECIFIC force-hide doesn't ALSO apply (it's a
+    // no-op regardless since the outcome is the same hidden state, but
+    // confirms via isPageContact() being false, not an accidental
+    // sectionKey match on "form").
+    expect(eventDecorationDoc.sections[4]!.sectionKey).not.toBe("form");
+  });
+
+  test("Event Decoration's real submitLabel/successMessage items in inquiryForm still match their PRE-EXISTING Catering-shared role, not any new Contact role", () => {
+    const submitParent = eventDecorationDoc.sections[4]!.items[0]!;
+    const successParent = eventDecorationDoc.sections[4]!.items[2]!;
+    expect(matchItemRoleInContext(eventDecorationDoc, submitParent)?.role).toBe("Catering inquiry form title-only row");
+    expect(matchItemRoleInContext(eventDecorationDoc, successParent)?.role).toBe("Catering inquiry form success message");
+  });
+
+  test("every real item in gallery/styling/steps/inquiryForm keeps its pre-existing visible-field set — zero fields newly hidden or newly required by this session's Contact work", () => {
+    for (const section of eventDecorationDoc.sections) {
+      for (const item of section.items) {
+        const rule = matchItemRoleInContext(eventDecorationDoc, item);
+        const isContactRole = Boolean(rule?.role.startsWith("Contact "));
+        expect(isContactRole, `${section.sectionKey}.${item.itemKey} matched role "${rule?.role}"`).toBe(false);
+      }
+    }
+  });
+
+  test("no i18n field on Event Decoration's real items is force-required by the new isFieldRequiredByItemRole mechanism (all pre-existing roles are unaffected)", () => {
+    for (const section of eventDecorationDoc.sections) {
+      for (const item of section.items) {
+        for (const fieldName of ["title", "text"] as const) {
+          // Only FAQ question / Contact form field / Contact Follow-us
+          // heading / Contact success message roles set requiredFields —
+          // none of those roles can match anything in this document (proven
+          // above), so this must always be false here.
+          expect(isFieldRequiredByItemRole(fieldName)(eventDecorationDoc, item), `${section.sectionKey}.${item.itemKey}.${fieldName}`).toBe(false);
+        }
+      }
+    }
+  });
+});
+
+// ============================================================================
+// socialLinks business correction (this session's follow-up) — RORUM does
+// not have a LinkedIn profile that should appear via the shared socialLinks
+// singleton (Contact/Header/Footer); the selectable platform list on
+// `socialLink` (used ONLY by that singleton — Event Share's own
+// share-platform list in event.ts is a separate, hardcoded schema that
+// still supports LinkedIn unchanged, see EventShare.test.tsx) is narrowed
+// to exactly Instagram and Facebook.
+// ============================================================================
+test.describe("socialLink.ts — platform selector narrowed to Instagram/Facebook only", () => {
+  test("the selectable options list is exactly Instagram and Facebook, in that order — no LinkedIn, no WhatsApp", () => {
+    const iconField = field(socialLinkType, "icon") as unknown as { options?: { list?: { title: string; value: string }[] } };
+    expect(iconField.options?.list).toEqual([
+      { title: "Instagram", value: "instagram" },
+      { title: "Facebook", value: "facebook" },
+    ]);
+  });
+
+  // Correction of an assumption made mid-task (see MIGRATION_REPORT.md Part
+  // 22): a pre-existing stored value outside `options.list` (e.g. a legacy
+  // "linkedin" entry) IS retroactively flagged by Sanity itself
+  // ("did not match any allowed values") — confirmed live via the official
+  // validator, not just assumed. That specific check is enforced by
+  // Sanity's own list-membership validation, which isn't reachable through
+  // this file's mocked-rule harness (only `rule.custom(...)` calls are
+  // captured) — this test instead proves the ADJACENT, narrower claim that
+  // IS testable here: the field's own custom duplicate-platform validator
+  // (the one `rule.custom(...)` this field registers) never itself rejects
+  // a lone "linkedin" value — only Sanity's separate, built-in
+  // list-membership check does that.
+  test("the custom duplicate-platform validator (this field's own rule.custom) does not reject a lone out-of-list value — that's Sanity's separate, built-in list-membership check, confirmed live instead", () => {
+    const iconField = field(socialLinkType, "icon");
+    const requiredRule = (iconField as unknown as { validation?: (rule: unknown) => unknown }).validation;
+    expect(typeof requiredRule).toBe("function");
+    const validate = captureCustomValidator(iconField);
+    const doc = { links: [{ _key: "x", icon: "linkedin" }] };
+    expect(validate("linkedin", { document: doc, parent: { _key: "x" } })).toBe(true);
   });
 });

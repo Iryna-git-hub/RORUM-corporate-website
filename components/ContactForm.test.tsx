@@ -105,3 +105,30 @@ describe("ContactForm — Privacy consent shown/required settings (Task 9)", () 
     expect(screen.queryByText(/agree to the Privacy policy/i)).not.toBeInTheDocument();
   });
 });
+
+describe("ContactForm — removing exactly one configured field removes only that field (verification round)", () => {
+  it("a 4-field config with Email removed renders Name/Phone/Message but not Email, and validation never runs for Email", async () => {
+    const formSection = {
+      _key: "form",
+      items: [
+        { _key: "field-name", itemKey: "field-name", value: "text", title: i18n("Full Name") },
+        { _key: "field-phone", itemKey: "field-phone", value: "phone", title: i18n("Phone number") },
+        { _key: "field-message", itemKey: "field-message", value: "multiline", title: i18n("Message") },
+      ],
+    } as unknown as RawPageSection;
+    render(<ContactForm formSection={formSection} privacyConsent={{ shown: false, required: false }} />);
+
+    expect(screen.getByLabelText(/Full Name/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Phone number/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Message/)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Email/)).not.toBeInTheDocument();
+
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Jane");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 12 34 56 78");
+    await userEvent.type(screen.getByLabelText(/Message/), "Hi");
+    await userEvent.click(screen.getByRole("button", { name: /Send message/ }));
+    // No leftover "Email is required" error — Email was never part of this
+    // config, so it's never validated, only Name/Phone/Message were.
+    expect(screen.queryByText(/Email.*required/i)).not.toBeInTheDocument();
+  });
+});

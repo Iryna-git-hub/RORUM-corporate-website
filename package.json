@@ -105,7 +105,11 @@
     "sanity:migrate-contact-details:dry-run": "tsx --env-file=.env.local scripts/migrate-contact-details-order.ts --dry-run",
     "sanity:migrate-contact-details": "tsx --env-file=.env.local scripts/migrate-contact-details-order.ts",
     "sanity:migrate-contact-form-fields:dry-run": "tsx --env-file=.env.local scripts/migrate-contact-form-fields.ts --dry-run",
-    "sanity:migrate-contact-form-fields": "tsx --env-file=.env.local scripts/migrate-contact-form-fields.ts"
+    "sanity:migrate-contact-form-fields": "tsx --env-file=.env.local scripts/migrate-contact-form-fields.ts",
+    "sanity:repair-social-links:dry-run": "tsx --env-file=.env.local scripts/repair-social-links.ts",
+    "sanity:repair-social-links": "tsx --env-file=.env.local scripts/repair-social-links.ts --apply",
+    "sanity:repair-ed-seo-residue:dry-run": "tsx --env-file=.env.local scripts/repair-event-decoration-seo-residue.ts",
+    "sanity:repair-ed-seo-residue": "tsx --env-file=.env.local scripts/repair-event-decoration-seo-residue.ts --apply"
   },
   "dependencies": {
     "@portabletext/react": "^7.0.1",
