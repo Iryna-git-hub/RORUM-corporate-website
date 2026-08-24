@@ -100,7 +100,12 @@
     "sanity:clean-catering-draft-residue": "tsx --env-file=.env.local scripts/clean-catering-draft-residue.ts",
     "sanity:backup-faq": "tsx --env-file=.env.local scripts/backup-faq-docs.ts",
     "sanity:migrate-faq-category-kind:dry-run": "tsx --env-file=.env.local scripts/migrate-faq-category-kind.ts --dry-run",
-    "sanity:migrate-faq-category-kind": "tsx --env-file=.env.local scripts/migrate-faq-category-kind.ts"
+    "sanity:migrate-faq-category-kind": "tsx --env-file=.env.local scripts/migrate-faq-category-kind.ts",
+    "sanity:backup-contact": "tsx --env-file=.env.local scripts/backup-contact-docs.ts",
+    "sanity:migrate-contact-details:dry-run": "tsx --env-file=.env.local scripts/migrate-contact-details-order.ts --dry-run",
+    "sanity:migrate-contact-details": "tsx --env-file=.env.local scripts/migrate-contact-details-order.ts",
+    "sanity:migrate-contact-form-fields:dry-run": "tsx --env-file=.env.local scripts/migrate-contact-form-fields.ts --dry-run",
+    "sanity:migrate-contact-form-fields": "tsx --env-file=.env.local scripts/migrate-contact-form-fields.ts"
   },
   "dependencies": {
     "@portabletext/react": "^7.0.1",

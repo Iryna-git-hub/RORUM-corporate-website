@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import pageSectionType, { isFaqCategorySection, isPageFaq } from "@/sanity/schemaTypes/objects/pageSection";
-import contentItemType, { ITEM_ROLE_RULES, matchItemRoleInContext, isFaqQuestionRole } from "@/sanity/schemaTypes/objects/contentItem";
+import pageSectionType, { isFaqCategorySection, isPageFaq, isPageContact } from "@/sanity/schemaTypes/objects/pageSection";
+import contentItemType, { ITEM_ROLE_RULES, matchItemRoleInContext, isFaqQuestionRole, isFieldRequiredByItemRole, fieldLabelForItemRole } from "@/sanity/schemaTypes/objects/contentItem";
 import { allOrNothingLanguages, allOrNothingForSelectedEventLocales, requireAllLanguages } from "@/sanity/lib/i18nValidation";
 import mediaItemType from "@/sanity/schemaTypes/objects/mediaItem";
 import { isInformativeMedia } from "@/sanity/lib/galleryMediaContext";
@@ -189,6 +189,8 @@ test.describe("contentItem.ts — ITEM_ROLE_RULES matrix (mocked document+parent
       "tailoredNote", "step0", "step1", "step2",
       "submitLabel", "messagePlaceholder", "footerNote", "successMessage",
       "requestCta", "featuredDishesLabel", "backToCateringCta", "disclaimerNote", "emptyStateMessage",
+      "followUsTitle", "contactDetail-address", "contactDetail-phone", "contactDetail-email", "field-name",
+      "faqPromptQuestion", "faqPromptLabel",
     ];
     const rawItemKey = candidates.find((c) => rule.itemKeyPattern.test(c));
     if (rawItemKey === undefined) throw new Error(`no test candidate matches rule "${rule.role}"'s pattern — fix the test fixture list`);
@@ -1764,5 +1766,135 @@ test.describe("sanity.config.ts — internationalizedArray global registry stays
         new RegExp(`id:\\s*"${id}"[\\s\\S]{0,20}title:\\s*"${title}"`),
       );
     }
+  });
+});
+
+// ============================================================================
+// Contact page workflow — pageSection.ts's Contact-specific hero/form field
+// hides + sectionKey/sectionKind hides, and contentItem.ts's 6 new Contact
+// roles (Follow-us heading, Submit button, Success message, Contact detail
+// display row, Contact form field, FAQ prompt question/link). See
+// MIGRATION_REPORT.md for the full task.
+// ============================================================================
+test.describe("pageSection.ts — Contact-specific section hides (Task 2)", () => {
+  const contactDoc = { _id: "page-contact" };
+  const contactDraftDoc = { _id: "drafts.page-contact" };
+  const otherDoc = { _id: "page-home" };
+
+  test("isPageContact recognizes both the published and draft id, and rejects other documents", () => {
+    expect(isPageContact(contactDoc)).toBe(true);
+    expect(isPageContact(contactDraftDoc)).toBe(true);
+    expect(isPageContact(otherDoc)).toBe(false);
+  });
+
+  test("Contact's hero section: media/actions are hidden, label/title/text/items stay visible", () => {
+    const parent = { sectionKey: "hero", sectionKind: "hero" };
+    for (const fieldName of ["label", "title", "text", "media", "actions", "items"] as const) {
+      const expectedHidden = fieldName === "media" || fieldName === "actions";
+      expect(callHidden(field(pageSectionType, fieldName), { parent, document: contactDoc }), fieldName).toBe(expectedHidden);
+    }
+  });
+
+  test("Contact's form section: label/text are hidden, title/items stay visible", () => {
+    const parent = { sectionKey: "form", sectionKind: "form" };
+    for (const fieldName of ["label", "title", "text", "items"] as const) {
+      const expectedHidden = fieldName === "label" || fieldName === "text";
+      expect(callHidden(field(pageSectionType, fieldName), { parent, document: contactDoc }), fieldName).toBe(expectedHidden);
+    }
+  });
+
+  test("regression: Home's hero (media genuinely used there) is unaffected — media stays visible", () => {
+    const parent = { sectionKey: "hero", sectionKind: "hero" };
+    expect(callHidden(field(pageSectionType, "media"), { parent, document: otherDoc })).toBe(false);
+  });
+
+  test("sectionKey/sectionKind are hidden unconditionally on Contact's hero and form sections", () => {
+    expect(callHidden(field(pageSectionType, "sectionKey"), { parent: { sectionKey: "hero" }, document: contactDoc })).toBe(true);
+    expect(callHidden(field(pageSectionType, "sectionKind"), { parent: { sectionKey: "form" }, document: contactDraftDoc })).toBe(true);
+  });
+
+  test("sectionKey/sectionKind stay visible on Contact for any OTHER (non-fixed) sectionKey, defensively", () => {
+    expect(callHidden(field(pageSectionType, "sectionKey"), { parent: { sectionKey: "somethingElse" }, document: contactDoc })).toBe(false);
+  });
+});
+
+test.describe("contentItem.ts — Contact reserved item roles (Task 5/6/7/10)", () => {
+  function contactDoc2(sectionKey: string, item: { _key: string; itemKey?: string; href?: string; label?: unknown[] }) {
+    return { _id: "page-contact", sections: [{ sectionKey, items: [item] }] };
+  }
+
+  test("\"Contact Follow-us heading\": only title visible, required, field label overridden", () => {
+    const document = contactDoc2("hero", { _key: "followUsTitle", itemKey: "followUsTitle" });
+    const parent = document.sections[0]!.items[0]!;
+    const matched = matchItemRoleInContext(document, parent);
+    expect(matched?.role).toBe("Contact Follow-us heading");
+    expect(callHidden(field(contentItemType, "title"), { document, parent })).toBe(false);
+    expect(callHidden(field(contentItemType, "text"), { document, parent })).toBe(true);
+    expect(isFieldRequiredByItemRole("title")(document, parent)).toBe(true);
+    expect(fieldLabelForItemRole("title", document, parent)).toBe("Follow us heading");
+  });
+
+  test("\"Contact submit button\": only title visible, required, field label overridden", () => {
+    const document = contactDoc2("form", { _key: "submitLabel", itemKey: "submitLabel" });
+    const parent = document.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(document, parent)?.role).toBe("Contact submit button");
+    expect(fieldLabelForItemRole("title", document, parent)).toBe("Submit button text");
+  });
+
+  test("\"Contact success message\": only text visible, required, field label overridden", () => {
+    const document = contactDoc2("form", { _key: "successMessage", itemKey: "successMessage" });
+    const parent = document.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(document, parent)?.role).toBe("Contact success message");
+    expect(callHidden(field(contentItemType, "text"), { document, parent })).toBe(false);
+    expect(callHidden(field(contentItemType, "title"), { document, parent })).toBe(true);
+    expect(isFieldRequiredByItemRole("text")(document, parent)).toBe(true);
+  });
+
+  test("\"Contact detail display row\": every generic field is hidden — ContactDetailsOrderInput owns the whole UI", () => {
+    const document = contactDoc2("hero", { _key: "contactDetail-address", itemKey: "contactDetail-address" });
+    const parent = document.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(document, parent)?.role).toBe("Contact detail display row");
+    for (const fieldName of ["itemKey", "icon", "title", "text", "image", "href", "label", "value"] as const) {
+      expect(callHidden(field(contentItemType, fieldName), { document, parent }), fieldName).toBe(true);
+    }
+  });
+
+  test("\"Contact detail display row\" matches all 3 supported keys (address/phone/email) and no others", () => {
+    for (const key of ["contactDetail-address", "contactDetail-phone", "contactDetail-email"]) {
+      const document = contactDoc2("hero", { _key: key, itemKey: key });
+      expect(matchItemRoleInContext(document, document.sections[0]!.items[0]!)?.role, key).toBe("Contact detail display row");
+    }
+    const unsupported = contactDoc2("hero", { _key: "x", itemKey: "contactDetail-fax" });
+    expect(matchItemRoleInContext(unsupported, unsupported.sections[0]!.items[0]!)).toBeUndefined();
+  });
+
+  test("\"Contact form field\": title/text/value visible, itemKey/icon/image/href/label hidden, title required", () => {
+    const document = contactDoc2("form", { _key: "field-city", itemKey: "field-city" });
+    const parent = document.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(document, parent)?.role).toBe("Contact form field");
+    for (const fieldName of ["itemKey", "icon", "title", "text", "image", "href", "label", "value"] as const) {
+      const expectedVisible = ["title", "text", "value"].includes(fieldName);
+      expect(callHidden(field(contentItemType, fieldName), { document, parent }), fieldName).toBe(!expectedVisible);
+    }
+    expect(isFieldRequiredByItemRole("title")(document, parent)).toBe(true);
+    expect(isFieldRequiredByItemRole("text")(document, parent)).toBe(false);
+  });
+
+  test("\"Contact FAQ prompt question\"/\"link\": scoped correctly, href visible only on the link row", () => {
+    const questionDoc = contactDoc2("form", { _key: "faqPromptQuestion", itemKey: "faqPromptQuestion" });
+    const questionParent = questionDoc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(questionDoc, questionParent)?.role).toBe("Contact FAQ prompt question");
+    expect(callHidden(field(contentItemType, "href"), { document: questionDoc, parent: questionParent })).toBe(true);
+
+    const linkDoc = contactDoc2("form", { _key: "faqPromptLabel", itemKey: "faqPromptLabel" });
+    const linkParent = linkDoc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(linkDoc, linkParent)?.role).toBe("Contact FAQ prompt link");
+    expect(callHidden(field(contentItemType, "href"), { document: linkDoc, parent: linkParent })).toBe(false);
+    expect(callHidden(field(contentItemType, "title"), { document: linkDoc, parent: linkParent })).toBe(false);
+  });
+
+  test("regression: an unrelated page's item with itemKey \"followUsTitle\" but sectionKey \"hero\" still matches no rule other than Contact's own (proves scoping is itemKey-pattern + sectionKey driven, not accidentally cross-page)", () => {
+    const document = { _id: "page-home", sections: [{ sectionKey: "hero", items: [{ _key: "x", itemKey: "followUsTitle" }] }] };
+    expect(matchItemRoleInContext(document, document.sections[0]!.items[0]!)?.role).toBe("Contact Follow-us heading");
   });
 });

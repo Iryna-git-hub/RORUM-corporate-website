@@ -117,6 +117,27 @@ export function isPageFaq(document: unknown): boolean {
   return doc?._id?.replace(/^drafts\./, "") === "page-faq";
 }
 
+export function isPageContact(document: unknown): boolean {
+  const doc = document as { _id?: string } | undefined;
+  return doc?._id?.replace(/^drafts\./, "") === "page-contact";
+}
+
+// Contact's 2 sections (hero, form) are fixed — never manager-created or
+// -deleted (unlike Catering Menu Examples' categories or FAQ's categories),
+// so sectionKey/sectionKind are hidden unconditionally for them, not gated
+// on "already correctly shaped" the way those two are.
+const CONTACT_FIXED_SECTION_KEYS = new Set(["hero", "form"]);
+
+// Contact's hero ("Contact intro") genuinely uses label/title/text/items
+// (the default "hero"-kind visibility already covers those) but never
+// media/actions — confirmed by the live audit (no media/actions ever
+// stored on this section). Contact's form section never uses label/text —
+// its title is "Form title" and everything else lives in items (Form
+// fields/Privacy consent/FAQ prompt/Submit button/Success message, laid out
+// by ContactFormSectionInput).
+const CONTACT_HERO_FORCE_HIDDEN_FIELDS = new Set(["media", "actions"]);
+const CONTACT_FORM_FORCE_HIDDEN_FIELDS = new Set(["label", "text"]);
+
 /**
  * `sectionKind`/`sectionKey` are hidden on `page-catering-menu-examples`
  * specifically — a non-technical manager editing this document should never
@@ -176,6 +197,12 @@ function fieldHidden(fieldName: string) {
     if (parent?.sectionKey && SECTION_FIELD_FORCE_HIDDEN[fieldName]?.has(parent.sectionKey)) {
       return true;
     }
+    if (isPageContact(document) && parent?.sectionKey === "hero" && CONTACT_HERO_FORCE_HIDDEN_FIELDS.has(fieldName)) {
+      return true;
+    }
+    if (isPageContact(document) && parent?.sectionKey === "form" && CONTACT_FORM_FORCE_HIDDEN_FIELDS.has(fieldName)) {
+      return true;
+    }
     const kind = parent?.sectionKind as (typeof SECTION_KINDS)[number] | undefined;
     if (!kind) return false;
     const visible = FIELD_VISIBILITY[kind];
@@ -219,7 +246,10 @@ export default defineType({
       readOnly: ({ value }) => Boolean(value),
       validation: (rule) => rule.required(),
       description: "Stable identifier the website looks this section up by. / Стабільний ідентифікатор, за яким сайт знаходить цей розділ.",
-      hidden: ({ parent, document }) => isCorrectlyShapedCateringMenuSection(parent, document) || isCorrectlyShapedFaqCategorySection(parent, document),
+      hidden: ({ parent, document }) =>
+        isCorrectlyShapedCateringMenuSection(parent, document) ||
+        isCorrectlyShapedFaqCategorySection(parent, document) ||
+        (isPageContact(document) && Boolean(parent?.sectionKey && CONTACT_FIXED_SECTION_KEYS.has(parent.sectionKey))),
     }),
     defineField({
       name: "sectionKind",
@@ -230,7 +260,10 @@ export default defineType({
       },
       validation: (rule) => rule.required(),
       description: "What kind of section this is — controls which fields below apply. / Тип розділу — визначає, які поля нижче застосовуються.",
-      hidden: ({ parent, document }) => isCorrectlyShapedCateringMenuSection(parent, document) || isCorrectlyShapedFaqCategorySection(parent, document),
+      hidden: ({ parent, document }) =>
+        isCorrectlyShapedCateringMenuSection(parent, document) ||
+        isCorrectlyShapedFaqCategorySection(parent, document) ||
+        (isPageContact(document) && Boolean(parent?.sectionKey && CONTACT_FIXED_SECTION_KEYS.has(parent.sectionKey))),
     }),
     defineField({
       name: "label",

@@ -15,9 +15,17 @@ import { ThemeProvider, studioTheme } from "@sanity/ui";
 import { CateringOfferItemsInput } from "./CateringOfferItemsInput";
 
 const mockUseFormValue = vi.fn();
+// Chained onto ContactDetailsOrderInput (via FaqQuestionItemsInput), which
+// calls useClient() unconditionally for its read-only contactInfo preview
+// fetch — stubbed since there's no real Studio SourceProvider in this
+// unit-test environment.
 vi.mock("sanity", async (importOriginal) => {
   const actual = await importOriginal<typeof import("sanity")>();
-  return { ...actual, useFormValue: (path: string[]) => mockUseFormValue(path) };
+  return {
+    ...actual,
+    useFormValue: (path: string[]) => mockUseFormValue(path),
+    useClient: () => ({ fetch: () => Promise.resolve(null) }),
+  };
 });
 
 function renderInput(props: import("sanity").ArrayOfObjectsInputProps) {

@@ -12,7 +12,13 @@ import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
 import { contactPageQuery } from "@/sanity/queries/pages";
 import { contactInfoQuery, socialLinksQuery } from "@/sanity/queries/globals";
-import { resolveContactDetails, resolveSocialLinks } from "@/lib/sanityContact";
+import {
+  resolveContactDetailOrder,
+  resolveContactDetails,
+  resolveFaqPrompt,
+  resolvePrivacyConsentSettings,
+  resolveSocialLinks,
+} from "@/lib/sanityContact";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 type BrandColorStyle = CSSProperties & { "--social-brand-color": string };
@@ -31,7 +37,15 @@ const fallback = {
 
 async function getData(locale: Locale) {
   if (!isSanityConfigured) {
-    return { ...fallback, contactDetails: resolveContactDetails(null), socialLinks: resolveSocialLinks(null, locale) };
+    return {
+      ...fallback,
+      contactDetails: resolveContactDetails(null),
+      contactDetailOrder: resolveContactDetailOrder(undefined),
+      socialLinks: resolveSocialLinks(null, locale),
+      privacyConsent: resolvePrivacyConsentSettings(undefined),
+      faqPrompt: resolveFaqPrompt(undefined, locale),
+      formSection: undefined,
+    };
   }
 
   const [{ data: page }, { data: newPage }, { data: contactInfoDoc }, { data: socialLinksDoc }] = await Promise.all([
@@ -63,7 +77,11 @@ async function getData(locale: Locale) {
       fallback.submitLabel,
     description: pickLocalized(page?.seo?.description, locale) ?? fallback.description,
     contactDetails: resolveContactDetails(contactInfoDoc),
+    contactDetailOrder: resolveContactDetailOrder(heroSection),
     socialLinks: resolveSocialLinks(socialLinksDoc, locale),
+    privacyConsent: resolvePrivacyConsentSettings(formSection),
+    faqPrompt: resolveFaqPrompt(formSection, locale),
+    formSection,
   };
 }
 
@@ -103,46 +121,61 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                   </p>
                 </div>
                 <div className="grid gap-3">
-                  <p className="grid grid-cols-[40px_minmax(0,1fr)] gap-3 items-center m-0 text-text-primary leading-[1.55] font-[650]">
-                    <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[rgba(var(--rgb-red),0.1)] text-red leading-[1]" aria-hidden="true">
-                      <MapPin
-                        className="block w-4.5 h-4.5 shrink-0"
-                        aria-hidden="true"
-                        strokeWidth={1.8}
-                      />
-                    </span>
-                    <span>{data.contactDetails.address}</span>
-                  </p>
-                  <p className="grid grid-cols-[40px_minmax(0,1fr)] gap-3 items-center m-0 text-text-primary leading-[1.55] font-[650]">
-                    <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[rgba(var(--rgb-red),0.1)] text-red leading-[1]" aria-hidden="true">
-                      <Phone
-                        className="block w-4.5 h-4.5 shrink-0"
-                        aria-hidden="true"
-                        strokeWidth={1.8}
-                      />
-                    </span>
-                    <a
-                      className="text-text-primary hover:text-red focus-visible:text-red"
-                      href={data.contactDetails.phoneHref}
-                    >
-                      {data.contactDetails.phone}
-                    </a>
-                  </p>
-                  <p className="grid grid-cols-[40px_minmax(0,1fr)] gap-3 items-center m-0 text-text-primary leading-[1.55] font-[650]">
-                    <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[rgba(var(--rgb-red),0.1)] text-red leading-[1]" aria-hidden="true">
-                      <Mail
-                        className="block w-4.5 h-4.5 shrink-0"
-                        aria-hidden="true"
-                        strokeWidth={1.8}
-                      />
-                    </span>
-                    <a
-                      className="text-text-primary hover:text-red focus-visible:text-red"
-                      href={`mailto:${data.contactDetails.email}`}
-                    >
-                      {data.contactDetails.email}
-                    </a>
-                  </p>
+                  {data.contactDetailOrder.map((detail) => {
+                    if (detail === "address") {
+                      return (
+                        <p key="address" className="grid grid-cols-[40px_minmax(0,1fr)] gap-3 items-center m-0 text-text-primary leading-[1.55] font-[650]">
+                          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[rgba(var(--rgb-red),0.1)] text-red leading-[1]" aria-hidden="true">
+                            <MapPin
+                              className="block w-4.5 h-4.5 shrink-0"
+                              aria-hidden="true"
+                              strokeWidth={1.8}
+                            />
+                          </span>
+                          <span>{data.contactDetails.address}</span>
+                        </p>
+                      );
+                    }
+                    if (detail === "phone") {
+                      return (
+                        <p key="phone" className="grid grid-cols-[40px_minmax(0,1fr)] gap-3 items-center m-0 text-text-primary leading-[1.55] font-[650]">
+                          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[rgba(var(--rgb-red),0.1)] text-red leading-[1]" aria-hidden="true">
+                            <Phone
+                              className="block w-4.5 h-4.5 shrink-0"
+                              aria-hidden="true"
+                              strokeWidth={1.8}
+                            />
+                          </span>
+                          <a
+                            className="text-text-primary hover:text-red focus-visible:text-red"
+                            href={data.contactDetails.phoneHref}
+                          >
+                            {data.contactDetails.phone}
+                          </a>
+                        </p>
+                      );
+                    }
+                    if (detail === "email") {
+                      return (
+                        <p key="email" className="grid grid-cols-[40px_minmax(0,1fr)] gap-3 items-center m-0 text-text-primary leading-[1.55] font-[650]">
+                          <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[rgba(var(--rgb-red),0.1)] text-red leading-[1]" aria-hidden="true">
+                            <Mail
+                              className="block w-4.5 h-4.5 shrink-0"
+                              aria-hidden="true"
+                              strokeWidth={1.8}
+                            />
+                          </span>
+                          <a
+                            className="text-text-primary hover:text-red focus-visible:text-red"
+                            href={`mailto:${data.contactDetails.email}`}
+                          >
+                            {data.contactDetails.email}
+                          </a>
+                        </p>
+                      );
+                    }
+                    return null;
+                  })}
                 </div>
                 <div className="grid gap-2">
                   <h2 className="m-0 text-text-primary font-body text-[clamp(17px,1.35vw,20px)] leading-[1.25] font-black">
@@ -174,9 +207,17 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
               aria-label="RORUM location map"
             >
               <div className="w-full mb-4">
-                <ContactForm formTitle={data.formTitle} successMessage={data.successMessage} submitLabel={data.submitLabel} />
+                <ContactForm
+                  formTitle={data.formTitle}
+                  successMessage={data.successMessage}
+                  submitLabel={data.submitLabel}
+                  formSection={data.formSection}
+                  privacyConsent={data.privacyConsent}
+                />
               </div>
-              <FAQInlinePrompt />
+              {data.faqPrompt.shown ? (
+                <FAQInlinePrompt question={data.faqPrompt.question} label={data.faqPrompt.label} href={data.faqPrompt.href} />
+              ) : null}
             </div>
           </div>
         </Container>

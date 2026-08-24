@@ -1,6 +1,8 @@
 import { defineField, defineType } from "sanity";
 import { IconPickerInput } from "@/sanity/components/IconPickerInput";
 import { CateringAllLanguagesInput } from "@/sanity/components/CateringAllLanguagesInput";
+import { ItemRoleAwareFieldLabel } from "@/sanity/components/ItemRoleAwareFieldLabel";
+import { ContactFormFieldTypeInput } from "@/sanity/components/ContactFormFieldTypeInput";
 import { allOrNothingLanguages, requiredWhen } from "@/sanity/lib/i18nValidation";
 
 // The one generic "list row" shape reused across every page section's
@@ -34,7 +36,7 @@ import { allOrNothingLanguages, requiredWhen } from "@/sanity/lib/i18nValidation
 // sections) are untouched — they keep showing every contentItem field
 // exactly as before, pending their own future audit.
 export const ALL_CONTENT_ITEM_FIELDS = ["itemKey", "icon", "title", "text", "image", "href", "label", "value"] as const;
-type ContentItemField = (typeof ALL_CONTENT_ITEM_FIELDS)[number];
+export type ContentItemField = (typeof ALL_CONTENT_ITEM_FIELDS)[number];
 
 interface ItemRoleRule {
   /** Human label only — not used for matching, just for readability/debugging. */
@@ -57,7 +59,18 @@ interface ItemRoleRule {
   sectionKinds?: readonly string[];
   itemKeyPattern: RegExp;
   visible: readonly ContentItemField[];
+  /** Of `visible`, which fields are genuinely required (all 3 languages, for i18n fields) — read by title/text's shared `requiredWhen` validation below instead of one-off per-role predicates. */
+  requiredFields?: readonly ContentItemField[];
+  /** Overrides a field's Studio label for this role only (e.g. "Title" -> "Follow us heading") — read by ItemRoleAwareFieldLabel. No schema field/attribute changes; presentation only. */
+  fieldLabels?: Partial<Record<ContentItemField, string>>;
 }
+
+/** Fallback preview label (when title/text is empty) for known reserved itemKeys, so an empty row never shows a raw technical key or "(untitled item)" as its primary label. */
+const ITEM_KEY_PREVIEW_LABELS: Record<string, string> = {
+  followUsTitle: "Follow us heading",
+  submitLabel: "Submit button",
+  successMessage: "Success message",
+};
 
 export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
   { role: "Home hero trust badge", sectionKeys: ["hero"], itemKeyPattern: /^trust[0-3]$/, visible: ["icon", "title"] },
@@ -131,12 +144,59 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
   // dish"), matching both existing rows (itemKey "q0"/"q1"/...) and a
   // manager-added question with no itemKey at all (via the "+ Add question"
   // button — see FaqQuestionItemsInput.tsx, which never sets one).
-  { role: "FAQ question", sectionKinds: ["faqCategory"], itemKeyPattern: /^(q\d*)?$/, visible: ["title", "text", "href", "label"] },
+  { role: "FAQ question", sectionKinds: ["faqCategory"], itemKeyPattern: /^(q\d*)?$/, visible: ["title", "text", "href", "label"], requiredFields: ["title", "text"] },
+  // Contact page reserved rows — see components/ContactForm.tsx,
+  // app/[locale]/(site)/contact/page.tsx. All 3 are fixed, singular rows
+  // (never manager-created), so itemKey is never shown.
+  { role: "Contact Follow-us heading", sectionKeys: ["hero"], itemKeyPattern: /^followUsTitle$/, visible: ["title"], requiredFields: ["title"], fieldLabels: { title: "Follow us heading" } },
+  { role: "Contact submit button", sectionKeys: ["form"], itemKeyPattern: /^submitLabel$/, visible: ["title"], requiredFields: ["title"], fieldLabels: { title: "Submit button text" } },
+  { role: "Contact success message", sectionKeys: ["form"], itemKeyPattern: /^successMessage$/, visible: ["text"], requiredFields: ["text"], fieldLabels: { text: "Success message" } },
+  // Display-order-only markers for the 3 supported contact-detail rows
+  // (Address/Phone/Email) — the underlying facts stay in the contactInfo
+  // singleton; presence + array order here is the entire signal (see
+  // lib/sanityContact.ts's resolveContactDetailOrder). No generic field is
+  // shown at all — ContactDetailsOrderInput renders its own friendly cards
+  // instead of the default per-item form.
+  { role: "Contact detail display row", sectionKeys: ["hero"], itemKeyPattern: /^contactDetail-(address|phone|email)$/, visible: [] },
+  // A configurable Contact form field (Task 7) — Label (title)/Placeholder
+  // (text)/Field type (value, one of "text"|"email"|"phone"|"multiline").
+  // itemKey is a generated stable id used as the HTML name/id (see
+  // components/ContactForm.tsx) — never shown, matching every other
+  // reserved-row convention. Matched by sectionKind is unnecessary here
+  // (form fields only ever live in Contact's own "form" section, a fixed
+  // sectionKey, not an open manager-extensible kind).
+  {
+    role: "Contact form field",
+    sectionKeys: ["form"],
+    itemKeyPattern: /^field-.+$/,
+    visible: ["title", "text", "value"],
+    requiredFields: ["title"],
+    fieldLabels: { title: "Field label", text: "Placeholder / help text", value: "Field type" },
+  },
+  // Contact-specific FAQ prompt override (Task 10) — present only when the
+  // manager wants Contact's own question/link text instead of the shared
+  // formMessages.faqQuestion/.faqLabel default (see lib/sanityContact.ts's
+  // resolveFaqPrompt). Show/hide is a separate settings-level flag (see
+  // ContactFormSectionInput) since presence-as-signal here only tells the
+  // frontend "Contact-specific text is configured", not "show the prompt at
+  // all" (the shared default is still shown when this is absent).
+  { role: "Contact FAQ prompt question", sectionKeys: ["form"], itemKeyPattern: /^faqPromptQuestion$/, visible: ["title"], fieldLabels: { title: "FAQ prompt question" } },
+  { role: "Contact FAQ prompt link", sectionKeys: ["form"], itemKeyPattern: /^faqPromptLabel$/, visible: ["title", "href"], fieldLabels: { title: "FAQ prompt link text", href: "FAQ prompt destination (defaults to /faq)" } },
 ];
 
 /** True when this contentItem's ITEM_ROLE_RULES role is exactly "FAQ question" — used by the href/label link-pair validation and the always-3-languages Studio input, both below. */
 export function isFaqQuestionRole(document: unknown, parent: unknown): boolean {
   return matchItemRoleInContext(document, parent)?.role === "FAQ question";
+}
+
+/** True when the matched role (if any) marks `fieldName` as required — read by title/text's shared validation instead of a growing list of one-off per-role predicates. */
+export function isFieldRequiredByItemRole(fieldName: ContentItemField) {
+  return (document: unknown, parent: unknown): boolean => Boolean(matchItemRoleInContext(document, parent)?.requiredFields?.includes(fieldName));
+}
+
+/** The matched role's Studio label override for `fieldName`, if any — read by ItemRoleAwareFieldLabel. */
+export function fieldLabelForItemRole(fieldName: ContentItemField, document: unknown, parent: unknown): string | undefined {
+  return matchItemRoleInContext(document, parent)?.fieldLabels?.[fieldName];
 }
 
 function hasNonEmptyI18nValue(entries: { value?: unknown }[] | null | undefined): boolean {
@@ -226,24 +286,24 @@ export default defineType({
       name: "title",
       title: "Title",
       type: "internationalizedArrayString",
-      description: "Optional heading. For a FAQ question, this is the question text, and is required. / Необов'язковий заголовок. Для запитання FAQ це текст запитання, і він обов'язковий.",
-      // requiredWhen(isFaqQuestionRole, ...) behaves exactly like the
-      // allOrNothingLanguages() this replaces for every non-FAQ role (see
-      // requiredWhen's own doc comment: !isRequired + fully empty => valid,
-      // same missing/empty checks otherwise) — only a FAQ question's
-      // Question text becomes genuinely required in all 3 languages.
-      validation: requiredWhen(({ document, parent }) => isFaqQuestionRole(document, parent), { skip: skipValidationWhenHiddenByItemRole("title") }),
+      description: "Optional heading. Required for some reserved roles (e.g. a FAQ question's Question text, or Contact's Follow-us heading/Submit button/form-field Label) — see this row's own field label above. / Необов'язковий заголовок. Обов'язковий для деяких вбудованих ролей (напр. тексту запитання FAQ або заголовка «Слідкуйте за нами»/кнопки надсилання на сторінці контактів) — див. назву поля вище.",
+      // isFieldRequiredByItemRole("title") behaves exactly like the
+      // allOrNothingLanguages() this replaces for every role that doesn't
+      // list "title" in its requiredFields (see requiredWhen's own doc
+      // comment: !isRequired + fully empty => valid, same missing/empty
+      // checks otherwise) — only a role that explicitly requires it does.
+      validation: requiredWhen(({ document, parent }) => isFieldRequiredByItemRole("title")(document, parent), { skip: skipValidationWhenHiddenByItemRole("title") }),
       hidden: hiddenByItemRole("title"),
-      components: { input: CateringAllLanguagesInput },
+      components: { field: ItemRoleAwareFieldLabel, input: CateringAllLanguagesInput },
     }),
     defineField({
       name: "text",
       title: "Text",
       type: "internationalizedArrayText",
-      description: "Optional longer text (e.g. a description or answer). For a FAQ question, this is the answer text, and is required. / Необов'язковий довший текст (напр. опис або відповідь). Для запитання FAQ це текст відповіді, і він обов'язковий.",
-      validation: requiredWhen(({ document, parent }) => isFaqQuestionRole(document, parent), { skip: skipValidationWhenHiddenByItemRole("text") }),
+      description: "Optional longer text (e.g. a description or answer). Required for some reserved roles (e.g. a FAQ question's Answer text, or Contact's Success message) — see this row's own field label above. / Необов'язковий довший текст. Обов'язковий для деяких вбудованих ролей — див. назву поля вище.",
+      validation: requiredWhen(({ document, parent }) => isFieldRequiredByItemRole("text")(document, parent), { skip: skipValidationWhenHiddenByItemRole("text") }),
       hidden: hiddenByItemRole("text"),
-      components: { input: CateringAllLanguagesInput },
+      components: { field: ItemRoleAwareFieldLabel, input: CateringAllLanguagesInput },
     }),
     defineField({
       name: "image",
@@ -294,8 +354,12 @@ export default defineType({
       title: "Raw value (not translated)",
       type: "string",
       description:
-        "Only for values that shouldn't be translated, e.g. a bank account number. / Лише для значень, які не перекладаються, напр. номер банківського рахунку.",
+        "Only for values that shouldn't be translated, e.g. a bank account number. For a Contact form field, this is the field type. / Лише для значень, які не перекладаються, напр. номер банківського рахунку. Для поля форми контактів це тип поля.",
       hidden: hiddenByItemRole("value"),
+      // ContactFormFieldTypeInput is scoped internally to items matching the
+      // "Contact form field" role only — every other item's `value` field
+      // (bank details, etc.) renders the unmodified default string input.
+      components: { field: ItemRoleAwareFieldLabel, input: ContactFormFieldTypeInput },
     }),
   ],
   preview: {
@@ -304,7 +368,8 @@ export default defineType({
       const en = (title as { _key: string; language?: string; value?: string }[] | undefined)?.find(
         (v) => v.language === "en" || v._key === "en",
       );
-      return { title: en?.value ?? itemKey ?? "(untitled item)", subtitle: icon as string | undefined };
+      const key = itemKey as string | undefined;
+      return { title: en?.value ?? (key && ITEM_KEY_PREVIEW_LABELS[key]) ?? key ?? "(untitled item)", subtitle: icon as string | undefined };
     },
   },
 });

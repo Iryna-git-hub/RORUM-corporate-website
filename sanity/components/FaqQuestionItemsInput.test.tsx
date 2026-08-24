@@ -11,9 +11,17 @@ import { ThemeProvider, studioTheme } from "@sanity/ui";
 import { FaqQuestionItemsInput } from "./FaqQuestionItemsInput";
 
 const mockUseFormValue = vi.fn();
+// Chained onto ContactDetailsOrderInput (see FaqQuestionItemsInput.tsx),
+// which calls useClient() unconditionally for its read-only contactInfo
+// preview fetch — stubbed here since there's no real Studio SourceProvider
+// in this unit-test environment.
 vi.mock("sanity", async (importOriginal) => {
   const actual = await importOriginal<typeof import("sanity")>();
-  return { ...actual, useFormValue: (path: string[]) => mockUseFormValue(path) };
+  return {
+    ...actual,
+    useFormValue: (path: string[]) => mockUseFormValue(path),
+    useClient: () => ({ fetch: () => Promise.resolve(null) }),
+  };
 });
 
 function renderInput(props: import("sanity").ArrayOfObjectsInputProps) {
@@ -40,9 +48,17 @@ function fakeProps(overrides: Partial<import("sanity").ArrayOfObjectsInputProps>
   return { props, onChange, renderDefault };
 }
 
-/** The enclosing section lookup (`useFormValue(parentPath)`) resolves to `{sectionKind}`. */
-function mockSectionKind(sectionKind: string | undefined) {
-  mockUseFormValue.mockImplementation(() => ({ sectionKind }));
+/**
+ * The enclosing section lookup (`useFormValue(parentPath)`) resolves to
+ * `{sectionKind}`; `useFormValue(["_id"])` resolves to a non-Contact
+ * document id — needed because this component is chained onto
+ * ContactDetailsOrderInput, which also calls `useFormValue(["_id"])`.
+ */
+function mockSectionKind(sectionKind: string | undefined, documentId = "page-home") {
+  mockUseFormValue.mockImplementation((path: unknown[]) => {
+    if (path.length === 1 && path[0] === "_id") return documentId;
+    return { sectionKind };
+  });
 }
 
 beforeEach(() => {

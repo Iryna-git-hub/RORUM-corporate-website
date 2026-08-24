@@ -4,39 +4,80 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { PrivacyConsent, validatePrivacyConsent } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
+import { useLocale } from "@/lib/useLocale";
+import { resolveContactFormFields, type ContactFormFieldType } from "@/lib/sanityContact";
+import type { RawPageSection } from "@/lib/sanity-sections";
+import type { ResolvedPrivacyConsentSettings } from "@/lib/sanityContact";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Matches VolunteerApplicationForm.tsx's own phone validation exactly — the
+// established pattern for this site's other forms.
+const PHONE_PATTERN = /^[+()\d\s.-]{7,20}$/;
 
 function validateField(
-  name: string,
+  type: ContactFormFieldType,
   value: FormDataEntryValue | null,
   label: string,
   requiredFieldTemplate: string,
   invalidEmailMessage: string,
+  invalidPhoneMessage: string,
 ): string {
-  if (!String(value ?? "").trim()) return requiredFieldTemplate.replace("{field}", label);
-  if (name === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value)))
-    return invalidEmailMessage;
+  const stringValue = String(value ?? "").trim();
+  if (!stringValue) return requiredFieldTemplate.replace("{field}", label);
+  if (type === "email" && !EMAIL_PATTERN.test(stringValue)) return invalidEmailMessage;
+  if (type === "phone" && !PHONE_PATTERN.test(stringValue)) return invalidPhoneMessage;
   return "";
 }
 
+const INPUT_CLASS =
+  "block w-full mt-1.75 border border-beige rounded-none bg-white px-[13px] py-3 text-text-primary text-base font-medium leading-[1.45] placeholder:text-[rgba(var(--rgb-dark-brown),0.38)] placeholder:font-medium placeholder:opacity-100 focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(var(--rgb-light-green),0.24)] aria-[invalid=true]:border-accent aria-[invalid=true]:outline-none aria-[invalid=true]:shadow-[0_0_0_2px_rgba(var(--rgb-red),0.16)]";
+const LABEL_CLASS = "block text-[rgba(var(--rgb-dark-brown),0.5)] font-semibold text-[0.82rem]";
+
+const HTML_INPUT_TYPE: Record<ContactFormFieldType, string> = {
+  text: "text",
+  email: "email",
+  phone: "tel",
+  multiline: "text",
+};
+
+/**
+ * Renders from the ordered field configuration resolved by
+ * resolveContactFormFields() — see lib/sanityContact.ts and
+ * contentItem.ts's "Contact form field" role. `formSection` is the raw
+ * page-contact form section (server-fetched, passed through as a plain
+ * serializable prop); when absent (Sanity unavailable / page not migrated),
+ * the original hardcoded Name/Phone/Email/Message fields render unchanged.
+ *
+ * IMPORTANT, disclosed limitation carried over unchanged from before this
+ * refactor: this form has never submitted anywhere — there is no backend
+ * endpoint or email provider wired up. On successful client-side validation
+ * it only sets `sent=true` and resets the fields; no network request is
+ * made and no submitted data is sent or logged anywhere. This refactor
+ * makes the FIELD SET configurable from Sanity; it does not add real
+ * submission — see the final report for what a later "wire up a real
+ * endpoint" task would need.
+ */
 export function ContactForm({
   formTitle = "We want to hear from you",
   successMessage = "Thank you. Your message is ready for the RORUM team.",
   submitLabel = "Send message",
+  formSection,
+  privacyConsent,
 }: {
   formTitle?: string;
   successMessage?: string;
   submitLabel?: string;
+  formSection?: RawPageSection;
+  privacyConsent?: ResolvedPrivacyConsentSettings;
 }) {
   const { messages } = useFormContent();
+  const { locale } = useLocale();
   const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const requiredFields: [name: string, label: string][] = [
-    ["name", messages.fullNameLabel],
-    ["phone", messages.phoneLabel],
-    ["email", messages.emailLabel],
-    ["message", messages.messageLabel],
-  ];
+  const fields = resolveContactFormFields(formSection, messages, locale);
+  const showPrivacyConsent = privacyConsent?.shown ?? true;
+  const requirePrivacyConsent = privacyConsent?.required ?? true;
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,12 +85,14 @@ export function ContactForm({
     const formData = new FormData(form);
     const nextErrors: Record<string, string> = {};
 
-    requiredFields.forEach(([name, label]) => {
-      const error = validateField(name, formData.get(name), label, messages.requiredFieldTemplate, messages.invalidEmailMessage);
-      if (error) nextErrors[name] = error;
-    });
-    const privacyError = validatePrivacyConsent(formData, messages.privacyConsentRequiredMessage);
-    if (privacyError) nextErrors.privacyConsent = privacyError;
+    for (const field of fields) {
+      const error = validateField(field.type, formData.get(field.name), field.label, messages.requiredFieldTemplate, messages.invalidEmailMessage, messages.invalidPhoneMessage);
+      if (error) nextErrors[field.name] = error;
+    }
+    if (showPrivacyConsent && requirePrivacyConsent) {
+      const privacyError = validatePrivacyConsent(formData, messages.privacyConsentRequiredMessage);
+      if (privacyError) nextErrors.privacyConsent = privacyError;
+    }
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) {
@@ -57,6 +100,7 @@ export function ContactForm({
       return;
     }
 
+    // No network request — see this component's own doc comment above.
     setSent(true);
     form.reset();
   }
@@ -80,29 +124,49 @@ export function ContactForm({
           {successMessage}
         </div>
       ) : null}
-      <label htmlFor="contact-name" className="block text-[rgba(var(--rgb-dark-brown),0.5)] font-semibold text-[0.82rem]">
-        {messages.fullNameLabel}<span aria-hidden="true" className="ml-0.5 text-[rgba(var(--rgb-red),0.62)]">*</span>
-        <input id="contact-name" name="name" type="text" autoComplete="name" placeholder={messages.fullNameLabel} aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? "contact-name-error" : undefined} className="block w-full mt-1.75 border border-beige rounded-none bg-white px-[13px] py-3 text-text-primary text-base font-medium leading-[1.45] placeholder:text-[rgba(var(--rgb-dark-brown),0.38)] placeholder:font-medium placeholder:opacity-100 focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(var(--rgb-light-green),0.24)] aria-[invalid=true]:border-accent aria-[invalid=true]:outline-none aria-[invalid=true]:shadow-[0_0_0_2px_rgba(var(--rgb-red),0.16)]"/>
-        {errors.name ? <small className="block mt-1.75 text-accent text-xs font-bold" id="contact-name-error">{errors.name}</small> : null}
-      </label>
-      <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
-        <label htmlFor="contact-phone" className="block text-[rgba(var(--rgb-dark-brown),0.5)] font-semibold text-[0.82rem]">
-          {messages.phoneLabel}<span aria-hidden="true" className="ml-0.5 text-[rgba(var(--rgb-red),0.62)]">*</span>
-          <input id="contact-phone" name="phone" type="tel" autoComplete="tel" placeholder="+45 12 34 56 78" aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? "contact-phone-error" : undefined} className="block w-full mt-1.75 border border-beige rounded-none bg-white px-[13px] py-3 text-text-primary text-base font-medium leading-[1.45] placeholder:text-[rgba(var(--rgb-dark-brown),0.38)] placeholder:font-medium placeholder:opacity-100 focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(var(--rgb-light-green),0.24)] aria-[invalid=true]:border-accent aria-[invalid=true]:outline-none aria-[invalid=true]:shadow-[0_0_0_2px_rgba(var(--rgb-red),0.16)]"/>
-          {errors.phone ? <small className="block mt-1.75 text-accent text-xs font-bold" id="contact-phone-error">{errors.phone}</small> : null}
-        </label>
-        <label htmlFor="contact-email" className="block text-[rgba(var(--rgb-dark-brown),0.5)] font-semibold text-[0.82rem]">
-          {messages.emailLabel}<span aria-hidden="true" className="ml-0.5 text-[rgba(var(--rgb-red),0.62)]">*</span>
-          <input id="contact-email" name="email" type="email" autoComplete="email" placeholder="you@example.com" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "contact-email-error" : undefined} className="block w-full mt-1.75 border border-beige rounded-none bg-white px-[13px] py-3 text-text-primary text-base font-medium leading-[1.45] placeholder:text-[rgba(var(--rgb-dark-brown),0.38)] placeholder:font-medium placeholder:opacity-100 focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(var(--rgb-light-green),0.24)] aria-[invalid=true]:border-accent aria-[invalid=true]:outline-none aria-[invalid=true]:shadow-[0_0_0_2px_rgba(var(--rgb-red),0.16)]"/>
-          {errors.email ? <small className="block mt-1.75 text-accent text-xs font-bold" id="contact-email-error">{errors.email}</small> : null}
-        </label>
-      </div>
-      <label htmlFor="contact-message" className="block text-[rgba(var(--rgb-dark-brown),0.5)] font-semibold text-[0.82rem]">
-        {messages.messageLabel}<span aria-hidden="true" className="ml-0.5 text-[rgba(var(--rgb-red),0.62)]">*</span>
-        <textarea id="contact-message" name="message" rows={5} placeholder={messages.contactFormMessagePlaceholder} aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? "contact-message-error" : undefined} className="block w-full mt-1.75 border border-beige rounded-none bg-white px-[13px] py-3 text-text-primary text-base font-medium leading-[1.45] placeholder:text-[rgba(var(--rgb-dark-brown),0.38)] placeholder:font-medium placeholder:opacity-100 focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(var(--rgb-light-green),0.24)] aria-[invalid=true]:border-accent aria-[invalid=true]:outline-none aria-[invalid=true]:shadow-[0_0_0_2px_rgba(var(--rgb-red),0.16)]"/>
-        {errors.message ? <small className="block mt-1.75 text-accent text-xs font-bold" id="contact-message-error">{errors.message}</small> : null}
-      </label>
-      <PrivacyConsent id="contact-privacy" error={errors.privacyConsent} />
+      {fields.map((field) => {
+        const inputId = `contact-${field.name}`;
+        const errorId = `${inputId}-error`;
+        const error = errors[field.name];
+        return (
+          <label key={field.name} htmlFor={inputId} className={LABEL_CLASS}>
+            {field.label}
+            <span aria-hidden="true" className="ml-0.5 text-[rgba(var(--rgb-red),0.62)]">
+              *
+            </span>
+            {field.type === "multiline" ? (
+              <textarea
+                id={inputId}
+                name={field.name}
+                rows={5}
+                placeholder={field.placeholder}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? errorId : undefined}
+                className={INPUT_CLASS}
+              />
+            ) : (
+              <input
+                id={inputId}
+                name={field.name}
+                type={HTML_INPUT_TYPE[field.type]}
+                autoComplete={field.type === "email" ? "email" : field.type === "phone" ? "tel" : undefined}
+                placeholder={field.placeholder}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? errorId : undefined}
+                className={INPUT_CLASS}
+              />
+            )}
+            {error ? (
+              <small className="block mt-1.75 text-accent text-xs font-bold" id={errorId}>
+                {error}
+              </small>
+            ) : null}
+          </label>
+        );
+      })}
+      {showPrivacyConsent ? (
+        <PrivacyConsent id="contact-privacy" error={errors.privacyConsent} required={requirePrivacyConsent} />
+      ) : null}
       <button
         className="inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] lg:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker disabled:cursor-not-allowed disabled:opacity-[0.62] disabled:transform-none"
         type="submit"

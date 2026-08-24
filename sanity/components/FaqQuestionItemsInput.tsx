@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { insert, useFormValue, type ArrayOfObjectsInputProps, type ArraySchemaType } from "sanity";
 import { Box, Button, Card, Stack, Text } from "@sanity/ui";
+import { ContactDetailsOrderInput } from "@/sanity/components/ContactDetailsOrderInput";
 
 // Same supported Sanity mechanism as every other custom array input here —
 // ArrayOptions.disableActions, not CSS. The generic add control would create
@@ -38,7 +39,12 @@ export function FaqQuestionItemsInput(props: ArrayOfObjectsInputProps) {
   const [adding, setAdding] = useState(false);
 
   if (!isFaqCategoryQuestions) {
-    return props.renderDefault(props);
+    // Chained (not both wired independently) — see this file's own doc
+    // comment for why `items` can only have one components.input.
+    // ContactDetailsOrderInput itself delegates to props.renderDefault for
+    // every non-Contact-hero items array, so every other section's items
+    // are unaffected.
+    return <ContactDetailsOrderInput {...props} />;
   }
 
   function addQuestion() {

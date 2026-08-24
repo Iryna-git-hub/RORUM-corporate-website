@@ -3,6 +3,7 @@
 import { set, unset, useFormValue, type ObjectInputProps, type StringInputProps } from "sanity";
 import { Box, Card, Stack, Text } from "@sanity/ui";
 import { IconPickerInput } from "@/sanity/components/IconPickerInput";
+import { ContactFormSectionInput } from "@/sanity/components/ContactFormSectionInput";
 
 const RESERVED_ICON_ITEM_KEY = "categoryIcon";
 
@@ -48,7 +49,11 @@ export function CateringMenuCategoryInput(props: ObjectInputProps) {
   const isMenuCategory = isPageCateringMenuExamples(documentId) && value?.sectionKind === "menuCategory";
 
   if (!isMenuCategory) {
-    return props.renderDefault(props);
+    // Chained (not both wired independently) — an object type can only have
+    // one components.input. ContactFormSectionInput itself delegates to
+    // props.renderDefault for every non-Contact-form section, so every
+    // other document/section is unaffected.
+    return <ContactFormSectionInput {...props} />;
   }
 
   const iconItem = value?.items?.find((item) => item.itemKey === RESERVED_ICON_ITEM_KEY);

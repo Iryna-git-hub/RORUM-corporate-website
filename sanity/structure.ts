@@ -26,6 +26,32 @@ function pageDoc(S: Parameters<StructureResolver>[0], key: PageKey, title: strin
   return singleton(S, PAGE_DOC_ID[key], title, "page");
 }
 
+/**
+ * "Contact" opens a 4-item list instead of jumping straight to page-contact
+ * — the Contact page's on-screen content is genuinely split across 4
+ * separate Sanity documents (page-contact itself, plus 3 documents shared
+ * with other parts of the site), each publishing independently. Sanity's
+ * Structure Tool has no supported way to combine independent documents into
+ * one Publish transaction, so this deliberately does NOT try to hide that —
+ * each entry's own title states plainly what else reads the same document,
+ * so a manager editing "Contact information" understands a change there
+ * also affects the Footer before they publish it, not after.
+ */
+function contactPagesEntry(S: Parameters<StructureResolver>[0]) {
+  return S.listItem()
+    .title("Contact")
+    .child(
+      S.list()
+        .title("Contact")
+        .items([
+          pageDoc(S, "contact", "Page content & form"),
+          singleton(S, "contactInfo", "Contact information (also used by Footer + event practical details)", "contactInfo"),
+          singleton(S, "socialLinks", "Social links (also used by Footer)", "socialLinks"),
+          singleton(S, "formMessages", "Shared form text (used by every form on the site, not just Contact)", "formMessages"),
+        ]),
+    );
+}
+
 export const structure: StructureResolver = (S) =>
   S.list()
     .title("RORUM Content")
@@ -62,7 +88,7 @@ export const structure: StructureResolver = (S) =>
               pageDoc(S, "communityMembership", "Community Membership"),
               pageDoc(S, "volunteer", "Volunteer"),
               pageDoc(S, "workWithUs", "Work With Us"),
-              pageDoc(S, "contact", "Contact"),
+              contactPagesEntry(S),
               pageDoc(S, "faq", "FAQ"),
               S.divider(),
               ...LEGAL_PAGE_KEYS.map((key) =>

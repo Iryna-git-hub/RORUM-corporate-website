@@ -1,5 +1,6 @@
 import { defineField, defineType } from "sanity";
 import { SOCIAL_LINK_ICONS } from "@/sanity/components/actionIcons";
+import { requireAllLanguages } from "@/sanity/lib/i18nValidation";
 
 const PLATFORM_TITLES: Record<string, string> = {
   instagram: "Instagram",
@@ -30,7 +31,21 @@ export default defineType({
           { title: "WhatsApp", value: "whatsapp" },
         ],
       },
-      validation: (rule) => rule.required(),
+      validation: (rule) => [
+        rule.required(),
+        // Nothing on the site (frontend or Studio) currently has a reason to
+        // show the same platform twice — a duplicate is far more likely a
+        // mistake (e.g. adding a link twice) than an intentional second
+        // profile. A visible error catches it immediately instead of
+        // silently rendering two identical icons.
+        rule.custom((value: string | undefined, context) => {
+          if (!value) return true;
+          const doc = context.document as { links?: { _key?: string; icon?: string }[] } | undefined;
+          const ownKey = (context.parent as { _key?: string } | undefined)?._key;
+          const duplicate = doc?.links?.some((l) => l._key !== ownKey && l.icon === value);
+          return duplicate ? `Another link already uses ${value} — each platform should only appear once.` : true;
+        }),
+      ],
     }),
     defineField({
       name: "href",
@@ -43,15 +58,16 @@ export default defineType({
       name: "label",
       title: "Accessible label",
       type: "internationalizedArrayString",
-      description: 'E.g. "Instagram" — read by screen readers. / Напр. «Instagram» — читається програмами читання з екрана.',
+      description: 'E.g. "Instagram" — read by screen readers. Required in English, Danish and Ukrainian. / Напр. «Instagram» — читається програмами читання з екрана. Обов\'язково англійською, данською та українською.',
+      validation: requireAllLanguages(),
     }),
     defineField({
       name: "brandColor",
-      title: "Brand color (hex)",
+      title: "Brand color (hex) — no longer used",
       type: "string",
       description:
-        "Used for the hover background on the contact page's social icons. / Використовується для фону іконки при наведенні на сторінці контактів.",
-      validation: (rule) => rule.regex(/^#[0-9a-fA-F]{6}$/, { name: "hex color" }),
+        "The hover background color is now derived automatically from the selected platform — this field is kept only for old data and has no effect. / Колір фону при наведенні тепер визначається автоматично за платформою — це поле збережено лише для старих даних і більше не впливає на сайт.",
+      hidden: true,
     }),
   ],
   preview: {
