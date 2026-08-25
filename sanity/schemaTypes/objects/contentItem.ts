@@ -35,7 +35,7 @@ import { allOrNothingLanguages, requiredWhen } from "@/sanity/lib/i18nValidation
 // Sections/pages NOT listed here (every other page's iconGrid/steps/etc.
 // sections) are untouched — they keep showing every contentItem field
 // exactly as before, pending their own future audit.
-export const ALL_CONTENT_ITEM_FIELDS = ["itemKey", "icon", "title", "text", "image", "href", "label", "value"] as const;
+export const ALL_CONTENT_ITEM_FIELDS = ["itemKey", "icon", "title", "text", "image", "href", "label", "value", "copyEnabled"] as const;
 export type ContentItemField = (typeof ALL_CONTENT_ITEM_FIELDS)[number];
 
 interface ItemRoleRule {
@@ -113,6 +113,16 @@ const ITEM_KEY_PREVIEW_LABELS: Record<string, string> = {
   selectPackageCta: "Select-package button label",
   cancellationTitle: "Cancellation policy heading",
   requestProcessAriaLabel: "Accessibility label (not visibly shown)",
+  // Community Membership
+  priceStripText: "Annual membership price",
+  scanText: "Donation — \"Scan to donate\" label",
+  scanSubtext: "Donation — scan sub-text",
+  orText: "Donation — \"or\" separator",
+  bankTransferText: "Donation — bank transfer note",
+  bankDetailsTitle: "Donation — Bank Details heading",
+  supportText: "Donation — closing note",
+  column0: "Intro — column 1",
+  column1: "Intro — column 2",
 };
 
 export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
@@ -334,6 +344,103 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
   // all" (the shared default is still shown when this is absent).
   { role: "Contact FAQ prompt question", documentIds: ["page-contact"], sectionKeys: ["form"], itemKeyPattern: /^faqPromptQuestion$/, visible: ["title"], fieldLabels: { title: "FAQ prompt question" } },
   { role: "Contact FAQ prompt link", documentIds: ["page-contact"], sectionKeys: ["form"], itemKeyPattern: /^faqPromptLabel$/, visible: ["title", "href"], fieldLabels: { title: "FAQ prompt link text", href: "FAQ prompt destination (defaults to /faq)" } },
+
+  // ==========================================================================
+  // Community Membership (page-community-membership) reserved item roles —
+  // see app/[locale]/(site)/community-membership/page.tsx's getData() for
+  // the exact frontend contract every role below is scoped to match.
+  // documentIds-scoped throughout: "hero"/"donation"/"intro"/"application"
+  // are all sectionKeys already used elsewhere for unrelated roles on other
+  // pages (Home's/Event Decoration's/Host's own hero, About's own
+  // "intro"-shaped sections, etc.).
+  // ==========================================================================
+  // The hero's "Annual membership price: 250 DKK" strip — one full sentence
+  // stored (deliberately) in Title, read verbatim by the price-strip banner
+  // AND (via a fragile-but-working string `.replace()`) by the membership
+  // panel's own heading — see page.tsx's own comment on that reuse. Kept as
+  // one field (not split into a separate amount/currency shape) per the
+  // task's own "preserve the compatible stored shape if migration is
+  // unnecessary" instruction — this shape already works correctly.
+  {
+    role: "Community Membership annual price strip",
+    documentIds: ["page-community-membership"],
+    sectionKeys: ["hero"],
+    itemKeyPattern: /^priceStripText$/,
+    visible: ["title"],
+    requiredFields: ["title"],
+    fieldLabels: { title: 'Annual membership price (full sentence, e.g. "Annual membership price: 250 DKK")' },
+  },
+  // Donation section message rows — all read via `getItem(donationSection,
+  // key)?.title` except "supportText", read via `.text` (a longer closing
+  // paragraph, not a short label). Currently unpopulated live (Studio shows
+  // them blank) but genuinely read by the frontend, correctly falling back
+  // to the page's own hardcoded default text when empty — NOT dead residue,
+  // never remove.
+  {
+    role: "Community Membership donation message (short label)",
+    documentIds: ["page-community-membership"],
+    sectionKeys: ["donation"],
+    itemKeyPattern: /^(scanText|scanSubtext|orText|bankTransferText|bankDetailsTitle)$/,
+    visible: ["title"],
+  },
+  {
+    role: "Community Membership donation closing note",
+    documentIds: ["page-community-membership"],
+    sectionKeys: ["donation"],
+    itemKeyPattern: /^supportText$/,
+    visible: ["text"],
+  },
+  // Bank Details — one canonical role for all 9 rows (Beneficiary/CVR/Bank/
+  // Account Type/Account No./Reg. No./IBAN/SWIFT-BIC/Currency). Title =
+  // localized row label, Value = the actual (non-localized) bank fact,
+  // Copy button enabled = manager-controlled per row (see page.tsx's own
+  // fix for the previous defect: every row used to hardcode
+  // `copyable: true` regardless of this field, showing a Copy button on
+  // every row instead of only the 2 genuinely copyable ones).
+  {
+    role: "Community Membership bank detail",
+    documentIds: ["page-community-membership"],
+    sectionKeys: ["donation"],
+    itemKeyPattern: /^bank\d*$/,
+    visible: ["title", "value", "copyEnabled"],
+    requiredFields: ["title", "value"],
+    fieldLabels: { title: "Label", value: "Row value", copyEnabled: "Copy button enabled" },
+  },
+  // The "Connecting Women" intro section's 2 columns — long-form paragraph
+  // text only (no title/icon/image/link — see page.tsx's own
+  // `introSection.items.map((c) => pickLocalized(c.text, locale))`).
+  {
+    role: "Community Membership intro column",
+    documentIds: ["page-community-membership"],
+    sectionKeys: ["intro"],
+    itemKeyPattern: /^column\d*$/,
+    visible: ["text"],
+    requiredFields: ["text"],
+  },
+  // Membership benefit cards — Title/Text/Image(+Alt) only. `icon` (the
+  // Lucide picker) is deliberately hidden: page.tsx's own `benefits`
+  // mapping already prioritizes `urlForImage(b.image)` over any hardcoded
+  // icon, with a bundled fallback PNG (never a Lucide icon) as the deepest
+  // tier — the Lucide picker has never been read for this role at all.
+  // Link destination/text stay hidden too — not read by MembershipBenefitsGrid.
+  {
+    role: "Community Membership benefit",
+    documentIds: ["page-community-membership"],
+    sectionKeys: ["benefits"],
+    itemKeyPattern: /^benefit\d*$/,
+    visible: ["title", "text", "image"],
+    requiredFields: ["title", "text"],
+  },
+  // Application Process steps — Title/Text only, numbered 1-4 by array
+  // order in the frontend (never a stored number).
+  {
+    role: "Community Membership application step",
+    documentIds: ["page-community-membership"],
+    sectionKeys: ["application"],
+    itemKeyPattern: /^step\d*$/,
+    visible: ["title", "text"],
+    requiredFields: ["title", "text"],
+  },
 ];
 
 /** True when this contentItem's ITEM_ROLE_RULES role is exactly "FAQ question" — used by the href/label link-pair validation and the always-3-languages Studio input, both below. */
@@ -526,6 +633,15 @@ export default defineType({
       // "Contact form field" role only — every other item's `value` field
       // (bank details, etc.) renders the unmodified default string input.
       components: { field: ItemRoleAwareFieldLabel, input: ContactFormFieldTypeInput },
+    }),
+    defineField({
+      name: "copyEnabled",
+      title: "Copy button enabled",
+      type: "boolean",
+      initialValue: false,
+      description:
+        "Only for a Bank Detail row — shows a Copy button next to Row value when checked (e.g. for an account number or IBAN), hides it otherwise. Has no effect for any other item role. / Лише для рядка банківських реквізитів — показує кнопку «Копіювати» біля значення, якщо позначено (напр. для номера рахунку чи IBAN), інакше приховує її. Не впливає на жодну іншу роль елемента.",
+      hidden: hiddenByItemRole("copyEnabled"),
     }),
   ],
   preview: {

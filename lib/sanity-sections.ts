@@ -51,6 +51,7 @@ export interface RawContentItem {
   href?: string | null;
   label?: I18nEntry[] | null;
   value?: string | null;
+  copyEnabled?: boolean | null;
 }
 
 export interface RawPageSection {

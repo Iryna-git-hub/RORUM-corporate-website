@@ -126,7 +126,16 @@
     "sanity:backfill-host-gallery-alt:dry-run": "tsx --env-file=.env.local scripts/backfill-host-gallery-alt.ts",
     "sanity:backfill-host-gallery-alt": "tsx --env-file=.env.local scripts/backfill-host-gallery-alt.ts --apply",
     "sanity:migrate-host-additional-services:dry-run": "tsx --env-file=.env.local scripts/migrate-host-additional-services.ts",
-    "sanity:migrate-host-additional-services": "tsx --env-file=.env.local scripts/migrate-host-additional-services.ts --apply"
+    "sanity:migrate-host-additional-services": "tsx --env-file=.env.local scripts/migrate-host-additional-services.ts --apply",
+    "sanity:backup-community-membership": "tsx --env-file=.env.local scripts/backup-community-membership-docs.ts",
+    "sanity:migrate-cm-hero-text:dry-run": "tsx --env-file=.env.local scripts/migrate-community-membership-hero-text.ts",
+    "sanity:migrate-cm-hero-text": "tsx --env-file=.env.local scripts/migrate-community-membership-hero-text.ts --apply",
+    "sanity:migrate-cm-bank-copy:dry-run": "tsx --env-file=.env.local scripts/migrate-community-membership-bank-copy.ts",
+    "sanity:migrate-cm-bank-copy": "tsx --env-file=.env.local scripts/migrate-community-membership-bank-copy.ts --apply",
+    "sanity:migrate-cm-hero-apply-label:dry-run": "tsx --env-file=.env.local scripts/migrate-community-membership-hero-apply-label.ts",
+    "sanity:migrate-cm-hero-apply-label": "tsx --env-file=.env.local scripts/migrate-community-membership-hero-apply-label.ts --apply",
+    "sanity:backfill-cm-alt:dry-run": "tsx --env-file=.env.local scripts/backfill-community-membership-alt.ts",
+    "sanity:backfill-cm-alt": "tsx --env-file=.env.local scripts/backfill-community-membership-alt.ts --apply"
   },
   "dependencies": {
     "@portabletext/react": "^7.0.1",

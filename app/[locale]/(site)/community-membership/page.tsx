@@ -14,15 +14,17 @@ import { MembershipBenefitsGrid } from "@/components/MembershipBenefitsGrid";
 import { WecodaDonationSection, defaultBankFields, type BankField } from "@/components/WecodaDonationSection";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
-import { compact, pickLocalized } from "@/lib/sanity-i18n";
+import { compact, pickLocalized, type I18nEntry } from "@/lib/sanity-i18n";
 import { getAction, getItem, getSection } from "@/lib/sanity-sections";
 import { isSanityConfigured } from "@/sanity/env";
-import { urlForImage } from "@/sanity/lib/image";
+import { urlForFile, urlForImage } from "@/sanity/lib/image";
+import { isDirectVideoFileUrl } from "@/sanity/lib/videoUrl";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
 import { communityMembershipPageQuery } from "@/sanity/queries/pages";
 
 const fallbackWecodaFormUrl = "https://forms.gle/MpadaPTyL8YCHtAa9";
+const fallbackWecodaExternalUrl = "https://wecoda.org";
 const fallbackWecodaDonationQrSrc = "/images/membership-week/wecoda-donation-qr.jpg";
 
 interface MembershipWeekMediaItem {
@@ -144,6 +146,7 @@ async function getData(locale: Locale) {
         text,
       })),
       membershipFormHref: fallbackWecodaFormUrl,
+      externalSiteHref: fallbackWecodaExternalUrl,
       donationQrSrc: fallbackWecodaDonationQrSrc,
       bankFields: defaultBankFields,
       gallery: membershipWeekMedia,
@@ -162,12 +165,15 @@ async function getData(locale: Locale) {
   const applicationSection = getSection(newPage?.sections, "application");
   const gallerySection = getSection(newPage?.sections, "gallery");
 
+  const heroTextValue = pickLocalized(heroSection?.text, locale);
   const heroIntroItemsFromSections = (heroSection?.items ?? []).filter((i) => i.itemKey?.startsWith("intro"));
-  const heroIntro = heroIntroItemsFromSections.length
-    ? compact(heroIntroItemsFromSections.map((i) => pickLocalized(i.text, locale)))
-    : page?.heroIntro?.length
-      ? compact(page.heroIntro.map((p) => pickLocalized(p?.text, locale)))
-      : fallback.heroIntro;
+  const heroIntro = heroTextValue
+    ? heroTextValue.split("\n\n").filter(Boolean)
+    : heroIntroItemsFromSections.length
+      ? compact(heroIntroItemsFromSections.map((i) => pickLocalized(i.text, locale)))
+      : page?.heroIntro?.length
+        ? compact(page.heroIntro.map((p) => pickLocalized(p?.text, locale)))
+        : fallback.heroIntro;
 
   const introColumns = introSection?.items?.length
     ? compact(introSection.items.map((c) => pickLocalized(c.text, locale)))
@@ -198,6 +204,7 @@ async function getData(locale: Locale) {
 
   const applyAction = getAction(heroSection, "apply");
   const membershipFormHref = applyAction?.href || page?.membershipFormCta?.href || fallbackWecodaFormUrl;
+  const externalSiteHref = getAction(heroSection, "external")?.href || fallbackWecodaExternalUrl;
 
   const donationQrSrc =
     urlForImage(donationSection?.media?.[0]?.image as unknown as Parameters<typeof urlForImage>[0])?.width(800).url() ??
@@ -206,11 +213,13 @@ async function getData(locale: Locale) {
 
   const bankItemsFromSections = (donationSection?.items ?? []).filter((i) => i.itemKey?.startsWith("bank"));
   const bankFields: BankField[] = bankItemsFromSections.length
-    ? bankItemsFromSections.map((f, i) => ({
-        label: pickLocalized(f.title, locale) ?? defaultBankFields[i]?.label ?? "",
-        value: f.value ?? defaultBankFields[i]?.value ?? "",
-        copyable: true,
-      }))
+    ? bankItemsFromSections
+        .filter((f) => (f.value ?? "").trim().length > 0)
+        .map((f, i) => ({
+          label: pickLocalized(f.title, locale) ?? defaultBankFields[i]?.label ?? "",
+          value: f.value ?? "",
+          copyable: f.copyEnabled ?? false,
+        }))
     : page?.donation?.bankFields?.length
       ? page.donation.bankFields.map((f, i) => ({
           label: pickLocalized(f?.label, locale) ?? defaultBankFields[i]?.label ?? "",
@@ -219,22 +228,43 @@ async function getData(locale: Locale) {
         }))
       : defaultBankFields;
 
+  // Mirrors resolveCanonicalGalleryItems's "missing vs. intentionally empty"
+  // policy (lib/sanityGallery.ts) by hand rather than calling it directly:
+  // this page's mosaic layout needs a `featured` (2x2 tile) flag that's
+  // meaningless to every other gallery consumer, and its static emergency
+  // fallback mixes photos and videos, while the shared resolver's own
+  // fallback tier is images-only — reusing it here would either leak a
+  // page-only concern into the shared type or silently drop the video
+  // fallback items. The per-item photo/video resolution below still
+  // mirrors resolveOne's precedence (uploaded file before external URL,
+  // rejecting a non-direct-file URL) to avoid re-introducing the bug that
+  // helper exists to prevent.
+  function resolveMembershipMedia(
+    item: { image?: unknown; videoFile?: unknown; videoUrl?: string | null; alt?: I18nEntry<string>[] | null },
+    fb: MembershipWeekMediaItem | undefined,
+  ): MembershipWeekMediaItem | undefined {
+    const imageUrl = urlForImage(item.image as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(700)
+      .url();
+    if (imageUrl) {
+      return { type: "image", src: imageUrl, alt: pickLocalized(item.alt, locale) ?? fb?.alt, featured: fb?.featured };
+    }
+    const uploadedSrc = urlForFile(item.videoFile as Parameters<typeof urlForFile>[0]);
+    let videoSrc = uploadedSrc;
+    if (!videoSrc && item.videoUrl?.trim()) {
+      if (isDirectVideoFileUrl(item.videoUrl)) {
+        videoSrc = item.videoUrl.trim();
+      }
+    }
+    if (!videoSrc) return undefined;
+    return { type: "video", src: videoSrc, label: pickLocalized(item.alt, locale) ?? fb?.label, featured: fb?.featured };
+  }
+
   const galleryFromSections = gallerySection?.media?.length
-    ? gallerySection.media.map((item, i) => {
-        const fb = membershipWeekMedia[i];
-        const imageUrl = urlForImage(item.image as unknown as Parameters<typeof urlForImage>[0])
-          ?.width(700)
-          .url();
-        return imageUrl
-          ? { type: "image" as const, src: imageUrl, alt: pickLocalized(item.alt, locale) ?? fb?.alt, featured: fb?.featured }
-          : {
-              type: "video" as const,
-              src: item.videoUrl || fb?.src || "",
-              label: pickLocalized(item.alt, locale) ?? fb?.label,
-              featured: fb?.featured,
-            };
-      })
-    : undefined;
+    ? gallerySection.media.map((item, i) => resolveMembershipMedia(item, membershipWeekMedia[i])).filter((m): m is MembershipWeekMediaItem => m !== undefined)
+    : gallerySection
+      ? []
+      : undefined;
   const gallery: MembershipWeekMediaItem[] =
     galleryFromSections ??
     (page?.gallery?.length
@@ -343,6 +373,7 @@ async function getData(locale: Locale) {
     benefits,
     applicationSteps,
     membershipFormHref,
+    externalSiteHref,
     donationQrSrc,
     bankFields,
     gallery,
@@ -410,7 +441,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
               </Button>
               <a
                 className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
-                href="https://wecoda.org"
+                href={data.externalSiteHref}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -469,7 +500,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
             <MembershipButton href={data.membershipFormHref}>{data.applicationCta}</MembershipButton>
             <a
               className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
-              href="https://wecoda.org"
+              href={data.externalSiteHref}
               target="_blank"
               rel="noreferrer"
             >
@@ -565,7 +596,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
                 </p>
                 <a
                   className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
-                  href="https://wecoda.org"
+                  href={data.externalSiteHref}
                   target="_blank"
                   rel="noreferrer"
                 >

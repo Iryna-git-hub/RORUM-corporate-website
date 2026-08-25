@@ -137,6 +137,11 @@ export function isPageHostAtRorum(document: unknown): boolean {
   return doc?._id?.replace(/^drafts\./, "") === "page-host-at-rorum";
 }
 
+export function isPageCommunityMembership(document: unknown): boolean {
+  const doc = document as { _id?: string } | undefined;
+  return doc?._id?.replace(/^drafts\./, "") === "page-community-membership";
+}
+
 // Contact's hero ("Contact intro") genuinely uses label/title/text/items
 // (the default "hero"-kind visibility already covers those) but never
 // media/actions — confirmed by the live audit (no media/actions ever
@@ -154,6 +159,18 @@ const CONTACT_FORM_FORCE_HIDDEN_FIELDS = new Set(["label", "text"]);
 // photos live in a separate "gallery" section, and their real CTA is the
 // hero's own `actions` array, not `items`).
 const HERO_MEDIA_ITEMS_FORCE_HIDDEN_FIELDS = new Set(["media", "items"]);
+
+// Community Membership's hero genuinely uses label/title/text (after the
+// intro0/intro1 -> text migration)/actions/items (the price-strip row) —
+// only `media` is confirmed unused (its own real gallery lives in the
+// separate "gallery" section). Its "intro" section (the "Connecting
+// Women..." block) genuinely uses label/title/items (the 2 text columns)
+// but never text/media/actions — its own visible buttons are read from the
+// hero section's actions instead (see page.tsx's own `membershipFormHref`/
+// `externalSiteCta` — a disclosed, unchanged cross-section reuse, not a
+// hidden dead field on THIS section).
+const COMMUNITY_MEMBERSHIP_HERO_FORCE_HIDDEN_FIELDS = new Set(["media"]);
+const COMMUNITY_MEMBERSHIP_INTRO_FORCE_HIDDEN_FIELDS = new Set(["text", "media", "actions"]);
 
 // Live audit (Events Listing Studio task): `app/[locale]/(site)/events/page.tsx`
 // reads the page's own H1 from `sections[sectionKey=="hero"].title` — the
@@ -231,6 +248,12 @@ function fieldHidden(fieldName: string) {
       return true;
     }
     if ((isPageEventDecoration(document) || isPageHostAtRorum(document)) && parent?.sectionKey === "hero" && HERO_MEDIA_ITEMS_FORCE_HIDDEN_FIELDS.has(fieldName)) {
+      return true;
+    }
+    if (isPageCommunityMembership(document) && parent?.sectionKey === "hero" && COMMUNITY_MEMBERSHIP_HERO_FORCE_HIDDEN_FIELDS.has(fieldName)) {
+      return true;
+    }
+    if (isPageCommunityMembership(document) && parent?.sectionKey === "intro" && COMMUNITY_MEMBERSHIP_INTRO_FORCE_HIDDEN_FIELDS.has(fieldName)) {
       return true;
     }
     const kind = parent?.sectionKind as (typeof SECTION_KINDS)[number] | undefined;

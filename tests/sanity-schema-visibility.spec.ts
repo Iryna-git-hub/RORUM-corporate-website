@@ -195,6 +195,8 @@ test.describe("contentItem.ts — ITEM_ROLE_RULES matrix (mocked document+parent
       "included0", "included6", "optional0", "optional1", "optionalLabel",
       "package0", "package1", "package2", "footerCtaLabel", "footerText", "selectPackageCta",
       "cancellationTitle", "cancellation0", "cancellation1", "cancellation2", "requestProcessAriaLabel",
+      "priceStripText", "scanText", "scanSubtext", "orText", "bankTransferText", "bankDetailsTitle",
+      "supportText", "bank0", "bank4", "bank6", "column0", "column1", "benefit0", "benefit8",
     ];
     const rawItemKey = candidates.find((c) => rule.itemKeyPattern.test(c));
     if (rawItemKey === undefined) throw new Error(`no test candidate matches rule "${rule.role}"'s pattern — fix the test fixture list`);
@@ -210,7 +212,7 @@ test.describe("contentItem.ts — ITEM_ROLE_RULES matrix (mocked document+parent
       const matched = matchItemRoleInContext(document, parent);
       expect(matched?.role, `expected itemKey ${JSON.stringify(itemKey)} in section "${sectionKey}" to match role "${rule.role}"`).toBe(rule.role);
 
-      for (const fieldName of ["itemKey", "icon", "title", "text", "image", "href", "label", "value"] as const) {
+      for (const fieldName of ["itemKey", "icon", "title", "text", "image", "href", "label", "value", "copyEnabled"] as const) {
         const expectedVisible = rule.visible.includes(fieldName);
         const actualVisible = !callHidden(field(contentItemType, fieldName), { document, parent });
         expect(actualVisible, `${fieldName} visibility for role "${rule.role}"`).toBe(expectedVisible);
@@ -2449,6 +2451,163 @@ test.describe("contentItem.ts — Host at RORUM session-includes / package / ste
       ["session", "included0"],
       ["packages", "package0"],
       ["steps", "requestProcessAriaLabel"],
+    ] as const) {
+      const doc = docWithItemIn(sectionKey, itemKey, "page-catering");
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent), `${sectionKey}/${itemKey}`).toBeUndefined();
+    }
+  });
+});
+
+test.describe("pageSection.ts — Community Membership hero/intro force-hidden fields", () => {
+  function mediaField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "media");
+  }
+  function textField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "text");
+  }
+  function actionsField() {
+    return field(pageSectionType as unknown as { fields: FieldDef[] }, "actions");
+  }
+
+  test("hero: media is hidden (the real photo comes from a static logo image, not a manager-uploaded media item)", () => {
+    for (const docId of ["page-community-membership", "drafts.page-community-membership"]) {
+      const parent = { sectionKey: "hero", sectionKind: "hero" };
+      expect(callHidden(mediaField(), { parent, document: { _id: docId } }), docId).toBe(true);
+    }
+  });
+
+  test("hero: text stays VISIBLE — it's the real, migrated two-paragraph intro field, unlike Event Decoration/Host's own hero", () => {
+    const parent = { sectionKey: "hero", sectionKind: "hero" };
+    expect(callHidden(textField(), { parent, document: { _id: "page-community-membership" } })).toBe(false);
+  });
+
+  test("intro: text/media/actions are all hidden — real paragraph content lives in the section's items[].text, and its visible action buttons are cross-wired from hero's own actions, not this section's", () => {
+    const parent = { sectionKey: "intro", sectionKind: "split" };
+    const document = { _id: "page-community-membership" };
+    expect(callHidden(textField(), { parent, document })).toBe(true);
+    expect(callHidden(mediaField(), { parent, document })).toBe(true);
+    expect(callHidden(actionsField(), { parent, document })).toBe(true);
+  });
+
+  test("regression: a DIFFERENT document's hero/intro sections are unaffected by these Community-Membership-only hides", () => {
+    for (const [docId, sectionKey] of [
+      ["page-home", "hero"],
+      ["page-about", "intro"],
+    ] as const) {
+      const parent = { sectionKey, sectionKind: "hero" };
+      const document = { _id: docId };
+      expect(callHidden(mediaField(), { parent, document }), docId).toBe(false);
+      expect(callHidden(textField(), { parent, document }), docId).toBe(false);
+      expect(callHidden(actionsField(), { parent, document }), docId).toBe(false);
+    }
+  });
+
+  test("regression: Community Membership's OTHER sections (donation/benefits/application/gallery) are unaffected — the hides are scoped to sectionKey \"hero\"/\"intro\" only", () => {
+    for (const sectionKey of ["donation", "benefits", "application", "gallery"]) {
+      const parent = { sectionKey, sectionKind: "split" };
+      const document = { _id: "page-community-membership" };
+      expect(callHidden(mediaField(), { parent, document }), sectionKey).toBe(false);
+      expect(callHidden(textField(), { parent, document }), sectionKey).toBe(false);
+      expect(callHidden(actionsField(), { parent, document }), sectionKey).toBe(false);
+    }
+  });
+});
+
+test.describe("contentItem.ts — Community Membership reserved item roles", () => {
+  function docWithItemIn(sectionKey: string, itemKey: string | undefined, documentId = "page-community-membership") {
+    return { _id: documentId, sections: [{ sectionKey, sectionKind: "split", items: [{ _key: "x", itemKey }] }] };
+  }
+
+  test("hero's priceStripText row shows only Title, required", () => {
+    const doc = docWithItemIn("hero", "priceStripText");
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)?.role).toBe("Community Membership annual price strip");
+    expect(callHidden(field(contentItemType, "title"), { document: doc, parent })).toBe(false);
+    for (const fieldName of ["icon", "text", "image", "href", "label", "value", "copyEnabled"] as const) {
+      expect(callHidden(field(contentItemType, fieldName), { document: doc, parent }), fieldName).toBe(true);
+    }
+    expect(isFieldRequiredByItemRole("title")(doc, parent)).toBe(true);
+  });
+
+  test("donation's short-label rows (scanText/scanSubtext/orText/bankTransferText/bankDetailsTitle) show only Title", () => {
+    for (const itemKey of ["scanText", "scanSubtext", "orText", "bankTransferText", "bankDetailsTitle"]) {
+      const doc = docWithItemIn("donation", itemKey);
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBe("Community Membership donation message (short label)");
+      expect(callHidden(field(contentItemType, "title"), { document: doc, parent }), itemKey).toBe(false);
+      expect(callHidden(field(contentItemType, "text"), { document: doc, parent }), itemKey).toBe(true);
+    }
+  });
+
+  test("donation's supportText row shows only Text (the longer closing note, distinct from the short-label rows)", () => {
+    const doc = docWithItemIn("donation", "supportText");
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)?.role).toBe("Community Membership donation closing note");
+    expect(callHidden(field(contentItemType, "text"), { document: doc, parent })).toBe(false);
+    expect(callHidden(field(contentItemType, "title"), { document: doc, parent })).toBe(true);
+  });
+
+  test("a bank detail row shows Title/Value/Copy button enabled, hides itemKey/icon/image/href/label, and requires title+value", () => {
+    for (const itemKey of ["bank0", "bank4", "bank8"]) {
+      const doc = docWithItemIn("donation", itemKey);
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBe("Community Membership bank detail");
+      for (const fieldName of ["title", "value", "copyEnabled"] as const) {
+        expect(callHidden(field(contentItemType, fieldName), { document: doc, parent }), `${itemKey}/${fieldName}`).toBe(false);
+      }
+      for (const fieldName of ["itemKey", "icon", "image", "href", "label"] as const) {
+        expect(callHidden(field(contentItemType, fieldName), { document: doc, parent }), `${itemKey}/${fieldName}`).toBe(true);
+      }
+      expect(isFieldRequiredByItemRole("title")(doc, parent), itemKey).toBe(true);
+      expect(isFieldRequiredByItemRole("value")(doc, parent), itemKey).toBe(true);
+    }
+    expect(fieldLabelForItemRole("value", docWithItemIn("donation", "bank4"), docWithItemIn("donation", "bank4").sections[0]!.items[0]!)).toBe("Row value");
+    expect(fieldLabelForItemRole("copyEnabled", docWithItemIn("donation", "bank4"), docWithItemIn("donation", "bank4").sections[0]!.items[0]!)).toBe("Copy button enabled");
+  });
+
+  test("an intro column row shows only Text, required", () => {
+    const doc = docWithItemIn("intro", "column0");
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)?.role).toBe("Community Membership intro column");
+    expect(callHidden(field(contentItemType, "text"), { document: doc, parent })).toBe(false);
+    expect(callHidden(field(contentItemType, "title"), { document: doc, parent })).toBe(true);
+    expect(isFieldRequiredByItemRole("text")(doc, parent)).toBe(true);
+  });
+
+  test("a benefit card shows Title/Text/Image, hides the Lucide icon field (image is authoritative, per page.tsx's own urlForImage-first mapping)", () => {
+    const doc = docWithItemIn("benefits", "benefit0");
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)?.role).toBe("Community Membership benefit");
+    for (const fieldName of ["title", "text", "image"] as const) {
+      expect(callHidden(field(contentItemType, fieldName), { document: doc, parent }), fieldName).toBe(false);
+    }
+    expect(callHidden(field(contentItemType, "icon"), { document: doc, parent })).toBe(true);
+    expect(isFieldRequiredByItemRole("title")(doc, parent)).toBe(true);
+    expect(isFieldRequiredByItemRole("text")(doc, parent)).toBe(true);
+  });
+
+  test("an application step shows Title/Text only", () => {
+    const doc = docWithItemIn("application", "step0");
+    const parent = doc.sections[0]!.items[0]!;
+    expect(matchItemRoleInContext(doc, parent)?.role).toBe("Community Membership application step");
+    for (const fieldName of ["title", "text"] as const) {
+      expect(callHidden(field(contentItemType, fieldName), { document: doc, parent }), fieldName).toBe(false);
+    }
+    for (const fieldName of ["icon", "image", "href", "label", "value", "copyEnabled"] as const) {
+      expect(callHidden(field(contentItemType, fieldName), { document: doc, parent }), fieldName).toBe(true);
+    }
+  });
+
+  test("none of these 7 new roles activate on a different document with the same sectionKey/itemKey", () => {
+    for (const [sectionKey, itemKey] of [
+      ["hero", "priceStripText"],
+      ["donation", "scanText"],
+      ["donation", "supportText"],
+      ["donation", "bank0"],
+      ["intro", "column0"],
+      ["benefits", "benefit0"],
+      ["application", "step0"],
     ] as const) {
       const doc = docWithItemIn(sectionKey, itemKey, "page-catering");
       const parent = doc.sections[0]!.items[0]!;
