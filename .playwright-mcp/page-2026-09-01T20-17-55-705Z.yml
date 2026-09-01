@@ -1,0 +1,370 @@
+- generic [active] [ref=f3e1]:
+  - generic [ref=f3e2]:
+    - banner [ref=f3e3]:
+      - generic [ref=f3e5]:
+        - link [ref=f3e6] [cursor=pointer]:
+          - /url: /
+          - img "RORUM Creative & Event Space" [ref=f3e7]
+        - navigation "Main navigation" [ref=f3e8]:
+          - link "Attend Events" [ref=f3e9] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=f3e10] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=f3e12] [cursor=pointer]
+          - button "Community" [ref=f3e16] [cursor=pointer]
+          - link "About" [ref=f3e19] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=f3e20] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=f3e21]:
+          - 'button "Language: EN" [ref=f3e23] [cursor=pointer]':
+            - generic [ref=f3e24]: EN
+          - link "Let's Talk" [ref=f3e28] [cursor=pointer]:
+            - /url: /contact
+      - complementary "Mobile menu" [ref=f3e31]:
+        - generic [ref=f3e32]:
+          - link "Let's Talk" [ref=f3e33] [cursor=pointer]:
+            - /url: /contact
+          - group "Language" [ref=f3e34]:
+            - button "EN" [pressed] [ref=f3e35] [cursor=pointer]
+            - generic [aria-hidden] [ref=f3e36]: "|"
+            - button "DA" [ref=f3e37] [cursor=pointer]
+            - generic [aria-hidden] [ref=f3e38]: "|"
+            - button "UK" [ref=f3e39] [cursor=pointer]
+          - button "Close menu" [ref=f3e40] [cursor=pointer]
+        - navigation [ref=f3e44]:
+          - link "Home" [ref=f3e46] [cursor=pointer]:
+            - /url: /
+          - link "Attend Events" [ref=f3e49] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=f3e52] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=f3e55] [cursor=pointer]
+          - button "Community" [ref=f3e60] [cursor=pointer]
+          - link "About" [ref=f3e65] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=f3e68] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=f3e70]:
+          - link "Instagram" [ref=f3e71] [cursor=pointer]:
+            - /url: https://www.instagram.com/rorum_dk
+          - link "Facebook" [ref=f3e76] [cursor=pointer]:
+            - /url: https://www.facebook.com/rorum2025
+          - link "linkedin" [ref=f3e79] [cursor=pointer]:
+            - /url: https://linkedin.com
+    - main [ref=f3e84]:
+      - generic [ref=f3e88]:
+        - generic [ref=f3e89]: Catering
+        - heading "Catering" [level=1] [ref=f3e90]
+        - paragraph [ref=f3e91]: Traditional Ukrainian cuisine in harmonious combination with modern European gastronomy. We create not just dishes, but an atmosphere where taste, aesthetics, and service work together.
+        - generic [ref=f3e92]:
+          - link "Request catering" [ref=f3e93] [cursor=pointer]:
+            - /url: "#catering-inquiry"
+          - button "Menu examples" [ref=f3e96] [cursor=pointer]
+      - generic [ref=f3e100]:
+        - generic [ref=f3e102]:
+          - button "Previous slide" [disabled] [ref=f3e103]
+          - button "Next slide" [ref=f3e106] [cursor=pointer]
+          - generic [ref=f3e109]: 1 / 59
+          - generic [ref=f3e110]:
+            - button "Open gallery image 1" [ref=f3e111] [cursor=pointer]:
+              - img "Long buffet table set up for a RORUM catering event"
+            - button "Open gallery image 2" [ref=f3e112] [cursor=pointer]:
+              - img "Spread of dishes from a RORUM catering event"
+            - button "Open gallery image 3" [ref=f3e113] [cursor=pointer]:
+              - img "Catering table set up for a WECODA membership gathering"
+            - button "Open gallery image 4" [ref=f3e114] [cursor=pointer]:
+              - img "Plated dishes served at a RORUM catering event"
+            - button "Open gallery image 5" [ref=f3e115] [cursor=pointer]:
+              - img "Dishes prepared for a RORUM catering event"
+            - button "Open gallery image 6" [ref=f3e116] [cursor=pointer]:
+              - img "Catering dishes arranged for a RORUM event"
+            - button "Open gallery image 7" [ref=f3e117] [cursor=pointer]:
+              - img "Catering spread from a RORUM gathering"
+            - button "Open gallery image 8" [ref=f3e118] [cursor=pointer]:
+              - img "Plates of food from a RORUM catering event"
+            - button "Open gallery image 9" [ref=f3e119] [cursor=pointer]:
+              - img "Welcome drinks arranged for a RORUM catering event"
+            - button "Open gallery image 10" [ref=f3e120] [cursor=pointer]:
+              - img "Catering dishes served at a RORUM event"
+            - button "Open gallery image 11" [ref=f3e121] [cursor=pointer]:
+              - img "Table of catering dishes at a RORUM gathering"
+            - button "Open gallery image 12" [ref=f3e122] [cursor=pointer]:
+              - img "Catering plates styled for a RORUM event"
+            - button "Open gallery image 13" [ref=f3e123] [cursor=pointer]:
+              - img "Catering dishes from a RORUM event"
+            - button "Open gallery image 14" [ref=f3e124] [cursor=pointer]:
+              - img "Catering table from a RORUM gathering"
+            - button "Open gallery image 15" [ref=f3e125] [cursor=pointer]:
+              - img "Dishes served at a RORUM catering event"
+            - button "Open gallery image 16" [ref=f3e126] [cursor=pointer]:
+              - img "Traditional Ukrainian dumplings (varenyky) served on a plate"
+            - button "Open gallery image 17" [ref=f3e127] [cursor=pointer]:
+              - img "Catering dishes arranged on a table"
+            - button "Open gallery image 18" [ref=f3e128] [cursor=pointer]:
+              - img "Catering spread from a RORUM event"
+            - button "Open gallery image 19" [ref=f3e129] [cursor=pointer]:
+              - img "Plated dishes from a RORUM catering event"
+            - button "Open gallery image 20" [ref=f3e130] [cursor=pointer]:
+              - img "Catering dishes served at a RORUM gathering"
+            - button "Open gallery image 21" [ref=f3e131] [cursor=pointer]:
+              - img "Catering plates from a RORUM event"
+            - button "Open gallery image 22" [ref=f3e132] [cursor=pointer]:
+              - img "Desserts styled with fresh flowers"
+            - button "Open gallery image 23" [ref=f3e133] [cursor=pointer]:
+              - img "Catering dishes arranged for a RORUM gathering"
+            - button "Open gallery image 24" [ref=f3e134] [cursor=pointer]:
+              - img "Catering spread at a RORUM event"
+            - button "Open gallery image 25" [ref=f3e135] [cursor=pointer]:
+              - img "Plated catering dishes from a RORUM event"
+            - button "Open gallery image 26" [ref=f3e136] [cursor=pointer]:
+              - img "Appetizer board with bread, pickles and savory accompaniments"
+            - button "Open gallery image 27" [ref=f3e137] [cursor=pointer]:
+              - img "Catering dishes served at a RORUM gathering"
+            - button "Open gallery image 28" [ref=f3e138] [cursor=pointer]:
+              - img "Catering table from a RORUM event"
+            - button "Open gallery image 29" [ref=f3e139] [cursor=pointer]:
+              - img "Catering dishes from a RORUM event"
+            - button "Open gallery image 30" [ref=f3e140] [cursor=pointer]:
+              - img "Charcuterie board with cheese, meats and accompaniments"
+            - button "Open gallery image 31" [ref=f3e141] [cursor=pointer]:
+              - img "Catering plates arranged for a RORUM gathering"
+            - button "Open gallery image 32" [ref=f3e142] [cursor=pointer]:
+              - img "Catering spread from a RORUM gathering"
+            - button "Open gallery image 33" [ref=f3e143] [cursor=pointer]:
+              - img "Dishes served at a RORUM catering event"
+            - button "Open gallery image 34" [ref=f3e144] [cursor=pointer]:
+              - img "Traditional Ukrainian borscht served with herbs"
+            - button "Open gallery image 35" [ref=f3e145] [cursor=pointer]:
+              - img "Catering dishes from a RORUM event"
+            - button "Open gallery image 36" [ref=f3e146] [cursor=pointer]:
+              - img "Catering table styled for a RORUM gathering"
+            - button "Open gallery image 37" [ref=f3e147] [cursor=pointer]:
+              - img "Plated dishes from a RORUM catering event"
+            - button "Open gallery image 38" [ref=f3e148] [cursor=pointer]:
+              - img "Dessert table styled for a RORUM event"
+            - button "Open gallery image 39" [ref=f3e149] [cursor=pointer]:
+              - img "Catering dishes arranged for a RORUM gathering"
+            - button "Open gallery image 40" [ref=f3e150] [cursor=pointer]:
+              - img "Catering spread from a RORUM event"
+            - button "Open gallery image 41" [ref=f3e151] [cursor=pointer]:
+              - img "Dishes served at a RORUM catering event"
+            - button "Open gallery image 42" [ref=f3e152] [cursor=pointer]:
+              - img "Catering dishes from a RORUM event"
+            - button "Open gallery image 43" [ref=f3e153] [cursor=pointer]:
+              - img "Plated catering dishes from a RORUM event"
+            - button "Open gallery image 44" [ref=f3e154] [cursor=pointer]:
+              - img "Catering spread at a RORUM gathering"
+            - button "Open gallery image 45" [ref=f3e155] [cursor=pointer]:
+              - img "Catering dishes served at a RORUM event"
+            - button "Open gallery image 46" [ref=f3e156] [cursor=pointer]:
+              - img "Catering table styled for a RORUM event"
+            - button "Open gallery image 47" [ref=f3e157] [cursor=pointer]:
+              - img "Catering dishes from a RORUM gathering"
+            - button "Open gallery image 48" [ref=f3e158] [cursor=pointer]:
+              - img "Catering spread from a RORUM event"
+            - button "Open gallery image 49" [ref=f3e159] [cursor=pointer]:
+              - img "Plated dishes from a RORUM catering event"
+            - button "Open gallery image 50" [ref=f3e160] [cursor=pointer]:
+              - img "Catering table from a RORUM gathering"
+            - button "Open gallery image 51" [ref=f3e161] [cursor=pointer]:
+              - img "Catering dishes served at a RORUM event"
+            - button "Open gallery image 52" [ref=f3e162] [cursor=pointer]:
+              - img "Catering spread styled for a RORUM gathering"
+            - button "Open gallery image 53" [ref=f3e163] [cursor=pointer]:
+              - img "Catering plates from a RORUM event"
+            - button "Open gallery image 54" [ref=f3e164] [cursor=pointer]:
+              - img "Catering table from a RORUM event"
+            - button "Open gallery image 55" [ref=f3e165] [cursor=pointer]:
+              - img "Catering dishes arranged for a RORUM gathering"
+            - button "Open gallery image 56" [ref=f3e166] [cursor=pointer]:
+              - img "Catering dishes from a RORUM event"
+            - button "Open gallery image 57" [ref=f3e167] [cursor=pointer]:
+              - img "Plated dishes from a RORUM catering event"
+            - button "Open gallery image 58" [ref=f3e168] [cursor=pointer]:
+              - img "Catering dishes served at a RORUM gathering"
+            - button "Open gallery image 59" [ref=f3e169] [cursor=pointer]:
+              - img "Catering spread from a RORUM event"
+        - generic [ref=f3e170]:
+          - paragraph [ref=f3e171]: "Suitable for:"
+          - generic "Suitable catering formats" [ref=f3e172]:
+            - generic [ref=f3e173]: Host at RORUM
+            - generic [ref=f3e177]: Workshops
+            - generic [ref=f3e181]: Community events
+            - generic [ref=f3e187]: Creative sessions
+            - generic [ref=f3e190]: Founder sessions
+            - generic [ref=f3e195]: Birthdays
+            - generic [ref=f3e199]: Weddings
+            - generic [ref=f3e203]: Diplomatic meetings
+            - generic [ref=f3e206]: Business meetings
+            - generic [ref=f3e211]: Conferences
+            - generic [ref=f3e217]: External events
+            - generic [ref=f3e224]: And more
+      - generic [ref=f3e228]:
+        - generic [ref=f3e229]:
+          - generic [ref=f3e230]: Catering
+          - heading "Menu Formats" [level=2] [ref=f3e231]
+        - generic [ref=f3e232]:
+          - article [ref=f3e233]:
+            - img "Private dinner menu" [ref=f3e234]
+            - generic [ref=f3e235]:
+              - heading "Private dinner menu" [level=3] [ref=f3e236]
+              - paragraph [ref=f3e237]: A seated dinner with seasonal starters, main courses, sides, and desserts.
+          - article [ref=f3e238]:
+            - img "Reception-style menu" [ref=f3e239]
+            - generic [ref=f3e240]:
+              - heading "Reception-style menu" [level=3] [ref=f3e241]
+              - paragraph [ref=f3e242]: Elegant light dishes, small bites, and shareable plates.
+          - article [ref=f3e243]:
+            - img "Business meeting menu" [ref=f3e244]
+            - generic [ref=f3e245]:
+              - heading "Business meeting menu" [level=3] [ref=f3e246]
+              - paragraph [ref=f3e247]: Balanced, easy-to-serve dishes suitable for workshops, presentations, and longer meetings.
+      - generic [ref=f3e249]:
+        - generic [ref=f3e250]:
+          - img "RORUM catering team preparing food for an event" [ref=f3e252]
+          - generic [ref=f3e253]:
+            - generic [ref=f3e254]: Catering
+            - heading "What we offer" [level=2] [ref=f3e255]
+            - paragraph [ref=f3e256]: We create catering for different types of events - from elegant finger food and light buffet solutions to full menus for family celebrations, corporate events and official occasions. Each menu is developed individually, combining authentic Ukrainian recipes with a modern European approach, thoughtful presentation and attentive service.
+            - generic [ref=f3e257]:
+              - generic [ref=f3e262]:
+                - heading "Ukrainian cuisine" [level=3] [ref=f3e263]
+                - paragraph [ref=f3e264]: Traditional Ukrainian cuisine in harmony with modern European gastronomy, created with attention to taste, presentation and detail.
+              - generic [ref=f3e272]:
+                - heading "Finger food & buffet" [level=3] [ref=f3e273]
+                - paragraph [ref=f3e274]: Elegant small bites, light buffet solutions and beautifully served dishes for receptions, celebrations and business events.
+              - generic [ref=f3e280]:
+                - heading "Individual menu" [level=3] [ref=f3e281]
+                - paragraph [ref=f3e282]: Each menu is tailored to your event format, number of guests, preferences and desired atmosphere.
+              - generic [ref=f3e289]:
+                - heading "On-site cooking" [level=3] [ref=f3e290]
+                - paragraph [ref=f3e291]: If needed, we can organize cooking directly at your location for a fresh, seamless and memorable experience.
+              - generic [ref=f3e297]:
+                - heading "Full event support" [level=3] [ref=f3e298]
+                - paragraph [ref=f3e299]: Our professional team can support the event with preparation, serving and attentive service throughout the occasion.
+              - generic [ref=f3e304]:
+                - heading "Grill parties" [level=3] [ref=f3e305]
+                - paragraph [ref=f3e306]: Lively grill experiences for warm, informal gatherings where food, conversation and atmosphere come together.
+        - generic [ref=f3e307]:
+          - generic [ref=f3e308]:
+            - heading "Tailored upon request" [level=3] [ref=f3e309]
+            - paragraph [ref=f3e310]: Every catering concept is created individually based on your event, location, guest count and wishes.
+          - generic [ref=f3e311]:
+            - link "Request catering" [ref=f3e312] [cursor=pointer]:
+              - /url: "#catering-inquiry"
+            - button "Menu examples" [ref=f3e313] [cursor=pointer]
+      - generic [ref=f3e318]:
+        - generic [ref=f3e319]:
+          - generic [ref=f3e320]: How it works
+          - heading "3-step setup" [level=2] [ref=f3e321]
+          - generic [ref=f3e322]:
+            - article [ref=f3e323]:
+              - generic [ref=f3e324]: "01"
+              - generic [ref=f3e325]:
+                - heading "Tell us about your event" [level=3] [ref=f3e326]
+                - paragraph [ref=f3e327]: Share the date, location, guest count and format.
+            - article [ref=f3e328]:
+              - generic [ref=f3e329]: "02"
+              - generic [ref=f3e330]:
+                - heading "We suggest the right setup" [level=3] [ref=f3e331]
+                - paragraph [ref=f3e332]: We help match the catering format to the rhythm and atmosphere of your event.
+            - article [ref=f3e333]:
+              - generic [ref=f3e334]: "03"
+              - generic [ref=f3e335]:
+                - heading "We prepare the experience" [level=3] [ref=f3e336]
+                - paragraph [ref=f3e337]: Food and presentation are arranged with care so your guests feel welcomed.
+          - paragraph [ref=f3e338]:
+            - generic [ref=f3e339]: Questions?
+            - link "Read our FAQs" [ref=f3e340] [cursor=pointer]:
+              - /url: /faq
+        - generic [ref=f3e344]:
+          - generic [ref=f3e345]:
+            - heading "Request catering" [level=2] [ref=f3e346]
+            - paragraph [ref=f3e347]: Tell us about your event and we will help you find the right catering format.
+          - generic [ref=f3e348]:
+            - text: Full Name*
+            - textbox "Full Name" [ref=f3e349]
+          - generic [ref=f3e350]:
+            - generic [ref=f3e351]:
+              - text: Phone number*
+              - textbox "Phone number" [ref=f3e352]:
+                - /placeholder: +45 12 34 56 78
+            - generic [ref=f3e353]:
+              - text: Email*
+              - textbox "Email" [ref=f3e354]:
+                - /placeholder: you@example.com
+          - generic [ref=f3e356]:
+            - text: Event date*
+            - textbox "Event date" [ref=f3e357]
+          - generic [ref=f3e358]:
+            - text: Message*
+            - textbox "Message" [ref=f3e359]:
+              - /placeholder: Describe your event, timing and catering wishes.
+          - generic [ref=f3e361]:
+            - checkbox "I have read and agree to the" [ref=f3e362] [cursor=pointer]
+            - generic [ref=f3e363]:
+              - text: I have read and agree to the
+              - button "Privacy policy" [ref=f3e364] [cursor=pointer]
+              - text: .
+          - button "Request Catering" [ref=f3e365] [cursor=pointer]
+          - paragraph [ref=f3e366]: We'll only use your details to respond to your catering request.
+    - contentinfo [ref=f3e367]:
+      - generic [ref=f3e368]:
+        - generic [ref=f3e369]:
+          - generic [ref=f3e370]:
+            - generic [ref=f3e371]: Contact details
+            - generic [ref=f3e372]:
+              - paragraph [ref=f3e373]: Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark
+              - link "View on map" [ref=f3e378] [cursor=pointer]:
+                - /url: /contact#contact-map
+              - paragraph [ref=f3e379]: +45 91 87 71 52
+              - link "rorum2025@gmail.com" [ref=f3e383] [cursor=pointer]:
+                - /url: mailto:rorum2025@gmail.com
+            - generic "Social links" [ref=f3e388]:
+              - link "Instagram" [ref=f3e389] [cursor=pointer]:
+                - /url: https://www.instagram.com/rorum_dk
+              - link "Facebook" [ref=f3e394] [cursor=pointer]:
+                - /url: https://www.facebook.com/rorum2025
+              - link "linkedin" [ref=f3e397] [cursor=pointer]:
+                - /url: https://linkedin.com
+          - generic [ref=f3e402]:
+            - navigation "Visit & host" [ref=f3e403]:
+              - link "Attend Events" [ref=f3e405] [cursor=pointer]:
+                - /url: /events
+              - link "Host at RORUM" [ref=f3e406] [cursor=pointer]:
+                - /url: /host-at-rorum
+            - navigation "Services" [ref=f3e407]:
+              - link "Catering" [ref=f3e409] [cursor=pointer]:
+                - /url: /catering
+              - link "Decoration" [ref=f3e410] [cursor=pointer]:
+                - /url: /event-decoration
+            - navigation "Community" [ref=f3e411]:
+              - link "WECODA membership" [ref=f3e413] [cursor=pointer]:
+                - /url: /community-membership
+              - link "Volunteer with us" [ref=f3e414] [cursor=pointer]:
+                - /url: /volunteer
+              - link "Work with us" [ref=f3e415] [cursor=pointer]:
+                - /url: /work-with-us
+            - navigation "Company" [ref=f3e416]:
+              - link "About" [ref=f3e418] [cursor=pointer]:
+                - /url: /about
+              - link "Contact" [ref=f3e419] [cursor=pointer]:
+                - /url: /contact
+              - link "FAQ" [ref=f3e420] [cursor=pointer]:
+                - /url: /faq
+        - generic [ref=f3e421]:
+          - generic [ref=f3e422]: © 2026 RORUM. All rights reserved.
+          - navigation "Legal links" [ref=f3e423]:
+            - link "Terms and conditions" [ref=f3e424] [cursor=pointer]:
+              - /url: /terms
+            - link "Privacy policy" [ref=f3e425] [cursor=pointer]:
+              - /url: /privacy-policy
+            - link "Cookie policy" [ref=f3e426] [cursor=pointer]:
+              - /url: /cookie-policy
+          - generic [ref=f3e427]:
+            - text: Developed by
+            - link "irynadev" [ref=f3e428] [cursor=pointer]:
+              - /url: https://irynadev.netlify.app
+  - button "Open Next.js Dev Tools" [ref=f3e434] [cursor=pointer]
+  - alert [ref=f3e438]

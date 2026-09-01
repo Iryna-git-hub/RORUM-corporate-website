@@ -1,0 +1,249 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - banner [ref=f4e3]:
+      - generic [ref=f4e5]:
+        - link [ref=f4e6] [cursor=pointer]:
+          - /url: /
+          - img "RORUM Creative & Event Space" [ref=f4e7]
+        - navigation "Main navigation" [ref=f4e8]:
+          - link "Attend Events" [ref=f4e9] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=f4e10] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=f4e12] [cursor=pointer]
+          - button "Community" [ref=f4e16] [cursor=pointer]
+          - link "About" [ref=f4e19] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=f4e20] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=f4e21]:
+          - 'button "Language: EN" [ref=f4e23] [cursor=pointer]':
+            - generic [ref=f4e24]: EN
+          - link "Let's Talk" [ref=f4e28] [cursor=pointer]:
+            - /url: /contact
+      - complementary "Mobile menu" [ref=f4e31]:
+        - generic [ref=f4e32]:
+          - link "Let's Talk" [ref=f4e33] [cursor=pointer]:
+            - /url: /contact
+          - group "Language" [ref=f4e34]:
+            - button "EN" [pressed] [ref=f4e35] [cursor=pointer]
+            - generic [aria-hidden] [ref=f4e36]: "|"
+            - button "DA" [ref=f4e37] [cursor=pointer]
+            - generic [aria-hidden] [ref=f4e38]: "|"
+            - button "UK" [ref=f4e39] [cursor=pointer]
+          - button "Close menu" [ref=f4e40] [cursor=pointer]
+        - navigation [ref=f4e44]:
+          - link "Home" [ref=f4e46] [cursor=pointer]:
+            - /url: /
+          - link "Attend Events" [ref=f4e49] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=f4e52] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=f4e55] [cursor=pointer]
+          - button "Community" [ref=f4e60] [cursor=pointer]
+          - link "About" [ref=f4e65] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=f4e68] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=f4e70]:
+          - link "Instagram" [ref=f4e71] [cursor=pointer]:
+            - /url: https://www.instagram.com/rorum_dk
+          - link "Facebook" [ref=f4e76] [cursor=pointer]:
+            - /url: https://www.facebook.com/rorum2025
+          - link "linkedin" [ref=f4e79] [cursor=pointer]:
+            - /url: https://linkedin.com
+    - main [ref=f4e84]:
+      - generic [ref=f4e88]:
+        - generic [ref=f4e89]: Event Decoration
+        - heading "Event Decoration" [level=1] [ref=f4e90]
+        - paragraph [ref=f4e91]: Flowers, table styling, candles, balloon decor and visual details for warm, memorable events at RORUM or selected external locations.
+        - link "Request decoration" [ref=f4e93] [cursor=pointer]:
+          - /url: "#decoration-inquiry"
+      - generic [ref=f4e97]:
+        - generic [ref=f4e99]:
+          - button "Previous slide" [disabled] [ref=f4e100]
+          - button "Next slide" [ref=f4e103] [cursor=pointer]
+          - generic [ref=f4e106]: 1 / 14
+          - generic [ref=f4e107]:
+            - button "Open gallery image 1" [ref=f4e108] [cursor=pointer]:
+              - img "Balloon wall decoration for a RORUM event"
+            - button "Open gallery image 2" [ref=f4e109] [cursor=pointer]:
+              - img "Dinner table styled under a garden pergola"
+            - button "Open gallery image 3" [ref=f4e110] [cursor=pointer]:
+              - img "Long table styled with florals and place settings"
+            - button "Open gallery image 4" [ref=f4e111] [cursor=pointer]:
+              - img "Close-up of balloon decor accents"
+            - button "Open gallery image 5" [ref=f4e112] [cursor=pointer]:
+              - img "Modern dining table styled in natural daylight"
+            - button "Open gallery image 6" [ref=f4e113] [cursor=pointer]:
+              - img "Candlelit dinner table styled for an evening event"
+            - button "Open gallery image 7" [ref=f4e114] [cursor=pointer]:
+              - img "Garden reception styled at dusk"
+            - button "Open gallery image 8" [ref=f4e115] [cursor=pointer]:
+              - img "Cake table styled with decorative accents"
+            - button "Open gallery image 9" [ref=f4e116] [cursor=pointer]:
+              - img "Decorated table with flowers and place settings"
+            - button "Open gallery image 10" [ref=f4e117] [cursor=pointer]:
+              - img "Elegant banquet table styled in daylight"
+            - button "Open gallery image 11" [ref=f4e118] [cursor=pointer]:
+              - img "Close-up of a styled table place setting"
+            - button "Open gallery image 12" [ref=f4e119] [cursor=pointer]:
+              - img "Modern lounge area styled with floral accents"
+            - button "Open gallery image 13" [ref=f4e120] [cursor=pointer]:
+              - img "Table styling with contrasting floral accents"
+            - button "Open gallery image 14" [ref=f4e121] [cursor=pointer]:
+              - img "Decorated entrance arch for an event"
+        - generic [ref=f4e122]:
+          - paragraph [ref=f4e123]: "Suitable for:"
+          - generic "Suitable decoration formats" [ref=f4e124]:
+            - generic [ref=f4e125]: Private events
+            - generic [ref=f4e129]: Weddings
+            - generic [ref=f4e133]: Birthdays
+            - generic [ref=f4e137]: Workshops
+            - generic [ref=f4e140]: Dinner tables
+            - generic [ref=f4e146]: Photo corners
+            - generic [ref=f4e150]: Seasonal moments
+            - generic [ref=f4e156]: And more
+      - generic [ref=f4e160]:
+        - generic [ref=f4e161]:
+          - generic [ref=f4e162]:
+            - generic [ref=f4e163]: Decoration
+            - heading "What we style" [level=2] [ref=f4e164]
+            - paragraph [ref=f4e165]: We create decoration concepts that bring warmth, beauty and personality to your event.
+            - paragraph [ref=f4e166]: Our styling can include table settings, seasonal flowers, candles, balloon accents, textiles, decorative objects, photo moments and personal details. Each element is selected to work together as one cohesive atmosphere.
+            - generic [ref=f4e167]:
+              - generic [ref=f4e175]:
+                - heading "Table styling" [level=3] [ref=f4e176]
+                - paragraph [ref=f4e177]: Elegant table setups with flowers, candles, place details and carefully selected visual accents.
+              - generic [ref=f4e187]:
+                - heading "Florals" [level=3] [ref=f4e188]
+                - paragraph [ref=f4e189]: Seasonal floral arrangements designed around your event mood, space and color palette.
+              - generic [ref=f4e196]:
+                - heading "Balloon accents" [level=3] [ref=f4e197]
+                - paragraph [ref=f4e198]: Soft and elegant balloon decor for entrances, celebration corners, photo zones and backdrops.
+              - generic [ref=f4e203]:
+                - heading "Atmosphere details" [level=3] [ref=f4e204]
+                - paragraph [ref=f4e205]: Candles, textures, fabrics, signs and decorative objects that make the space feel warm and complete.
+              - generic [ref=f4e211]:
+                - heading "Personal touches" [level=3] [ref=f4e212]
+                - paragraph [ref=f4e213]: Custom details for birthdays, weddings, dinners, workshops, private celebrations and meaningful moments.
+          - img "Decorated entrance arch for an event" [ref=f4e214]
+        - generic [ref=f4e215]:
+          - generic [ref=f4e216]:
+            - heading "Tailored upon request" [level=3] [ref=f4e217]
+            - paragraph [ref=f4e218]: We create each setup individually according to your event format, location and wishes.
+          - link "Request decoration" [ref=f4e219] [cursor=pointer]:
+            - /url: "#decoration-inquiry"
+      - generic [ref=f4e224]:
+        - generic [ref=f4e225]:
+          - generic [ref=f4e226]: How it works
+          - heading "3-step setup" [level=2] [ref=f4e227]
+          - generic [ref=f4e228]:
+            - article [ref=f4e229]:
+              - generic [ref=f4e230]: "01"
+              - generic [ref=f4e231]:
+                - heading "Share the occasion" [level=3] [ref=f4e232]
+                - paragraph [ref=f4e233]: Tell us about the event format, date, guests and atmosphere you want.
+            - article [ref=f4e234]:
+              - generic [ref=f4e235]: "02"
+              - generic [ref=f4e236]:
+                - heading "We suggest the visual direction" [level=3] [ref=f4e237]
+                - paragraph [ref=f4e238]: We match decoration details to the room, table and rhythm of the event.
+            - article [ref=f4e239]:
+              - generic [ref=f4e240]: "03"
+              - generic [ref=f4e241]:
+                - heading "We prepare the setup" [level=3] [ref=f4e242]
+                - paragraph [ref=f4e243]: The decorative layer is arranged with care before guests arrive.
+          - paragraph [ref=f4e244]:
+            - generic [ref=f4e245]: Questions?
+            - link "Read our FAQs" [ref=f4e246] [cursor=pointer]:
+              - /url: /faq
+        - generic [ref=f4e250]:
+          - generic [ref=f4e251]:
+            - heading "Decoration request" [level=2] [ref=f4e252]
+            - paragraph [ref=f4e253]: Tell us what you are planning and we will suggest the right visual setup for your event.
+          - generic [ref=f4e254]:
+            - text: Full Name*
+            - textbox "Full Name" [ref=f4e255]
+          - generic [ref=f4e256]:
+            - generic [ref=f4e257]:
+              - text: Phone number*
+              - textbox "Phone number" [ref=f4e258]:
+                - /placeholder: +45 12 34 56 78
+            - generic [ref=f4e259]:
+              - text: Email*
+              - textbox "Email" [ref=f4e260]:
+                - /placeholder: you@example.com
+          - generic [ref=f4e262]:
+            - text: Event date*
+            - textbox "Event date" [ref=f4e263]
+          - generic [ref=f4e264]:
+            - text: Message*
+            - textbox "Message" [ref=f4e265]:
+              - /placeholder: Describe your event, location and desired visual setup.
+          - generic [ref=f4e267]:
+            - checkbox "I have read and agree to the" [ref=f4e268] [cursor=pointer]
+            - generic [ref=f4e269]:
+              - text: I have read and agree to the
+              - button "Privacy policy" [ref=f4e270] [cursor=pointer]
+              - text: .
+          - button "Send request" [ref=f4e271] [cursor=pointer]
+    - contentinfo [ref=f4e272]:
+      - generic [ref=f4e273]:
+        - generic [ref=f4e274]:
+          - generic [ref=f4e275]:
+            - generic [ref=f4e276]: Contact details
+            - generic [ref=f4e277]:
+              - paragraph [ref=f4e278]: Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark
+              - link "View on map" [ref=f4e283] [cursor=pointer]:
+                - /url: /contact#contact-map
+              - paragraph [ref=f4e284]: +45 91 87 71 52
+              - link "rorum2025@gmail.com" [ref=f4e288] [cursor=pointer]:
+                - /url: mailto:rorum2025@gmail.com
+            - generic "Social links" [ref=f4e293]:
+              - link "Instagram" [ref=f4e294] [cursor=pointer]:
+                - /url: https://www.instagram.com/rorum_dk
+              - link "Facebook" [ref=f4e299] [cursor=pointer]:
+                - /url: https://www.facebook.com/rorum2025
+              - link "linkedin" [ref=f4e302] [cursor=pointer]:
+                - /url: https://linkedin.com
+          - generic [ref=f4e307]:
+            - navigation "Visit & host" [ref=f4e308]:
+              - link "Attend Events" [ref=f4e310] [cursor=pointer]:
+                - /url: /events
+              - link "Host at RORUM" [ref=f4e311] [cursor=pointer]:
+                - /url: /host-at-rorum
+            - navigation "Services" [ref=f4e312]:
+              - link "Catering" [ref=f4e314] [cursor=pointer]:
+                - /url: /catering
+              - link "Decoration" [ref=f4e315] [cursor=pointer]:
+                - /url: /event-decoration
+            - navigation "Community" [ref=f4e316]:
+              - link "WECODA membership" [ref=f4e318] [cursor=pointer]:
+                - /url: /community-membership
+              - link "Volunteer with us" [ref=f4e319] [cursor=pointer]:
+                - /url: /volunteer
+              - link "Work with us" [ref=f4e320] [cursor=pointer]:
+                - /url: /work-with-us
+            - navigation "Company" [ref=f4e321]:
+              - link "About" [ref=f4e323] [cursor=pointer]:
+                - /url: /about
+              - link "Contact" [ref=f4e324] [cursor=pointer]:
+                - /url: /contact
+              - link "FAQ" [ref=f4e325] [cursor=pointer]:
+                - /url: /faq
+        - generic [ref=f4e326]:
+          - generic [ref=f4e327]: © 2026 RORUM. All rights reserved.
+          - navigation "Legal links" [ref=f4e328]:
+            - link "Terms and conditions" [ref=f4e329] [cursor=pointer]:
+              - /url: /terms
+            - link "Privacy policy" [ref=f4e330] [cursor=pointer]:
+              - /url: /privacy-policy
+            - link "Cookie policy" [ref=f4e331] [cursor=pointer]:
+              - /url: /cookie-policy
+          - generic [ref=f4e332]:
+            - text: Developed by
+            - link "irynadev" [ref=f4e333] [cursor=pointer]:
+              - /url: https://irynadev.netlify.app
+  - button "Open Next.js Dev Tools" [ref=f4e339] [cursor=pointer]
+  - alert [ref=f4e343]

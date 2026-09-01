@@ -1,0 +1,168 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - banner [ref=f4e3]:
+      - generic [ref=f4e5]:
+        - link [ref=f4e6] [cursor=pointer]:
+          - /url: /uk
+          - img "RORUM Creative & Event Space" [ref=f4e7]
+        - navigation "Main navigation" [ref=f4e8]:
+          - link "Відвідати події" [ref=f4e9] [cursor=pointer]:
+            - /url: /uk/events
+          - link "Проведіть подію" [ref=f4e10] [cursor=pointer]:
+            - /url: /uk/host-at-rorum
+          - button "Послуги" [ref=f4e12] [cursor=pointer]
+          - button "Спільнота" [ref=f4e16] [cursor=pointer]
+          - link "Про нас" [ref=f4e19] [cursor=pointer]:
+            - /url: /uk/about
+          - link "Контакти" [ref=f4e20] [cursor=pointer]:
+            - /url: /uk/contact
+        - generic [ref=f4e21]:
+          - 'button "Мова: UK" [ref=f4e23] [cursor=pointer]':
+            - generic [ref=f4e24]: UK
+          - link "Поговорімо" [ref=f4e28] [cursor=pointer]:
+            - /url: /uk/contact
+      - complementary "Mobile menu" [ref=f4e31]:
+        - generic [ref=f4e32]:
+          - link "Поговорімо" [ref=f4e33] [cursor=pointer]:
+            - /url: /uk/contact
+          - group "Мова" [ref=f4e34]:
+            - button "EN" [ref=f4e35] [cursor=pointer]
+            - generic [aria-hidden] [ref=f4e36]: "|"
+            - button "DA" [ref=f4e37] [cursor=pointer]
+            - generic [aria-hidden] [ref=f4e38]: "|"
+            - button "UK" [pressed] [ref=f4e39] [cursor=pointer]
+          - button "Закрити меню" [ref=f4e40] [cursor=pointer]
+        - navigation [ref=f4e44]:
+          - link "Головна" [ref=f4e46] [cursor=pointer]:
+            - /url: /uk
+          - link "Відвідати події" [ref=f4e49] [cursor=pointer]:
+            - /url: /uk/events
+          - link "Проведіть подію" [ref=f4e52] [cursor=pointer]:
+            - /url: /uk/host-at-rorum
+          - button "Послуги" [ref=f4e55] [cursor=pointer]
+          - button "Спільнота" [ref=f4e60] [cursor=pointer]
+          - link "Про нас" [ref=f4e65] [cursor=pointer]:
+            - /url: /uk/about
+          - link "Контакти" [ref=f4e68] [cursor=pointer]:
+            - /url: /uk/contact
+        - generic [ref=f4e70]:
+          - link "Instagram" [ref=f4e71] [cursor=pointer]:
+            - /url: https://www.instagram.com/rorum_dk
+          - link "Facebook" [ref=f4e76] [cursor=pointer]:
+            - /url: https://www.facebook.com/rorum2025
+          - link "LinkedIn" [ref=f4e79] [cursor=pointer]:
+            - /url: https://linkedin.com
+    - main [ref=f4e84]:
+      - generic [ref=f4e87]:
+        - generic [ref=f4e89]:
+          - generic [ref=f4e90]: Контакти
+          - heading "Contact us" [level=1] [ref=f4e91]
+          - generic [ref=f4e92]:
+            - heading "Ми тут для вас" [level=2] [ref=f4e93]
+            - paragraph [ref=f4e94]: Щоб дізнатися більше про події, проведення заходів у RORUM, співпрацю, кейтеринг, декор подій чи практичні деталі — звертайтесь до нас.
+          - generic [ref=f4e95]:
+            - paragraph [ref=f4e96]:
+              - generic [ref=f4e101]: Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark
+            - paragraph [ref=f4e102]:
+              - link "+45 91 87 71 52" [ref=f4e106] [cursor=pointer]:
+                - /url: tel:+4591877152
+            - paragraph [ref=f4e107]:
+              - link "rorum2025@gmail.com" [ref=f4e112] [cursor=pointer]:
+                - /url: mailto:rorum2025@gmail.com
+          - heading "Слідкуйте за нами" [level=2] [ref=f4e114]
+          - generic "Social links" [ref=f4e115]:
+            - link "Instagram" [ref=f4e116] [cursor=pointer]:
+              - /url: https://www.instagram.com/rorum_dk
+            - link "Facebook" [ref=f4e121] [cursor=pointer]:
+              - /url: https://www.facebook.com/rorum2025
+            - link "LinkedIn" [ref=f4e124] [cursor=pointer]:
+              - /url: https://linkedin.com
+        - generic "RORUM location map" [ref=f4e129]:
+          - generic [ref=f4e131]:
+            - heading "Ми хочемо почути від вас" [level=2] [ref=f4e133]
+            - generic [ref=f4e134]:
+              - text: Повне ім'я*
+              - textbox "Повне ім'я" [ref=f4e135]
+            - generic [ref=f4e136]:
+              - text: Номер телефону*
+              - textbox "Номер телефону" [ref=f4e137]:
+                - /placeholder: ""
+            - generic [ref=f4e138]:
+              - text: Електронна пошта*
+              - textbox "Електронна пошта" [ref=f4e139]:
+                - /placeholder: ""
+            - generic [ref=f4e140]:
+              - text: Повідомлення*
+              - textbox "Повідомлення" [ref=f4e141]:
+                - /placeholder: ""
+            - generic [ref=f4e143]:
+              - checkbox "Я прочитав(ла) і погоджуюсь із" [ref=f4e144] [cursor=pointer]
+              - generic [ref=f4e145]:
+                - text: Я прочитав(ла) і погоджуюсь із
+                - button "Політика конфіденційності" [ref=f4e146] [cursor=pointer]
+                - text: .
+            - button "Надіслати повідомлення" [ref=f4e147] [cursor=pointer]
+          - paragraph [ref=f4e148]:
+            - generic [ref=f4e149]: Питання?
+            - link "Переглянути поширені запитання" [ref=f4e150] [cursor=pointer]:
+              - /url: /uk/faq
+      - region "RORUM location map" [ref=f4e154]:
+        - iframe [ref=f4e156]
+    - contentinfo [ref=f4e157]:
+      - generic [ref=f4e158]:
+        - generic [ref=f4e159]:
+          - generic [ref=f4e160]:
+            - generic [ref=f4e161]: Контактна інформація
+            - generic [ref=f4e162]:
+              - paragraph [ref=f4e163]: Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark
+              - link "Відкрити на карті" [ref=f4e168] [cursor=pointer]:
+                - /url: /uk/contact#contact-map
+              - paragraph [ref=f4e169]: +45 91 87 71 52
+              - link "rorum2025@gmail.com" [ref=f4e173] [cursor=pointer]:
+                - /url: mailto:rorum2025@gmail.com
+            - generic "Social links" [ref=f4e178]:
+              - link "Instagram" [ref=f4e179] [cursor=pointer]:
+                - /url: https://www.instagram.com/rorum_dk
+              - link "Facebook" [ref=f4e184] [cursor=pointer]:
+                - /url: https://www.facebook.com/rorum2025
+              - link "LinkedIn" [ref=f4e187] [cursor=pointer]:
+                - /url: https://linkedin.com
+          - generic [ref=f4e192]:
+            - navigation "Відвідати та проводити" [ref=f4e193]:
+              - link "Відвідати події" [ref=f4e195] [cursor=pointer]:
+                - /url: /uk/events
+              - link "Проведіть подію в RORUM" [ref=f4e196] [cursor=pointer]:
+                - /url: /uk/host-at-rorum
+            - navigation "Послуги" [ref=f4e197]:
+              - link "Кейтеринг" [ref=f4e199] [cursor=pointer]:
+                - /url: /uk/catering
+              - link "Декор" [ref=f4e200] [cursor=pointer]:
+                - /url: /uk/event-decoration
+            - navigation "Спільнота" [ref=f4e201]:
+              - link "Членство i WECODA" [ref=f4e203] [cursor=pointer]:
+                - /url: /uk/community-membership
+              - link "Станьте волонтером" [ref=f4e204] [cursor=pointer]:
+                - /url: /uk/volunteer
+              - link "Працюйте з нами" [ref=f4e205] [cursor=pointer]:
+                - /url: /uk/work-with-us
+            - navigation "Компанія" [ref=f4e206]:
+              - link "Про нас" [ref=f4e208] [cursor=pointer]:
+                - /url: /uk/about
+              - link "Контакти" [ref=f4e209] [cursor=pointer]:
+                - /url: /uk/contact
+              - link "Поширені запитання" [ref=f4e210] [cursor=pointer]:
+                - /url: /uk/faq
+        - generic [ref=f4e211]:
+          - generic [ref=f4e212]: © 2026 RORUM. Усі права захищено.
+          - navigation "Legal links" [ref=f4e213]:
+            - link "Умови та положення" [ref=f4e214] [cursor=pointer]:
+              - /url: /uk/terms
+            - link "Політика конфіденційності" [ref=f4e215] [cursor=pointer]:
+              - /url: /uk/privacy-policy
+            - link "Політика cookie" [ref=f4e216] [cursor=pointer]:
+              - /url: /uk/cookie-policy
+          - generic [ref=f4e217]:
+            - text: Розроблено
+            - link "irynadev" [ref=f4e218] [cursor=pointer]:
+              - /url: https://irynadev.netlify.app
+  - alert [ref=f4e219]

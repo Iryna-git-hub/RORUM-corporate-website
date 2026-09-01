@@ -1,0 +1,148 @@
+- generic [active] [ref=f13e1]:
+  - generic [ref=f13e2]:
+    - banner [ref=f13e3]:
+      - generic [ref=f13e5]:
+        - link [ref=f13e6] [cursor=pointer]:
+          - /url: /
+          - img "RORUM Creative & Event Space" [ref=f13e7]
+        - navigation "Main navigation" [ref=f13e8]:
+          - link "Attend Events" [ref=f13e9] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=f13e10] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=f13e12] [cursor=pointer]
+          - button "Community" [ref=f13e16] [cursor=pointer]
+          - link "About" [ref=f13e19] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=f13e20] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=f13e21]:
+          - 'button "Language: EN" [ref=f13e23] [cursor=pointer]':
+            - generic [ref=f13e24]: EN
+          - link "Let's Talk" [ref=f13e28] [cursor=pointer]:
+            - /url: /contact
+      - complementary "Mobile menu" [ref=f13e31]:
+        - generic [ref=f13e32]:
+          - link "Let's Talk" [ref=f13e33] [cursor=pointer]:
+            - /url: /contact
+          - group "Language" [ref=f13e34]:
+            - button "EN" [pressed] [ref=f13e35] [cursor=pointer]
+            - generic [aria-hidden] [ref=f13e36]: "|"
+            - button "DA" [ref=f13e37] [cursor=pointer]
+            - generic [aria-hidden] [ref=f13e38]: "|"
+            - button "UK" [ref=f13e39] [cursor=pointer]
+          - button "Close menu" [ref=f13e40] [cursor=pointer]
+        - navigation [ref=f13e44]:
+          - link "Home" [ref=f13e46] [cursor=pointer]:
+            - /url: /
+          - link "Attend Events" [ref=f13e49] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=f13e52] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=f13e55] [cursor=pointer]
+          - button "Community" [ref=f13e60] [cursor=pointer]
+          - link "About" [ref=f13e65] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=f13e68] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=f13e70]:
+          - link "Instagram" [ref=f13e71] [cursor=pointer]:
+            - /url: https://www.instagram.com/rorum_dk
+          - link "Facebook" [ref=f13e76] [cursor=pointer]:
+            - /url: https://www.facebook.com/rorum2025
+          - link "linkedin" [ref=f13e79] [cursor=pointer]:
+            - /url: https://linkedin.com
+    - main [ref=f13e84]:
+      - generic [ref=f13e87]:
+        - generic [ref=f13e89]:
+          - generic [ref=f13e90]: Contact
+          - heading "Contact us" [level=1] [ref=f13e91]
+          - generic [ref=f13e92]:
+            - heading "We are here for you" [level=2] [ref=f13e93]
+            - paragraph [ref=f13e94]: For more information about events, hosting a gathering at RORUM, collaborations, catering, event decoration, or practical details, please feel free to get in touch with us.
+          - heading "Follow us" [level=2] [ref=f13e96]
+          - generic "Social links" [ref=f13e97]:
+            - link "Instagram" [ref=f13e98] [cursor=pointer]:
+              - /url: https://www.instagram.com/rorum_dk
+            - link "Facebook" [ref=f13e103] [cursor=pointer]:
+              - /url: https://www.facebook.com/rorum2025
+            - link "linkedin" [ref=f13e106] [cursor=pointer]:
+              - /url: https://linkedin.com
+        - generic "RORUM location map" [ref=f13e111]:
+          - generic [ref=f13e113]:
+            - heading "We want to hear from you" [level=2] [ref=f13e115]
+            - generic [ref=f13e117]:
+              - checkbox "I have read and agree to the" [ref=f13e118] [cursor=pointer]
+              - generic [ref=f13e119]:
+                - text: I have read and agree to the
+                - button "Privacy policy" [ref=f13e120] [cursor=pointer]
+                - text: .
+            - button "Send message" [ref=f13e121] [cursor=pointer]
+          - paragraph [ref=f13e122]:
+            - generic [ref=f13e123]: Questions?
+            - link "Read our FAQs" [ref=f13e124] [cursor=pointer]:
+              - /url: /faq
+      - region "RORUM location map" [ref=f13e128]:
+        - iframe [ref=f13e130]:
+          - generic [ref=f14e6]:
+            - region "Map" [ref=f14e7]
+            - iframe [aria-hidden] [ref=f14e42]
+    - contentinfo [ref=f13e131]:
+      - generic [ref=f13e132]:
+        - generic [ref=f13e133]:
+          - generic [ref=f13e134]:
+            - generic [ref=f13e135]: Contact details
+            - generic [ref=f13e136]:
+              - paragraph [ref=f13e137]: Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark
+              - link "View on map" [ref=f13e142] [cursor=pointer]:
+                - /url: /contact#contact-map
+              - paragraph [ref=f13e143]: +45 91 87 71 52
+              - link "rorum2025@gmail.com" [ref=f13e147] [cursor=pointer]:
+                - /url: mailto:rorum2025@gmail.com
+            - generic "Social links" [ref=f13e152]:
+              - link "Instagram" [ref=f13e153] [cursor=pointer]:
+                - /url: https://www.instagram.com/rorum_dk
+              - link "Facebook" [ref=f13e158] [cursor=pointer]:
+                - /url: https://www.facebook.com/rorum2025
+              - link "linkedin" [ref=f13e161] [cursor=pointer]:
+                - /url: https://linkedin.com
+          - generic [ref=f13e166]:
+            - navigation "Visit & host" [ref=f13e167]:
+              - link "Attend Events" [ref=f13e169] [cursor=pointer]:
+                - /url: /events
+              - link "Host at RORUM" [ref=f13e170] [cursor=pointer]:
+                - /url: /host-at-rorum
+            - navigation "Services" [ref=f13e171]:
+              - link "Catering" [ref=f13e173] [cursor=pointer]:
+                - /url: /catering
+              - link "Decoration" [ref=f13e174] [cursor=pointer]:
+                - /url: /event-decoration
+            - navigation "Community" [ref=f13e175]:
+              - link "WECODA membership" [ref=f13e177] [cursor=pointer]:
+                - /url: /community-membership
+              - link "Volunteer with us" [ref=f13e178] [cursor=pointer]:
+                - /url: /volunteer
+              - link "Work with us" [ref=f13e179] [cursor=pointer]:
+                - /url: /work-with-us
+            - navigation "Company" [ref=f13e180]:
+              - link "About" [ref=f13e182] [cursor=pointer]:
+                - /url: /about
+              - link "Contact" [ref=f13e183] [cursor=pointer]:
+                - /url: /contact
+              - link "FAQ" [ref=f13e184] [cursor=pointer]:
+                - /url: /faq
+        - generic [ref=f13e185]:
+          - generic [ref=f13e186]: © 2026 RORUM. All rights reserved.
+          - navigation "Legal links" [ref=f13e187]:
+            - link "Terms and conditions" [ref=f13e188] [cursor=pointer]:
+              - /url: /terms
+            - link "Privacy policy" [ref=f13e189] [cursor=pointer]:
+              - /url: /privacy-policy
+            - link "Cookie policy" [ref=f13e190] [cursor=pointer]:
+              - /url: /cookie-policy
+          - generic [ref=f13e191]:
+            - text: Developed by
+            - link "irynadev" [ref=f13e192] [cursor=pointer]:
+              - /url: https://irynadev.netlify.app
+  - button "Open Next.js Dev Tools" [ref=f13e198] [cursor=pointer]
+  - alert [ref=f13e202]

@@ -1,0 +1,32 @@
+- generic [active] [ref=f25e1]:
+  - generic [ref=f25e2]:
+    - generic [ref=f25e22]:
+      - generic [ref=f25e24]:
+        - generic [ref=f25e27]:
+          - img [ref=f25e29]:
+            - generic [ref=f25e31]: R
+          - generic [ref=f25e32]: RORUM
+        - generic [ref=f25e39]:
+          - generic [ref=f25e40]: Choose login provider
+          - generic [ref=f25e43]:
+            - link "Google" [ref=f25e44] [cursor=pointer]:
+              - /url: https://api.sanity.io/v1/auth/login/google?origin=http%3A%2F%2Flocalhost%3A3000%2Fstudio&projectId=939cqwfo&type=dual
+            - link "GitHub" [ref=f25e58] [cursor=pointer]:
+              - /url: https://api.sanity.io/v1/auth/login/github?origin=http%3A%2F%2Flocalhost%3A3000%2Fstudio&projectId=939cqwfo&type=dual
+            - link "E-mail / password" [ref=f25e69] [cursor=pointer]:
+              - /url: https://api.sanity.io/v1/auth/login/sanity?origin=http%3A%2F%2Flocalhost%3A3000%2Fstudio&projectId=939cqwfo&type=dual
+      - generic [ref=f25e86]:
+        - link "Community" [ref=f25e89] [cursor=pointer]:
+          - /url: https://snty.link/community
+        - generic [ref=f25e90]: •
+        - link "Docs" [ref=f25e94] [cursor=pointer]:
+          - /url: https://www.sanity.io/docs
+        - generic [ref=f25e95]: •
+        - link "Privacy" [ref=f25e99] [cursor=pointer]:
+          - /url: https://www.sanity.io/legal/privacy
+        - generic [ref=f25e100]: •
+        - link "sanity.io" [ref=f25e104] [cursor=pointer]:
+          - /url: https://www.sanity.io
+    - list
+  - button "Open Next.js Dev Tools" [ref=f25e13] [cursor=pointer]
+  - alert [ref=f25e17]

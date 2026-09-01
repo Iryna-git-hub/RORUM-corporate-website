@@ -1,0 +1,330 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - banner [ref=f5e3]:
+      - generic [ref=f5e5]:
+        - link [ref=f5e6] [cursor=pointer]:
+          - /url: /
+          - img "RORUM Creative & Event Space" [ref=f5e7]
+        - navigation "Main navigation" [ref=f5e8]:
+          - link "Attend Events" [ref=f5e9] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=f5e10] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=f5e12] [cursor=pointer]
+          - button "Community" [ref=f5e16] [cursor=pointer]
+          - link "About" [ref=f5e19] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=f5e20] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=f5e21]:
+          - 'button "Language: EN" [ref=f5e23] [cursor=pointer]':
+            - generic [ref=f5e24]: EN
+          - link "Let's Talk" [ref=f5e28] [cursor=pointer]:
+            - /url: /contact
+      - complementary "Mobile menu" [ref=f5e31]:
+        - generic [ref=f5e32]:
+          - link "Let's Talk" [ref=f5e33] [cursor=pointer]:
+            - /url: /contact
+          - group "Language" [ref=f5e34]:
+            - button "EN" [pressed] [ref=f5e35] [cursor=pointer]
+            - generic [aria-hidden] [ref=f5e36]: "|"
+            - button "DA" [ref=f5e37] [cursor=pointer]
+            - generic [aria-hidden] [ref=f5e38]: "|"
+            - button "UK" [ref=f5e39] [cursor=pointer]
+          - button "Close menu" [ref=f5e40] [cursor=pointer]
+        - navigation [ref=f5e44]:
+          - link "Home" [ref=f5e46] [cursor=pointer]:
+            - /url: /
+          - link "Attend Events" [ref=f5e49] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=f5e52] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=f5e55] [cursor=pointer]
+          - button "Community" [ref=f5e60] [cursor=pointer]
+          - link "About" [ref=f5e65] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=f5e68] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=f5e70]:
+          - link "Instagram" [ref=f5e71] [cursor=pointer]:
+            - /url: https://www.instagram.com/rorum_dk
+          - link "Facebook" [ref=f5e76] [cursor=pointer]:
+            - /url: https://www.facebook.com/rorum2025
+          - link "linkedin" [ref=f5e79] [cursor=pointer]:
+            - /url: https://linkedin.com
+    - main [ref=f5e84]:
+      - generic [ref=f5e86]:
+        - generic [ref=f5e87]:
+          - generic [ref=f5e88]: Host at RORUM
+          - heading "Host Your Gathering at RORUM" [level=1] [ref=f5e89]
+          - paragraph [ref=f5e91]: RORUM is a small, curated space in central Copenhagen, designed for meetings, workshops, and private events for up to 12 guests. Ideal for small teams, founders, and curated gatherings. We offer a calm and well-organized setting, with support before and during your event.
+          - generic [ref=f5e92]:
+            - link "Apply to Host" [ref=f5e93] [cursor=pointer]:
+              - /url: "#request-private-meeting"
+            - link "View Packages & Pricing" [ref=f5e96] [cursor=pointer]:
+              - /url: "#meeting-packages"
+        - generic [ref=f5e100]:
+          - button "Previous slide" [disabled] [ref=f5e101]
+          - button "Next slide" [ref=f5e104] [cursor=pointer]
+          - generic [ref=f5e107]: 1 / 14
+          - generic [ref=f5e108]:
+            - button "Open gallery image 1" [ref=f5e109] [cursor=pointer]:
+              - img "RORUM private meeting room set up for a session"
+            - button "Open gallery image 2" [ref=f5e110] [cursor=pointer]:
+              - img "People gathered in a RORUM private meeting session"
+            - button "Open gallery image 3" [ref=f5e111] [cursor=pointer]:
+              - img "RORUM private meeting room ready for guests"
+            - button "Open gallery image 4" [ref=f5e112] [cursor=pointer]:
+              - img "RORUM private meeting room with tables and chairs arranged"
+            - button "Open gallery image 5" [ref=f5e113] [cursor=pointer]:
+              - img "Small group meeting in the RORUM private meeting room"
+            - button "Open gallery image 6" [ref=f5e114] [cursor=pointer]:
+              - img "RORUM private meeting room set up for a workshop"
+            - button "Open gallery image 7" [ref=f5e115] [cursor=pointer]:
+              - img "RORUM private meeting room with a calm, organized setup"
+            - button "Open gallery image 8" [ref=f5e116] [cursor=pointer]:
+              - img "RORUM private meeting room prepared for hosting"
+            - button "Open gallery image 9" [ref=f5e117] [cursor=pointer]:
+              - img "Guests gathered for a private meeting at RORUM"
+            - button "Open gallery image 10" [ref=f5e118] [cursor=pointer]:
+              - img "RORUM private meeting room with flexible seating"
+            - button "Open gallery image 11" [ref=f5e119] [cursor=pointer]:
+              - img "RORUM private meeting room set up for a session"
+            - button "Open gallery image 12" [ref=f5e120] [cursor=pointer]:
+              - img "RORUM private meeting room with natural light"
+            - button "Open gallery image 13" [ref=f5e121] [cursor=pointer]:
+              - img "RORUM private meeting room ready for a gathering"
+            - button "Open gallery image 14" [ref=f5e122] [cursor=pointer]:
+              - img "RORUM private meeting room set up for hosting"
+      - generic [ref=f5e125]:
+        - img "Hosted meeting room setup at RORUM" [ref=f5e126]
+        - generic [ref=f5e127]:
+          - generic [ref=f5e128]:
+            - generic [ref=f5e129]: Session details
+            - heading "Each session includes:" [level=3] [ref=f5e130]
+          - generic [ref=f5e131]:
+            - generic [ref=f5e132]:
+              - paragraph [ref=f5e137]: Use of the space
+              - paragraph [ref=f5e141]: Coffee, tea and water
+              - paragraph [ref=f5e148]: On-site support
+              - paragraph [ref=f5e152]: Simple and thoughtful interior setup
+            - generic [ref=f5e153]:
+              - paragraph [ref=f5e157]: Screen
+              - paragraph [ref=f5e163]: Wi-Fi
+              - paragraph [ref=f5e168]: Tables and chairs
+          - generic [ref=f5e169]:
+            - heading "Optional" [level=3] [ref=f5e170]
+            - generic [ref=f5e171]:
+              - paragraph [ref=f5e175]: Catering
+              - paragraph [ref=f5e178]: Customized food options
+          - generic [ref=f5e179]:
+            - link "Apply to Host" [ref=f5e180] [cursor=pointer]:
+              - /url: "#request-private-meeting"
+            - link "View Packages & Pricing" [ref=f5e183] [cursor=pointer]:
+              - /url: "#meeting-packages"
+      - generic [ref=f5e187]:
+        - generic [ref=f5e188]:
+          - generic [ref=f5e189]: Packages
+          - heading "Hosting Packages" [level=3] [ref=f5e190]
+        - generic [ref=f5e191]:
+          - paragraph [ref=f5e192]: Every event has its own atmosphere and unique requirements, which is why the packages below are simply examples of our most popular formats. Looking for something different? We would be happy to tailor the space and arrangements to your needs.
+          - paragraph [ref=f5e193]:
+            - link "Get in touch" [ref=f5e194] [cursor=pointer]:
+              - /url: /contact
+            - text: with us to discuss your event and receive a personalized proposal.
+        - generic [ref=f5e195]:
+          - generic [ref=f5e196]:
+            - heading "Morning session" [level=3] [ref=f5e197]
+            - generic [ref=f5e198]:
+              - generic [ref=f5e199]: 2000 kr.
+              - generic [ref=f5e200]: ex VAT
+            - link "Select Package" [ref=f5e201] [cursor=pointer]:
+              - /url: "?package=package0#request-private-meeting"
+            - list [ref=f5e205]:
+              - listitem [ref=f5e206]:
+                - generic [ref=f5e210]: 08:30 - 12:30
+              - listitem [ref=f5e211]:
+                - generic [ref=f5e215]: Suitable for focused meetings, workshops, and small group sessions.
+              - listitem [ref=f5e216]:
+                - generic [ref=f5e220]: Up to 12 guests
+              - listitem [ref=f5e221]:
+                - generic [ref=f5e225]: "Croissant & juice: 90 kr. / person"
+          - generic [ref=f5e226]:
+            - heading "Afternoon session" [level=3] [ref=f5e227]
+            - generic [ref=f5e228]:
+              - generic [ref=f5e229]: 2000 kr.
+              - generic [ref=f5e230]: ex VAT
+            - link "Select Package" [ref=f5e231] [cursor=pointer]:
+              - /url: "?package=package1#request-private-meeting"
+            - list [ref=f5e235]:
+              - listitem [ref=f5e236]:
+                - generic [ref=f5e240]: 13:00 - 17:00
+              - listitem [ref=f5e241]:
+                - generic [ref=f5e245]: A flexible format for presentations, workshops, and team meetings.
+              - listitem [ref=f5e246]:
+                - generic [ref=f5e250]: Up to 12 guests
+              - listitem [ref=f5e251]:
+                - generic [ref=f5e255]: "Fruit and snacks: 90 kr. / person"
+          - generic [ref=f5e256]:
+            - heading "Full day session" [level=3] [ref=f5e257]
+            - generic [ref=f5e258]:
+              - generic [ref=f5e259]: 3700 kr.
+              - generic [ref=f5e260]: ex VAT
+            - link "Select Package" [ref=f5e261] [cursor=pointer]:
+              - /url: "?package=package2#request-private-meeting"
+            - list [ref=f5e265]:
+              - listitem [ref=f5e266]:
+                - generic [ref=f5e270]: 09:00 - 17:00
+              - listitem [ref=f5e271]:
+                - generic [ref=f5e275]: For longer sessions requiring time, structure, and continuity.
+              - listitem [ref=f5e276]:
+                - generic [ref=f5e280]: Up to 12 guests
+              - listitem [ref=f5e281]:
+                - generic [ref=f5e285]: "Lunch and snacks: 280 kr. / person"
+        - generic [ref=f5e286]:
+          - paragraph [ref=f5e287]: "Cancellation policy:"
+          - list [ref=f5e288]:
+            - listitem [ref=f5e289]: Free cancellation up to 5 working days before
+            - listitem [ref=f5e290]: 50% charge if cancelled within 24 hours before the event
+            - listitem [ref=f5e291]: 100% charge if cancelled less than 24 hours before
+      - generic [ref=f5e294]:
+        - generic [ref=f5e295]:
+          - generic [ref=f5e296]: How it works
+          - heading "3-step setup" [level=2] [ref=f5e297]
+          - generic "Host at RORUM request process" [ref=f5e298]:
+            - article [ref=f5e299]:
+              - generic [ref=f5e300]: "01"
+              - generic [ref=f5e301]:
+                - heading "Tell us about your gathering" [level=3] [ref=f5e302]
+                - paragraph [ref=f5e303]: Tell us the format, guest count, timing and what kind of atmosphere you need.
+            - article [ref=f5e304]:
+              - generic [ref=f5e305]: "02"
+              - generic [ref=f5e306]:
+                - heading "We prepare the room" [level=3] [ref=f5e307]
+                - paragraph [ref=f5e308]: We align tables, chairs, screen, Wi-Fi and simple hosting details before you arrive.
+            - article [ref=f5e309]:
+              - generic [ref=f5e310]: "03"
+              - generic [ref=f5e311]:
+                - heading "Arrive and focus" [level=3] [ref=f5e312]
+                - paragraph [ref=f5e313]: The space is ready for your workshop, gathering, or private session, with on-site support.
+          - paragraph [ref=f5e314]:
+            - generic [ref=f5e315]: Questions?
+            - link "Read our FAQs" [ref=f5e316] [cursor=pointer]:
+              - /url: /faq
+        - generic [ref=f5e320]:
+          - generic [ref=f5e321]:
+            - heading "Apply to Host at RORUM" [level=2] [ref=f5e322]
+            - paragraph [ref=f5e323]: Tell us the format, guest count, timing and what kind of atmosphere you need, and we will help you find the right package.
+          - generic [ref=f5e324]:
+            - text: Full Name*
+            - textbox "Full Name" [ref=f5e325]
+          - generic [ref=f5e326]:
+            - generic [ref=f5e327]:
+              - text: Phone number*
+              - textbox "Phone number" [ref=f5e328]:
+                - /placeholder: +45 12 34 56 78
+            - generic [ref=f5e329]:
+              - text: Email*
+              - textbox "Email" [ref=f5e330]:
+                - /placeholder: you@example.com
+          - generic [ref=f5e331]:
+            - generic [ref=f5e332]:
+              - text: Package*
+              - combobox "Package" [ref=f5e333] [cursor=pointer]:
+                - option "Select package" [disabled] [selected]
+                - option "Morning session"
+                - option "Afternoon session"
+                - option "Full day session"
+                - option "Not sure yet"
+            - generic [ref=f5e334]:
+              - text: Event date
+              - textbox "Event date" [ref=f5e335]
+          - generic [ref=f5e336]:
+            - generic [ref=f5e337]:
+              - text: Event time
+              - textbox "Event time" [ref=f5e338]
+            - generic [ref=f5e339]:
+              - text: Number of people
+              - spinbutton "Number of people" [ref=f5e340]
+          - group "Additional services" [ref=f5e341]:
+            - generic [ref=f5e343] [cursor=pointer]:
+              - checkbox "Breakfast" [ref=f5e344]
+              - generic [ref=f5e345]: Breakfast
+            - generic [ref=f5e346] [cursor=pointer]:
+              - checkbox "Snacks" [ref=f5e347]
+              - generic [ref=f5e348]: Snacks
+            - generic [ref=f5e349] [cursor=pointer]:
+              - checkbox "Lunch" [ref=f5e350]
+              - generic [ref=f5e351]: Lunch
+            - generic [ref=f5e352] [cursor=pointer]:
+              - checkbox "Coffee setup" [ref=f5e353]
+              - generic [ref=f5e354]: Coffee setup
+          - generic [ref=f5e355]:
+            - text: Comment*
+            - textbox "Comment" [ref=f5e356]:
+              - /placeholder: Tell us about your meeting format, timing and preferences.
+          - generic [ref=f5e358]:
+            - checkbox "I have read and agree to the" [ref=f5e359] [cursor=pointer]
+            - generic [ref=f5e360]:
+              - text: I have read and agree to the
+              - button "Privacy policy" [ref=f5e361] [cursor=pointer]
+              - text: .
+          - button "Submit Hosting Request" [ref=f5e362] [cursor=pointer]
+    - contentinfo [ref=f5e363]:
+      - generic [ref=f5e364]:
+        - generic [ref=f5e365]:
+          - generic [ref=f5e366]:
+            - generic [ref=f5e367]: Contact details
+            - generic [ref=f5e368]:
+              - paragraph [ref=f5e369]: Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark
+              - link "View on map" [ref=f5e374] [cursor=pointer]:
+                - /url: /contact#contact-map
+              - paragraph [ref=f5e375]: +45 91 87 71 52
+              - link "rorum2025@gmail.com" [ref=f5e379] [cursor=pointer]:
+                - /url: mailto:rorum2025@gmail.com
+            - generic "Social links" [ref=f5e384]:
+              - link "Instagram" [ref=f5e385] [cursor=pointer]:
+                - /url: https://www.instagram.com/rorum_dk
+              - link "Facebook" [ref=f5e390] [cursor=pointer]:
+                - /url: https://www.facebook.com/rorum2025
+              - link "linkedin" [ref=f5e393] [cursor=pointer]:
+                - /url: https://linkedin.com
+          - generic [ref=f5e398]:
+            - navigation "Visit & host" [ref=f5e399]:
+              - link "Attend Events" [ref=f5e401] [cursor=pointer]:
+                - /url: /events
+              - link "Host at RORUM" [ref=f5e402] [cursor=pointer]:
+                - /url: /host-at-rorum
+            - navigation "Services" [ref=f5e403]:
+              - link "Catering" [ref=f5e405] [cursor=pointer]:
+                - /url: /catering
+              - link "Decoration" [ref=f5e406] [cursor=pointer]:
+                - /url: /event-decoration
+            - navigation "Community" [ref=f5e407]:
+              - link "WECODA membership" [ref=f5e409] [cursor=pointer]:
+                - /url: /community-membership
+              - link "Volunteer with us" [ref=f5e410] [cursor=pointer]:
+                - /url: /volunteer
+              - link "Work with us" [ref=f5e411] [cursor=pointer]:
+                - /url: /work-with-us
+            - navigation "Company" [ref=f5e412]:
+              - link "About" [ref=f5e414] [cursor=pointer]:
+                - /url: /about
+              - link "Contact" [ref=f5e415] [cursor=pointer]:
+                - /url: /contact
+              - link "FAQ" [ref=f5e416] [cursor=pointer]:
+                - /url: /faq
+        - generic [ref=f5e417]:
+          - generic [ref=f5e418]: © 2026 RORUM. All rights reserved.
+          - navigation "Legal links" [ref=f5e419]:
+            - link "Terms and conditions" [ref=f5e420] [cursor=pointer]:
+              - /url: /terms
+            - link "Privacy policy" [ref=f5e421] [cursor=pointer]:
+              - /url: /privacy-policy
+            - link "Cookie policy" [ref=f5e422] [cursor=pointer]:
+              - /url: /cookie-policy
+          - generic [ref=f5e423]:
+            - text: Developed by
+            - link "irynadev" [ref=f5e424] [cursor=pointer]:
+              - /url: https://irynadev.netlify.app
+  - button "Open Next.js Dev Tools" [ref=f5e430] [cursor=pointer]

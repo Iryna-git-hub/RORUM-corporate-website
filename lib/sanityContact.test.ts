@@ -170,9 +170,33 @@ describe("resolveSocialLinks — missing vs. intentionally-empty, and derived br
   });
 
   it("brand color is derived from platform, not read from a stored (possibly wrong) value", () => {
-    const doc = { _id: "socialLinks", links: [{ _key: "x", icon: "linkedin", href: "https://linkedin.com/company/rorum", brandColor: "#000000", label: i18n("LinkedIn", "LinkedIn", "LinkedIn") }] } as never;
+    const doc = { _id: "socialLinks", links: [{ _key: "x", icon: "facebook", href: "https://facebook.com/rorum", brandColor: "#000000", label: i18n("Facebook", "Facebook", "Facebook") }] } as never;
     const result = resolveSocialLinks(doc, "en");
-    expect(result[0]!.brandColor).toBe("#0A66C2");
+    expect(result[0]!.brandColor).toBe("#1877F2");
+  });
+
+  it("a stored platform outside the selectable set (the stray 'linkedin' entry) is filtered out; valid links are preserved in order (R3)", () => {
+    const doc = {
+      _id: "socialLinks",
+      links: [
+        { _key: "instagram", icon: "instagram", href: "https://www.instagram.com/rorum_dk", label: i18n("Instagram") },
+        { _key: "facebook", icon: "facebook", href: "https://www.facebook.com/rorum2025", label: i18n("Facebook") },
+        { _key: "d0d8654a20c0", icon: "linkedin", href: "https://linkedin.com", label: i18n("linkedin", "LinkedIn", "LinkedIn") },
+      ],
+    } as never;
+    const result = resolveSocialLinks(doc, "en");
+    expect(result.map((l) => l.icon)).toEqual(["instagram", "facebook"]);
+    expect(result.some((l) => l.href.includes("linkedin"))).toBe(false);
+  });
+
+  it("a doc containing ONLY out-of-list links returns [] — 'present but nothing renderable', never the hardcoded fallback (R3)", () => {
+    const doc = { _id: "socialLinks", links: [{ _key: "x", icon: "linkedin", href: "https://linkedin.com", label: i18n("LinkedIn") }] } as never;
+    expect(resolveSocialLinks(doc, "en")).toEqual([]);
+  });
+
+  it("a link with no platform selected at all is dropped, not rendered with a guessed icon (R3)", () => {
+    const doc = { _id: "socialLinks", links: [{ _key: "x", href: "https://example.com", label: i18n("Something") }] } as never;
+    expect(resolveSocialLinks(doc, "en")).toEqual([]);
   });
 
   it("a link with no localized label falls back to the platform's own display name, not a raw href", () => {

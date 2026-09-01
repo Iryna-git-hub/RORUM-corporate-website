@@ -1,0 +1,192 @@
+- generic [active] [ref=f22e1]:
+  - generic [ref=f22e2]:
+    - banner [ref=f22e3]:
+      - generic [ref=f22e5]:
+        - link [ref=f22e6] [cursor=pointer]:
+          - /url: /
+          - img "RORUM Creative & Event Space" [ref=f22e7]
+        - navigation "Main navigation" [ref=f22e8]:
+          - link "Attend Events" [ref=f22e9] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=f22e10] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=f22e12] [cursor=pointer]
+          - button "Community" [ref=f22e16] [cursor=pointer]
+          - link "About" [ref=f22e19] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=f22e20] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=f22e21]:
+          - 'button "Language: EN" [ref=f22e23] [cursor=pointer]':
+            - generic [ref=f22e24]: EN
+          - link "Let's Talk" [ref=f22e28] [cursor=pointer]:
+            - /url: /contact
+      - complementary "Mobile menu" [ref=f22e31]:
+        - generic [ref=f22e32]:
+          - link "Let's Talk" [ref=f22e33] [cursor=pointer]:
+            - /url: /contact
+          - group "Language" [ref=f22e34]:
+            - button "EN" [pressed] [ref=f22e35] [cursor=pointer]
+            - generic [aria-hidden] [ref=f22e36]: "|"
+            - button "DA" [ref=f22e37] [cursor=pointer]
+            - generic [aria-hidden] [ref=f22e38]: "|"
+            - button "UK" [ref=f22e39] [cursor=pointer]
+          - button "Close menu" [ref=f22e40] [cursor=pointer]
+        - navigation [ref=f22e44]:
+          - link "Home" [ref=f22e46] [cursor=pointer]:
+            - /url: /
+          - link "Attend Events" [ref=f22e49] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=f22e52] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=f22e55] [cursor=pointer]
+          - button "Community" [ref=f22e60] [cursor=pointer]
+          - link "About" [ref=f22e65] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=f22e68] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=f22e70]:
+          - link "Instagram" [ref=f22e71] [cursor=pointer]:
+            - /url: https://www.instagram.com/rorum_dk
+          - link "Facebook" [ref=f22e76] [cursor=pointer]:
+            - /url: https://www.facebook.com/rorum2025
+          - link "linkedin" [ref=f22e79] [cursor=pointer]:
+            - /url: https://linkedin.com
+    - main [ref=f22e84]:
+      - region "Copenhagen makers dinner event image" [ref=f22e85]:
+        - img "Copenhagen makers dinner event atmosphere" [ref=f22e86]
+        - generic [ref=f22e89]:
+          - time [ref=f22e90]: Saturday, May 2, 2026
+          - heading "Copenhagen makers dinner" [level=1] [ref=f22e91]
+      - region "Event information" [ref=f22e92]:
+        - generic [ref=f22e94]:
+          - generic [ref=f22e99]:
+            - term [ref=f22e100]: Date
+            - definition [ref=f22e101]:
+              - generic [ref=f22e102]:
+                - generic [ref=f22e103]: Saturday
+                - generic [ref=f22e104]: May 2
+          - generic [ref=f22e110]:
+            - term [ref=f22e111]: Time
+            - definition [ref=f22e112]: 18:30–21:30
+          - generic [ref=f22e118]:
+            - term [ref=f22e119]: Location
+            - definition [ref=f22e120]:
+              - generic [ref=f22e121]:
+                - generic [ref=f22e122]: Buermistersgade 26, 1 th,
+                - generic [ref=f22e123]: Copenhagen
+          - generic [ref=f22e128]:
+            - term [ref=f22e129]: Price
+            - definition [ref=f22e130]: 295 kr.
+          - link "Buy Ticket" [ref=f22e132] [cursor=pointer]:
+            - /url: https://billetto.dk/
+      - generic [ref=f22e138]:
+        - article [ref=f22e139]:
+          - generic [ref=f22e140]:
+            - heading "Event Overview" [level=2] [ref=f22e141]
+            - paragraph [ref=f22e142]: An intimate dinner for Copenhagen makers, hosts and independent creatives who want to meet in a setting that feels calm, useful and generous. Expect a seasonal shared table, gentle prompts and enough space for real conversation.
+            - generic [ref=f22e143]:
+              - paragraph [ref=f22e144]: Share with Friends
+              - generic [ref=f22e145]:
+                - button "Share" [ref=f22e146] [cursor=pointer]
+                - button "Copy link" [ref=f22e153] [cursor=pointer]
+                - link "WhatsApp" [ref=f22e157] [cursor=pointer]:
+                  - /url: https://wa.me/?text=Copenhagen%20makers%20dinner%20%E2%80%94%20https%3A%2F%2Fro-rum.dk%2Fevents%2Fcopenhagen-makers-dinner
+                - link "Email" [ref=f22e161] [cursor=pointer]:
+                  - /url: mailto:?subject=Copenhagen%20makers%20dinner&body=I%20thought%20you%20might%20like%20this%20event%20at%20RORUM%3A%20https%3A%2F%2Fro-rum.dk%2Fevents%2Fcopenhagen-makers-dinner
+                - link "LinkedIn" [ref=f22e165] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fro-rum.dk%2Fevents%2Fcopenhagen-makers-dinner
+                - link "Facebook" [ref=f22e170] [cursor=pointer]:
+                  - /url: https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fro-rum.dk%2Fevents%2Fcopenhagen-makers-dinner
+                - button "Instagram" [ref=f22e173] [cursor=pointer]
+              - generic [ref=f22e178]: Link copied
+          - generic [ref=f22e179]:
+            - heading "What to Expect" [level=2] [ref=f22e180]
+            - list [ref=f22e181]:
+              - listitem [ref=f22e182]:
+                - generic [ref=f22e186]: Small group format
+              - listitem [ref=f22e187]:
+                - generic [ref=f22e191]: Seasonal shared dinner
+              - listitem [ref=f22e192]:
+                - generic [ref=f22e196]: Warm RORUM atmosphere
+              - listitem [ref=f22e197]:
+                - generic [ref=f22e201]: Facilitated introductions
+              - listitem [ref=f22e202]:
+                - generic [ref=f22e206]: Time for conversation
+        - complementary "Practical details" [ref=f22e207]:
+          - heading "Practical Details" [level=2] [ref=f22e208]
+          - generic [ref=f22e209]:
+            - generic [ref=f22e210]:
+              - term [ref=f22e211]: Event language
+              - definition [ref=f22e212]: English
+            - generic [ref=f22e213]:
+              - term [ref=f22e214]: Duration
+              - definition [ref=f22e215]: 3 hours
+            - generic [ref=f22e216]:
+              - term [ref=f22e217]: Availability
+              - definition [ref=f22e218]: 10 spots left
+            - generic [ref=f22e219]:
+              - term [ref=f22e220]: Arrival
+              - definition [ref=f22e221]: Please arrive 5-10 minutes before the event begins.
+            - generic [ref=f22e222]:
+              - term [ref=f22e223]: Ticket provider
+              - definition [ref=f22e224]: Billetto
+    - contentinfo [ref=f22e225]:
+      - generic [ref=f22e226]:
+        - generic [ref=f22e227]:
+          - generic [ref=f22e228]:
+            - generic [ref=f22e229]: Contact details
+            - generic [ref=f22e230]:
+              - paragraph [ref=f22e231]: Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark
+              - link "View on map" [ref=f22e236] [cursor=pointer]:
+                - /url: /contact#contact-map
+              - paragraph [ref=f22e237]: +45 91 87 71 52
+              - link "rorum2025@gmail.com" [ref=f22e241] [cursor=pointer]:
+                - /url: mailto:rorum2025@gmail.com
+            - generic "Social links" [ref=f22e246]:
+              - link "Instagram" [ref=f22e247] [cursor=pointer]:
+                - /url: https://www.instagram.com/rorum_dk
+              - link "Facebook" [ref=f22e252] [cursor=pointer]:
+                - /url: https://www.facebook.com/rorum2025
+              - link "linkedin" [ref=f22e255] [cursor=pointer]:
+                - /url: https://linkedin.com
+          - generic [ref=f22e260]:
+            - navigation "Visit & host" [ref=f22e261]:
+              - link "Attend Events" [ref=f22e263] [cursor=pointer]:
+                - /url: /events
+              - link "Host at RORUM" [ref=f22e264] [cursor=pointer]:
+                - /url: /host-at-rorum
+            - navigation "Services" [ref=f22e265]:
+              - link "Catering" [ref=f22e267] [cursor=pointer]:
+                - /url: /catering
+              - link "Decoration" [ref=f22e268] [cursor=pointer]:
+                - /url: /event-decoration
+            - navigation "Community" [ref=f22e269]:
+              - link "WECODA membership" [ref=f22e271] [cursor=pointer]:
+                - /url: /community-membership
+              - link "Volunteer with us" [ref=f22e272] [cursor=pointer]:
+                - /url: /volunteer
+              - link "Work with us" [ref=f22e273] [cursor=pointer]:
+                - /url: /work-with-us
+            - navigation "Company" [ref=f22e274]:
+              - link "About" [ref=f22e276] [cursor=pointer]:
+                - /url: /about
+              - link "Contact" [ref=f22e277] [cursor=pointer]:
+                - /url: /contact
+              - link "FAQ" [ref=f22e278] [cursor=pointer]:
+                - /url: /faq
+        - generic [ref=f22e279]:
+          - generic [ref=f22e280]: © 2026 RORUM. All rights reserved.
+          - navigation "Legal links" [ref=f22e281]:
+            - link "Terms and conditions" [ref=f22e282] [cursor=pointer]:
+              - /url: /terms
+            - link "Privacy policy" [ref=f22e283] [cursor=pointer]:
+              - /url: /privacy-policy
+            - link "Cookie policy" [ref=f22e284] [cursor=pointer]:
+              - /url: /cookie-policy
+          - generic [ref=f22e285]:
+            - text: Developed by
+            - link "irynadev" [ref=f22e286] [cursor=pointer]:
+              - /url: https://irynadev.netlify.app
+  - button "Open Next.js Dev Tools" [ref=f22e292] [cursor=pointer]
+  - alert [ref=f22e296]

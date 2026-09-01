@@ -1,0 +1,667 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - link [ref=e6] [cursor=pointer]:
+          - /url: /
+          - img "RORUM Creative & Event Space" [ref=e7]
+        - navigation "Main navigation" [ref=e8]:
+          - link "Attend Events" [ref=e9] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=e10] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=e12] [cursor=pointer]
+          - button "Community" [ref=e16] [cursor=pointer]
+          - link "About" [ref=e19] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=e20] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=e21]:
+          - 'button "Language: EN" [ref=e23] [cursor=pointer]':
+            - generic [ref=e24]: EN
+          - link "Let's Talk" [ref=e28] [cursor=pointer]:
+            - /url: /contact
+      - complementary "Mobile menu" [ref=e31]:
+        - generic [ref=e32]:
+          - link "Let's Talk" [ref=e33] [cursor=pointer]:
+            - /url: /contact
+          - group "Language" [ref=e34]:
+            - button "EN" [pressed] [ref=e35] [cursor=pointer]
+            - generic [aria-hidden] [ref=e36]: "|"
+            - button "DA" [ref=e37] [cursor=pointer]
+            - generic [aria-hidden] [ref=e38]: "|"
+            - button "UK" [ref=e39] [cursor=pointer]
+          - button "Close menu" [ref=e40] [cursor=pointer]
+        - navigation [ref=e44]:
+          - link "Home" [ref=e46] [cursor=pointer]:
+            - /url: /
+          - link "Attend Events" [ref=e49] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=e52] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=e55] [cursor=pointer]
+          - button "Community" [ref=e60] [cursor=pointer]
+          - link "About" [ref=e65] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=e68] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=e70]:
+          - link "Instagram" [ref=e71] [cursor=pointer]:
+            - /url: https://www.instagram.com/rorum_dk
+          - link "Facebook" [ref=e76] [cursor=pointer]:
+            - /url: https://www.facebook.com/rorum2025
+          - link "linkedin" [ref=e79] [cursor=pointer]:
+            - /url: https://linkedin.com
+    - main [ref=e84]:
+      - generic [ref=e85]:
+        - generic [ref=e89]:
+          - generic [ref=e90]: Copenhagen event space
+          - heading "A Copenhagen space for meaningful gatherings" [level=1] [ref=e91]
+          - paragraph [ref=e92]: Attend events or host your own gathering in a calm, thoughtfully prepared space with support from the RORUM team.
+          - generic [ref=e93]:
+            - link "Host at RORUM" [ref=e94] [cursor=pointer]:
+              - /url: /host-at-rorum
+            - link "Attend Events" [ref=e97] [cursor=pointer]:
+              - /url: /events
+        - list "RORUM highlights" [ref=e100]:
+          - listitem [ref=e101]:
+            - generic [ref=e107]: Up to 12 guests
+          - listitem [ref=e108]:
+            - generic [ref=e112]: Central Copenhagen
+          - listitem [ref=e113]:
+            - generic [ref=e117]: On-site support
+          - listitem [ref=e118]:
+            - generic [ref=e121]: "Extras: catering & decor"
+      - generic [ref=e123]:
+        - generic [ref=e124]:
+          - generic [ref=e125]: Quick paths
+          - heading "Start with what you need" [level=2] [ref=e126]
+        - generic [ref=e127]:
+          - link "Attend Events Discover workshops, conversations, and community experiences in the heart of Copenhagen. Explore events" [ref=e128] [cursor=pointer]:
+            - /url: /events
+            - generic [ref=e129]:
+              - generic [ref=e130]: Attend Events
+              - generic [ref=e135]: Discover workshops, conversations, and community experiences in the heart of Copenhagen.
+            - generic [ref=e136]: Explore events
+          - link "Host at RORUM A warm and flexible Copenhagen venue for workshops, meetings, and community gatherings of up to 12 guests. Host with us" [ref=e141] [cursor=pointer]:
+            - /url: /host-at-rorum
+            - generic [ref=e142]:
+              - generic [ref=e143]: Host at RORUM
+              - generic [ref=e149]: A warm and flexible Copenhagen venue for workshops, meetings, and community gatherings of up to 12 guests.
+            - generic [ref=e150]: Host with us
+          - link "Catering Fresh, simple and elegant catering for meetings, private gatherings, workshops and special moments. Explore catering" [ref=e155] [cursor=pointer]:
+            - /url: /catering
+            - generic [ref=e156]:
+              - generic [ref=e157]: Catering
+              - generic [ref=e163]: Fresh, simple and elegant catering for meetings, private gatherings, workshops and special moments.
+            - generic [ref=e164]: Explore catering
+          - link "Event Decoration Flowers, table styling, candles and visual details designed to create a warm and memorable atmosphere. Explore decoration" [ref=e169] [cursor=pointer]:
+            - /url: /event-decoration
+            - generic [ref=e170]:
+              - generic [ref=e171]: Event Decoration
+              - generic [ref=e178]: Flowers, table styling, candles and visual details designed to create a warm and memorable atmosphere.
+            - generic [ref=e179]: Explore decoration
+      - generic [ref=e185]:
+        - generic [ref=e186]:
+          - generic [ref=e187]:
+            - generic [ref=e188]: What's on
+            - heading "Upcoming events at RORUM" [level=2] [ref=e189]
+          - link "View all events" [ref=e190] [cursor=pointer]:
+            - /url: /events
+        - generic [ref=e194]:
+          - 'link "View event: Copenhagen makers dinner" [ref=e195] [cursor=pointer]':
+            - /url: /events/copenhagen-makers-dinner
+            - generic [ref=e196]:
+              - time [ref=e199]:
+                - generic [ref=e200]: "02"
+                - generic [ref=e201]: MAY
+              - generic [ref=e202]:
+                - heading "Copenhagen makers dinner" [level=3] [ref=e203]
+                - generic [ref=e204]:
+                  - time [ref=e210]: Sat, May 2
+                  - time [ref=e217]: 18:30-21:30
+                  - generic [ref=e218]: 10 spots left
+          - 'link "View event: Botanical table styling workshop" [ref=e225] [cursor=pointer]':
+            - /url: /events/botanical-table-styling-workshop
+            - generic [ref=e226]:
+              - time [ref=e229]:
+                - generic [ref=e230]: "03"
+                - generic [ref=e231]: MAY
+              - generic [ref=e232]:
+                - heading "Botanical table styling workshop" [level=3] [ref=e233]
+                - generic [ref=e234]:
+                  - time [ref=e240]: Sun, May 3
+                  - time [ref=e247]: 17:00-19:30
+                  - generic [ref=e248]: 8 spots left
+          - 'link "View event: Freelance morning salon" [ref=e255] [cursor=pointer]':
+            - /url: /events/freelance-morning-salon
+            - generic [ref=e256]:
+              - time [ref=e259]:
+                - generic [ref=e260]: "04"
+                - generic [ref=e261]: MAY
+              - generic [ref=e262]:
+                - heading "Freelance morning salon" [level=3] [ref=e263]
+                - generic [ref=e264]:
+                  - time [ref=e270]: Mon, May 4
+                  - time [ref=e277]: 09:00-11:00
+                  - generic [ref=e278]: Sold out
+          - 'link "View event: Soft launch breakfast" [ref=e286] [cursor=pointer]':
+            - /url: /events/soft-launch-breakfast
+            - generic [ref=e287]:
+              - time [ref=e290]:
+                - generic [ref=e291]: "05"
+                - generic [ref=e292]: MAY
+              - generic [ref=e293]:
+                - heading "Soft launch breakfast" [level=3] [ref=e294]
+                - generic [ref=e295]:
+                  - time [ref=e301]: Tue, May 5
+                  - time [ref=e308]: 09:00-11:00
+                  - generic [ref=e309]: 6 spots left
+          - 'link "View event: Candlelit listening room" [ref=e316] [cursor=pointer]':
+            - /url: /events/candlelit-listening-room
+            - generic [ref=e317]:
+              - time [ref=e320]:
+                - generic [ref=e321]: "07"
+                - generic [ref=e322]: MAY
+              - generic [ref=e323]:
+                - heading "Candlelit listening room" [level=3] [ref=e324]
+                - generic [ref=e325]:
+                  - time [ref=e331]: Thu, May 7
+                  - time [ref=e338]: 19:00-21:00
+                  - generic [ref=e339]: 4 spots left
+          - 'link "View event: Summer table lab" [ref=e346] [cursor=pointer]':
+            - /url: /events/summer-table-lab
+            - generic [ref=e347]:
+              - time [ref=e350]:
+                - generic [ref=e351]: "12"
+                - generic [ref=e352]: MAY
+              - generic [ref=e353]:
+                - heading "Summer table lab" [level=3] [ref=e354]
+                - generic [ref=e355]:
+                  - time [ref=e361]: Tue, May 12
+                  - time [ref=e368]: 17:30-20:00
+                  - generic [ref=e369]: 9 spots left
+          - 'link "View event: Creative hosts circle" [ref=e376] [cursor=pointer]':
+            - /url: /events/creative-hosts-circle
+            - generic [ref=e377]:
+              - time [ref=e380]:
+                - generic [ref=e381]: "15"
+                - generic [ref=e382]: MAY
+              - generic [ref=e383]:
+                - heading "Creative hosts circle" [level=3] [ref=e384]
+                - generic [ref=e385]:
+                  - time [ref=e391]: Fri, May 15
+                  - time [ref=e398]: 18:00-20:00
+                  - generic [ref=e399]: 12 spots left
+          - 'link "View event: Nordic brunch club" [ref=e406] [cursor=pointer]':
+            - /url: /events/nordic-brunch-club
+            - generic [ref=e407]:
+              - time [ref=e410]:
+                - generic [ref=e411]: "17"
+                - generic [ref=e412]: MAY
+              - generic [ref=e413]:
+                - heading "Nordic brunch club" [level=3] [ref=e414]
+                - generic [ref=e415]:
+                  - time [ref=e421]: Sun, May 17
+                  - time [ref=e428]: 10:00-12:30
+                  - generic [ref=e429]: 5 spots left
+          - 'link "View event: Tiny talks evening" [ref=e436] [cursor=pointer]':
+            - /url: /events/tiny-talks-evening
+            - generic [ref=e437]:
+              - time [ref=e440]:
+                - generic [ref=e441]: "21"
+                - generic [ref=e442]: MAY
+              - generic [ref=e443]:
+                - heading "Tiny talks evening" [level=3] [ref=e444]
+                - generic [ref=e445]:
+                  - time [ref=e451]: Thu, May 21
+                  - time [ref=e458]: 18:30-21:00
+                  - generic [ref=e459]: 7 spots left
+          - 'link "View event: Floral mood workshop" [ref=e466] [cursor=pointer]':
+            - /url: /events/floral-mood-workshop
+            - generic [ref=e467]:
+              - time [ref=e470]:
+                - generic [ref=e471]: "24"
+                - generic [ref=e472]: MAY
+              - generic [ref=e473]:
+                - heading "Floral mood workshop" [level=3] [ref=e474]
+                - generic [ref=e475]:
+                  - time [ref=e481]: Sun, May 24
+                  - time [ref=e488]: 17:00-19:30
+                  - generic [ref=e489]: 3 spots left
+          - 'link "View event: Independent work morning" [ref=e496] [cursor=pointer]':
+            - /url: /events/independent-work-morning
+            - generic [ref=e497]:
+              - time [ref=e500]:
+                - generic [ref=e501]: "28"
+                - generic [ref=e502]: MAY
+              - generic [ref=e503]:
+                - heading "Independent work morning" [level=3] [ref=e504]
+                - generic [ref=e505]:
+                  - time [ref=e511]: Thu, May 28
+                  - time [ref=e518]: 09:00-11:30
+                  - generic [ref=e519]: 11 spots left
+          - 'link "View event: Seasonal supper preview" [ref=e526] [cursor=pointer]':
+            - /url: /events/seasonal-supper-preview
+            - generic [ref=e527]:
+              - time [ref=e530]:
+                - generic [ref=e531]: "31"
+                - generic [ref=e532]: MAY
+              - generic [ref=e533]:
+                - heading "Seasonal supper preview" [level=3] [ref=e534]
+                - generic [ref=e535]:
+                  - time [ref=e541]: Sun, May 31
+                  - time [ref=e548]: 18:30-21:30
+                  - generic [ref=e549]: 8 spots left
+          - 'link "View event: Community reset night" [ref=e556] [cursor=pointer]':
+            - /url: /events/community-reset-night
+            - generic [ref=e557]:
+              - time [ref=e560]:
+                - generic [ref=e561]: "04"
+                - generic [ref=e562]: JUN
+              - generic [ref=e563]:
+                - heading "Community reset night" [level=3] [ref=e564]
+                - generic [ref=e565]:
+                  - time [ref=e571]: Thu, Jun 4
+                  - time [ref=e578]: 18:00-20:30
+                  - generic [ref=e579]: 12 spots left
+          - 'link "View event: Business breakfast Copenhagen" [ref=e586] [cursor=pointer]':
+            - /url: /events/business-breakfast-copenhagen
+            - generic [ref=e587]:
+              - time [ref=e590]:
+                - generic [ref=e591]: "08"
+                - generic [ref=e592]: JUN
+              - generic [ref=e593]:
+                - heading "Business breakfast Copenhagen" [level=3] [ref=e594]
+                - generic [ref=e595]:
+                  - time [ref=e601]: Mon, Jun 8
+                  - time [ref=e608]: 08:30-10:30
+                  - generic [ref=e609]: 12 spots left
+          - 'link "View event: Networking for international founders" [ref=e616] [cursor=pointer]':
+            - /url: /events/networking-for-international-founders
+            - generic [ref=e617]:
+              - time [ref=e620]:
+                - generic [ref=e621]: "10"
+                - generic [ref=e622]: JUN
+              - generic [ref=e623]:
+                - heading "Networking for international founders" [level=3] [ref=e624]
+                - generic [ref=e625]:
+                  - time [ref=e631]: Wed, Jun 10
+                  - time [ref=e638]: 18:00-20:30
+                  - generic [ref=e639]: 12 spots left
+          - 'link "View event: Danish for Ukrainians: Everyday basics" [ref=e646] [cursor=pointer]':
+            - /url: /events/danish-for-ukrainians-intro
+            - generic [ref=e647]:
+              - time [ref=e650]:
+                - generic [ref=e651]: "12"
+                - generic [ref=e652]: JUN
+              - generic [ref=e653]:
+                - 'heading "Danish for Ukrainians: Everyday basics" [level=3] [ref=e654]'
+                - generic [ref=e655]:
+                  - time [ref=e661]: Fri, Jun 12
+                  - time [ref=e668]: 17:30-19:00
+                  - generic [ref=e669]: 12 spots left
+          - 'link "View event: Yoga after work reset" [ref=e676] [cursor=pointer]':
+            - /url: /events/yoga-after-work-reset
+            - generic [ref=e677]:
+              - time [ref=e680]:
+                - generic [ref=e681]: "14"
+                - generic [ref=e682]: JUN
+              - generic [ref=e683]:
+                - heading "Yoga after work reset" [level=3] [ref=e684]
+                - generic [ref=e685]:
+                  - time [ref=e691]: Sun, Jun 14
+                  - time [ref=e698]: 18:00-19:15
+                  - generic [ref=e699]: 10 spots left
+          - 'link "View event: Present yourself with confidence" [ref=e706] [cursor=pointer]':
+            - /url: /events/present-yourself-with-confidence
+            - generic [ref=e707]:
+              - time [ref=e710]:
+                - generic [ref=e711]: "16"
+                - generic [ref=e712]: JUN
+              - generic [ref=e713]:
+                - heading "Present yourself with confidence" [level=3] [ref=e714]
+                - generic [ref=e715]:
+                  - time [ref=e721]: Tue, Jun 16
+                  - time [ref=e728]: 18:00-20:00
+                  - generic [ref=e729]: 12 spots left
+          - 'link "View event: Slow art evening" [ref=e736] [cursor=pointer]':
+            - /url: /events/slow-art-evening
+            - generic [ref=e737]:
+              - time [ref=e740]:
+                - generic [ref=e741]: "18"
+                - generic [ref=e742]: JUN
+              - generic [ref=e743]:
+                - heading "Slow art evening" [level=3] [ref=e744]
+                - generic [ref=e745]:
+                  - time [ref=e751]: Thu, Jun 18
+                  - time [ref=e758]: 18:30-20:30
+                  - generic [ref=e759]: 9 spots left
+          - 'link "View event: Danish conversation cafe" [ref=e766] [cursor=pointer]':
+            - /url: /events/danish-conversation-cafe
+            - generic [ref=e767]:
+              - time [ref=e770]:
+                - generic [ref=e771]: "20"
+                - generic [ref=e772]: JUN
+              - generic [ref=e773]:
+                - heading "Danish conversation cafe" [level=3] [ref=e774]
+                - generic [ref=e775]:
+                  - time [ref=e781]: Sat, Jun 20
+                  - time [ref=e788]: 10:00-12:00
+                  - generic [ref=e789]: 12 spots left
+          - 'link "View event: Creative business roundtable" [ref=e796] [cursor=pointer]':
+            - /url: /events/creative-business-roundtable
+            - generic [ref=e797]:
+              - time [ref=e800]:
+                - generic [ref=e801]: "23"
+                - generic [ref=e802]: JUN
+              - generic [ref=e803]:
+                - heading "Creative business roundtable" [level=3] [ref=e804]
+                - generic [ref=e805]:
+                  - time [ref=e811]: Tue, Jun 23
+                  - time [ref=e818]: 17:30-20:00
+                  - generic [ref=e819]: 11 spots left
+          - 'link "View event: Mindful morning yoga" [ref=e826] [cursor=pointer]':
+            - /url: /events/mindful-morning-yoga
+            - generic [ref=e827]:
+              - time [ref=e830]:
+                - generic [ref=e831]: "25"
+                - generic [ref=e832]: JUN
+              - generic [ref=e833]:
+                - heading "Mindful morning yoga" [level=3] [ref=e834]
+                - generic [ref=e835]:
+                  - time [ref=e841]: Thu, Jun 25
+                  - time [ref=e848]: 08:00-09:15
+                  - generic [ref=e849]: 8 spots left
+          - 'link "View event: LinkedIn profile lab" [ref=e856] [cursor=pointer]':
+            - /url: /events/linkedin-profile-lab
+            - generic [ref=e857]:
+              - time [ref=e860]:
+                - generic [ref=e861]: "27"
+                - generic [ref=e862]: JUN
+              - generic [ref=e863]:
+                - heading "LinkedIn profile lab" [level=3] [ref=e864]
+                - generic [ref=e865]:
+                  - time [ref=e871]: Sat, Jun 27
+                  - time [ref=e878]: 10:00-12:30
+                  - generic [ref=e879]: 12 spots left
+          - 'link "View event: Ukrainian-Danish community night" [ref=e886] [cursor=pointer]':
+            - /url: /events/ukrainian-danish-community-night
+            - generic [ref=e887]:
+              - time [ref=e890]:
+                - generic [ref=e891]: "30"
+                - generic [ref=e892]: JUN
+              - generic [ref=e893]:
+                - heading "Ukrainian-Danish community night" [level=3] [ref=e894]
+                - generic [ref=e895]:
+                  - time [ref=e901]: Tue, Jun 30
+                  - time [ref=e908]: 18:00-20:30
+                  - generic [ref=e909]: 12 spots left
+          - 'link "View event: Watercolor & wine" [ref=e916] [cursor=pointer]':
+            - /url: /events/watercolor-and-wine
+            - generic [ref=e917]:
+              - time [ref=e920]:
+                - generic [ref=e921]: "02"
+                - generic [ref=e922]: JUL
+              - generic [ref=e923]:
+                - heading "Watercolor & wine" [level=3] [ref=e924]
+                - generic [ref=e925]:
+                  - time [ref=e931]: Thu, Jul 2
+                  - time [ref=e938]: 19:00-21:00
+                  - generic [ref=e939]: 7 spots left
+          - 'link "View event: Danish work culture breakfast" [ref=e946] [cursor=pointer]':
+            - /url: /events/danish-work-culture-breakfast
+            - generic [ref=e947]:
+              - time [ref=e950]:
+                - generic [ref=e951]: "04"
+                - generic [ref=e952]: JUL
+              - generic [ref=e953]:
+                - heading "Danish work culture breakfast" [level=3] [ref=e954]
+                - generic [ref=e955]:
+                  - time [ref=e961]: Sat, Jul 4
+                  - time [ref=e968]: 09:00-11:00
+                  - generic [ref=e969]: 12 spots left
+          - 'link "View event: Calm networking for newcomers" [ref=e976] [cursor=pointer]':
+            - /url: /events/calm-networking-for-newcomers
+            - generic [ref=e977]:
+              - time [ref=e980]:
+                - generic [ref=e981]: "07"
+                - generic [ref=e982]: JUL
+              - generic [ref=e983]:
+                - heading "Calm networking for newcomers" [level=3] [ref=e984]
+                - generic [ref=e985]:
+                  - time [ref=e991]: Tue, Jul 7
+                  - time [ref=e998]: 18:00-20:00
+                  - generic [ref=e999]: 12 spots left
+          - 'link "View event: Breathwork & tea" [ref=e1006] [cursor=pointer]':
+            - /url: /events/breathwork-and-tea
+            - generic [ref=e1007]:
+              - time [ref=e1010]:
+                - generic [ref=e1011]: "09"
+                - generic [ref=e1012]: JUL
+              - generic [ref=e1013]:
+                - heading "Breathwork & tea" [level=3] [ref=e1014]
+                - generic [ref=e1015]:
+                  - time [ref=e1021]: Thu, Jul 9
+                  - time [ref=e1028]: 18:30-20:00
+                  - generic [ref=e1029]: 10 spots left
+          - 'link "View event: Pitch practice evening" [ref=e1036] [cursor=pointer]':
+            - /url: /events/pitch-practice-evening
+            - generic [ref=e1037]:
+              - time [ref=e1040]:
+                - generic [ref=e1041]: "11"
+                - generic [ref=e1042]: JUL
+              - generic [ref=e1043]:
+                - heading "Pitch practice evening" [level=3] [ref=e1044]
+                - generic [ref=e1045]:
+                  - time [ref=e1051]: Sat, Jul 11
+                  - time [ref=e1058]: 17:30-20:00
+                  - generic [ref=e1059]: 9 spots left
+          - 'link "View event: Clay & calm hands" [ref=e1066] [cursor=pointer]':
+            - /url: /events/clay-and-calm-hands
+            - generic [ref=e1067]:
+              - time [ref=e1070]:
+                - generic [ref=e1071]: "14"
+                - generic [ref=e1072]: JUL
+              - generic [ref=e1073]:
+                - heading "Clay & calm hands" [level=3] [ref=e1074]
+                - generic [ref=e1075]:
+                  - time [ref=e1081]: Tue, Jul 14
+                  - time [ref=e1088]: 18:00-20:30
+                  - generic [ref=e1089]: Sold out
+          - 'link "View event: Danish for Ukrainians: Workplace words" [ref=e1097] [cursor=pointer]':
+            - /url: /events/danish-for-ukrainians-workplace
+            - generic [ref=e1098]:
+              - time [ref=e1101]:
+                - generic [ref=e1102]: "16"
+                - generic [ref=e1103]: JUL
+              - generic [ref=e1104]:
+                - 'heading "Danish for Ukrainians: Workplace words" [level=3] [ref=e1105]'
+                - generic [ref=e1106]:
+                  - time [ref=e1112]: Thu, Jul 16
+                  - time [ref=e1119]: 17:30-19:00
+                  - generic [ref=e1120]: 12 spots left
+          - 'link "View event: International supper salon" [ref=e1127] [cursor=pointer]':
+            - /url: /events/international-supper-salon
+            - generic [ref=e1128]:
+              - time [ref=e1131]:
+                - generic [ref=e1132]: "18"
+                - generic [ref=e1133]: JUL
+              - generic [ref=e1134]:
+                - heading "International supper salon" [level=3] [ref=e1135]
+                - generic [ref=e1136]:
+                  - time [ref=e1142]: Sat, Jul 18
+                  - time [ref=e1149]: 18:30-21:30
+                  - generic [ref=e1150]: 12 spots left
+          - 'link "View event: one more event test" [ref=e1157] [cursor=pointer]':
+            - /url: /events/one-more-event-test
+            - generic [ref=e1158]:
+              - time [ref=e1161]:
+                - generic [ref=e1162]: "19"
+                - generic [ref=e1163]: AUG
+              - generic [ref=e1164]:
+                - heading "one more event test" [level=3] [ref=e1165]
+                - generic [ref=e1166]:
+                  - time [ref=e1172]: Wed, Aug 19
+                  - time [ref=e1179]: 18:30-21:30
+          - 'link "View event: A new event at the ROROM" [ref=e1180] [cursor=pointer]':
+            - /url: /events/a-new-event-at-the-rorom
+            - generic [ref=e1181]:
+              - time [ref=e1184]:
+                - generic [ref=e1185]: "26"
+                - generic [ref=e1186]: AUG
+              - generic [ref=e1187]:
+                - heading "A new event at the ROROM" [level=3] [ref=e1188]
+                - generic [ref=e1189]:
+                  - time [ref=e1195]: Wed, Aug 26
+                  - time [ref=e1202]: 16:00-18:00
+      - generic [ref=e1205]:
+        - generic [ref=e1206]:
+          - generic [ref=e1207]: Meaningful Gatherings
+          - heading "Attend Events" [level=2] [ref=e1208]
+          - paragraph [ref=e1209]: Join meaningful gatherings at RORUM.
+          - paragraph [ref=e1210]: Discover workshops, conversations, and community experiences in the heart of Copenhagen.
+          - list [ref=e1211]:
+            - listitem [ref=e1212]:
+              - generic [ref=e1216]: Small-group experiences
+            - listitem [ref=e1217]:
+              - generic [ref=e1223]: Up to 12 participants
+            - listitem [ref=e1224]:
+              - generic [ref=e1228]: Central Copenhagen
+            - listitem [ref=e1229]:
+              - generic [ref=e1232]: Community-focused
+          - link "Attend Events" [ref=e1233] [cursor=pointer]:
+            - /url: /events
+        - img "Workshop participants gathered around a table at RORUM" [ref=e1237]
+      - generic [ref=e1240]:
+        - generic [ref=e1241]:
+          - generic [ref=e1242]: Your Gathering
+          - heading "Host at RORUM" [level=2] [ref=e1243]
+          - paragraph [ref=e1244]: Host your gathering at RORUM.
+          - paragraph [ref=e1245]: A warm and flexible Copenhagen venue for workshops, meetings, and community gatherings of up to 12 guests.
+          - list [ref=e1246]:
+            - listitem [ref=e1247]:
+              - generic [ref=e1253]: Up to 12 guests
+            - listitem [ref=e1254]:
+              - generic [ref=e1256]: Flexible room setup
+            - listitem [ref=e1257]:
+              - generic [ref=e1261]: Central Copenhagen
+            - listitem [ref=e1262]:
+              - generic [ref=e1268]: On-site support
+          - link "Host at RORUM" [ref=e1269] [cursor=pointer]:
+            - /url: /host-at-rorum
+        - img "A small meeting in a room at RORUM" [ref=e1273]
+      - generic [ref=e1275]:
+        - generic [ref=e1276]:
+          - generic [ref=e1277]: Services
+          - heading "Services for thoughtful gatherings" [level=2] [ref=e1278]
+        - generic [ref=e1279]:
+          - link "Explore catering" [ref=e1280] [cursor=pointer]:
+            - /url: /catering
+            - generic [ref=e1283]:
+              - heading "Catering" [level=3] [ref=e1284]
+              - paragraph [ref=e1285]: Fresh, simple and elegant catering for meetings, private gatherings, workshops and special moments.
+              - generic [ref=e1286]: Explore catering
+          - link "Explore decoration" [ref=e1290] [cursor=pointer]:
+            - /url: /event-decoration
+            - generic [ref=e1293]:
+              - heading "Event decoration" [level=3] [ref=e1294]
+              - paragraph [ref=e1295]: Flowers, table styling, candles and visual details designed to create a warm and memorable atmosphere.
+              - generic [ref=e1296]: Explore decoration
+      - generic [ref=e1302]:
+        - generic [ref=e1303]:
+          - generic [ref=e1304]: Community
+          - heading "More than a space" [level=2] [ref=e1305]
+        - paragraph [ref=e1306]: RORUM is a place for events, ideas and meaningful connections. Join our community, collaborate with us or become part of the team behind the experiences.
+        - generic [ref=e1307]:
+          - link "WECODA membership" [ref=e1308] [cursor=pointer]:
+            - /url: /community-membership
+          - link "Work with us" [ref=e1309] [cursor=pointer]:
+            - /url: /work-with-us
+          - link "Volunteer with us" [ref=e1310] [cursor=pointer]:
+            - /url: /volunteer
+      - generic [ref=e1313]:
+        - generic [ref=e1314]:
+          - generic [ref=e1315]: Not sure where to start?
+          - heading "Let's shape your idea together" [level=2] [ref=e1316]
+          - paragraph [ref=e1317]: Whether you are planning a workshop, private session, community gathering, catering request or event styling idea — tell us what you have in mind, and we'll help you find the right format.
+          - generic "Suggested paths" [ref=e1318]:
+            - link "Attend Events" [ref=e1319] [cursor=pointer]:
+              - /url: /events
+            - link "Host at RORUM" [ref=e1320] [cursor=pointer]:
+              - /url: /host-at-rorum
+            - link "Catering" [ref=e1321] [cursor=pointer]:
+              - /url: /catering
+            - link "Event decoration" [ref=e1322] [cursor=pointer]:
+              - /url: /event-decoration
+        - generic [ref=e1323]:
+          - link "Let's talk" [ref=e1324] [cursor=pointer]:
+            - /url: /contact
+          - paragraph [ref=e1327]:
+            - generic [ref=e1328]: Have questions?
+            - link "Read our FAQs" [ref=e1329] [cursor=pointer]:
+              - /url: /faq
+    - contentinfo [ref=e1333]:
+      - generic [ref=e1334]:
+        - generic [ref=e1335]:
+          - generic [ref=e1336]:
+            - generic [ref=e1337]: Contact details
+            - generic [ref=e1338]:
+              - paragraph [ref=e1339]: Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark
+              - link "View on map" [ref=e1344] [cursor=pointer]:
+                - /url: /contact#contact-map
+              - paragraph [ref=e1345]: +45 91 87 71 52
+              - link "rorum2025@gmail.com" [ref=e1349] [cursor=pointer]:
+                - /url: mailto:rorum2025@gmail.com
+            - generic "Social links" [ref=e1354]:
+              - link "Instagram" [ref=e1355] [cursor=pointer]:
+                - /url: https://www.instagram.com/rorum_dk
+              - link "Facebook" [ref=e1360] [cursor=pointer]:
+                - /url: https://www.facebook.com/rorum2025
+              - link "linkedin" [ref=e1363] [cursor=pointer]:
+                - /url: https://linkedin.com
+          - generic [ref=e1368]:
+            - navigation "Visit & host" [ref=e1369]:
+              - link "Attend Events" [ref=e1371] [cursor=pointer]:
+                - /url: /events
+              - link "Host at RORUM" [ref=e1372] [cursor=pointer]:
+                - /url: /host-at-rorum
+            - navigation "Services" [ref=e1373]:
+              - link "Catering" [ref=e1375] [cursor=pointer]:
+                - /url: /catering
+              - link "Decoration" [ref=e1376] [cursor=pointer]:
+                - /url: /event-decoration
+            - navigation "Community" [ref=e1377]:
+              - link "WECODA membership" [ref=e1379] [cursor=pointer]:
+                - /url: /community-membership
+              - link "Volunteer with us" [ref=e1380] [cursor=pointer]:
+                - /url: /volunteer
+              - link "Work with us" [ref=e1381] [cursor=pointer]:
+                - /url: /work-with-us
+            - navigation "Company" [ref=e1382]:
+              - link "About" [ref=e1384] [cursor=pointer]:
+                - /url: /about
+              - link "Contact" [ref=e1385] [cursor=pointer]:
+                - /url: /contact
+              - link "FAQ" [ref=e1386] [cursor=pointer]:
+                - /url: /faq
+        - generic [ref=e1387]:
+          - generic [ref=e1388]: © 2026 RORUM. All rights reserved.
+          - navigation "Legal links" [ref=e1389]:
+            - link "Terms and conditions" [ref=e1390] [cursor=pointer]:
+              - /url: /terms
+            - link "Privacy policy" [ref=e1391] [cursor=pointer]:
+              - /url: /privacy-policy
+            - link "Cookie policy" [ref=e1392] [cursor=pointer]:
+              - /url: /cookie-policy
+          - generic [ref=e1393]:
+            - text: Developed by
+            - link "irynadev" [ref=e1394] [cursor=pointer]:
+              - /url: https://irynadev.netlify.app
+  - button "Open Next.js Dev Tools" [ref=e1400] [cursor=pointer]:
+    - generic [ref=e1403]:
+      - text: Compiling
+      - generic [ref=e1404]:
+        - generic [ref=e1405]: .
+        - generic [ref=e1406]: .
+        - generic [ref=e1407]: .

@@ -60,6 +60,26 @@ const PLATFORM_LABELS: Record<SocialIconName, string> = {
   whatsapp: "WhatsApp",
 };
 
+// The shared `socialLinks` singleton (Header / Footer / Contact) is
+// deliberately limited to the platforms a manager can actually pick in
+// Studio — see sanity/schemaTypes/objects/socialLink.ts's
+// SELECTABLE_PLATFORMS and MIGRATION_REPORT.md Part 22 (RORUM has no
+// LinkedIn profile that should appear here). A value stored outside this
+// set is legacy/unwanted data — currently a stray "linkedin" entry sits on
+// the *published* socialLinks document (its intended removal via
+// drafts.socialLinks was lost). Filtered out here so it never renders on
+// the live site — and never renders a broken icon/URL — regardless of when
+// the document itself is cleaned up in Studio. Keep this list in sync with
+// socialLink.ts by hand: that schema file pulls in Studio-only component
+// modules and must not be imported into server-rendered site code.
+// Event Share's own LinkedIn support is a separate, unaffected code path
+// (components/EventShare.tsx / event.ts SHARE_ACTION_TYPES).
+const RENDERED_SOCIAL_PLATFORMS: readonly SocialIconName[] = ["instagram", "facebook"];
+
+function isRenderedSocialPlatform(value: string | null | undefined): value is SocialIconName {
+  return Boolean(value) && (RENDERED_SOCIAL_PLATFORMS as readonly string[]).includes(value as string);
+}
+
 /**
  * `doc === null`/`undefined` means Sanity is unavailable (or the singleton
  * genuinely doesn't exist yet) — falls back to the hardcoded starter list.
@@ -67,22 +87,30 @@ const PLATFORM_LABELS: Record<SocialIconName, string> = {
  * removed every social link — returns `[]`, never resurrects the hardcoded
  * list (the bug this replaces: `doc?.links?.length ? ... : fallback`
  * treated "genuinely empty" the same as "missing").
+ *
+ * Links whose platform isn't one a manager can currently pick
+ * (`RENDERED_SOCIAL_PLATFORMS` — see its comment above) are dropped: an
+ * out-of-list stored value is legacy/unwanted data, not a profile to
+ * render. A doc that contains ONLY such links still returns `[]` (it is
+ * "present but has nothing renderable"), never the hardcoded fallback.
  */
 export function resolveSocialLinks(
   doc: SocialLinksQueryResult | null | undefined,
   locale: Locale,
 ): ResolvedSocialLink[] {
-  if (doc == null) return fallbackSocialLinks;
-  return (doc.links ?? []).map((l) => {
-    const icon = (l?.icon as SocialIconName | undefined) ?? "instagram";
-    return {
-      id: l?._key ?? l?.href ?? icon,
-      href: l?.href ?? "",
-      label: pickLocalized(l?.label, locale) ?? PLATFORM_LABELS[icon],
-      icon,
-      brandColor: PLATFORM_BRAND_COLORS[icon] ?? "#000000",
-    };
-  });
+  if (doc == null) return fallbackSocialLinks.filter((l) => isRenderedSocialPlatform(l.icon));
+  return (doc.links ?? [])
+    .filter((l) => isRenderedSocialPlatform(l?.icon))
+    .map((l) => {
+      const icon = l!.icon as SocialIconName;
+      return {
+        id: l?._key ?? l?.href ?? icon,
+        href: l?.href ?? "",
+        label: pickLocalized(l?.label, locale) ?? PLATFORM_LABELS[icon],
+        icon,
+        brandColor: PLATFORM_BRAND_COLORS[icon] ?? "#000000",
+      };
+    });
 }
 
 export type ContactDetailKey = "address" | "phone" | "email";

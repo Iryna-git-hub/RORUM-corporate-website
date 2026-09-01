@@ -1,0 +1,168 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - banner [ref=f2e3]:
+      - generic [ref=f2e5]:
+        - link [ref=f2e6] [cursor=pointer]:
+          - /url: /da
+          - img "RORUM Creative & Event Space" [ref=f2e7]
+        - navigation "Main navigation" [ref=f2e8]:
+          - link "Deltag i events" [ref=f2e9] [cursor=pointer]:
+            - /url: /da/events
+          - link "Vær vært hos RORUM" [ref=f2e10] [cursor=pointer]:
+            - /url: /da/host-at-rorum
+          - button "Services" [ref=f2e12] [cursor=pointer]
+          - button "Fællesskab" [ref=f2e16] [cursor=pointer]
+          - link "Om os" [ref=f2e19] [cursor=pointer]:
+            - /url: /da/about
+          - link "Kontakt" [ref=f2e20] [cursor=pointer]:
+            - /url: /da/contact
+        - generic [ref=f2e21]:
+          - 'button "Sprog: DA" [ref=f2e23] [cursor=pointer]':
+            - generic [ref=f2e24]: DA
+          - link "Lad os tale" [ref=f2e28] [cursor=pointer]:
+            - /url: /da/contact
+      - complementary "Mobile menu" [ref=f2e31]:
+        - generic [ref=f2e32]:
+          - link "Lad os tale" [ref=f2e33] [cursor=pointer]:
+            - /url: /da/contact
+          - group "Sprog" [ref=f2e34]:
+            - button "EN" [ref=f2e35] [cursor=pointer]
+            - generic [aria-hidden] [ref=f2e36]: "|"
+            - button "DA" [pressed] [ref=f2e37] [cursor=pointer]
+            - generic [aria-hidden] [ref=f2e38]: "|"
+            - button "UK" [ref=f2e39] [cursor=pointer]
+          - button "Luk menu" [ref=f2e40] [cursor=pointer]
+        - navigation [ref=f2e44]:
+          - link "Hjem" [ref=f2e46] [cursor=pointer]:
+            - /url: /da
+          - link "Deltag i events" [ref=f2e49] [cursor=pointer]:
+            - /url: /da/events
+          - link "Vær vært hos RORUM" [ref=f2e52] [cursor=pointer]:
+            - /url: /da/host-at-rorum
+          - button "Services" [ref=f2e55] [cursor=pointer]
+          - button "Fællesskab" [ref=f2e60] [cursor=pointer]
+          - link "Om os" [ref=f2e65] [cursor=pointer]:
+            - /url: /da/about
+          - link "Kontakt" [ref=f2e68] [cursor=pointer]:
+            - /url: /da/contact
+        - generic [ref=f2e70]:
+          - link "Instagram" [ref=f2e71] [cursor=pointer]:
+            - /url: https://www.instagram.com/rorum_dk
+          - link "Facebook" [ref=f2e76] [cursor=pointer]:
+            - /url: https://www.facebook.com/rorum2025
+          - link "LinkedIn" [ref=f2e79] [cursor=pointer]:
+            - /url: https://linkedin.com
+    - main [ref=f2e84]:
+      - generic [ref=f2e87]:
+        - generic [ref=f2e89]:
+          - generic [ref=f2e90]: Kontakt
+          - heading "Contact us" [level=1] [ref=f2e91]
+          - generic [ref=f2e92]:
+            - heading "Vi er her for dig" [level=2] [ref=f2e93]
+            - paragraph [ref=f2e94]: For mere information om events, at være vært for en sammenkomst hos RORUM, samarbejder, catering, eventdekoration eller praktiske detaljer, er du velkommen til at kontakte os.
+          - generic [ref=f2e95]:
+            - paragraph [ref=f2e96]:
+              - generic [ref=f2e101]: Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark
+            - paragraph [ref=f2e102]:
+              - link "+45 91 87 71 52" [ref=f2e106] [cursor=pointer]:
+                - /url: tel:+4591877152
+            - paragraph [ref=f2e107]:
+              - link "rorum2025@gmail.com" [ref=f2e112] [cursor=pointer]:
+                - /url: mailto:rorum2025@gmail.com
+          - heading "Følg os" [level=2] [ref=f2e114]
+          - generic "Social links" [ref=f2e115]:
+            - link "Instagram" [ref=f2e116] [cursor=pointer]:
+              - /url: https://www.instagram.com/rorum_dk
+            - link "Facebook" [ref=f2e121] [cursor=pointer]:
+              - /url: https://www.facebook.com/rorum2025
+            - link "LinkedIn" [ref=f2e124] [cursor=pointer]:
+              - /url: https://linkedin.com
+        - generic "RORUM location map" [ref=f2e129]:
+          - generic [ref=f2e131]:
+            - heading "Vi vil gerne høre fra dig" [level=2] [ref=f2e133]
+            - generic [ref=f2e134]:
+              - text: Fulde navn*
+              - textbox "Fulde navn" [ref=f2e135]
+            - generic [ref=f2e136]:
+              - text: Telefonnummer*
+              - textbox "Telefonnummer" [ref=f2e137]:
+                - /placeholder: ""
+            - generic [ref=f2e138]:
+              - text: E-mail*
+              - textbox "E-mail" [ref=f2e139]:
+                - /placeholder: ""
+            - generic [ref=f2e140]:
+              - text: Besked*
+              - textbox "Besked" [ref=f2e141]:
+                - /placeholder: ""
+            - generic [ref=f2e143]:
+              - checkbox "Jeg har læst og accepterer" [ref=f2e144] [cursor=pointer]
+              - generic [ref=f2e145]:
+                - text: Jeg har læst og accepterer
+                - button "Privatlivspolitik" [ref=f2e146] [cursor=pointer]
+                - text: .
+            - button "Send besked" [ref=f2e147] [cursor=pointer]
+          - paragraph [ref=f2e148]:
+            - generic [ref=f2e149]: Spørgsmål?
+            - link "Læs vores FAQ" [ref=f2e150] [cursor=pointer]:
+              - /url: /da/faq
+      - region "RORUM location map" [ref=f2e154]:
+        - iframe [ref=f2e156]
+    - contentinfo [ref=f2e157]:
+      - generic [ref=f2e158]:
+        - generic [ref=f2e159]:
+          - generic [ref=f2e160]:
+            - generic [ref=f2e161]: Kontaktoplysninger
+            - generic [ref=f2e162]:
+              - paragraph [ref=f2e163]: Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark
+              - link "Se på kortet" [ref=f2e168] [cursor=pointer]:
+                - /url: /da/contact#contact-map
+              - paragraph [ref=f2e169]: +45 91 87 71 52
+              - link "rorum2025@gmail.com" [ref=f2e173] [cursor=pointer]:
+                - /url: mailto:rorum2025@gmail.com
+            - generic "Social links" [ref=f2e178]:
+              - link "Instagram" [ref=f2e179] [cursor=pointer]:
+                - /url: https://www.instagram.com/rorum_dk
+              - link "Facebook" [ref=f2e184] [cursor=pointer]:
+                - /url: https://www.facebook.com/rorum2025
+              - link "LinkedIn" [ref=f2e187] [cursor=pointer]:
+                - /url: https://linkedin.com
+          - generic [ref=f2e192]:
+            - navigation "Besøg & vær vært" [ref=f2e193]:
+              - link "Deltag i events" [ref=f2e195] [cursor=pointer]:
+                - /url: /da/events
+              - link "Vær vært hos RORUM" [ref=f2e196] [cursor=pointer]:
+                - /url: /da/host-at-rorum
+            - navigation "Services" [ref=f2e197]:
+              - link "Catering" [ref=f2e199] [cursor=pointer]:
+                - /url: /da/catering
+              - link "Dekoration" [ref=f2e200] [cursor=pointer]:
+                - /url: /da/event-decoration
+            - navigation "Fællesskab" [ref=f2e201]:
+              - link "WECODA-medlemskab" [ref=f2e203] [cursor=pointer]:
+                - /url: /da/community-membership
+              - link "Bliv frivillig hos os" [ref=f2e204] [cursor=pointer]:
+                - /url: /da/volunteer
+              - link "Arbejd med os" [ref=f2e205] [cursor=pointer]:
+                - /url: /da/work-with-us
+            - navigation "Virksomhed" [ref=f2e206]:
+              - link "Om os" [ref=f2e208] [cursor=pointer]:
+                - /url: /da/about
+              - link "Kontakt" [ref=f2e209] [cursor=pointer]:
+                - /url: /da/contact
+              - link "FAQ" [ref=f2e210] [cursor=pointer]:
+                - /url: /da/faq
+        - generic [ref=f2e211]:
+          - generic [ref=f2e212]: © 2026 RORUM. Alle rettigheder forbeholdes.
+          - navigation "Legal links" [ref=f2e213]:
+            - link "Vilkår og betingelser" [ref=f2e214] [cursor=pointer]:
+              - /url: /da/terms
+            - link "Privatlivspolitik" [ref=f2e215] [cursor=pointer]:
+              - /url: /da/privacy-policy
+            - link "Cookiepolitik" [ref=f2e216] [cursor=pointer]:
+              - /url: /da/cookie-policy
+          - generic [ref=f2e217]:
+            - text: Udviklet af
+            - link "irynadev" [ref=f2e218] [cursor=pointer]:
+              - /url: https://irynadev.netlify.app
+  - alert [ref=f2e219]

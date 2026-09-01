@@ -1,0 +1,419 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - banner [ref=f2e3]:
+      - generic [ref=f2e5]:
+        - link [ref=f2e6] [cursor=pointer]:
+          - /url: /
+          - img "RORUM Creative & Event Space" [ref=f2e7]
+        - navigation "Main navigation" [ref=f2e8]:
+          - link "Attend Events" [ref=f2e9] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=f2e10] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=f2e12] [cursor=pointer]
+          - button "Community" [ref=f2e16] [cursor=pointer]
+          - link "About" [ref=f2e19] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=f2e20] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=f2e21]:
+          - 'button "Language: EN" [ref=f2e23] [cursor=pointer]':
+            - generic [ref=f2e24]: EN
+          - link "Let's Talk" [ref=f2e28] [cursor=pointer]:
+            - /url: /contact
+      - complementary "Mobile menu" [ref=f2e31]:
+        - generic [ref=f2e32]:
+          - link "Let's Talk" [ref=f2e33] [cursor=pointer]:
+            - /url: /contact
+          - group "Language" [ref=f2e34]:
+            - button "EN" [pressed] [ref=f2e35] [cursor=pointer]
+            - generic [aria-hidden] [ref=f2e36]: "|"
+            - button "DA" [ref=f2e37] [cursor=pointer]
+            - generic [aria-hidden] [ref=f2e38]: "|"
+            - button "UK" [ref=f2e39] [cursor=pointer]
+          - button "Close menu" [ref=f2e40] [cursor=pointer]
+        - navigation [ref=f2e44]:
+          - link "Home" [ref=f2e46] [cursor=pointer]:
+            - /url: /
+          - link "Attend Events" [ref=f2e49] [cursor=pointer]:
+            - /url: /events
+          - link "Host at RORUM" [ref=f2e52] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - button "Services" [ref=f2e55] [cursor=pointer]
+          - button "Community" [ref=f2e60] [cursor=pointer]
+          - link "About" [ref=f2e65] [cursor=pointer]:
+            - /url: /about
+          - link "Contact" [ref=f2e68] [cursor=pointer]:
+            - /url: /contact
+        - generic [ref=f2e70]:
+          - link "Instagram" [ref=f2e71] [cursor=pointer]:
+            - /url: https://www.instagram.com/rorum_dk
+          - link "Facebook" [ref=f2e76] [cursor=pointer]:
+            - /url: https://www.facebook.com/rorum2025
+          - link "linkedin" [ref=f2e79] [cursor=pointer]:
+            - /url: https://linkedin.com
+    - main [ref=f2e84]:
+      - generic [ref=f2e86]:
+        - heading "Upcoming events at RORUM" [level=1] [ref=f2e88]
+        - generic "Filter events" [ref=f2e89]:
+          - group "Event filters" [ref=f2e90]:
+            - button "Date" [ref=f2e92] [cursor=pointer]
+            - button "Language" [ref=f2e97] [cursor=pointer]
+            - button "Price" [ref=f2e102] [cursor=pointer]
+            - button "Availability" [ref=f2e107] [cursor=pointer]
+        - generic [ref=f2e111]:
+          - 'link "View event: Copenhagen makers dinner" [ref=f2e112] [cursor=pointer]':
+            - /url: /events/copenhagen-makers-dinner
+            - generic [ref=f2e113]:
+              - time [ref=f2e116]:
+                - generic [ref=f2e117]: "02"
+                - generic [ref=f2e118]: MAY
+              - generic [ref=f2e119]:
+                - heading "Copenhagen makers dinner" [level=3] [ref=f2e120]
+                - generic [ref=f2e121]:
+                  - time [ref=f2e126]: May 2, 2026
+                  - time [ref=f2e132]: 18:30–21:30
+                - paragraph [ref=f2e133]:
+                  - generic [ref=f2e138]: 10 spots left
+          - 'link "View event: Botanical table styling workshop" [ref=f2e139] [cursor=pointer]':
+            - /url: /events/botanical-table-styling-workshop
+            - generic [ref=f2e140]:
+              - time [ref=f2e143]:
+                - generic [ref=f2e144]: "03"
+                - generic [ref=f2e145]: MAY
+              - generic [ref=f2e146]:
+                - heading "Botanical table styling workshop" [level=3] [ref=f2e147]
+                - generic [ref=f2e148]:
+                  - time [ref=f2e153]: May 3, 2026
+                  - time [ref=f2e159]: 17:00–19:30
+                - paragraph [ref=f2e160]:
+                  - generic [ref=f2e165]: 8 spots left
+          - 'link "View event: Freelance morning salon" [ref=f2e166] [cursor=pointer]':
+            - /url: /events/freelance-morning-salon
+            - generic [ref=f2e167]:
+              - time [ref=f2e170]:
+                - generic [ref=f2e171]: "04"
+                - generic [ref=f2e172]: MAY
+              - generic [ref=f2e173]:
+                - heading "Freelance morning salon" [level=3] [ref=f2e174]
+                - generic [ref=f2e175]:
+                  - time [ref=f2e180]: May 4, 2026
+                  - time [ref=f2e186]: 09:00–11:00
+                - paragraph [ref=f2e187]:
+                  - generic [ref=f2e193]: Sold Out
+          - 'link "View event: Soft launch breakfast" [ref=f2e194] [cursor=pointer]':
+            - /url: /events/soft-launch-breakfast
+            - generic [ref=f2e195]:
+              - time [ref=f2e198]:
+                - generic [ref=f2e199]: "05"
+                - generic [ref=f2e200]: MAY
+              - generic [ref=f2e201]:
+                - heading "Soft launch breakfast" [level=3] [ref=f2e202]
+                - generic [ref=f2e203]:
+                  - time [ref=f2e208]: May 5, 2026
+                  - time [ref=f2e214]: 09:00–11:00
+                - paragraph [ref=f2e215]:
+                  - generic [ref=f2e220]: 6 spots left
+          - 'link "View event: Candlelit listening room" [ref=f2e221] [cursor=pointer]':
+            - /url: /events/candlelit-listening-room
+            - generic [ref=f2e222]:
+              - time [ref=f2e225]:
+                - generic [ref=f2e226]: "07"
+                - generic [ref=f2e227]: MAY
+              - generic [ref=f2e228]:
+                - heading "Candlelit listening room" [level=3] [ref=f2e229]
+                - generic [ref=f2e230]:
+                  - time [ref=f2e235]: May 7, 2026
+                  - time [ref=f2e241]: 19:00–21:00
+                - paragraph [ref=f2e242]:
+                  - generic [ref=f2e247]: 4 spots left
+          - 'link "View event: Summer table lab" [ref=f2e248] [cursor=pointer]':
+            - /url: /events/summer-table-lab
+            - generic [ref=f2e249]:
+              - time [ref=f2e252]:
+                - generic [ref=f2e253]: "12"
+                - generic [ref=f2e254]: MAY
+              - generic [ref=f2e255]:
+                - heading "Summer table lab" [level=3] [ref=f2e256]
+                - generic [ref=f2e257]:
+                  - time [ref=f2e262]: May 12, 2026
+                  - time [ref=f2e268]: 17:30–20:00
+                - paragraph [ref=f2e269]:
+                  - generic [ref=f2e274]: 9 spots left
+          - 'link "View event: Creative hosts circle" [ref=f2e275] [cursor=pointer]':
+            - /url: /events/creative-hosts-circle
+            - generic [ref=f2e276]:
+              - time [ref=f2e279]:
+                - generic [ref=f2e280]: "15"
+                - generic [ref=f2e281]: MAY
+              - generic [ref=f2e282]:
+                - heading "Creative hosts circle" [level=3] [ref=f2e283]
+                - generic [ref=f2e284]:
+                  - time [ref=f2e289]: May 15, 2026
+                  - time [ref=f2e295]: 18:00–20:00
+                - paragraph [ref=f2e296]:
+                  - generic [ref=f2e301]: 12 spots left
+          - 'link "View event: Nordic brunch club" [ref=f2e302] [cursor=pointer]':
+            - /url: /events/nordic-brunch-club
+            - generic [ref=f2e303]:
+              - time [ref=f2e306]:
+                - generic [ref=f2e307]: "17"
+                - generic [ref=f2e308]: MAY
+              - generic [ref=f2e309]:
+                - heading "Nordic brunch club" [level=3] [ref=f2e310]
+                - generic [ref=f2e311]:
+                  - time [ref=f2e316]: May 17, 2026
+                  - time [ref=f2e322]: 10:00–12:30
+                - paragraph [ref=f2e323]:
+                  - generic [ref=f2e328]: 5 spots left
+          - 'link "View event: Tiny talks evening" [ref=f2e329] [cursor=pointer]':
+            - /url: /events/tiny-talks-evening
+            - generic [ref=f2e330]:
+              - time [ref=f2e333]:
+                - generic [ref=f2e334]: "21"
+                - generic [ref=f2e335]: MAY
+              - generic [ref=f2e336]:
+                - heading "Tiny talks evening" [level=3] [ref=f2e337]
+                - generic [ref=f2e338]:
+                  - time [ref=f2e343]: May 21, 2026
+                  - time [ref=f2e349]: 18:30–21:00
+                - paragraph [ref=f2e350]:
+                  - generic [ref=f2e355]: 7 spots left
+          - 'link "View event: Floral mood workshop" [ref=f2e356] [cursor=pointer]':
+            - /url: /events/floral-mood-workshop
+            - generic [ref=f2e357]:
+              - time [ref=f2e360]:
+                - generic [ref=f2e361]: "24"
+                - generic [ref=f2e362]: MAY
+              - generic [ref=f2e363]:
+                - heading "Floral mood workshop" [level=3] [ref=f2e364]
+                - generic [ref=f2e365]:
+                  - time [ref=f2e370]: May 24, 2026
+                  - time [ref=f2e376]: 17:00–19:30
+                - paragraph [ref=f2e377]:
+                  - generic [ref=f2e382]: 3 spots left
+          - 'link "View event: Independent work morning" [ref=f2e383] [cursor=pointer]':
+            - /url: /events/independent-work-morning
+            - generic [ref=f2e384]:
+              - time [ref=f2e387]:
+                - generic [ref=f2e388]: "28"
+                - generic [ref=f2e389]: MAY
+              - generic [ref=f2e390]:
+                - heading "Independent work morning" [level=3] [ref=f2e391]
+                - generic [ref=f2e392]:
+                  - time [ref=f2e397]: May 28, 2026
+                  - time [ref=f2e403]: 09:00–11:30
+                - paragraph [ref=f2e404]:
+                  - generic [ref=f2e409]: 11 spots left
+          - 'link "View event: Seasonal supper preview" [ref=f2e410] [cursor=pointer]':
+            - /url: /events/seasonal-supper-preview
+            - generic [ref=f2e411]:
+              - time [ref=f2e414]:
+                - generic [ref=f2e415]: "31"
+                - generic [ref=f2e416]: MAY
+              - generic [ref=f2e417]:
+                - heading "Seasonal supper preview" [level=3] [ref=f2e418]
+                - generic [ref=f2e419]:
+                  - time [ref=f2e424]: May 31, 2026
+                  - time [ref=f2e430]: 18:30–21:30
+                - paragraph [ref=f2e431]:
+                  - generic [ref=f2e436]: 8 spots left
+          - 'link "View event: Community reset night" [ref=f2e437] [cursor=pointer]':
+            - /url: /events/community-reset-night
+            - generic [ref=f2e438]:
+              - time [ref=f2e441]:
+                - generic [ref=f2e442]: "04"
+                - generic [ref=f2e443]: JUN
+              - generic [ref=f2e444]:
+                - heading "Community reset night" [level=3] [ref=f2e445]
+                - generic [ref=f2e446]:
+                  - time [ref=f2e451]: Jun 4, 2026
+                  - time [ref=f2e457]: 18:00–20:30
+                - paragraph [ref=f2e458]:
+                  - generic [ref=f2e463]: 12 spots left
+          - 'link "View event: Business breakfast Copenhagen" [ref=f2e464] [cursor=pointer]':
+            - /url: /events/business-breakfast-copenhagen
+            - generic [ref=f2e465]:
+              - time [ref=f2e468]:
+                - generic [ref=f2e469]: "08"
+                - generic [ref=f2e470]: JUN
+              - generic [ref=f2e471]:
+                - heading "Business breakfast Copenhagen" [level=3] [ref=f2e472]
+                - generic [ref=f2e473]:
+                  - time [ref=f2e478]: Jun 8, 2026
+                  - time [ref=f2e484]: 08:30–10:30
+                - paragraph [ref=f2e485]:
+                  - generic [ref=f2e490]: 12 spots left
+          - 'link "View event: Networking for international founders" [ref=f2e491] [cursor=pointer]':
+            - /url: /events/networking-for-international-founders
+            - generic [ref=f2e492]:
+              - time [ref=f2e495]:
+                - generic [ref=f2e496]: "10"
+                - generic [ref=f2e497]: JUN
+              - generic [ref=f2e498]:
+                - heading "Networking for international founders" [level=3] [ref=f2e499]
+                - generic [ref=f2e500]:
+                  - time [ref=f2e505]: Jun 10, 2026
+                  - time [ref=f2e511]: 18:00–20:30
+                - paragraph [ref=f2e512]:
+                  - generic [ref=f2e517]: 12 spots left
+          - 'link "View event: Danish for Ukrainians: Everyday basics" [ref=f2e518] [cursor=pointer]':
+            - /url: /events/danish-for-ukrainians-intro
+            - generic [ref=f2e519]:
+              - time [ref=f2e522]:
+                - generic [ref=f2e523]: "12"
+                - generic [ref=f2e524]: JUN
+              - generic [ref=f2e525]:
+                - 'heading "Danish for Ukrainians: Everyday basics" [level=3] [ref=f2e526]'
+                - generic [ref=f2e527]:
+                  - time [ref=f2e532]: Jun 12, 2026
+                  - time [ref=f2e538]: 17:30–19:00
+                - paragraph [ref=f2e539]:
+                  - generic [ref=f2e544]: 12 spots left
+          - 'link "View event: Yoga after work reset" [ref=f2e545] [cursor=pointer]':
+            - /url: /events/yoga-after-work-reset
+            - generic [ref=f2e546]:
+              - time [ref=f2e549]:
+                - generic [ref=f2e550]: "14"
+                - generic [ref=f2e551]: JUN
+              - generic [ref=f2e552]:
+                - heading "Yoga after work reset" [level=3] [ref=f2e553]
+                - generic [ref=f2e554]:
+                  - time [ref=f2e559]: Jun 14, 2026
+                  - time [ref=f2e565]: 18:00–19:15
+                - paragraph [ref=f2e566]:
+                  - generic [ref=f2e571]: 10 spots left
+          - 'link "View event: Present yourself with confidence" [ref=f2e572] [cursor=pointer]':
+            - /url: /events/present-yourself-with-confidence
+            - generic [ref=f2e573]:
+              - time [ref=f2e576]:
+                - generic [ref=f2e577]: "16"
+                - generic [ref=f2e578]: JUN
+              - generic [ref=f2e579]:
+                - heading "Present yourself with confidence" [level=3] [ref=f2e580]
+                - generic [ref=f2e581]:
+                  - time [ref=f2e586]: Jun 16, 2026
+                  - time [ref=f2e592]: 18:00–20:00
+                - paragraph [ref=f2e593]:
+                  - generic [ref=f2e598]: 12 spots left
+          - 'link "View event: Slow art evening" [ref=f2e599] [cursor=pointer]':
+            - /url: /events/slow-art-evening
+            - generic [ref=f2e600]:
+              - time [ref=f2e603]:
+                - generic [ref=f2e604]: "18"
+                - generic [ref=f2e605]: JUN
+              - generic [ref=f2e606]:
+                - heading "Slow art evening" [level=3] [ref=f2e607]
+                - generic [ref=f2e608]:
+                  - time [ref=f2e613]: Jun 18, 2026
+                  - time [ref=f2e619]: 18:30–20:30
+                - paragraph [ref=f2e620]:
+                  - generic [ref=f2e625]: 9 spots left
+          - 'link "View event: Danish conversation cafe" [ref=f2e626] [cursor=pointer]':
+            - /url: /events/danish-conversation-cafe
+            - generic [ref=f2e627]:
+              - time [ref=f2e630]:
+                - generic [ref=f2e631]: "20"
+                - generic [ref=f2e632]: JUN
+              - generic [ref=f2e633]:
+                - heading "Danish conversation cafe" [level=3] [ref=f2e634]
+                - generic [ref=f2e635]:
+                  - time [ref=f2e640]: Jun 20, 2026
+                  - time [ref=f2e646]: 10:00–12:00
+                - paragraph [ref=f2e647]:
+                  - generic [ref=f2e652]: 12 spots left
+          - 'link "View event: Creative business roundtable" [ref=f2e653] [cursor=pointer]':
+            - /url: /events/creative-business-roundtable
+            - generic [ref=f2e654]:
+              - time [ref=f2e657]:
+                - generic [ref=f2e658]: "23"
+                - generic [ref=f2e659]: JUN
+              - generic [ref=f2e660]:
+                - heading "Creative business roundtable" [level=3] [ref=f2e661]
+                - generic [ref=f2e662]:
+                  - time [ref=f2e667]: Jun 23, 2026
+                  - time [ref=f2e673]: 17:30–20:00
+                - paragraph [ref=f2e674]:
+                  - generic [ref=f2e679]: 11 spots left
+        - navigation "Events pages" [ref=f2e680]:
+          - link "Previous page" [disabled]:
+            - /url: /events
+            - generic [aria-hidden]: ←
+          - generic [ref=f2e681]:
+            - link "1" [ref=f2e682] [cursor=pointer]:
+              - /url: /events
+            - link "2" [ref=f2e683] [cursor=pointer]:
+              - /url: /events?page=2
+          - link "Next page" [ref=f2e684] [cursor=pointer]:
+            - /url: /events?page=2
+            - generic [aria-hidden] [ref=f2e685]: →
+      - generic [ref=f2e688]:
+        - generic [ref=f2e689]:
+          - generic [ref=f2e690]: Host at RORUM
+          - heading "Would you like to host at RORUM?" [level=2] [ref=f2e691]
+          - paragraph [ref=f2e692]: Explore our space for workshops, meetings, and community gatherings of up to 12 guests.
+        - generic [ref=f2e693]:
+          - link "Host at RORUM" [ref=f2e694] [cursor=pointer]:
+            - /url: /host-at-rorum
+          - paragraph [ref=f2e695]:
+            - generic [ref=f2e696]: Questions?
+            - link "Read our FAQs" [ref=f2e697] [cursor=pointer]:
+              - /url: /faq
+    - contentinfo [ref=f2e701]:
+      - generic [ref=f2e702]:
+        - generic [ref=f2e703]:
+          - generic [ref=f2e704]:
+            - generic [ref=f2e705]: Contact details
+            - generic [ref=f2e706]:
+              - paragraph [ref=f2e707]: Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark
+              - link "View on map" [ref=f2e712] [cursor=pointer]:
+                - /url: /contact#contact-map
+              - paragraph [ref=f2e713]: +45 91 87 71 52
+              - link "rorum2025@gmail.com" [ref=f2e717] [cursor=pointer]:
+                - /url: mailto:rorum2025@gmail.com
+            - generic "Social links" [ref=f2e722]:
+              - link "Instagram" [ref=f2e723] [cursor=pointer]:
+                - /url: https://www.instagram.com/rorum_dk
+              - link "Facebook" [ref=f2e728] [cursor=pointer]:
+                - /url: https://www.facebook.com/rorum2025
+              - link "linkedin" [ref=f2e731] [cursor=pointer]:
+                - /url: https://linkedin.com
+          - generic [ref=f2e736]:
+            - navigation "Visit & host" [ref=f2e737]:
+              - link "Attend Events" [ref=f2e739] [cursor=pointer]:
+                - /url: /events
+              - link "Host at RORUM" [ref=f2e740] [cursor=pointer]:
+                - /url: /host-at-rorum
+            - navigation "Services" [ref=f2e741]:
+              - link "Catering" [ref=f2e743] [cursor=pointer]:
+                - /url: /catering
+              - link "Decoration" [ref=f2e744] [cursor=pointer]:
+                - /url: /event-decoration
+            - navigation "Community" [ref=f2e745]:
+              - link "WECODA membership" [ref=f2e747] [cursor=pointer]:
+                - /url: /community-membership
+              - link "Volunteer with us" [ref=f2e748] [cursor=pointer]:
+                - /url: /volunteer
+              - link "Work with us" [ref=f2e749] [cursor=pointer]:
+                - /url: /work-with-us
+            - navigation "Company" [ref=f2e750]:
+              - link "About" [ref=f2e752] [cursor=pointer]:
+                - /url: /about
+              - link "Contact" [ref=f2e753] [cursor=pointer]:
+                - /url: /contact
+              - link "FAQ" [ref=f2e754] [cursor=pointer]:
+                - /url: /faq
+        - generic [ref=f2e755]:
+          - generic [ref=f2e756]: © 2026 RORUM. All rights reserved.
+          - navigation "Legal links" [ref=f2e757]:
+            - link "Terms and conditions" [ref=f2e758] [cursor=pointer]:
+              - /url: /terms
+            - link "Privacy policy" [ref=f2e759] [cursor=pointer]:
+              - /url: /privacy-policy
+            - link "Cookie policy" [ref=f2e760] [cursor=pointer]:
+              - /url: /cookie-policy
+          - generic [ref=f2e761]:
+            - text: Developed by
+            - link "irynadev" [ref=f2e762] [cursor=pointer]:
+              - /url: https://irynadev.netlify.app
+  - button "Open Next.js Dev Tools" [ref=f2e768] [cursor=pointer]

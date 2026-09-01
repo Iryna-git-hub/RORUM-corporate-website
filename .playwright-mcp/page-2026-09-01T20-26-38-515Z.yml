@@ -1,0 +1,649 @@
+- generic [active] [ref=f26e1]:
+  - generic [ref=f26e2]:
+    - banner [ref=f26e3]:
+      - generic [ref=f26e5]:
+        - link [ref=f26e6] [cursor=pointer]:
+          - /url: /uk
+          - img "RORUM Creative & Event Space" [ref=f26e7]
+        - navigation "Main navigation" [ref=f26e8]:
+          - link "Відвідати події" [ref=f26e9] [cursor=pointer]:
+            - /url: /uk/events
+          - link "Проведіть подію" [ref=f26e10] [cursor=pointer]:
+            - /url: /uk/host-at-rorum
+          - button "Послуги" [ref=f26e12] [cursor=pointer]
+          - button "Спільнота" [ref=f26e16] [cursor=pointer]
+          - link "Про нас" [ref=f26e19] [cursor=pointer]:
+            - /url: /uk/about
+          - link "Контакти" [ref=f26e20] [cursor=pointer]:
+            - /url: /uk/contact
+        - generic [ref=f26e21]:
+          - 'button "Мова: UK" [ref=f26e23] [cursor=pointer]':
+            - generic [ref=f26e24]: UK
+          - link "Поговорімо" [ref=f26e28] [cursor=pointer]:
+            - /url: /uk/contact
+      - complementary "Mobile menu" [ref=f26e31]:
+        - generic [ref=f26e32]:
+          - link "Поговорімо" [ref=f26e33] [cursor=pointer]:
+            - /url: /uk/contact
+          - group "Мова" [ref=f26e34]:
+            - button "EN" [ref=f26e35] [cursor=pointer]
+            - generic [aria-hidden] [ref=f26e36]: "|"
+            - button "DA" [ref=f26e37] [cursor=pointer]
+            - generic [aria-hidden] [ref=f26e38]: "|"
+            - button "UK" [pressed] [ref=f26e39] [cursor=pointer]
+          - button "Закрити меню" [ref=f26e40] [cursor=pointer]
+        - navigation [ref=f26e44]:
+          - link "Головна" [ref=f26e46] [cursor=pointer]:
+            - /url: /uk
+          - link "Відвідати події" [ref=f26e49] [cursor=pointer]:
+            - /url: /uk/events
+          - link "Проведіть подію" [ref=f26e52] [cursor=pointer]:
+            - /url: /uk/host-at-rorum
+          - button "Послуги" [ref=f26e55] [cursor=pointer]
+          - button "Спільнота" [ref=f26e60] [cursor=pointer]
+          - link "Про нас" [ref=f26e65] [cursor=pointer]:
+            - /url: /uk/about
+          - link "Контакти" [ref=f26e68] [cursor=pointer]:
+            - /url: /uk/contact
+        - generic [ref=f26e70]:
+          - link "Instagram" [ref=f26e71] [cursor=pointer]:
+            - /url: https://www.instagram.com/rorum_dk
+          - link "Facebook" [ref=f26e76] [cursor=pointer]:
+            - /url: https://www.facebook.com/rorum2025
+          - link "LinkedIn" [ref=f26e79] [cursor=pointer]:
+            - /url: https://linkedin.com
+    - main [ref=f26e84]:
+      - generic [ref=f26e85]:
+        - generic [ref=f26e89]:
+          - generic [ref=f26e90]: Простір для подій у Копенгагені
+          - heading "Простір у Копенгагені для змістовних зустрічей" [level=1] [ref=f26e91]
+          - paragraph [ref=f26e92]: Відвідуйте події або організуйте власну зустріч у спокійному, продумано облаштованому просторі за підтримки команди RORUM.
+          - generic [ref=f26e93]:
+            - link "Проведіть подію в RORUM" [ref=f26e94] [cursor=pointer]:
+              - /url: /uk/host-at-rorum
+            - link "Відвідати події" [ref=f26e97] [cursor=pointer]:
+              - /url: /uk/events
+        - list "RORUM highlights" [ref=f26e100]:
+          - listitem [ref=f26e101]:
+            - generic [ref=f26e107]: До 12 гостей
+          - listitem [ref=f26e108]:
+            - generic [ref=f26e112]: У центрі Копенгагена
+          - listitem [ref=f26e113]:
+            - generic [ref=f26e117]: Підтримка на місці
+          - listitem [ref=f26e118]:
+            - generic [ref=f26e121]: "Додатково: кейтеринг і декор"
+      - generic [ref=f26e123]:
+        - generic [ref=f26e124]:
+          - generic [ref=f26e125]: Швидкі шляхи
+          - heading "Почніть з того, що вам потрібно" [level=2] [ref=f26e126]
+        - generic [ref=f26e127]:
+          - link "Відвідати події Відкрийте для себе воркшопи, розмови та спільнотні події в самому серці Копенгагена. Переглянути події" [ref=f26e128] [cursor=pointer]:
+            - /url: /uk/events
+            - generic [ref=f26e129]:
+              - generic [ref=f26e130]: Відвідати події
+              - generic [ref=f26e135]: Відкрийте для себе воркшопи, розмови та спільнотні події в самому серці Копенгагена.
+            - generic [ref=f26e136]: Переглянути події
+          - link "Проведіть подію в RORUM Теплий і гнучкий простір у Копенгагені для воркшопів, зустрічей та спільнотних зібрань до 12 гостей. Забронювати" [ref=f26e141] [cursor=pointer]:
+            - /url: /uk/host-at-rorum
+            - generic [ref=f26e142]:
+              - generic [ref=f26e143]: Проведіть подію в RORUM
+              - generic [ref=f26e149]: Теплий і гнучкий простір у Копенгагені для воркшопів, зустрічей та спільнотних зібрань до 12 гостей.
+            - generic [ref=f26e150]: Забронювати
+          - link "Кейтеринг Свіжий, простий та елегантний кейтеринг для зустрічей, приватних заходів, воркшопів та особливих моментів. Дізнатись більше" [ref=f26e155] [cursor=pointer]:
+            - /url: /uk/catering
+            - generic [ref=f26e156]:
+              - generic [ref=f26e157]: Кейтеринг
+              - generic [ref=f26e163]: Свіжий, простий та елегантний кейтеринг для зустрічей, приватних заходів, воркшопів та особливих моментів.
+            - generic [ref=f26e164]: Дізнатись більше
+          - link "Декор подій Квіти, сервірування столу, свічки та візуальні деталі, створені для теплої й незабутньої атмосфери. Дізнатись більше" [ref=f26e169] [cursor=pointer]:
+            - /url: /uk/event-decoration
+            - generic [ref=f26e170]:
+              - generic [ref=f26e171]: Декор подій
+              - generic [ref=f26e178]: Квіти, сервірування столу, свічки та візуальні деталі, створені для теплої й незабутньої атмосфери.
+            - generic [ref=f26e179]: Дізнатись більше
+      - generic [ref=f26e185]:
+        - generic [ref=f26e186]:
+          - generic [ref=f26e187]:
+            - generic [ref=f26e188]: Що відбувається
+            - heading "Найближчі події в RORUM" [level=2] [ref=f26e189]
+          - link "Переглянути всі події" [ref=f26e190] [cursor=pointer]:
+            - /url: /uk/events
+        - generic [ref=f26e194]:
+          - 'link "View event: Вечеря копенгагенських майстрів" [ref=f26e195] [cursor=pointer]':
+            - /url: /uk/events/copenhagen-makers-dinner
+            - generic [ref=f26e196]:
+              - time [ref=f26e199]:
+                - generic [ref=f26e200]: "02"
+                - generic [ref=f26e201]: ТРАВ.
+              - generic [ref=f26e202]:
+                - heading "Вечеря копенгагенських майстрів" [level=3] [ref=f26e203]
+                - generic [ref=f26e204]:
+                  - time [ref=f26e210]: сб, трав. 2
+                  - time [ref=f26e217]: 18:30-21:30
+                  - generic [ref=f26e218]: 10 spots left
+          - 'link "View event: Воркшоп із ботанічного сервірування столу" [ref=f26e225] [cursor=pointer]':
+            - /url: /uk/events/botanical-table-styling-workshop
+            - generic [ref=f26e226]:
+              - time [ref=f26e229]:
+                - generic [ref=f26e230]: "03"
+                - generic [ref=f26e231]: ТРАВ.
+              - generic [ref=f26e232]:
+                - heading "Воркшоп із ботанічного сервірування столу" [level=3] [ref=f26e233]
+                - generic [ref=f26e234]:
+                  - time [ref=f26e240]: нд, трав. 3
+                  - time [ref=f26e247]: 17:00-19:30
+                  - generic [ref=f26e248]: 8 spots left
+          - 'link "View event: Ранковий салон для фрилансерів" [ref=f26e255] [cursor=pointer]':
+            - /url: /uk/events/freelance-morning-salon
+            - generic [ref=f26e256]:
+              - time [ref=f26e259]:
+                - generic [ref=f26e260]: "04"
+                - generic [ref=f26e261]: ТРАВ.
+              - generic [ref=f26e262]:
+                - heading "Ранковий салон для фрилансерів" [level=3] [ref=f26e263]
+                - generic [ref=f26e264]:
+                  - time [ref=f26e270]: пн, трав. 4
+                  - time [ref=f26e277]: 09:00-11:00
+                  - generic [ref=f26e278]: Sold out
+          - 'link "View event: Сніданок м''якого запуску" [ref=f26e286] [cursor=pointer]':
+            - /url: /uk/events/soft-launch-breakfast
+            - generic [ref=f26e287]:
+              - time [ref=f26e290]:
+                - generic [ref=f26e291]: "05"
+                - generic [ref=f26e292]: ТРАВ.
+              - generic [ref=f26e293]:
+                - heading "Сніданок м'якого запуску" [level=3] [ref=f26e294]
+                - generic [ref=f26e295]:
+                  - time [ref=f26e301]: вт, трав. 5
+                  - time [ref=f26e308]: 09:00-11:00
+                  - generic [ref=f26e309]: 6 spots left
+          - 'link "View event: Кімната для прослуховування при свічках" [ref=f26e316] [cursor=pointer]':
+            - /url: /uk/events/candlelit-listening-room
+            - generic [ref=f26e317]:
+              - time [ref=f26e320]:
+                - generic [ref=f26e321]: "07"
+                - generic [ref=f26e322]: ТРАВ.
+              - generic [ref=f26e323]:
+                - heading "Кімната для прослуховування при свічках" [level=3] [ref=f26e324]
+                - generic [ref=f26e325]:
+                  - time [ref=f26e331]: чт, трав. 7
+                  - time [ref=f26e338]: 19:00-21:00
+                  - generic [ref=f26e339]: 4 spots left
+          - 'link "View event: Літня лабораторія сервірування" [ref=f26e346] [cursor=pointer]':
+            - /url: /uk/events/summer-table-lab
+            - generic [ref=f26e347]:
+              - time [ref=f26e350]:
+                - generic [ref=f26e351]: "12"
+                - generic [ref=f26e352]: ТРАВ.
+              - generic [ref=f26e353]:
+                - heading "Літня лабораторія сервірування" [level=3] [ref=f26e354]
+                - generic [ref=f26e355]:
+                  - time [ref=f26e361]: вт, трав. 12
+                  - time [ref=f26e368]: 17:30-20:00
+                  - generic [ref=f26e369]: 9 spots left
+          - 'link "View event: Коло творчих господарів" [ref=f26e376] [cursor=pointer]':
+            - /url: /uk/events/creative-hosts-circle
+            - generic [ref=f26e377]:
+              - time [ref=f26e380]:
+                - generic [ref=f26e381]: "15"
+                - generic [ref=f26e382]: ТРАВ.
+              - generic [ref=f26e383]:
+                - heading "Коло творчих господарів" [level=3] [ref=f26e384]
+                - generic [ref=f26e385]:
+                  - time [ref=f26e391]: пт, трав. 15
+                  - time [ref=f26e398]: 18:00-20:00
+                  - generic [ref=f26e399]: 12 spots left
+          - 'link "View event: Клуб нордичного бранчу" [ref=f26e406] [cursor=pointer]':
+            - /url: /uk/events/nordic-brunch-club
+            - generic [ref=f26e407]:
+              - time [ref=f26e410]:
+                - generic [ref=f26e411]: "17"
+                - generic [ref=f26e412]: ТРАВ.
+              - generic [ref=f26e413]:
+                - heading "Клуб нордичного бранчу" [level=3] [ref=f26e414]
+                - generic [ref=f26e415]:
+                  - time [ref=f26e421]: нд, трав. 17
+                  - time [ref=f26e428]: 10:00-12:30
+                  - generic [ref=f26e429]: 5 spots left
+          - 'link "View event: Вечір коротких розмов" [ref=f26e436] [cursor=pointer]':
+            - /url: /uk/events/tiny-talks-evening
+            - generic [ref=f26e437]:
+              - time [ref=f26e440]:
+                - generic [ref=f26e441]: "21"
+                - generic [ref=f26e442]: ТРАВ.
+              - generic [ref=f26e443]:
+                - heading "Вечір коротких розмов" [level=3] [ref=f26e444]
+                - generic [ref=f26e445]:
+                  - time [ref=f26e451]: чт, трав. 21
+                  - time [ref=f26e458]: 18:30-21:00
+                  - generic [ref=f26e459]: 7 spots left
+          - 'link "View event: Воркшоп квіткового настрою" [ref=f26e466] [cursor=pointer]':
+            - /url: /uk/events/floral-mood-workshop
+            - generic [ref=f26e467]:
+              - time [ref=f26e470]:
+                - generic [ref=f26e471]: "24"
+                - generic [ref=f26e472]: ТРАВ.
+              - generic [ref=f26e473]:
+                - heading "Воркшоп квіткового настрою" [level=3] [ref=f26e474]
+                - generic [ref=f26e475]:
+                  - time [ref=f26e481]: нд, трав. 24
+                  - time [ref=f26e488]: 17:00-19:30
+                  - generic [ref=f26e489]: 3 spots left
+          - 'link "View event: Ранок незалежної роботи" [ref=f26e496] [cursor=pointer]':
+            - /url: /uk/events/independent-work-morning
+            - generic [ref=f26e497]:
+              - time [ref=f26e500]:
+                - generic [ref=f26e501]: "28"
+                - generic [ref=f26e502]: ТРАВ.
+              - generic [ref=f26e503]:
+                - heading "Ранок незалежної роботи" [level=3] [ref=f26e504]
+                - generic [ref=f26e505]:
+                  - time [ref=f26e511]: чт, трав. 28
+                  - time [ref=f26e518]: 09:00-11:30
+                  - generic [ref=f26e519]: 11 spots left
+          - 'link "View event: Прев''ю сезонної вечері" [ref=f26e526] [cursor=pointer]':
+            - /url: /uk/events/seasonal-supper-preview
+            - generic [ref=f26e527]:
+              - time [ref=f26e530]:
+                - generic [ref=f26e531]: "31"
+                - generic [ref=f26e532]: ТРАВ.
+              - generic [ref=f26e533]:
+                - heading "Прев'ю сезонної вечері" [level=3] [ref=f26e534]
+                - generic [ref=f26e535]:
+                  - time [ref=f26e541]: нд, трав. 31
+                  - time [ref=f26e548]: 18:30-21:30
+                  - generic [ref=f26e549]: 8 spots left
+          - 'link "View event: Вечір перезавантаження спільноти" [ref=f26e556] [cursor=pointer]':
+            - /url: /uk/events/community-reset-night
+            - generic [ref=f26e557]:
+              - time [ref=f26e560]:
+                - generic [ref=f26e561]: "04"
+                - generic [ref=f26e562]: ЧЕРВ.
+              - generic [ref=f26e563]:
+                - heading "Вечір перезавантаження спільноти" [level=3] [ref=f26e564]
+                - generic [ref=f26e565]:
+                  - time [ref=f26e571]: чт, черв. 4
+                  - time [ref=f26e578]: 18:00-20:30
+                  - generic [ref=f26e579]: 12 spots left
+          - 'link "View event: Бізнес-сніданок у Копенгагені" [ref=f26e586] [cursor=pointer]':
+            - /url: /uk/events/business-breakfast-copenhagen
+            - generic [ref=f26e587]:
+              - time [ref=f26e590]:
+                - generic [ref=f26e591]: "08"
+                - generic [ref=f26e592]: ЧЕРВ.
+              - generic [ref=f26e593]:
+                - heading "Бізнес-сніданок у Копенгагені" [level=3] [ref=f26e594]
+                - generic [ref=f26e595]:
+                  - time [ref=f26e601]: пн, черв. 8
+                  - time [ref=f26e608]: 08:30-10:30
+                  - generic [ref=f26e609]: 12 spots left
+          - 'link "View event: Нетворкінг для міжнародних засновників" [ref=f26e616] [cursor=pointer]':
+            - /url: /uk/events/networking-for-international-founders
+            - generic [ref=f26e617]:
+              - time [ref=f26e620]:
+                - generic [ref=f26e621]: "10"
+                - generic [ref=f26e622]: ЧЕРВ.
+              - generic [ref=f26e623]:
+                - heading "Нетворкінг для міжнародних засновників" [level=3] [ref=f26e624]
+                - generic [ref=f26e625]:
+                  - time [ref=f26e631]: ср, черв. 10
+                  - time [ref=f26e638]: 18:00-20:30
+                  - generic [ref=f26e639]: 12 spots left
+          - 'link "View event: Данська для українців: базові фрази" [ref=f26e646] [cursor=pointer]':
+            - /url: /uk/events/danish-for-ukrainians-intro
+            - generic [ref=f26e647]:
+              - time [ref=f26e650]:
+                - generic [ref=f26e651]: "12"
+                - generic [ref=f26e652]: ЧЕРВ.
+              - generic [ref=f26e653]:
+                - 'heading "Данська для українців: базові фрази" [level=3] [ref=f26e654]'
+                - generic [ref=f26e655]:
+                  - time [ref=f26e661]: пт, черв. 12
+                  - time [ref=f26e668]: 17:30-19:00
+                  - generic [ref=f26e669]: 12 spots left
+          - 'link "View event: Йога для перезавантаження після роботи" [ref=f26e676] [cursor=pointer]':
+            - /url: /uk/events/yoga-after-work-reset
+            - generic [ref=f26e677]:
+              - time [ref=f26e680]:
+                - generic [ref=f26e681]: "14"
+                - generic [ref=f26e682]: ЧЕРВ.
+              - generic [ref=f26e683]:
+                - heading "Йога для перезавантаження після роботи" [level=3] [ref=f26e684]
+                - generic [ref=f26e685]:
+                  - time [ref=f26e691]: нд, черв. 14
+                  - time [ref=f26e698]: 18:00-19:15
+                  - generic [ref=f26e699]: 10 spots left
+          - 'link "View event: Впевнена самопрезентація" [ref=f26e706] [cursor=pointer]':
+            - /url: /uk/events/present-yourself-with-confidence
+            - generic [ref=f26e707]:
+              - time [ref=f26e710]:
+                - generic [ref=f26e711]: "16"
+                - generic [ref=f26e712]: ЧЕРВ.
+              - generic [ref=f26e713]:
+                - heading "Впевнена самопрезентація" [level=3] [ref=f26e714]
+                - generic [ref=f26e715]:
+                  - time [ref=f26e721]: вт, черв. 16
+                  - time [ref=f26e728]: 18:00-20:00
+                  - generic [ref=f26e729]: 12 spots left
+          - 'link "View event: Вечір повільного мистецтва" [ref=f26e736] [cursor=pointer]':
+            - /url: /uk/events/slow-art-evening
+            - generic [ref=f26e737]:
+              - time [ref=f26e740]:
+                - generic [ref=f26e741]: "18"
+                - generic [ref=f26e742]: ЧЕРВ.
+              - generic [ref=f26e743]:
+                - heading "Вечір повільного мистецтва" [level=3] [ref=f26e744]
+                - generic [ref=f26e745]:
+                  - time [ref=f26e751]: чт, черв. 18
+                  - time [ref=f26e758]: 18:30-20:30
+                  - generic [ref=f26e759]: 9 spots left
+          - 'link "View event: Кафе данської розмовної практики" [ref=f26e766] [cursor=pointer]':
+            - /url: /uk/events/danish-conversation-cafe
+            - generic [ref=f26e767]:
+              - time [ref=f26e770]:
+                - generic [ref=f26e771]: "20"
+                - generic [ref=f26e772]: ЧЕРВ.
+              - generic [ref=f26e773]:
+                - heading "Кафе данської розмовної практики" [level=3] [ref=f26e774]
+                - generic [ref=f26e775]:
+                  - time [ref=f26e781]: сб, черв. 20
+                  - time [ref=f26e788]: 10:00-12:00
+                  - generic [ref=f26e789]: 12 spots left
+          - 'link "View event: Усвідомлена ранкова йога" [ref=f26e796] [cursor=pointer]':
+            - /url: /uk/events/mindful-morning-yoga
+            - generic [ref=f26e797]:
+              - time [ref=f26e800]:
+                - generic [ref=f26e801]: "25"
+                - generic [ref=f26e802]: ЧЕРВ.
+              - generic [ref=f26e803]:
+                - heading "Усвідомлена ранкова йога" [level=3] [ref=f26e804]
+                - generic [ref=f26e805]:
+                  - time [ref=f26e811]: чт, черв. 25
+                  - time [ref=f26e818]: 08:00-09:15
+                  - generic [ref=f26e819]: 8 spots left
+          - 'link "View event: Лабораторія профілю LinkedIn" [ref=f26e826] [cursor=pointer]':
+            - /url: /uk/events/linkedin-profile-lab
+            - generic [ref=f26e827]:
+              - time [ref=f26e830]:
+                - generic [ref=f26e831]: "27"
+                - generic [ref=f26e832]: ЧЕРВ.
+              - generic [ref=f26e833]:
+                - heading "Лабораторія профілю LinkedIn" [level=3] [ref=f26e834]
+                - generic [ref=f26e835]:
+                  - time [ref=f26e841]: сб, черв. 27
+                  - time [ref=f26e848]: 10:00-12:30
+                  - generic [ref=f26e849]: 12 spots left
+          - 'link "View event: Українсько-данський вечір спільноти" [ref=f26e856] [cursor=pointer]':
+            - /url: /uk/events/ukrainian-danish-community-night
+            - generic [ref=f26e857]:
+              - time [ref=f26e860]:
+                - generic [ref=f26e861]: "30"
+                - generic [ref=f26e862]: ЧЕРВ.
+              - generic [ref=f26e863]:
+                - heading "Українсько-данський вечір спільноти" [level=3] [ref=f26e864]
+                - generic [ref=f26e865]:
+                  - time [ref=f26e871]: вт, черв. 30
+                  - time [ref=f26e878]: 18:00-20:30
+                  - generic [ref=f26e879]: 12 spots left
+          - 'link "View event: Акварель і вино" [ref=f26e886] [cursor=pointer]':
+            - /url: /uk/events/watercolor-and-wine
+            - generic [ref=f26e887]:
+              - time [ref=f26e890]:
+                - generic [ref=f26e891]: "02"
+                - generic [ref=f26e892]: ЛИП.
+              - generic [ref=f26e893]:
+                - heading "Акварель і вино" [level=3] [ref=f26e894]
+                - generic [ref=f26e895]:
+                  - time [ref=f26e901]: чт, лип. 2
+                  - time [ref=f26e908]: 19:00-21:00
+                  - generic [ref=f26e909]: 7 spots left
+          - 'link "View event: Сніданок про данську культуру праці" [ref=f26e916] [cursor=pointer]':
+            - /url: /uk/events/danish-work-culture-breakfast
+            - generic [ref=f26e917]:
+              - time [ref=f26e920]:
+                - generic [ref=f26e921]: "04"
+                - generic [ref=f26e922]: ЛИП.
+              - generic [ref=f26e923]:
+                - heading "Сніданок про данську культуру праці" [level=3] [ref=f26e924]
+                - generic [ref=f26e925]:
+                  - time [ref=f26e931]: сб, лип. 4
+                  - time [ref=f26e938]: 09:00-11:00
+                  - generic [ref=f26e939]: 12 spots left
+          - 'link "View event: Спокійний нетворкінг для новоприбулих" [ref=f26e946] [cursor=pointer]':
+            - /url: /uk/events/calm-networking-for-newcomers
+            - generic [ref=f26e947]:
+              - time [ref=f26e950]:
+                - generic [ref=f26e951]: "07"
+                - generic [ref=f26e952]: ЛИП.
+              - generic [ref=f26e953]:
+                - heading "Спокійний нетворкінг для новоприбулих" [level=3] [ref=f26e954]
+                - generic [ref=f26e955]:
+                  - time [ref=f26e961]: вт, лип. 7
+                  - time [ref=f26e968]: 18:00-20:00
+                  - generic [ref=f26e969]: 12 spots left
+          - 'link "View event: Дихальні практики та чай" [ref=f26e976] [cursor=pointer]':
+            - /url: /uk/events/breathwork-and-tea
+            - generic [ref=f26e977]:
+              - time [ref=f26e980]:
+                - generic [ref=f26e981]: "09"
+                - generic [ref=f26e982]: ЛИП.
+              - generic [ref=f26e983]:
+                - heading "Дихальні практики та чай" [level=3] [ref=f26e984]
+                - generic [ref=f26e985]:
+                  - time [ref=f26e991]: чт, лип. 9
+                  - time [ref=f26e998]: 18:30-20:00
+                  - generic [ref=f26e999]: 10 spots left
+          - 'link "View event: Вечір відпрацювання пітчів" [ref=f26e1006] [cursor=pointer]':
+            - /url: /uk/events/pitch-practice-evening
+            - generic [ref=f26e1007]:
+              - time [ref=f26e1010]:
+                - generic [ref=f26e1011]: "11"
+                - generic [ref=f26e1012]: ЛИП.
+              - generic [ref=f26e1013]:
+                - heading "Вечір відпрацювання пітчів" [level=3] [ref=f26e1014]
+                - generic [ref=f26e1015]:
+                  - time [ref=f26e1021]: сб, лип. 11
+                  - time [ref=f26e1028]: 17:30-20:00
+                  - generic [ref=f26e1029]: 9 spots left
+          - 'link "View event: Глина та спокійні руки" [ref=f26e1036] [cursor=pointer]':
+            - /url: /uk/events/clay-and-calm-hands
+            - generic [ref=f26e1037]:
+              - time [ref=f26e1040]:
+                - generic [ref=f26e1041]: "14"
+                - generic [ref=f26e1042]: ЛИП.
+              - generic [ref=f26e1043]:
+                - heading "Глина та спокійні руки" [level=3] [ref=f26e1044]
+                - generic [ref=f26e1045]:
+                  - time [ref=f26e1051]: вт, лип. 14
+                  - time [ref=f26e1058]: 18:00-20:30
+                  - generic [ref=f26e1059]: Sold out
+          - 'link "View event: Данська для українців: слова на робочому місці" [ref=f26e1067] [cursor=pointer]':
+            - /url: /uk/events/danish-for-ukrainians-workplace
+            - generic [ref=f26e1068]:
+              - time [ref=f26e1071]:
+                - generic [ref=f26e1072]: "16"
+                - generic [ref=f26e1073]: ЛИП.
+              - generic [ref=f26e1074]:
+                - 'heading "Данська для українців: слова на робочому місці" [level=3] [ref=f26e1075]'
+                - generic [ref=f26e1076]:
+                  - time [ref=f26e1082]: чт, лип. 16
+                  - time [ref=f26e1089]: 17:30-19:00
+                  - generic [ref=f26e1090]: 12 spots left
+          - 'link "View event: Міжнародний вечірній салон" [ref=f26e1097] [cursor=pointer]':
+            - /url: /uk/events/international-supper-salon
+            - generic [ref=f26e1098]:
+              - time [ref=f26e1101]:
+                - generic [ref=f26e1102]: "18"
+                - generic [ref=f26e1103]: ЛИП.
+              - generic [ref=f26e1104]:
+                - heading "Міжнародний вечірній салон" [level=3] [ref=f26e1105]
+                - generic [ref=f26e1106]:
+                  - time [ref=f26e1112]: сб, лип. 18
+                  - time [ref=f26e1119]: 18:30-21:30
+                  - generic [ref=f26e1120]: 12 spots left
+          - 'link "View event: украинская версия тест" [ref=f26e1127] [cursor=pointer]':
+            - /url: /uk/events/one-more-event-test
+            - generic [ref=f26e1128]:
+              - time [ref=f26e1131]:
+                - generic [ref=f26e1132]: "19"
+                - generic [ref=f26e1133]: СЕРП.
+              - generic [ref=f26e1134]:
+                - heading "украинская версия тест" [level=3] [ref=f26e1135]
+                - generic [ref=f26e1136]:
+                  - time [ref=f26e1142]: ср, серп. 19
+                  - time [ref=f26e1149]: 18:30-21:30
+          - 'link "View event: Нова подія в РОРУМ" [ref=f26e1150] [cursor=pointer]':
+            - /url: /uk/events/a-new-event-at-the-rorom
+            - generic [ref=f26e1151]:
+              - time [ref=f26e1154]:
+                - generic [ref=f26e1155]: "26"
+                - generic [ref=f26e1156]: СЕРП.
+              - generic [ref=f26e1157]:
+                - heading "Нова подія в РОРУМ" [level=3] [ref=f26e1158]
+                - generic [ref=f26e1159]:
+                  - time [ref=f26e1165]: ср, серп. 26
+                  - time [ref=f26e1172]: 16:00-18:00
+      - generic [ref=f26e1175]:
+        - generic [ref=f26e1176]:
+          - generic [ref=f26e1177]: Змістовні зустрічі
+          - heading "Відвідати події" [level=2] [ref=f26e1178]
+          - paragraph [ref=f26e1179]: Приєднуйтесь до змістовних зустрічей у RORUM.
+          - paragraph [ref=f26e1180]: Відкрийте для себе воркшопи, розмови та спільнотні події в самому серці Копенгагена.
+          - list [ref=f26e1181]:
+            - listitem [ref=f26e1182]:
+              - generic [ref=f26e1186]: Досвід у невеликих групах
+            - listitem [ref=f26e1187]:
+              - generic [ref=f26e1193]: До 12 учасників
+            - listitem [ref=f26e1194]:
+              - generic [ref=f26e1198]: У центрі Копенгагена
+            - listitem [ref=f26e1199]:
+              - generic [ref=f26e1202]: Орієнтовано на спільноту
+          - link "Відвідати події" [ref=f26e1203] [cursor=pointer]:
+            - /url: /uk/events
+        - img "Учасники воркшопу зібралися за столом у RORUM" [ref=f26e1207]
+      - generic [ref=f26e1210]:
+        - generic [ref=f26e1211]:
+          - generic [ref=f26e1212]: Ваша подія
+          - heading "Проведіть подію в RORUM" [level=2] [ref=f26e1213]
+          - paragraph [ref=f26e1214]: Проведіть вашу подію в RORUM.
+          - paragraph [ref=f26e1215]: Теплий і гнучкий простір у Копенгагені для воркшопів, зустрічей та спільнотних зібрань до 12 гостей.
+          - list [ref=f26e1216]:
+            - listitem [ref=f26e1217]:
+              - generic [ref=f26e1223]: До 12 гостей
+            - listitem [ref=f26e1224]:
+              - generic [ref=f26e1226]: Гнучке облаштування простору
+            - listitem [ref=f26e1227]:
+              - generic [ref=f26e1231]: У центрі Копенгагена
+            - listitem [ref=f26e1232]:
+              - generic [ref=f26e1238]: Підтримка на місці
+          - link "Проведіть подію в RORUM" [ref=f26e1239] [cursor=pointer]:
+            - /url: /uk/host-at-rorum
+        - img "Невелика зустріч у залі RORUM" [ref=f26e1243]
+      - generic [ref=f26e1245]:
+        - generic [ref=f26e1246]:
+          - generic [ref=f26e1247]: Послуги
+          - heading "Послуги для продуманих подій" [level=2] [ref=f26e1248]
+        - generic [ref=f26e1249]:
+          - link "Дізнатися про кейтеринг" [ref=f26e1250] [cursor=pointer]:
+            - /url: /uk/catering
+            - generic [ref=f26e1253]:
+              - heading "Кейтеринг" [level=3] [ref=f26e1254]
+              - paragraph [ref=f26e1255]: Свіжий, простий та елегантний кейтеринг для зустрічей, приватних заходів, воркшопів та особливих моментів.
+              - generic [ref=f26e1256]: Дізнатися про кейтеринг
+          - link "Дізнатися про декор" [ref=f26e1260] [cursor=pointer]:
+            - /url: /uk/event-decoration
+            - generic [ref=f26e1263]:
+              - heading "Декор подій" [level=3] [ref=f26e1264]
+              - paragraph [ref=f26e1265]: Квіти, сервірування столу, свічки та візуальні деталі, створені для теплої й незабутньої атмосфери.
+              - generic [ref=f26e1266]: Дізнатися про декор
+      - generic [ref=f26e1272]:
+        - generic [ref=f26e1273]:
+          - generic [ref=f26e1274]: Спільнота
+          - heading "Більше, ніж простір" [level=2] [ref=f26e1275]
+        - paragraph [ref=f26e1276]: RORUM — це місце для подій, ідей і значущих зв'язків. Приєднуйтесь до нашої спільноти, співпрацюйте з нами або станьте частиною команди, що створює ці події.
+        - generic [ref=f26e1277]:
+          - link "Членство i WECODA" [ref=f26e1278] [cursor=pointer]:
+            - /url: /uk/community-membership
+          - link "Працюйте з нами" [ref=f26e1279] [cursor=pointer]:
+            - /url: /uk/work-with-us
+          - link "Станьте волонтером" [ref=f26e1280] [cursor=pointer]:
+            - /url: /uk/volunteer
+      - generic [ref=f26e1283]:
+        - generic [ref=f26e1284]:
+          - generic [ref=f26e1285]: Не знаєте, з чого почати?
+          - heading "Разом втілимо вашу ідею" [level=2] [ref=f26e1286]
+          - paragraph [ref=f26e1287]: Незалежно від того, чи плануєте ви воркшоп, приватну зустріч, спільнотний захід, запит на кейтеринг чи ідею оформлення події — розкажіть нам, що ви маєте на увазі, і ми допоможемо знайти правильний формат.
+          - generic "Suggested paths" [ref=f26e1288]:
+            - link "Відвідати події" [ref=f26e1289] [cursor=pointer]:
+              - /url: /uk/events
+            - link "Проведіть подію в RORUM" [ref=f26e1290] [cursor=pointer]:
+              - /url: /uk/host-at-rorum
+            - link "Кейтеринг" [ref=f26e1291] [cursor=pointer]:
+              - /url: /uk/catering
+            - link "Декор подій" [ref=f26e1292] [cursor=pointer]:
+              - /url: /uk/event-decoration
+        - generic [ref=f26e1293]:
+          - link "Поговорімо" [ref=f26e1294] [cursor=pointer]:
+            - /url: /uk/contact
+          - paragraph [ref=f26e1297]:
+            - generic [ref=f26e1298]: Маєте запитання?
+            - link "Переглянути поширені запитання" [ref=f26e1299] [cursor=pointer]:
+              - /url: /uk/faq
+    - contentinfo [ref=f26e1303]:
+      - generic [ref=f26e1304]:
+        - generic [ref=f26e1305]:
+          - generic [ref=f26e1306]:
+            - generic [ref=f26e1307]: Контактна інформація
+            - generic [ref=f26e1308]:
+              - paragraph [ref=f26e1309]: Buermistersgade 26, 1 th, 1429 Copenhagen, Denmark
+              - link "Відкрити на карті" [ref=f26e1314] [cursor=pointer]:
+                - /url: /uk/contact#contact-map
+              - paragraph [ref=f26e1315]: +45 91 87 71 52
+              - link "rorum2025@gmail.com" [ref=f26e1319] [cursor=pointer]:
+                - /url: mailto:rorum2025@gmail.com
+            - generic "Social links" [ref=f26e1324]:
+              - link "Instagram" [ref=f26e1325] [cursor=pointer]:
+                - /url: https://www.instagram.com/rorum_dk
+              - link "Facebook" [ref=f26e1330] [cursor=pointer]:
+                - /url: https://www.facebook.com/rorum2025
+              - link "LinkedIn" [ref=f26e1333] [cursor=pointer]:
+                - /url: https://linkedin.com
+          - generic [ref=f26e1338]:
+            - navigation "Відвідати та проводити" [ref=f26e1339]:
+              - link "Відвідати події" [ref=f26e1341] [cursor=pointer]:
+                - /url: /uk/events
+              - link "Проведіть подію в RORUM" [ref=f26e1342] [cursor=pointer]:
+                - /url: /uk/host-at-rorum
+            - navigation "Послуги" [ref=f26e1343]:
+              - link "Кейтеринг" [ref=f26e1345] [cursor=pointer]:
+                - /url: /uk/catering
+              - link "Декор" [ref=f26e1346] [cursor=pointer]:
+                - /url: /uk/event-decoration
+            - navigation "Спільнота" [ref=f26e1347]:
+              - link "Членство i WECODA" [ref=f26e1349] [cursor=pointer]:
+                - /url: /uk/community-membership
+              - link "Станьте волонтером" [ref=f26e1350] [cursor=pointer]:
+                - /url: /uk/volunteer
+              - link "Працюйте з нами" [ref=f26e1351] [cursor=pointer]:
+                - /url: /uk/work-with-us
+            - navigation "Компанія" [ref=f26e1352]:
+              - link "Про нас" [ref=f26e1354] [cursor=pointer]:
+                - /url: /uk/about
+              - link "Контакти" [ref=f26e1355] [cursor=pointer]:
+                - /url: /uk/contact
+              - link "Поширені запитання" [ref=f26e1356] [cursor=pointer]:
+                - /url: /uk/faq
+        - generic [ref=f26e1357]:
+          - generic [ref=f26e1358]: © 2026 RORUM. Усі права захищено.
+          - navigation "Legal links" [ref=f26e1359]:
+            - link "Умови та положення" [ref=f26e1360] [cursor=pointer]:
+              - /url: /uk/terms
+            - link "Політика конфіденційності" [ref=f26e1361] [cursor=pointer]:
+              - /url: /uk/privacy-policy
+            - link "Політика cookie" [ref=f26e1362] [cursor=pointer]:
+              - /url: /uk/cookie-policy
+          - generic [ref=f26e1363]:
+            - text: Розроблено
+            - link "irynadev" [ref=f26e1364] [cursor=pointer]:
+              - /url: https://irynadev.netlify.app
+  - button "Open Next.js Dev Tools" [ref=f26e1370] [cursor=pointer]
