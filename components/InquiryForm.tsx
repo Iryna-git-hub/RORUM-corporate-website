@@ -7,6 +7,8 @@ import {
   validatePrivacyConsent,
 } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
+import { useFormspreeSubmit } from "@/lib/useFormspreeSubmit";
+import type { RorumFormKey } from "@/lib/formspree";
 
 // Fallback only — used when the caller doesn't supply `packageOptions`
 // (Sanity unavailable/not yet migrated). The canonical, Sanity-backed
@@ -43,6 +45,8 @@ const FORM_TITLE_CLASS =
 const FORM_INTRO_CLASS = "m-0 text-[15px] leading-[1.65] text-text-primary";
 const SUCCESS_CLASS =
   "border border-[rgba(var(--rgb-light-green),0.28)] rounded-none bg-[rgba(var(--rgb-beige),0.24)] p-3.5 text-primary-dark font-bold";
+const ERROR_CLASS =
+  "border border-[rgba(var(--rgb-red),0.24)] bg-[rgba(var(--rgb-red),0.08)] p-3.5 text-accent text-sm font-bold leading-[1.55]";
 const FORM_GRID_CLASS = "grid grid-cols-2 gap-3.5 max-sm:grid-cols-1";
 const LABEL_CLASS =
   "block text-[rgba(var(--rgb-dark-brown),0.5)] font-semibold text-[0.82rem]";
@@ -88,6 +92,15 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 
 export type InquiryFormType = "default" | "booking" | "decoration";
 
+// Which shared Formspree configuration each rendered variant delivers as.
+// "default" isn't used by any current page (Catering has its own
+// CateringInquiryForm) but is kept mapped for completeness.
+const FORMSPREE_KEY_BY_TYPE: Record<InquiryFormType, RorumFormKey> = {
+  booking: "hostAtRorum",
+  decoration: "eventDecoration",
+  default: "catering",
+};
+
 export interface SelectableOption {
   /** Stable, non-localized identifier — the submitted form value and the `?package=` deep-link value. Never changes when the label is edited/renamed. */
   value: string;
@@ -116,8 +129,9 @@ export function InquiryForm({
   serviceOptions?: SelectableOption[];
 }) {
   const { messages } = useFormContent();
-  const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { sent, isSubmitting, submitError, submit, setSubmitError } =
+    useFormspreeSubmit(FORMSPREE_KEY_BY_TYPE[type]);
   const [selectedPackage, setSelectedPackage] = useState("");
   // Memoized on the actual `packageOptions` prop (stable server-provided
   // data, never changes after mount) so the mount-only effect below can
@@ -167,7 +181,7 @@ export function InquiryForm({
     return nextErrors;
   }
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const formData = new FormData(form);
@@ -201,14 +215,14 @@ export function InquiryForm({
     }
 
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length) {
-      setSent(false);
-      return;
-    }
+    setSubmitError("");
+    if (Object.keys(nextErrors).length) return;
 
-    setSent(true);
-    setSelectedPackage("");
-    form.reset();
+    // Real delivery via the shared hook. On confirmed success the hook resets
+    // the form element; clear the controlled package <select> too. On failure
+    // nothing is cleared and a localized error shows.
+    const delivered = await submit(formData, form);
+    if (delivered) setSelectedPackage("");
   }
 
   if (isBooking) {
@@ -221,6 +235,11 @@ export function InquiryForm({
         {sent ? (
           <div className={SUCCESS_CLASS} role="status">
             {resolvedSuccessMessage}
+          </div>
+        ) : null}
+        {submitError ? (
+          <div className={ERROR_CLASS} role="alert">
+            {submitError}
           </div>
         ) : null}
 
@@ -389,8 +408,8 @@ export function InquiryForm({
 
         <PrivacyConsent id="booking-privacy" required={false} />
 
-        <button className={SUBMIT_BUTTON_CLASS} type="submit">
-          {submitLabel}
+        <button className={SUBMIT_BUTTON_CLASS} type="submit" disabled={isSubmitting || sent}>
+          {isSubmitting ? messages.sendingLabel : submitLabel}
         </button>
       </form>
     );
@@ -405,6 +424,11 @@ export function InquiryForm({
       {sent ? (
         <div className={SUCCESS_CLASS} role="status">
           {resolvedSuccessMessage}
+        </div>
+      ) : null}
+      {submitError ? (
+        <div className={ERROR_CLASS} role="alert">
+          {submitError}
         </div>
       ) : null}
 
@@ -487,8 +511,8 @@ export function InquiryForm({
 
       <PrivacyConsent id={`${type}-privacy`} error={errors.privacyConsent} />
 
-      <button className={SUBMIT_BUTTON_CLASS} type="submit">
-        {submitLabel}
+      <button className={SUBMIT_BUTTON_CLASS} type="submit" disabled={isSubmitting || sent}>
+        {isSubmitting ? messages.sendingLabel : submitLabel}
       </button>
     </form>
   );

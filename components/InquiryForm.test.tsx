@@ -6,11 +6,31 @@
 // hardcoded, English-only `bookingPackageOptions`/`bookingServiceOptions`
 // arrays, and that the submitted VALUE is always the stable identifier —
 // never the (renameable, localized) label.
-import { describe, expect, it, afterEach } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { describe, expect, it, afterEach, beforeEach, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
+
+vi.mock("next/navigation", () => ({ usePathname: () => "/uk/host-at-rorum" }));
+
+const { submitToFormspreeMock } = vi.hoisted(() => ({
+  submitToFormspreeMock: vi.fn<(formData: FormData) => Promise<void>>(),
+}));
+vi.mock("@/lib/formspree", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/formspree")>();
+  return {
+    ...actual,
+    isFormspreeConfigured: () => false,
+    submitToFormspree: (formData: FormData) => submitToFormspreeMock(formData),
+  };
+});
+
 import { InquiryForm } from "./InquiryForm";
 
+beforeEach(() => {
+  submitToFormspreeMock.mockReset();
+  submitToFormspreeMock.mockRejectedValue(new Error("FORMSPREE_NOT_CONFIGURED"));
+});
 afterEach(() => cleanup());
 
 describe("InquiryForm (booking) — package selector reads the canonical, Sanity-backed packageOptions", () => {
@@ -120,5 +140,140 @@ describe("InquiryForm (booking) — Additional Services checkboxes read the cano
     render(<InquiryForm type="booking" title="Apply to Host" />);
     expect(screen.getByRole("checkbox", { name: "Breakfast" })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: "Coffee setup" })).toBeInTheDocument();
+  });
+});
+
+// --- Unified Formspree delivery (Task 4) ------------------------------------
+
+async function fillBooking() {
+  await userEvent.type(screen.getByLabelText(/Full Name/), "Jane Doe");
+  await userEvent.type(screen.getByLabelText(/Phone number/), "+45 12 34 56 78");
+  await userEvent.type(screen.getByLabelText(/^Email/), "jane@example.com");
+  await userEvent.selectOptions(screen.getByLabelText(/Package/), "package0");
+  await userEvent.type(screen.getByLabelText(/Comment/), "A quiet morning meeting");
+}
+
+async function fillDecoration() {
+  await userEvent.type(screen.getByLabelText(/Full Name/), "Erik Vestergaard");
+  await userEvent.type(screen.getByLabelText(/Phone number/), "+45 98 76 54 32");
+  await userEvent.type(screen.getByLabelText(/^Email/), "erik@example.com");
+  await userEvent.type(screen.getByLabelText(/Event date/), "2099-01-01");
+  await userEvent.type(screen.getByLabelText(/Message/), "Florals and candles for 20 guests");
+  await userEvent.click(screen.getByRole("checkbox"));
+}
+
+describe("InquiryForm — unified Formspree delivery", () => {
+  it("booking: submits through submitToFormspree with the Host at RORUM form_name + standardized subject + locale, and NO fake setTimeout", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(
+      <InquiryForm
+        type="booking"
+        title="Apply to Host"
+        successMessage="Host request received!"
+        packageOptions={[{ value: "package0", label: "Morning session" }]}
+      />,
+    );
+    await fillBooking();
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+
+    expect(await screen.findByText("Host request received!")).toBeInTheDocument();
+    expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
+    const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
+    expect(fd.get("form_name")).toBe("Host at RORUM inquiry");
+    expect(fd.get("subject")).toBe("[RoRUM] Host at RORUM inquiry — Jane Doe");
+    expect(fd.get("_subject")).toBe("[RoRUM] Host at RORUM inquiry — Jane Doe");
+    expect(fd.get("locale")).toBe("uk");
+    expect(fd.get("package")).toBe("package0");
+    expect(fd.get("name")).toBe("Jane Doe");
+  });
+
+  it("decoration: uses the Event Decoration form_name + subject", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<InquiryForm type="decoration" title="Plan your decoration" successMessage="Decoration request received!" />);
+    await fillDecoration();
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+
+    expect(await screen.findByText("Decoration request received!")).toBeInTheDocument();
+    const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
+    expect(fd.get("form_name")).toBe("Event Decoration inquiry");
+    expect(fd.get("subject")).toBe("[RoRUM] Event Decoration inquiry — Erik Vestergaard");
+  });
+
+  it("decoration: a failed submit shows the localized generic error (not just the booking branch), no success, input kept", async () => {
+    submitToFormspreeMock.mockRejectedValue(new Error("FORMSPREE_SUBMISSION_FAILED"));
+    render(<InquiryForm type="decoration" title="Plan your decoration" successMessage="Decoration request received!" />);
+    await fillDecoration();
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(/Something went wrong sending/i);
+    expect(screen.queryByText("Decoration request received!")).not.toBeInTheDocument();
+    expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("Erik Vestergaard");
+    expect((screen.getByLabelText(/Message/) as HTMLTextAreaElement).value).toBe("Florals and candles for 20 guests");
+  });
+
+  it("decoration: with no endpoint configured, shows the localized 'not set up' notice, makes no network call, shows no success", async () => {
+    // beforeEach default rejects with FORMSPREE_NOT_CONFIGURED (thrown before any fetch)
+    render(<InquiryForm type="decoration" title="Plan your decoration" successMessage="Decoration request received!" />);
+    await fillDecoration();
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/isn't fully set up yet/i);
+    expect(screen.queryByText("Decoration request received!")).not.toBeInTheDocument();
+    expect(submitToFormspreeMock).toHaveBeenCalledTimes(1); // the helper is called, but it throws before fetch (see lib/formspree.test.ts)
+  });
+
+  it("success resets the form (fields cleared, package select cleared)", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(
+      <InquiryForm type="booking" title="Apply to Host" successMessage="ok" packageOptions={[{ value: "package0", label: "Morning session" }]} />,
+    );
+    await fillBooking();
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+    await screen.findByText("ok");
+    expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("");
+    expect((screen.getByLabelText(/Package/) as HTMLSelectElement).value).toBe("");
+  });
+
+  it("a failed submit shows no success and keeps every typed value", async () => {
+    submitToFormspreeMock.mockRejectedValue(new Error("FORMSPREE_SUBMISSION_FAILED"));
+    render(
+      <InquiryForm type="booking" title="Apply to Host" successMessage="Host request received!" packageOptions={[{ value: "package0", label: "Morning session" }]} />,
+    );
+    await fillBooking();
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+
+    expect(await screen.findByText(/Something went wrong sending/i)).toBeInTheDocument();
+    expect(screen.queryByText("Host request received!")).not.toBeInTheDocument();
+    expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("Jane Doe");
+    expect((screen.getByLabelText(/Comment/) as HTMLTextAreaElement).value).toBe("A quiet morning meeting");
+  });
+
+  it("with no endpoint configured: shows the localized 'not set up' notice, no success, no reset", async () => {
+    // beforeEach default rejects with FORMSPREE_NOT_CONFIGURED
+    render(
+      <InquiryForm type="booking" title="Apply to Host" successMessage="Host request received!" packageOptions={[{ value: "package0", label: "Morning session" }]} />,
+    );
+    await fillBooking();
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+
+    expect(await screen.findByText(/isn't fully set up yet/i)).toBeInTheDocument();
+    expect(screen.queryByText("Host request received!")).not.toBeInTheDocument();
+    expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("Jane Doe");
+  });
+
+  it("does not double-submit when the form is submitted twice in flight", async () => {
+    let resolve: () => void = () => {};
+    submitToFormspreeMock.mockImplementation(() => new Promise<void>((r) => { resolve = r; }));
+    const { container } = render(
+      <InquiryForm type="booking" title="Apply to Host" successMessage="ok" packageOptions={[{ value: "package0", label: "Morning session" }]} />,
+    );
+    await fillBooking();
+    const form = container.querySelector("form")!;
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+    resolve();
+    expect(await screen.findByText("ok")).toBeInTheDocument();
+    expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
   });
 });

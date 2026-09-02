@@ -581,7 +581,7 @@ Route segment: `app/[locale]/(site)/<route>/page.tsx`. `en` is unprefixed; `da`/
 | 6 | `/event-decoration` | `page-event-decoration` | **Fully connected.** Hero + CTA, "Suitable Decoration Formats" chips + gallery (14 photos, DA/UK alt backfilled, real video supported), "What we style" split (intro migrated into section `text`), 3-step setup, inquiry form. | COMPLETE |
 | 7 | `/host-at-rorum` | `page-host-at-rorum` | **Fully connected.** Hero, 15-photo gallery (DA/UK alt backfilled), "Each Session Includes", Hosting Packages (3 tiers, price + checklist), 3-step setup, inquiry form. Package `<select>` + Additional-Services checkboxes now driven by the same canonical Sanity items as the cards (stable `itemKey` values, not localized labels). | COMPLETE |
 | 8 | `/community-membership` (WECODA) | `page-community-membership` | **Fully connected.** Hero (intro migrated into `text`, external WECODA link + apply-CTA DA/UK fixed), Donation section (9 bank rows, 2 copyable — bug fixed, QR image), "Connecting Women" 2-column intro, "What You Gain" benefit grid (image authoritative over icon), Application section + steps, gallery (8 photos + 2 videos, DA/UK alt backfilled). | COMPLETE |
-| 9 | `/volunteer` | `page-volunteer` | **Technical chain complete** (verified Phase C): hero eyebrow/heading/body/closing paragraphs + "Apply to volunteer" CTA all render EN/DA/UK from `page-volunteer`; `/da/volunteer` renders Danish. **BUT** the **application-modal** copy (4 items in `sections[applicationForm]`: `modalTitle`, `messagePlaceholder`, `successMessage`, `errorMessage`) is stored **EN-only**. Because `contentItem` `title`/`text` carry the shared all-or-nothing i18n rule, a half-translated row is invalid → **Studio cannot re-publish `page-volunteer` until these 4 strings get DA/UK** (the published version stays live; API writes bypassed the check). Schema/resolver/`<VolunteerApplicationButton>` all support DA/UK — only the content is missing. Form does not deliver (R6). | CONTENT-BLOCKED — 4 modal strings need DA/UK before Studio re-publish (§20.9) |
+| 9 | `/volunteer` | `page-volunteer` | **Technical chain complete** (verified Phase C): hero eyebrow/heading/body/closing paragraphs + "Apply to volunteer" CTA all render EN/DA/UK from `page-volunteer`; `/da/volunteer` renders Danish. **BUT** the **application-modal** copy (4 items in `sections[applicationForm]`: `modalTitle`, `messagePlaceholder`, `successMessage`, `errorMessage`) is stored **EN-only**. Because `contentItem` `title`/`text` carry the shared all-or-nothing i18n rule, a half-translated row is invalid → **Studio cannot re-publish `page-volunteer` until these 4 strings get DA/UK** (the published version stays live; API writes bypassed the check). Schema/resolver/`<VolunteerApplicationButton>` all support DA/UK — only the content is missing. Form delivery is now wired through the shared Formspree path (Task 4 / §20.12). | CONTENT-BLOCKED — 4 modal strings need DA/UK before Studio re-publish (§20.9) |
 | 10 | `/work-with-us` | `page-work-with-us` | Hero + CTAs render EN/DA/UK (`/da/work-with-us` = "Arbejd med os"). **BUT** two item groups are stored **EN-only**, so — same mechanism as Volunteer — **Studio cannot re-publish `page-work-with-us`** until they get DA/UK: the **CV-upload-modal** copy (7 items in `sections[cvUploadForm]`: `modalTitle`, `modalTitleSent`, `description`, `descriptionSent`, `messagePlaceholder`, `dropzoneText`, `errorMessage`) **and** the 3 **"Why work with us" feature bullets** (`sections[features]`: `feature0/1/2` — visible untranslated on `/da` `/uk` today). Technical chain fully supports DA/UK. | CONTENT-BLOCKED — 7 modal strings + 3 feature bullets need DA/UK before Studio re-publish (§20.9) |
 | 11 | `/contact` | `page-contact` + `contactInfo` + `socialLinks` + `formMessages` | **Fully connected.** Hero (intro text, reorderable address/phone/email rows), form section (4 configured fields Full Name/Phone/Email/Message, privacy-consent show/require, FAQ-prompt override), map, social icons (Instagram+Facebook after the R3 guard). The "0 form fields" seen during the audit was a stale dev-server cache (B1 — resolved, not a code defect); the clean build renders all fields + working validation. SEO empty on the published doc — approved copy in `drafts.page-contact` (§20.7). | COMPLETE |
 | 12 | `/faq` | `page-faq` | **Fully connected.** 4 categories / 9 questions render from `page-faq` (`faqCategory` sections, per-question optional link). **Category titles, questions AND answers are fully translated EN/DA/UK — verified live on a clean build (`/da/faq` renders Danish end to end).** The Phase 1 audit's "EN-only" claim was a stale-dev-cache artifact, now corrected. `faqPage`/`faqGroup` legacy schema removed (§20.8). Only outstanding item: publish the SEO draft (§20.7). | COMPLETE |
@@ -608,7 +608,7 @@ x-default present, 143 sitemap `<loc>` entries.
 | Legal / company facts | `lib/siteContent.ts`, `lib/siteConfig.ts` | **Hardcoded** | CVR, company name, address facts rendered on legal pages are still in code, not Sanity. Low priority (rarely changes) but not manager-editable. |
 | Gallery collections | `galleryCollection` / `mediaItem` | **Connected** | Used by Catering / Event Decoration / Host / Community galleries via `lib/sanityGallery.ts` (canonical-vs-legacy policy). |
 | Cookie / privacy consent UI | `PrivacyConsent` / `PrivacyPolicyModal` | **Connected via `formMessages` + `legalPage-privacy-policy`** | Consent copy from `formMessages`; modal body from the privacy `legalPage`. |
-| Forms (all) | `Formspree` wiring in `lib/formspree.ts` | **Not delivering** | Contact / Catering / Decoration / Host / Volunteer / CV forms validate client-side but **no form actually submits** to a backend/endpoint (disclosed repeatedly in Parts 21/23). Product decision needed. |
+| Forms (all) | `lib/useFormspreeSubmit.ts` + `lib/formspree.ts` | **Unified, code-complete (Task 4)** | All 6 forms submit through ONE shared path to ONE Formspree endpoint/form/recipient, with standardized `form_name` + `[RoRUM]` subject + locale metadata. No fake success anywhere. Owner just needs to create the Formspree form + set `NEXT_PUBLIC_FORMSPREE_ENDPOINT` (§20.12 / R6). |
 
 ## 20.4 Per-page audit checklist (this pass)
 
@@ -706,26 +706,45 @@ these routes. Needs an owner yes/no (Part 24 §6).
 Fixing the visible-copy gaps requires authoring real DA/UK translations — a content task, needs owner sign-off on
 provenance.
 
-**R6 — No form actually delivers anywhere (no Formspree endpoint configured).**
-`NEXT_PUBLIC_FORMSPREE_ENDPOINT` is the placeholder, so `lib/formspree.ts`'s `submitToFormspree()`
-throws `FORMSPREE_NOT_CONFIGURED` before any network call. Wiring a real endpoint + recipient is a
-product decision (Part 21), out of scope for the CMS migration.
-**Phase A (2026-09-01) — false-success removed on Contact:** `ContactForm` previously showed
-"Thank you…" and reset on any valid submit even though nothing was sent. It now uses the same
-`submitToFormspree` + `formNotConfiguredMessage` pattern `VolunteerApplicationForm` already uses —
-a valid submit shows "This form isn't fully set up yet — please contact us directly." (translatable,
-from the shared `formMessages` singleton), keeps the user's text, and never shows a success state
-until a real endpoint is configured and the POST succeeds.
-**Final-review follow-up:** `VolunteerApplicationForm` had the right JS handling but still hardcoded
-`action={formspreeConfig.endpoint}`, so a no-JS submit would POST to the 404 placeholder. Now gated
-`action={isFormspreeConfigured() ? … : undefined}`, matching `ContactForm`. `CvUploadModal` /
-`InquiryForm` / `CateringInquiryForm` have no native `action` at all (JS-only).
-**Still carrying the same false-success bug: `components/CvUploadModal.tsx`** (`submitCvApplication()`
-is a 500 ms `setTimeout` that always "succeeds" — explicit TODO in the file) and, to a lesser
-extent, `components/InquiryForm.tsx` (Catering / Host inquiry). Not fixed this pass — flagged for
-the Work-With-Us page work (Phase C) / a dedicated form pass. Volunteer/CV forms also still have
-zero dedicated automated test coverage (Part 22 §5); `ContactForm.test.tsx` now covers the
-Contact delivery paths.
+**R6 — Form delivery: unified on ONE shared Formspree config (Task 4, 2026-09-02). RESOLVED in code; one owner action remains.**
+All six real submission forms — Contact, Volunteer, Work With Us, Catering, Event Decoration,
+Host at RORUM — now submit through the single shared path
+`lib/useFormspreeSubmit.ts` → `lib/formspree.ts` `applyFormspreeMetadata()` → `submitToFormspree()`
+→ one `NEXT_PUBLIC_FORMSPREE_ENDPOINT`, one Formspree form, one recipient. **The recipient
+(`lopatina.iryna@gmail.com`) is configured on the Formspree form only — it is not in any component,
+not in the payload, and a test (`components/forms-delivery-contract.test.tsx`) fails the build if
+it ever appears in `app/` or `components/`.**
+- Every submission carries `form_name` (human-readable: "Contact request", "Volunteer
+  application", "Work With Us application", "Catering inquiry", "Event Decoration inquiry", "Host at
+  RORUM inquiry") + `subject` **and** `_subject` (`[RoRUM] <form type>` — English regardless of the
+  visitor's locale, form type always first, ` — {name}` appended when a name is present) + `locale`
+  (`en`/`da`/`uk`) + `page_url`, plus that form's own fields (name/email/phone/eventDate/guests/
+  package/additionalServices/message/CV file, per what each form actually renders).
+- **All fake-success is gone.** `CvUploadModal`'s 500 ms `setTimeout` "succeeds" and
+  `CateringInquiryForm` / `InquiryForm`'s bare `setSent(true)` + `form.reset()` were removed. A
+  form now shows success and resets **only after Formspree confirms the POST**; on failure the
+  user's input is preserved and a localized message shows (`formNotConfiguredMessage` for "no
+  endpoint yet", else `formSubmitFailedMessage` / the form's own Sanity `errorMessage`). The
+  hardcoded `mailto:rorum2025@gmail.com` in `CvUploadModal`'s error was removed.
+- Website success/error/unavailable copy stays in the existing EN/DA/UK `formMessages`
+  architecture. `VolunteerApplicationForm` also keeps its gated native `action`
+  (`isFormspreeConfigured() ? endpoint : undefined`).
+- **CV file:** the Work With Us modal attaches the validated file as `cv` (multipart). Formspree
+  accepts a multipart POST on every plan, but the file is only stored/forwarded when **File
+  Uploads** is enabled on the form (owner action below). If a Formspree form is configured with
+  strict field validation, an unexpected `cv` field could in principle be rejected — so **after
+  connecting the endpoint, send one test Work With Us application with an attachment and confirm it
+  arrives** before relying on it. If that ever 422s, the fix is to enable File Uploads (not to
+  add a separate upload service).
+- Tests: `lib/formspree.test.ts` (metadata + endpoint), `components/{ContactForm,
+  VolunteerApplicationForm,CvUploadModal,CateringInquiryForm,InquiryForm}.test.tsx`,
+  `components/forms-delivery-contract.test.tsx` — 56 form-delivery tests, all green.
+
+**OWNER ACTION (the only remaining step — §20.12):** create/select ONE Formspree form, set its
+recipient to `lopatina.iryna@gmail.com`, copy its endpoint into `NEXT_PUBLIC_FORMSPREE_ENDPOINT`
+(local `.env.local` + the deployment env). Optionally enable File Uploads on that form for the CV
+attachment. Until then every form correctly shows the localized "not available yet" message and
+never claims a false success.
 
 **R7 — Dataset safety: automated mutation testing targets `production`.**
 `.env.local` → `NEXT_PUBLIC_SANITY_DATASET=production`, and a **write token is present**
@@ -798,8 +817,9 @@ content decisions (`siteSettings.defaultSeo`, legal Section 1).
 7. **R9 — Studio UX walkthrough**, page by page, in the real Studio with the manager — confirm
    field order/labels/previews/reorder/validation against spec §10 and §19. Fold in a
    representative Publish test per page (§18) using draft-only changes on `production`.
-8. **R6 — Form delivery** (product decision: wire a real endpoint; add Volunteer/CV form tests;
-   fix the same false-success in `CvUploadModal.tsx` / `InquiryForm.tsx`).
+8. **R6 — Form delivery** (Task 4 done in code — §20.12): create ONE Formspree form, set its
+   recipient to `lopatina.iryna@gmail.com`, put its endpoint in `NEXT_PUBLIC_FORMSPREE_ENDPOINT`
+   (local + deployment). Optionally enable File Uploads on that form for the Work With Us CV.
 9. **Responsive + Publish sign-off** for every page (§19 items still ⬜ in 20.4), then mark
    COMPLETE.
 
@@ -963,6 +983,73 @@ About / Events / Catering / Event Decoration / Host / Community is that their pu
 `page-*.seo` is still empty → `<title>`/description render the (correct) per-page English
 fallback on every locale until the §20.7 drafts are published.
 
+## 20.12 Phase F — unified Formspree form delivery (Task 4, 2026-09-02)
+
+**One endpoint, one Formspree form, one recipient, for every form on the site.**
+
+### What changed (code, all in the local working tree)
+
+| File | Change |
+|---|---|
+| `lib/formspree.ts` | Kept `submitToFormspree()` (the network boundary) unchanged. Added `RORUM_FORMS` (the single registry of `form_name` + `[RoRUM] <type>` subject for the 6 forms) and `applyFormspreeMetadata(formData, key, {locale})` — a pure function that stamps `form_name`, `subject`, `_subject` (Formspree's real Subject field), `locale`, `page_url` onto the FormData. No recipient anywhere. |
+| `lib/useFormspreeSubmit.ts` | **New.** The one hook every form's submit goes through: `applyFormspreeMetadata` → `submitToFormspree` → success/error/`sent` state + `submissionLock` + reset-only-on-confirmed-success. `FORMSPREE_NOT_CONFIGURED` → `messages.formNotConfiguredMessage`; other failure → the form's own Sanity `errorMessage` if it has one, else `messages.formSubmitFailedMessage`. |
+| `components/ContactForm.tsx` | Switched from its inline `submitToFormspree` call to `useFormspreeSubmit("contact")`. Hidden `form_name`/`subject`/`_subject` updated to the standardized strings (no-JS fallback). |
+| `components/VolunteerApplicationForm.tsx` | `useFormspreeSubmit("volunteer", { failedMessage: content.errorMessage })`. Hidden inputs updated. |
+| `components/CvUploadModal.tsx` | **Removed the fake `submitCvApplication()` (500 ms `setTimeout`).** Now `useFormspreeSubmit("workWithUs", …)`; the validated CV is attached as `formData.set("cv", file)` for the multipart POST. Removed the hardcoded `mailto:rorum2025@gmail.com`. `closeLabel` "CV application" → "Work With Us application". |
+| `components/CateringInquiryForm.tsx` | **Removed the bare `setSent(true)` + `form.reset()`.** Now `useFormspreeSubmit("catering")`, async submit, error `role="alert"`, `disabled` while submitting. |
+| `components/InquiryForm.tsx` | **Removed the bare `setSent(true)`.** `FORMSPREE_KEY_BY_TYPE` maps `booking → hostAtRorum`, `decoration → eventDecoration`, `default → catering`. Async submit, shared error UI + submitting state on both render branches. The `?package=` deep-link `setTimeout` (unrelated to submission) is untouched. |
+| `.env.example` | `FORMSPREE_RECIPIENT_EMAIL=lopatina.iryna@gmail.com` + expanded comments. |
+
+### Subjects & metadata sent
+
+| Form | `form_name` | `subject` / `_subject` |
+|---|---|---|
+| Contact | `Contact request` | `[RoRUM] Contact request — {name}` |
+| Volunteer | `Volunteer application` | `[RoRUM] Volunteer application — {name}` |
+| Work With Us | `Work With Us application` | `[RoRUM] Work With Us application — {name}` |
+| Catering | `Catering inquiry` | `[RoRUM] Catering inquiry — {name}` |
+| Event Decoration | `Event Decoration inquiry` | `[RoRUM] Event Decoration inquiry — {name}` |
+| Host at RORUM | `Host at RORUM inquiry` | `[RoRUM] Host at RORUM inquiry — {name}` |
+
+Plus `locale` (`en`/`da`/`uk`), `page_url`, and each form's own fields. Subjects are English on
+every locale (one consistent Gmail-filter convention); the ` — {name}` suffix is additive and the
+form type is always first. Website success/error/unavailable copy stays localized via `formMessages`.
+
+### Tests (all green)
+
+- **Unit** (`vitest`): `lib/formspree.test.ts` (metadata construction, configured-endpoint POST to
+  the exact URL, non-ok → `FORMSPREE_SUBMISSION_FAILED`, unconfigured → zero network, "no
+  recipient / `_replyto` / `_to` in payload"); `components/{ContactForm,VolunteerApplicationForm,
+  CvUploadModal,CateringInquiryForm,InquiryForm}.test.tsx` (per form: routed through
+  `submitToFormspree`, `form_name`, standardized `subject`/`_subject`, `locale`, own fields
+  present, success→UI+reset, failure→no false success + input kept, missing endpoint→no network
+  + no false success, no double-submit; InquiryForm covers the Host **and** Event Decoration
+  variants — decoration failure + not-configured included); `components/forms-delivery-contract.test.tsx`
+  (every form uses `useFormspreeSubmit`, no `fetch(`, no fake `setTimeout`-success, no bare
+  `setSent(true)`, no email address anywhere in `app/`, `components/` or `lib/`; CV subject is
+  "Work With Us application", never "CV application").
+- **End-to-end** (`tests/forms-formspree.spec.ts`, real production build, Sanity media blocked):
+  all 6 forms — Contact, Catering, Event Decoration, Host at RORUM (booking), Volunteer (modal),
+  Work With Us (CV modal, real PDF attached) — a valid submit shows the localized "unavailable"
+  alert (from production `formMessages`), never a `role="status"` success, keeps the typed name,
+  and makes **zero requests to formspree.io**.
+
+### OWNER CONFIGURATION — the only remaining step
+
+1. In Formspree, create **one** form (or reuse an existing one).
+2. Set that form's **recipient** to `lopatina.iryna@gmail.com` (in the Formspree dashboard — not in code).
+3. Copy the form's endpoint (looks like `https://formspree.io/f/xxxxxxxx`).
+4. Set `NEXT_PUBLIC_FORMSPREE_ENDPOINT=<that endpoint>` in `.env.local` **and** in the deployment
+   environment. Redeploy.
+5. Leave the form's **"Subject" setting at its default** in Formspree — the app already sends a
+   standardized `_subject` per form; a custom Subject in the dashboard would override it.
+6. *(for the CV attachment)* enable **File Uploads** on that Formspree form, then send one test
+   Work With Us application with a file attached and confirm it arrives (see the "CV file" note
+   above). Without File Uploads the application text still delivers.
+
+No second form, no per-form endpoints, no code change. After step 4 the forms switch from the
+"not available yet" message to real delivery automatically.
+
 ---
 
 # 21. Shared Components
@@ -980,7 +1067,9 @@ Audited in §20.3. In-repo shared components and their CMS sources:
 - `components/FAQAccordion.tsx` / `FAQInlinePrompt.tsx` — `page-faq` + `formMessages`.
 - Forms: `ContactForm`, `CateringInquiryForm`, `InquiryForm`, `VolunteerApplicationForm`,
   `CvUploadModal`, `ApplicationModal` — copy from `formMessages` + page-specific `contentItem`
-  roles; **none submit** (R6).
+  roles; **all submit through the one shared `useFormspreeSubmit` → `submitToFormspree` path**
+  (Task 4 / §20.12). No real endpoint is configured yet, so they show the localized "not
+  available" message — never a false success.
 - SEO: `lib/seo.ts` + `shared/seoResolution.ts` + `components/JsonLd.tsx` + `SeoObjectInput` /
   `SeoAllLanguagesInput` Studio components.
 

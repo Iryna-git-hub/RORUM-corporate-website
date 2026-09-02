@@ -6,6 +6,17 @@ import { Upload } from "lucide-react";
 import { ApplicationModal } from "@/components/ApplicationModal";
 import { PrivacyConsent, validatePrivacyConsent } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
+import { useFormspreeSubmit } from "@/lib/useFormspreeSubmit";
+
+// The Work With Us application modal (still collects a CV file). Delivers
+// through the shared `useFormspreeSubmit("workWithUs")` hook — one Formspree
+// endpoint/form/recipient, same as every other RORUM form. Submission carries
+// `form_name: "Work With Us application"` and `subject: "[RoRUM] Work With Us
+// application — {name}"`. The CV rides along as a multipart file field
+// (`name="cv"`); whether the file is stored/forwarded depends on the
+// Formspree form having File Uploads enabled — the owner must verify one
+// real submission with an attachment after connecting the endpoint (see
+// SANITY_MIGRATION.md §20.12). The application text delivers regardless.
 
 export interface CvUploadFormContent {
   modalTitle: string;
@@ -72,9 +83,10 @@ function CvUploadDialog({
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-  const [sent, setSent] = useState(false);
+  const { sent, isSubmitting, submitError, submit, setSubmitError } = useFormspreeSubmit(
+    "workWithUs",
+    { failedMessage: content.errorMessage },
+  );
 
   function validateForm(formData: FormData): Record<string, string> {
     const nextErrors: Record<string, string> = {};
@@ -138,13 +150,6 @@ function CvUploadDialog({
     });
   }
 
-  // TODO: Connect this to a real upload endpoint or form service when the
-  // backend is available. Currently a placeholder that always "succeeds"
-  // after a short delay without sending the CV anywhere.
-  async function submitCvApplication(): Promise<void> {
-    await new Promise((resolve) => window.setTimeout(resolve, 500));
-  }
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitError("");
@@ -155,17 +160,13 @@ function CvUploadDialog({
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
-    setIsSubmitting(true);
-    try {
-      await submitCvApplication();
-      setSent(true);
-      form.reset();
-      setSelectedFile(null);
-    } catch {
-      setSubmitError(content.errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Attach the validated CV explicitly (rather than trusting the file input's
+    // own FormData entry) so exactly the type/size-checked file rides along in
+    // the shared multipart POST. Delivery / success / reset are the shared
+    // hook's job — the same one Contact / Volunteer / the inquiry forms use.
+    if (selectedFile) formData.set("cv", selectedFile, selectedFile.name);
+    const delivered = await submit(formData, form);
+    if (delivered) setSelectedFile(null);
   }
 
   function removeFile() {
@@ -179,7 +180,7 @@ function CvUploadDialog({
     <ApplicationModal
       titleId="cv-modal-title"
       descriptionId={sent ? undefined : "cv-modal-description"}
-      closeLabel="Close CV application dialog"
+      closeLabel="Close Work With Us application dialog"
       onClose={onClose}
     >
       <div ref={dialogRef}>
@@ -338,8 +339,7 @@ function CvUploadDialog({
 
             {submitError ? (
               <p className="m-0 py-3 px-3.5 bg-[rgba(var(--rgb-red),0.08)] text-red text-sm leading-[1.55] font-bold" role="alert">
-                {submitError} {messages.contactFallbackNote}{" "}
-                <a href="mailto:rorum2025@gmail.com" className="text-inherit underline underline-offset-[3px]">rorum2025@gmail.com</a>.
+                {submitError}
               </p>
             ) : null}
 

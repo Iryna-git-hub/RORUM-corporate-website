@@ -8,7 +8,8 @@ import {
   validatePrivacyConsent,
 } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
-import { formspreeConfig, isFormspreeConfigured, submitToFormspree } from "@/lib/formspree";
+import { formspreeConfig, isFormspreeConfigured } from "@/lib/formspree";
+import { useFormspreeSubmit } from "@/lib/useFormspreeSubmit";
 
 export interface VolunteerFormContent {
   modalTitle: string;
@@ -80,15 +81,14 @@ function VolunteerApplicationDialog({
     ["phone", messages.phoneLabel],
     ["message", messages.messageLabel],
   ];
-  const submissionLock = useRef(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-  const [sent, setSent] = useState(false);
+  const { sent, isSubmitting, submitError, submit, setSubmitError } = useFormspreeSubmit(
+    "volunteer",
+    { failedMessage: content.errorMessage },
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submissionLock.current || sent) return;
 
     const form = event.currentTarget;
     const formData = new FormData(form);
@@ -113,23 +113,8 @@ function VolunteerApplicationDialog({
     setSubmitError("");
     if (Object.keys(nextErrors).length) return;
 
-    submissionLock.current = true;
-    setIsSubmitting(true);
-
-    try {
-      await submitToFormspree(formData);
-      setSent(true);
-      form.reset();
-    } catch (error: unknown) {
-      setSubmitError(
-        error instanceof Error && error.message === "FORMSPREE_NOT_CONFIGURED"
-          ? messages.formNotConfiguredMessage
-          : content.errorMessage,
-      );
-    } finally {
-      submissionLock.current = false;
-      setIsSubmitting(false);
-    }
+    // Delivery, success/error state and reset are owned by the shared hook.
+    await submit(formData, form);
   }
 
   return (
@@ -150,12 +135,11 @@ function VolunteerApplicationDialog({
       noValidate
       aria-busy={isSubmitting}
     >
-      <input type="hidden" name="form_name" value="Volunteer With Us" />
-      <input
-        type="hidden"
-        name="subject"
-        value="New Volunteer With Us application"
-      />
+      {/* No-JS fallback metadata; the JS path re-sets these via
+          applyFormspreeMetadata() (adds " — {name}", locale, page_url). */}
+      <input type="hidden" name="form_name" value="Volunteer application" />
+      <input type="hidden" name="subject" value="[RoRUM] Volunteer application" />
+      <input type="hidden" name="_subject" value="[RoRUM] Volunteer application" />
       <div className="grid gap-2 mb-1">
         <h2
           id="volunteer-modal-title"

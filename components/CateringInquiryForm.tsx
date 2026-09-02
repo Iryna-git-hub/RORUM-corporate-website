@@ -7,6 +7,7 @@ import {
   validatePrivacyConsent,
 } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
+import { useFormspreeSubmit } from "@/lib/useFormspreeSubmit";
 
 function validateField(
   name: string,
@@ -47,8 +48,8 @@ export function CateringInquiryForm({
   footerNote?: string;
 }) {
   const { messages } = useFormContent();
-  const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { sent, isSubmitting, submitError, submit, setSubmitError } = useFormspreeSubmit("catering");
 
   const requiredFields: [name: string, label: string][] = [
     ["name", messages.fullNameLabel],
@@ -58,7 +59,7 @@ export function CateringInquiryForm({
     ["message", messages.messageLabel],
   ];
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const formData = new FormData(form);
@@ -72,13 +73,12 @@ export function CateringInquiryForm({
     if (privacyError) nextErrors.privacyConsent = privacyError;
 
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length) {
-      setSent(false);
-      return;
-    }
+    setSubmitError("");
+    if (Object.keys(nextErrors).length) return;
 
-    setSent(true);
-    form.reset();
+    // Real delivery via the shared hook — success + reset only on a confirmed
+    // Formspree POST; on failure the fields keep their values.
+    await submit(formData, form);
   }
 
   const labelClasses =
@@ -105,6 +105,14 @@ export function CateringInquiryForm({
           role="status"
         >
           {successMessage}
+        </div>
+      ) : null}
+      {submitError ? (
+        <div
+          className="border border-[rgba(var(--rgb-red),0.24)] bg-[rgba(var(--rgb-red),0.08)] p-3.5 text-accent text-sm font-bold leading-[1.55]"
+          role="alert"
+        >
+          {submitError}
         </div>
       ) : null}
 
@@ -190,8 +198,9 @@ export function CateringInquiryForm({
       <button
         className="inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] lg:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker disabled:cursor-not-allowed disabled:opacity-[0.62] disabled:transform-none"
         type="submit"
+        disabled={isSubmitting || sent}
       >
-        {submitLabel}
+        {isSubmitting ? messages.sendingLabel : submitLabel}
       </button>
       <p className="m-0 -mt-1 text-text-muted text-xs font-bold">
         {footerNote}

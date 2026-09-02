@@ -3,19 +3,23 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/contact" }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/da/contact" }));
 
-// The shared Formspree helper. Default: behave exactly like the real,
-// currently-unconfigured helper (throws before any network call). Individual
-// tests override `submitToFormspree` to exercise the delivered/failed paths.
+// Mock ONLY the network boundary (`submitToFormspree`). The real
+// `applyFormspreeMetadata` / `RORUM_FORMS` still run, so these tests exercise
+// the whole chain — subject + form_name construction included. Default: behave
+// like the currently-unconfigured helper (reject before any network call).
 const { submitToFormspreeMock } = vi.hoisted(() => ({
   submitToFormspreeMock: vi.fn<(formData: FormData) => Promise<void>>(),
 }));
-vi.mock("@/lib/formspree", () => ({
-  formspreeConfig: { endpoint: "https://formspree.io/f/FORM_ID_PLACEHOLDER" },
-  isFormspreeConfigured: () => false,
-  submitToFormspree: (formData: FormData) => submitToFormspreeMock(formData),
-}));
+vi.mock("@/lib/formspree", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/formspree")>();
+  return {
+    ...actual,
+    isFormspreeConfigured: () => false,
+    submitToFormspree: (formData: FormData) => submitToFormspreeMock(formData),
+  };
+});
 
 import { ContactForm } from "./ContactForm";
 import type { RawPageSection } from "@/lib/sanity-sections";
@@ -153,7 +157,7 @@ describe("ContactForm — real delivery path (Formspree helper mocked)", () => {
     expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("");
   });
 
-  it("passes the submitted field values (plus the hidden form_name) to the delivery helper", async () => {
+  it("passes the submitted field values + standardized metadata to the shared delivery helper", async () => {
     submitToFormspreeMock.mockResolvedValue(undefined);
     render(<ContactForm />);
     await fillValidContactForm();
@@ -162,7 +166,14 @@ describe("ContactForm — real delivery path (Formspree helper mocked)", () => {
     expect(sentData.get("name")).toBe("Jane Doe");
     expect(sentData.get("email")).toBe("jane@example.com");
     expect(sentData.get("message")).toBe("Hello there");
-    expect(sentData.get("form_name")).toBe("Contact");
+    // Standardized, English, form-type-first, name appended:
+    expect(sentData.get("form_name")).toBe("Contact request");
+    expect(sentData.get("subject")).toBe("[RoRUM] Contact request — Jane Doe");
+    expect(sentData.get("_subject")).toBe("[RoRUM] Contact request — Jane Doe");
+    // locale comes from the mocked pathname "/da/contact"
+    expect(sentData.get("locale")).toBe("da");
+    // the recipient address is never in the payload
+    expect([...sentData.keys()]).not.toContain("_replyto");
   });
 
   it("re-submitting the form while a submit is in flight only calls the delivery helper once (submissionLock, not just the disabled button)", async () => {

@@ -1,11 +1,12 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { PrivacyConsent, validatePrivacyConsent } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
 import { useLocale } from "@/lib/useLocale";
-import { formspreeConfig, isFormspreeConfigured, submitToFormspree } from "@/lib/formspree";
+import { formspreeConfig, isFormspreeConfigured } from "@/lib/formspree";
+import { useFormspreeSubmit } from "@/lib/useFormspreeSubmit";
 import { resolveContactFormFields, type ContactFormFieldType } from "@/lib/sanityContact";
 import type { RawPageSection } from "@/lib/sanity-sections";
 import type { ResolvedPrivacyConsentSettings } from "@/lib/sanityContact";
@@ -49,15 +50,14 @@ const HTML_INPUT_TYPE: Record<ContactFormFieldType, string> = {
  * serializable prop); when absent (Sanity unavailable / page not migrated),
  * the original hardcoded Name/Phone/Email/Message fields render unchanged.
  *
- * DELIVERY STATUS: this form uses the site's shared Formspree helper
- * (`lib/formspree.ts`), exactly like `VolunteerApplicationForm`. No endpoint
- * is configured in this project yet (`NEXT_PUBLIC_FORMSPREE_ENDPOINT` is the
- * placeholder), so `submitToFormspree()` throws `FORMSPREE_NOT_CONFIGURED`
- * before making any network request — a valid submit then shows
- * `formNotConfiguredMessage` ("…please contact us directly"), keeps the
- * user's typed text, and never shows a success state. It only shows the
- * success message + resets once a real endpoint is configured and the POST
- * succeeds. Wiring an actual endpoint/recipient is a separate task.
+ * DELIVERY: like every RORUM form, this submits through the shared
+ * `useFormspreeSubmit("contact")` hook → one Formspree endpoint, one form,
+ * one recipient (configured on Formspree, never in code). The submission
+ * carries `form_name: "Contact request"` and `subject: "[RoRUM] Contact
+ * request — {name}"`. No endpoint is configured in this project yet
+ * (`NEXT_PUBLIC_FORMSPREE_ENDPOINT` is the placeholder), so a valid submit
+ * shows `formNotConfiguredMessage`, keeps the user's text, and never shows a
+ * success state until a real endpoint is set and the POST succeeds.
  */
 export function ContactForm({
   formTitle = "We want to hear from you",
@@ -74,11 +74,8 @@ export function ContactForm({
 }) {
   const { messages } = useFormContent();
   const { locale } = useLocale();
-  const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-  const submissionLock = useRef(false);
+  const { sent, isSubmitting, submitError, submit, setSubmitError } = useFormspreeSubmit("contact");
 
   const fields = resolveContactFormFields(formSection, messages, locale);
   const showPrivacyConsent = privacyConsent?.shown ?? true;
@@ -86,7 +83,6 @@ export function ContactForm({
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submissionLock.current || sent) return;
     const form = event.currentTarget;
     const formData = new FormData(form);
     const nextErrors: Record<string, string> = {};
@@ -102,33 +98,11 @@ export function ContactForm({
 
     setErrors(nextErrors);
     setSubmitError("");
-    if (Object.keys(nextErrors).length) {
-      setSent(false);
-      return;
-    }
+    if (Object.keys(nextErrors).length) return;
 
-    submissionLock.current = true;
-    setIsSubmitting(true);
-    try {
-      await submitToFormspree(formData);
-      setSent(true);
-      form.reset();
-    } catch (error: unknown) {
-      // The message was NOT delivered — never set `sent`, never reset the
-      // form: the user keeps their text. `FORMSPREE_NOT_CONFIGURED` (the
-      // current state — no endpoint is set, see lib/formspree.ts) shows the
-      // "not set up, contact us directly" notice; any other failure (a real
-      // network/server error, once delivery is wired) shows the generic
-      // retry-or-contact-us message. Same split VolunteerApplicationForm uses.
-      setSubmitError(
-        error instanceof Error && error.message === "FORMSPREE_NOT_CONFIGURED"
-          ? messages.formNotConfiguredMessage
-          : messages.formSubmitFailedMessage,
-      );
-    } finally {
-      submissionLock.current = false;
-      setIsSubmitting(false);
-    }
+    // Delivery, success/error state and form reset are all owned by the shared
+    // hook — success is shown only after Formspree confirms the POST.
+    await submit(formData, form);
   }
 
   return (
@@ -144,10 +118,13 @@ export function ContactForm({
       noValidate
       aria-busy={isSubmitting}
     >
-      {/* Formspree categorisation once a real endpoint is set — mirrors
-          VolunteerApplicationForm.tsx. Inert until then. */}
-      <input type="hidden" name="form_name" value="Contact" />
-      <input type="hidden" name="subject" value="New contact message" />
+      {/* No-JS fallback metadata (a real endpoint + native submit). The JS
+          path re-sets these via applyFormspreeMetadata() and also appends
+          " — {name}" + locale + page_url. */}
+      <input type="hidden" name="form_name" value="Contact request" />
+      <input type="hidden" name="subject" value="[RoRUM] Contact request" />
+      <input type="hidden" name="_subject" value="[RoRUM] Contact request" />
+      <input type="hidden" name="locale" value={locale} />
       <div className="grid gap-2 mb-1">
         <h2 className="m-0 font-body text-[clamp(17px,1.35vw,20px)] leading-tight font-black tracking-normal normal-case text-text-primary">
           {formTitle}
