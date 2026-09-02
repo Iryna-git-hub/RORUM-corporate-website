@@ -72,6 +72,8 @@
     "sanity:delete-old-page-ids": "tsx --env-file=.env.local scripts/delete-old-dotted-page-ids.ts",
     "sanity:delete-orphaned-dotted-drafts:dry-run": "tsx --env-file=.env.local scripts/delete-orphaned-dotted-page-drafts.ts --dry-run",
     "sanity:delete-orphaned-dotted-drafts": "tsx --env-file=.env.local scripts/delete-orphaned-dotted-page-drafts.ts",
+    "sanity:delete-orphaned-legacy-singleton-drafts:dry-run": "tsx --env-file=.env.local scripts/delete-orphaned-legacy-singleton-drafts.ts --dry-run",
+    "sanity:delete-orphaned-legacy-singleton-drafts": "tsx --env-file=.env.local scripts/delete-orphaned-legacy-singleton-drafts.ts",
     "sanity:add-ticket-provider-label:dry-run": "tsx --env-file=.env.local scripts/add-ticket-provider-row-label.ts --dry-run",
     "sanity:add-ticket-provider-label": "tsx --env-file=.env.local scripts/add-ticket-provider-row-label.ts",
     "sanity:backfill-ticket-provider-label:dry-run": "tsx --env-file=.env.local scripts/backfill-ticket-provider-label.ts --dry-run",

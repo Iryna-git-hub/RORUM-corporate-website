@@ -33,27 +33,19 @@ import faqGroup from "./documents/faqGroup";
 import galleryCollection from "./documents/galleryCollection";
 import page from "./documents/page";
 
-// Singletons (globals + page documents)
-import aboutPage from "./singletons/aboutPage";
-import cateringMenuExamplesPage from "./singletons/cateringMenuExamplesPage";
-import cateringPage from "./singletons/cateringPage";
-import communityMembershipPage from "./singletons/communityMembershipPage";
+// Global singletons. (The old per-page singletons — homePage, aboutPage,
+// cateringPage, … — were deleted once every page moved to the shared `page`
+// document type; see MIGRATION_REPORT.md Parts 16–17 and the R8 cleanup in
+// SANITY_MIGRATION.md §20.8. Their production documents were already gone; this
+// pass removed the now-dead schema types, queries and fallback fetches too.)
 import contactInfo from "./singletons/contactInfo";
-import contactPage from "./singletons/contactPage";
-import eventDecorationPage from "./singletons/eventDecorationPage";
 import eventMessages from "./singletons/eventMessages";
-import eventsPage from "./singletons/eventsPage";
-import faqPage from "./singletons/faqPage";
 import footer from "./singletons/footer";
 import formMessages from "./singletons/formMessages";
-import homePage from "./singletons/homePage";
-import hostAtRorumPage from "./singletons/hostAtRorumPage";
 import legalPage from "./singletons/legalPage";
 import navigation from "./singletons/navigation";
 import siteSettings from "./singletons/siteSettings";
 import socialLinks from "./singletons/socialLinks";
-import volunteerPage from "./singletons/volunteerPage";
-import workWithUsPage from "./singletons/workWithUsPage";
 
 export const schemaTypes: SchemaTypeDefinition[] = [
   // Objects
@@ -87,27 +79,15 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   faqGroup,
   galleryCollection,
   page,
-  // Singletons
-  aboutPage,
-  cateringMenuExamplesPage,
-  cateringPage,
-  communityMembershipPage,
+  // Global singletons
   contactInfo,
-  contactPage,
-  eventDecorationPage,
   eventMessages,
-  eventsPage,
-  faqPage,
   footer,
   formMessages,
-  homePage,
-  hostAtRorumPage,
   legalPage,
   navigation,
   siteSettings,
   socialLinks,
-  volunteerPage,
-  workWithUsPage,
 ];
 
 /** Document type names that are singletons — exactly one instance should ever exist. */
@@ -119,18 +99,6 @@ export const SINGLETON_TYPES = new Set([
   "footer",
   "formMessages",
   "eventMessages",
-  "homePage",
-  "aboutPage",
-  "eventsPage",
-  "cateringPage",
-  "cateringMenuExamplesPage",
-  "eventDecorationPage",
-  "hostAtRorumPage",
-  "communityMembershipPage",
-  "volunteerPage",
-  "workWithUsPage",
-  "contactPage",
-  "faqPage",
 ]);
 
 /**
@@ -139,25 +107,8 @@ export const SINGLETON_TYPES = new Set([
  */
 export const LEGAL_PAGE_KEYS = ["terms", "privacy-policy", "cookie-policy"] as const;
 
-/**
- * The eventual full set of `page.<key>` documents (see
- * documents/page.ts) that replace the old per-page singletons — see
- * MIGRATION_REPORT.md. Rolled out incrementally: a page only exists as a
- * `page` document (and disappears from structure.ts's old singleton list)
- * once its migration has run and been verified. `home`/`catering` are the
- * pilot; the rest follow once the pilot is verified.
- */
-export const PAGE_KEYS = [
-  "home",
-  "about",
-  "events",
-  "catering",
-  "cateringMenuExamples",
-  "eventDecoration",
-  "hostAtRorum",
-  "communityMembership",
-  "volunteer",
-  "workWithUs",
-  "contact",
-  "faq",
-] as const;
+// The full set of `page` document keys lives in `sanity/lib/pageIds.ts`
+// (`PAGE_KEYS` / `PageKey` / `PAGE_DOC_ID`) — the authoritative source used
+// by `structure.ts` and the scripts. The old per-page singletons this shared
+// `page` type replaced have been removed (MIGRATION_REPORT.md Parts 16–17,
+// SANITY_MIGRATION.md §20.8).

@@ -1,13 +1,29 @@
-import { describe, expect, it, vi, afterEach } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/contact" }));
 
+// The shared Formspree helper. Default: behave exactly like the real,
+// currently-unconfigured helper (throws before any network call). Individual
+// tests override `submitToFormspree` to exercise the delivered/failed paths.
+const { submitToFormspreeMock } = vi.hoisted(() => ({
+  submitToFormspreeMock: vi.fn<(formData: FormData) => Promise<void>>(),
+}));
+vi.mock("@/lib/formspree", () => ({
+  formspreeConfig: { endpoint: "https://formspree.io/f/FORM_ID_PLACEHOLDER" },
+  isFormspreeConfigured: () => false,
+  submitToFormspree: (formData: FormData) => submitToFormspreeMock(formData),
+}));
+
 import { ContactForm } from "./ContactForm";
 import type { RawPageSection } from "@/lib/sanity-sections";
 
+beforeEach(() => {
+  submitToFormspreeMock.mockReset();
+  submitToFormspreeMock.mockRejectedValue(new Error("FORMSPREE_NOT_CONFIGURED"));
+});
 afterEach(() => cleanup());
 
 function i18n(en: string) {
@@ -79,34 +95,95 @@ describe("ContactForm — validation derived from field type", () => {
     expect(screen.queryByText(/Email.*is required/)).not.toBeInTheDocument();
   });
 
-  it("valid submission shows the success message and resets the form", async () => {
+});
+
+async function fillValidContactForm() {
+  await userEvent.type(screen.getByLabelText(/Full Name/), "Jane Doe");
+  await userEvent.type(screen.getByLabelText(/Phone number/), "+45 12 34 56 78");
+  await userEvent.type(screen.getByLabelText(/^Email/), "jane@example.com");
+  await userEvent.type(screen.getByLabelText(/Message/), "Hello there");
+  await userEvent.click(screen.getByRole("checkbox"));
+  await userEvent.click(screen.getByRole("button", { name: /Send message/ }));
+}
+
+describe("ContactForm — truthful submission behavior: no email delivery is configured (Phase A)", () => {
+  it("a valid submission with delivery not configured shows the 'not set up' notice and does NOT show a success state", async () => {
     render(<ContactForm successMessage="All good!" />);
-    await userEvent.type(screen.getByLabelText(/Full Name/), "Jane Doe");
-    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 12 34 56 78");
-    await userEvent.type(screen.getByLabelText(/^Email/), "jane@example.com");
-    await userEvent.type(screen.getByLabelText(/Message/), "Hello there");
-    await userEvent.click(screen.getByRole("checkbox"));
-    await userEvent.click(screen.getByRole("button", { name: /Send message/ }));
-    expect(await screen.findByText("All good!")).toBeInTheDocument();
+    await fillValidContactForm();
+
+    expect(await screen.findByText("This form isn't fully set up yet — please contact us directly.")).toBeInTheDocument();
+    expect(screen.getByText(/isn't fully set up yet/i)).toHaveAttribute("role", "alert");
+    expect(screen.queryByText("All good!")).not.toBeInTheDocument();
+  });
+
+  it("a failed submit does NOT reset the form — the user keeps their typed text", async () => {
+    render(<ContactForm />);
+    await fillValidContactForm();
+    await screen.findByText(/isn't fully set up yet/i);
+    expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("Jane Doe");
+    expect((screen.getByLabelText(/Message/) as HTMLTextAreaElement).value).toBe("Hello there");
+  });
+
+  it("a network/server failure (not 'not configured') shows the generic retry message, never a false success", async () => {
+    submitToFormspreeMock.mockRejectedValue(new Error("FORMSPREE_SUBMISSION_FAILED"));
+    render(<ContactForm successMessage="All good!" />);
+    await fillValidContactForm();
+    expect(await screen.findByText("Something went wrong sending your message. Please try again, or contact us directly.")).toBeInTheDocument();
+    expect(screen.queryByText(/isn't fully set up yet/i)).not.toBeInTheDocument();
+    expect(screen.queryByText("All good!")).not.toBeInTheDocument();
+  });
+
+  it("the 'not configured' path specifically shows the 'not set up' notice, not the generic error", async () => {
+    // default beforeEach mock already rejects with FORMSPREE_NOT_CONFIGURED
+    render(<ContactForm />);
+    await fillValidContactForm();
+    expect(await screen.findByText(/isn't fully set up yet/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Something went wrong sending/i)).not.toBeInTheDocument();
   });
 });
 
-describe("ContactForm — truthful submission behavior: no delivery endpoint exists yet (Task 10)", () => {
-  it("a valid submission makes ZERO network requests — the success state is client-only, not a real delivery", async () => {
-    const fetchSpy = vi.spyOn(global, "fetch").mockImplementation(() => {
-      throw new Error("ContactForm must not call fetch — no delivery endpoint exists yet");
-    });
-    render(<ContactForm successMessage="All good!" />);
+describe("ContactForm — real delivery path (Formspree helper mocked)", () => {
+  it("when submitToFormspree resolves, the success message shows and the form resets", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<ContactForm successMessage="Delivered!" />);
+    await fillValidContactForm();
+
+    expect(await screen.findByText("Delivered!")).toBeInTheDocument();
+    expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
+    expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("");
+  });
+
+  it("passes the submitted field values (plus the hidden form_name) to the delivery helper", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<ContactForm />);
+    await fillValidContactForm();
+    await screen.findByText(/Your message is ready/i);
+    const sentData = submitToFormspreeMock.mock.calls[0]![0] as FormData;
+    expect(sentData.get("name")).toBe("Jane Doe");
+    expect(sentData.get("email")).toBe("jane@example.com");
+    expect(sentData.get("message")).toBe("Hello there");
+    expect(sentData.get("form_name")).toBe("Contact");
+  });
+
+  it("re-submitting the form while a submit is in flight only calls the delivery helper once (submissionLock, not just the disabled button)", async () => {
+    let resolveSubmit: () => void = () => {};
+    submitToFormspreeMock.mockImplementation(() => new Promise<void>((r) => { resolveSubmit = r; }));
+    const { container } = render(<ContactForm successMessage="Delivered!" />);
     await userEvent.type(screen.getByLabelText(/Full Name/), "Jane Doe");
     await userEvent.type(screen.getByLabelText(/Phone number/), "+45 12 34 56 78");
     await userEvent.type(screen.getByLabelText(/^Email/), "jane@example.com");
     await userEvent.type(screen.getByLabelText(/Message/), "Hello there");
     await userEvent.click(screen.getByRole("checkbox"));
-    await userEvent.click(screen.getByRole("button", { name: /Send message/ }));
 
-    expect(await screen.findByText("All good!")).toBeInTheDocument();
-    expect(fetchSpy).not.toHaveBeenCalled();
-    fetchSpy.mockRestore();
+    const form = container.querySelector("form")!;
+    // `fireEvent.submit` bypasses the disabled button entirely — the only
+    // thing that can stop the second submission is the `submissionLock` ref.
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+    resolveSubmit();
+
+    expect(await screen.findByText("Delivered!")).toBeInTheDocument();
+    expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -9,7 +9,6 @@ import { resolveCanonicalFaqGroups } from "@/lib/sanityFaq";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
-import { faqPageQuery } from "@/sanity/queries/faq";
 import { pageByKeyQuery } from "@/sanity/queries/page";
 
 const fallback = {
@@ -23,26 +22,20 @@ const fallback = {
 async function getData(locale: Locale) {
   if (!isSanityConfigured) return { ...fallback, groups: undefined as FaqGroupData[] | undefined };
 
-  const [{ data: page }, { data: newPage }] = await Promise.all([
-    sanityFetch({ query: faqPageQuery }),
-    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "faq" } }),
-  ]);
+  const { data: newPage } = await sanityFetch({ query: pageByKeyQuery, params: { pageKey: "faq" } });
 
   const heroSection = getSection(newPage?.sections, "hero");
-  // Canonical-vs-legacy authority, matching the same missing/empty/present
-  // policy this session's gallery work established (see lib/sanityFaq.ts):
-  // page-faq missing entirely -> legacy faqPage.groups; page-faq exists but
-  // has zero "group-" sections -> intentionally empty, never resurrects
-  // legacy content.
-  const groups = resolveCanonicalFaqGroups(newPage?.sections, page?.groups, locale);
+  // Canonical-vs-legacy authority (see lib/sanityFaq.ts): page-faq missing
+  // entirely -> empty; page-faq exists but has zero "group-" sections ->
+  // intentionally empty. The legacy `faqPage.groups` source no longer exists.
+  const groups = resolveCanonicalFaqGroups(newPage?.sections, undefined, locale);
 
   return {
-    heroLabel: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
-    heroTitle: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
-    heroText: pickLocalized(heroSection?.text, locale) ?? pickLocalized(page?.heroText, locale) ?? fallback.heroText,
-    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? pickLocalized(page?.seo?.title, locale) ?? fallback.seoTitle,
-    description:
-      pickLocalized(newPage?.seo?.description, locale) ?? pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+    heroLabel: pickLocalized(heroSection?.label, locale) ?? fallback.heroLabel,
+    heroTitle: pickLocalized(heroSection?.title, locale) ?? fallback.heroTitle,
+    heroText: pickLocalized(heroSection?.text, locale) ?? fallback.heroText,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
+    description: pickLocalized(newPage?.seo?.description, locale) ?? fallback.description,
     ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
       ?.width(1200)
       .url(),

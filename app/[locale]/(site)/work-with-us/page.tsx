@@ -12,7 +12,6 @@ import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
-import { workWithUsPageQuery } from "@/sanity/queries/pages";
 
 const fallbackFeatureItems: { text: string; icon: LucideIcon }[] = [
   { text: "Opportunities grow through people", icon: Sprout },
@@ -66,10 +65,7 @@ async function getData(locale: Locale) {
     };
   }
 
-  const [{ data: page }, { data: newPage }] = await Promise.all([
-    sanityFetch({ query: workWithUsPageQuery }),
-    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "workWithUs" } }),
-  ]);
+  const { data: newPage } = await sanityFetch({ query: pageByKeyQuery, params: { pageKey: "workWithUs" } });
 
   const heroSection = getSection(newPage?.sections, "hero");
   const featuresSection = getSection(newPage?.sections, "features");
@@ -78,21 +74,14 @@ async function getData(locale: Locale) {
   const heroParagraphItems = (heroSection?.items ?? []).filter((i) => i.itemKey?.startsWith("hero"));
   const heroParagraphs = heroParagraphItems.length
     ? compact(heroParagraphItems.map((i) => pickLocalized(i.text, locale)))
-    : page?.heroParagraphs
-      ? compact(page.heroParagraphs.map((p) => pickLocalized(p?.text, locale)))
-      : fallbackHeroParagraphs;
+    : fallbackHeroParagraphs;
 
   const featureItems = featuresSection?.items?.length
     ? featuresSection.items.map((f, i) => ({
         text: pickLocalized(f.title, locale) ?? fallbackFeatureItems[i]?.text ?? "",
         icon: getIconCardIcon(f.icon ?? undefined),
       }))
-    : page?.featureItems?.length
-      ? page.featureItems.map((f, i) => ({
-          text: pickLocalized(f?.title, locale) ?? fallbackFeatureItems[i]?.text ?? "",
-          icon: getIconCardIcon(f?.icon),
-        }))
-      : fallbackFeatureItems;
+    : fallbackFeatureItems;
 
   const collaborationImages = heroSection?.media?.length
     ? heroSection.media.map((m, i) => ({
@@ -102,57 +91,32 @@ async function getData(locale: Locale) {
             .url() ?? fallbackCollaborationImages[i]?.image ?? "",
         alt: pickLocalized(m.alt, locale) ?? fallbackCollaborationImages[i]?.alt ?? "",
       }))
-    : page?.collaborationImages?.length
-      ? page.collaborationImages.map((img, i) => ({
-          image:
-            urlForImage(img as unknown as Parameters<typeof urlForImage>[0])
-              ?.width(900)
-              .url() ?? fallbackCollaborationImages[i]?.image ?? "",
-          alt: pickLocalized(img?.alt, locale) ?? fallbackCollaborationImages[i]?.alt ?? "",
-        }))
-      : fallbackCollaborationImages;
+    : fallbackCollaborationImages;
 
   const cvUploadForm: CvUploadFormContent = {
     modalTitle:
-      pickLocalized(getItem(formSection, "modalTitle")?.title, locale) ??
-      pickLocalized(page?.cvUploadForm?.modalTitle, locale) ??
-      fallbackCvUploadForm.modalTitle,
+      pickLocalized(getItem(formSection, "modalTitle")?.title, locale) ?? fallbackCvUploadForm.modalTitle,
     modalTitleSent:
-      pickLocalized(getItem(formSection, "modalTitleSent")?.title, locale) ??
-      pickLocalized(page?.cvUploadForm?.modalTitleSent, locale) ??
-      fallbackCvUploadForm.modalTitleSent,
+      pickLocalized(getItem(formSection, "modalTitleSent")?.title, locale) ?? fallbackCvUploadForm.modalTitleSent,
     description:
-      pickLocalized(getItem(formSection, "description")?.text, locale) ??
-      pickLocalized(page?.cvUploadForm?.description, locale) ??
-      fallbackCvUploadForm.description,
+      pickLocalized(getItem(formSection, "description")?.text, locale) ?? fallbackCvUploadForm.description,
     descriptionSent:
-      pickLocalized(getItem(formSection, "descriptionSent")?.text, locale) ??
-      pickLocalized(page?.cvUploadForm?.descriptionSent, locale) ??
-      fallbackCvUploadForm.descriptionSent,
+      pickLocalized(getItem(formSection, "descriptionSent")?.text, locale) ?? fallbackCvUploadForm.descriptionSent,
     messagePlaceholder:
-      pickLocalized(getItem(formSection, "messagePlaceholder")?.title, locale) ??
-      pickLocalized(page?.cvUploadForm?.messagePlaceholder, locale) ??
-      fallbackCvUploadForm.messagePlaceholder,
+      pickLocalized(getItem(formSection, "messagePlaceholder")?.title, locale) ?? fallbackCvUploadForm.messagePlaceholder,
     dropzoneText:
-      pickLocalized(getItem(formSection, "dropzoneText")?.title, locale) ??
-      pickLocalized(page?.cvUploadForm?.dropzoneText, locale) ??
-      fallbackCvUploadForm.dropzoneText,
+      pickLocalized(getItem(formSection, "dropzoneText")?.title, locale) ?? fallbackCvUploadForm.dropzoneText,
     errorMessage:
-      pickLocalized(getItem(formSection, "errorMessage")?.text, locale) ??
-      pickLocalized(page?.cvUploadForm?.errorMessage, locale) ??
-      fallbackCvUploadForm.errorMessage,
+      pickLocalized(getItem(formSection, "errorMessage")?.text, locale) ?? fallbackCvUploadForm.errorMessage,
   };
 
   return {
-    heroLabel: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
-    heroTitle: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
+    heroLabel: pickLocalized(heroSection?.label, locale) ?? fallback.heroLabel,
+    heroTitle: pickLocalized(heroSection?.title, locale) ?? fallback.heroTitle,
     cvUploadCta:
-      pickLocalized(getItem(heroSection, "cvUploadCta")?.title, locale) ??
-      pickLocalized(page?.cvUploadCta, locale) ??
-      fallback.cvUploadCta,
-    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? pickLocalized(page?.seo?.title, locale) ?? fallback.seoTitle,
-    description:
-      pickLocalized(newPage?.seo?.description, locale) ?? pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+      pickLocalized(getItem(heroSection, "cvUploadCta")?.title, locale) ?? fallback.cvUploadCta,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
+    description: pickLocalized(newPage?.seo?.description, locale) ?? fallback.description,
     ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
       ?.width(1200)
       .url(),

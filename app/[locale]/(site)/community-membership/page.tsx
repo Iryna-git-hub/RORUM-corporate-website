@@ -21,7 +21,6 @@ import { urlForFile, urlForImage } from "@/sanity/lib/image";
 import { isDirectVideoFileUrl } from "@/sanity/lib/videoUrl";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
-import { communityMembershipPageQuery } from "@/sanity/queries/pages";
 
 const fallbackWecodaFormUrl = "https://forms.gle/MpadaPTyL8YCHtAa9";
 const fallbackWecodaExternalUrl = "https://wecoda.org";
@@ -129,12 +128,6 @@ function MembershipButton({ children, variant = "primary", href = fallbackWecoda
 
 type BenefitIndexStyle = CSSProperties & { "--benefit-index": number };
 
-function splitBenefit(combined: string, fallbackTitle: string, fallbackText: string): [string, string] {
-  const [title, ...rest] = combined.split(" — ");
-  const text = rest.join(" — ");
-  return title && text ? [title, text] : [fallbackTitle, fallbackText];
-}
-
 async function getData(locale: Locale) {
   if (!isSanityConfigured) {
     return {
@@ -153,10 +146,7 @@ async function getData(locale: Locale) {
     };
   }
 
-  const [{ data: page }, { data: newPage }] = await Promise.all([
-    sanityFetch({ query: communityMembershipPageQuery }),
-    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "communityMembership" } }),
-  ]);
+  const { data: newPage } = await sanityFetch({ query: pageByKeyQuery, params: { pageKey: "communityMembership" } });
 
   const heroSection = getSection(newPage?.sections, "hero");
   const donationSection = getSection(newPage?.sections, "donation");
@@ -171,15 +161,11 @@ async function getData(locale: Locale) {
     ? heroTextValue.split("\n\n").filter(Boolean)
     : heroIntroItemsFromSections.length
       ? compact(heroIntroItemsFromSections.map((i) => pickLocalized(i.text, locale)))
-      : page?.heroIntro?.length
-        ? compact(page.heroIntro.map((p) => pickLocalized(p?.text, locale)))
-        : fallback.heroIntro;
+      : fallback.heroIntro;
 
   const introColumns = introSection?.items?.length
     ? compact(introSection.items.map((c) => pickLocalized(c.text, locale)))
-    : page?.introColumns?.length
-      ? compact(page.introColumns.map((c) => pickLocalized(c?.text, locale)))
-      : fallback.introColumns;
+    : fallback.introColumns;
 
   const benefits = benefitsSection?.items?.length
     ? benefitsSection.items.map((b, i) => ({
@@ -190,25 +176,14 @@ async function getData(locale: Locale) {
             ?.width(96)
             .url() ?? benefitIcons[i] ?? benefitIcons[0]!,
       }))
-    : page?.benefits?.length
-      ? page.benefits.map((b, i) => {
-          const combined = pickLocalized(b?.text, locale) ?? "";
-          const [title, text] = splitBenefit(combined, fallbackBenefits[i]?.[0] ?? "", fallbackBenefits[i]?.[1] ?? "");
-          const icon =
-            urlForImage(b?.icon as unknown as Parameters<typeof urlForImage>[0])
-              ?.width(96)
-              .url() ?? benefitIcons[i] ?? benefitIcons[0]!;
-          return { title, text, icon };
-        })
-      : fallbackBenefits.map(([title, text], i) => ({ title, text, icon: benefitIcons[i]! }));
+    : fallbackBenefits.map(([title, text], i) => ({ title, text, icon: benefitIcons[i]! }));
 
   const applyAction = getAction(heroSection, "apply");
-  const membershipFormHref = applyAction?.href || page?.membershipFormCta?.href || fallbackWecodaFormUrl;
+  const membershipFormHref = applyAction?.href || fallbackWecodaFormUrl;
   const externalSiteHref = getAction(heroSection, "external")?.href || fallbackWecodaExternalUrl;
 
   const donationQrSrc =
     urlForImage(donationSection?.media?.[0]?.image as unknown as Parameters<typeof urlForImage>[0])?.width(800).url() ??
-    urlForImage(page?.donation?.qrImage as unknown as Parameters<typeof urlForImage>[0])?.width(800).url() ??
     fallbackWecodaDonationQrSrc;
 
   const bankItemsFromSections = (donationSection?.items ?? []).filter((i) => i.itemKey?.startsWith("bank"));
@@ -220,13 +195,7 @@ async function getData(locale: Locale) {
           value: f.value ?? "",
           copyable: f.copyEnabled ?? false,
         }))
-    : page?.donation?.bankFields?.length
-      ? page.donation.bankFields.map((f, i) => ({
-          label: pickLocalized(f?.label, locale) ?? defaultBankFields[i]?.label ?? "",
-          value: f?.value ?? defaultBankFields[i]?.value ?? "",
-          copyable: f?.copyable ?? defaultBankFields[i]?.copyable,
-        }))
-      : defaultBankFields;
+    : defaultBankFields;
 
   // Mirrors resolveCanonicalGalleryItems's "missing vs. intentionally empty"
   // policy (lib/sanityGallery.ts) by hand rather than calling it directly:
@@ -265,24 +234,7 @@ async function getData(locale: Locale) {
     : gallerySection
       ? []
       : undefined;
-  const gallery: MembershipWeekMediaItem[] =
-    galleryFromSections ??
-    (page?.gallery?.length
-      ? page.gallery.map((item, i) => {
-          const fb = membershipWeekMedia[i];
-          const imageUrl = urlForImage(item?.image as unknown as Parameters<typeof urlForImage>[0])
-            ?.width(700)
-            .url();
-          return imageUrl
-            ? { type: "image" as const, src: imageUrl, alt: pickLocalized(item?.alt, locale) ?? fb?.alt, featured: fb?.featured }
-            : {
-                type: "video" as const,
-                src: item?.videoUrl || fb?.src || "",
-                label: pickLocalized(item?.alt, locale) ?? fb?.label,
-                featured: fb?.featured,
-              };
-        })
-      : membershipWeekMedia);
+  const gallery: MembershipWeekMediaItem[] = galleryFromSections ?? membershipWeekMedia;
 
   const applicationSteps = applicationSection?.items?.length
     ? applicationSection.items.map((s, i) => ({
@@ -290,84 +242,48 @@ async function getData(locale: Locale) {
         title: pickLocalized(s.title, locale) ?? "",
         text: pickLocalized(s.text, locale) ?? "",
       }))
-    : page?.applicationSteps?.length
-      ? page.applicationSteps.map((s, i) => ({
-          number: String(i + 1).padStart(2, "0"),
-          title: pickLocalized(s?.title, locale) ?? "",
-          text: pickLocalized(s?.text, locale) ?? "",
-        }))
-      : fallbackApplicationSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }));
+    : fallbackApplicationSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }));
 
   return {
-    heroLabel: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
-    heroTitle: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
+    heroLabel: pickLocalized(heroSection?.label, locale) ?? fallback.heroLabel,
+    heroTitle: pickLocalized(heroSection?.title, locale) ?? fallback.heroTitle,
     supportCta:
-      pickLocalized(getAction(heroSection, "support")?.label, locale) ??
-      pickLocalized(page?.supportCta?.label, locale) ??
-      fallback.supportCta,
+      pickLocalized(getAction(heroSection, "support")?.label, locale) ?? fallback.supportCta,
     externalSiteCta:
-      pickLocalized(getAction(heroSection, "external")?.label, locale) ??
-      pickLocalized(page?.externalSiteCta?.label, locale) ??
-      fallback.externalSiteCta,
+      pickLocalized(getAction(heroSection, "external")?.label, locale) ?? fallback.externalSiteCta,
     priceStripText:
-      pickLocalized(getItem(heroSection, "priceStripText")?.title, locale) ??
-      pickLocalized(page?.priceStripText, locale) ??
-      fallback.priceStripText,
-    benefitsTitle:
-      pickLocalized(benefitsSection?.title, locale) ?? pickLocalized(page?.benefitsTitle, locale) ?? fallback.benefitsTitle,
-    applicationTitle:
-      pickLocalized(applicationSection?.title, locale) ?? pickLocalized(page?.applicationTitle, locale) ?? fallback.applicationTitle,
+      pickLocalized(getItem(heroSection, "priceStripText")?.title, locale) ?? fallback.priceStripText,
+    benefitsTitle: pickLocalized(benefitsSection?.title, locale) ?? fallback.benefitsTitle,
+    applicationTitle: pickLocalized(applicationSection?.title, locale) ?? fallback.applicationTitle,
     applicationCta:
-      pickLocalized(getAction(applicationSection, "apply")?.label, locale) ??
-      pickLocalized(page?.applicationCta?.label, locale) ??
-      fallback.applicationCta,
-    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? pickLocalized(page?.seo?.title, locale) ?? fallback.seoTitle,
-    description:
-      pickLocalized(newPage?.seo?.description, locale) ?? pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+      pickLocalized(getAction(applicationSection, "apply")?.label, locale) ?? fallback.applicationCta,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
+    description: pickLocalized(newPage?.seo?.description, locale) ?? fallback.description,
     ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
       ?.width(1200)
       .url(),
     ogImageAlt: pickLocalized(newPage?.seo?.ogImage?.alt, locale),
-    introSectionLabel:
-      pickLocalized(introSection?.label, locale) ?? pickLocalized(page?.introSectionLabel, locale) ?? fallback.introSectionLabel,
-    introSectionTitle:
-      pickLocalized(introSection?.title, locale) ?? pickLocalized(page?.introSectionTitle, locale) ?? fallback.introSectionTitle,
-    galleryLabel:
-      pickLocalized(gallerySection?.label, locale) ?? pickLocalized(page?.galleryLabel, locale) ?? fallback.galleryLabel,
-    galleryTitle:
-      pickLocalized(gallerySection?.title, locale) ?? pickLocalized(page?.galleryTitle, locale) ?? fallback.galleryTitle,
-    donationLabel:
-      pickLocalized(donationSection?.label, locale) ?? pickLocalized(page?.donation?.label, locale) ?? fallback.donationLabel,
-    donationTitle:
-      pickLocalized(donationSection?.title, locale) ?? pickLocalized(page?.donation?.title, locale) ?? fallback.donationTitle,
-    donationText:
-      pickLocalized(donationSection?.text, locale) ?? pickLocalized(page?.donation?.text, locale) ?? fallback.donationText,
+    introSectionLabel: pickLocalized(introSection?.label, locale) ?? fallback.introSectionLabel,
+    introSectionTitle: pickLocalized(introSection?.title, locale) ?? fallback.introSectionTitle,
+    galleryLabel: pickLocalized(gallerySection?.label, locale) ?? fallback.galleryLabel,
+    galleryTitle: pickLocalized(gallerySection?.title, locale) ?? fallback.galleryTitle,
+    donationLabel: pickLocalized(donationSection?.label, locale) ?? fallback.donationLabel,
+    donationTitle: pickLocalized(donationSection?.title, locale) ?? fallback.donationTitle,
+    donationText: pickLocalized(donationSection?.text, locale) ?? fallback.donationText,
     donationScanText:
-      pickLocalized(getItem(donationSection, "scanText")?.title, locale) ??
-      pickLocalized(page?.donation?.scanText, locale) ??
-      fallback.donationScanText,
+      pickLocalized(getItem(donationSection, "scanText")?.title, locale) ?? fallback.donationScanText,
     donationScanSubtext:
-      pickLocalized(getItem(donationSection, "scanSubtext")?.title, locale) ??
-      pickLocalized(page?.donation?.scanSubtext, locale) ??
-      fallback.donationScanSubtext,
+      pickLocalized(getItem(donationSection, "scanSubtext")?.title, locale) ?? fallback.donationScanSubtext,
     donationOrText:
-      pickLocalized(getItem(donationSection, "orText")?.title, locale) ??
-      pickLocalized(page?.donation?.orText, locale) ??
-      fallback.donationOrText,
+      pickLocalized(getItem(donationSection, "orText")?.title, locale) ?? fallback.donationOrText,
     donationBankTransferText:
-      pickLocalized(getItem(donationSection, "bankTransferText")?.title, locale) ??
-      pickLocalized(page?.donation?.bankTransferText, locale) ??
-      fallback.donationBankTransferText,
+      pickLocalized(getItem(donationSection, "bankTransferText")?.title, locale) ?? fallback.donationBankTransferText,
     donationBankDetailsTitle:
-      pickLocalized(getItem(donationSection, "bankDetailsTitle")?.title, locale) ??
-      pickLocalized(page?.donation?.bankDetailsTitle, locale) ??
-      fallback.donationBankDetailsTitle,
+      pickLocalized(getItem(donationSection, "bankDetailsTitle")?.title, locale) ?? fallback.donationBankDetailsTitle,
     donationSupportText:
-      pickLocalized(getItem(donationSection, "supportText")?.text, locale) ??
-      pickLocalized(page?.donation?.supportText, locale) ??
-      fallback.donationSupportText,
+      pickLocalized(getItem(donationSection, "supportText")?.text, locale) ?? fallback.donationSupportText,
     statementText:
-      pickLocalized(applicationSection?.text, locale) ?? pickLocalized(page?.statementText, locale) ?? fallback.statementText,
+      pickLocalized(applicationSection?.text, locale) ?? fallback.statementText,
     heroIntro,
     introColumns,
     benefits,

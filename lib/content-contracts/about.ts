@@ -668,7 +668,7 @@ export const aboutContract: PageContentContract = {
       mutationStrategy: "not-mutation-tested",
       editorVisibility: "hidden",
       classification: "obsolete-deferred",
-      notes: "Exact same situation as Home's pre-fix homePage/homePageQuery dependency. Not fixed in this pass (schema-removal decisions are explicitly deferred). Proposed fix (code-only, page-scoped, mirrors the Home fix already applied): stop calling aboutPageQuery in about/page.tsx and drop the `page` fallback branch, without touching the aboutPage schema type registration or any other page.",
+      notes: "DONE (R8 cleanup, SANITY_MIGRATION.md §20.8): the `aboutPage` schema type, `aboutPageQuery`, the `about/page.tsx` fetch and every `?? page?.X` fallback tier have all been removed. This entry is now fully historical — the field no longer exists anywhere.",
     },
   ],
 };

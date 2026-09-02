@@ -21,7 +21,6 @@ import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
-import { eventDecorationPageQuery } from "@/sanity/queries/pages";
 import type { MediaItem } from "@/sanity.types";
 
 const fallbackFormats: { title: string; text: string; icon: string }[] = [
@@ -88,10 +87,7 @@ async function getData(locale: Locale) {
     };
   }
 
-  const [{ data: page }, { data: newPage }] = await Promise.all([
-    sanityFetch({ query: eventDecorationPageQuery }),
-    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "eventDecoration" } }),
-  ]);
+  const { data: newPage } = await sanityFetch({ query: pageByKeyQuery, params: { pageKey: "eventDecoration" } });
 
   const heroSection = getSection(newPage?.sections, "hero");
   const gallerySection = getSection(newPage?.sections, "gallery");
@@ -99,25 +95,10 @@ async function getData(locale: Locale) {
   const stepsSection = getSection(newPage?.sections, "steps");
   const formSection = getSection(newPage?.sections, "inquiryForm");
 
-  // Legacy `page.gallery` (imageWithAlt[], no video concept) is only used
-  // when the canonical `gallery` section is genuinely MISSING — converted
-  // to the same MediaItem shape resolveGalleryItems expects, preserving its
-  // existing image-only behavior exactly. resolveCanonicalGalleryItems
-  // (lib/sanityGallery.ts, shared with Catering/Host at RORUM) is what
-  // enforces that this legacy tier is never reached when the canonical
-  // section EXISTS but was intentionally emptied — the bug this replaced:
-  // the previous `gallerySection?.media?.length ? canonical : legacy`
-  // treated an intentionally-emptied `media: []` exactly like a missing
-  // section, silently resurrecting legacy photos a manager had already
-  // cleared.
-  const legacyGalleryMedia: MediaItem[] | undefined = page?.gallery?.map(
-    (img): MediaItem => ({ _type: "mediaItem", kind: "image", image: { _type: "image", asset: img.asset }, alt: img.alt }),
-  );
   const galleryItems = resolveCanonicalGalleryItems(
     gallerySection as { media?: MediaItem[] } | undefined,
     locale,
     eventDecorationGalleryImages,
-    legacyGalleryMedia,
   );
 
   // Canonical source (current): the section's own real `text` field,
@@ -135,9 +116,7 @@ async function getData(locale: Locale) {
     ? stylingTextValue.split("\n\n").filter(Boolean)
     : legacyIntroItems?.length
       ? legacyIntroItems.map((i) => pickLocalized(i.text, locale)).filter((v): v is NonNullable<typeof v> => v != null)
-      : page?.stylingIntro?.length
-        ? page.stylingIntro.map((p) => pickLocalized(p?.text, locale)).filter((v): v is NonNullable<typeof v> => v != null)
-        : fallback.stylingIntro;
+      : fallback.stylingIntro;
 
   const formatItemsFromSections = stylingSection?.items?.filter((i) => i.itemKey?.startsWith("format"));
   const formats = formatItemsFromSections?.length
@@ -153,22 +132,12 @@ async function getData(locale: Locale) {
         href: f.href?.trim() || undefined,
         linkLabel: pickLocalized(f.label, locale) || undefined,
       }))
-    : page?.formats?.length
-      ? page.formats.map((f) => ({
-          title: pickLocalized(f?.title, locale) ?? "",
-          text: pickLocalized(f?.text, locale) ?? "",
-          Icon: getIconCardIcon(f?.icon),
-          href: undefined as string | undefined,
-          linkLabel: undefined as string | undefined,
-        }))
-      : fallbackFormats.map((f) => ({ title: f.title, text: f.text, Icon: getIconCardIcon(f.icon), href: undefined as string | undefined, linkLabel: undefined as string | undefined }));
+    : fallbackFormats.map((f) => ({ title: f.title, text: f.text, Icon: getIconCardIcon(f.icon), href: undefined as string | undefined, linkLabel: undefined as string | undefined }));
 
   const suitableForItems = gallerySection?.items?.filter((i) => i.itemKey?.startsWith("suitableFor"));
   const suitableFor = suitableForItems?.length
     ? suitableForItems.map((s) => ({ label: pickLocalized(s.title, locale) ?? "", Icon: getIconCardIcon(s.icon ?? undefined) }))
-    : page?.suitableFor?.length
-      ? page.suitableFor.map((s) => ({ label: pickLocalized(s?.title, locale) ?? "", Icon: getIconCardIcon(s?.icon) }))
-      : fallbackSuitableFor.map(([label, icon]) => ({ label, Icon: getIconCardIcon(icon) }));
+    : fallbackSuitableFor.map(([label, icon]) => ({ label, Icon: getIconCardIcon(icon) }));
 
   const steps = stepsSection?.items?.length
     ? stepsSection.items.map((s, i) => ({
@@ -176,76 +145,52 @@ async function getData(locale: Locale) {
         title: pickLocalized(s.title, locale) ?? "",
         text: pickLocalized(s.text, locale) ?? "",
       }))
-    : page?.steps?.length
-      ? page.steps.map((s, i) => ({
-          number: String(i + 1).padStart(2, "0"),
-          title: pickLocalized(s?.title, locale) ?? "",
-          text: pickLocalized(s?.text, locale) ?? "",
-        }))
-      : fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }));
+    : fallbackSteps.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }));
 
   const tailoredNoteItem = getItem(stylingSection, "tailoredNote");
   const stylingMedia = stylingSection?.media?.[0];
 
   return {
-    label: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.hero?.label, locale) ?? fallback.label,
-    title: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.hero?.title, locale) ?? fallback.title,
-    text: pickLocalized(heroSection?.text, locale) ?? pickLocalized(page?.hero?.text, locale) ?? fallback.text,
+    label: pickLocalized(heroSection?.label, locale) ?? fallback.label,
+    title: pickLocalized(heroSection?.title, locale) ?? fallback.title,
+    text: pickLocalized(heroSection?.text, locale) ?? fallback.text,
     requestCta:
-      pickLocalized(getAction(heroSection, "request")?.label, locale) ??
-      pickLocalized(page?.hero?.primaryCta?.label, locale) ??
-      fallback.requestCta,
-    stylingLabel:
-      pickLocalized(stylingSection?.label, locale) ?? pickLocalized(page?.stylingLabel, locale) ?? fallback.stylingLabel,
-    stylingTitle:
-      pickLocalized(stylingSection?.title, locale) ?? pickLocalized(page?.stylingTitle, locale) ?? fallback.stylingTitle,
+      pickLocalized(getAction(heroSection, "request")?.label, locale) ?? fallback.requestCta,
+    stylingLabel: pickLocalized(stylingSection?.label, locale) ?? fallback.stylingLabel,
+    stylingTitle: pickLocalized(stylingSection?.title, locale) ?? fallback.stylingTitle,
     stylingIntro,
     stylingImage:
       urlForImage(stylingMedia?.image as unknown as Parameters<typeof urlForImage>[0])
         ?.width(900)
-        .url() ??
-      urlForImage(page?.stylingImage as unknown as Parameters<typeof urlForImage>[0])
-        ?.width(900)
-        .url() ??
-      fallback.stylingImage,
+        .url() ?? fallback.stylingImage,
     stylingImageAlt:
-      pickLocalized(stylingMedia?.alt, locale) ?? pickLocalized(page?.stylingImage?.alt, locale) ?? fallback.stylingImageAlt,
+      pickLocalized(stylingMedia?.alt, locale) ?? fallback.stylingImageAlt,
     suitableForLabel:
-      pickLocalized(gallerySection?.label, locale) ?? pickLocalized(page?.suitableForLabel, locale) ?? fallback.suitableForLabel,
+      pickLocalized(gallerySection?.label, locale) ?? fallback.suitableForLabel,
     suitableForAriaLabel:
-      pickLocalized(getItem(gallerySection, "ariaLabel")?.title, locale) ??
-      pickLocalized(page?.suitableForAriaLabel, locale) ??
-      fallback.suitableForAriaLabel,
+      pickLocalized(getItem(gallerySection, "ariaLabel")?.title, locale) ?? fallback.suitableForAriaLabel,
     tailoredTitle:
-      pickLocalized(tailoredNoteItem?.title, locale) ?? pickLocalized(page?.tailoredNote?.title, locale) ?? fallback.tailoredTitle,
+      pickLocalized(tailoredNoteItem?.title, locale) ?? fallback.tailoredTitle,
     tailoredText:
-      pickLocalized(tailoredNoteItem?.text, locale) ?? pickLocalized(page?.tailoredNote?.text, locale) ?? fallback.tailoredText,
-    stepsTitle:
-      pickLocalized(stepsSection?.title, locale) ?? pickLocalized(page?.stepsTitle, locale) ?? fallback.stepsTitle,
+      pickLocalized(tailoredNoteItem?.text, locale) ?? fallback.tailoredText,
+    stepsTitle: pickLocalized(stepsSection?.title, locale) ?? fallback.stepsTitle,
     howItWorksLabel: pickLocalized(stepsSection?.label, locale) ?? "How it works",
     inquiryIntro:
-      pickLocalized(formSection?.text, locale) ?? pickLocalized(page?.inquiryIntro, locale) ?? fallback.inquiryIntro,
-    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? pickLocalized(page?.seo?.title, locale) ?? fallback.seoTitle,
-    description:
-      pickLocalized(newPage?.seo?.description, locale) ?? pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+      pickLocalized(formSection?.text, locale) ?? fallback.inquiryIntro,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
+    description: pickLocalized(newPage?.seo?.description, locale) ?? fallback.description,
     ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
       ?.width(1200)
       .url(),
     ogImageAlt: pickLocalized(newPage?.seo?.ogImage?.alt, locale),
     inquiryTitle:
-      pickLocalized(formSection?.title, locale) ?? pickLocalized(page?.inquiryTitle, locale) ?? fallback.inquiryTitle,
+      pickLocalized(formSection?.title, locale) ?? fallback.inquiryTitle,
     inquirySubmitLabel:
-      pickLocalized(getItem(formSection, "submitLabel")?.title, locale) ??
-      pickLocalized(page?.inquirySubmitLabel, locale) ??
-      fallback.inquirySubmitLabel,
+      pickLocalized(getItem(formSection, "submitLabel")?.title, locale) ?? fallback.inquirySubmitLabel,
     messagePlaceholder:
-      pickLocalized(getItem(formSection, "messagePlaceholder")?.title, locale) ??
-      pickLocalized(page?.messagePlaceholder, locale) ??
-      fallback.messagePlaceholder,
+      pickLocalized(getItem(formSection, "messagePlaceholder")?.title, locale) ?? fallback.messagePlaceholder,
     successMessage:
-      pickLocalized(getItem(formSection, "successMessage")?.text, locale) ??
-      pickLocalized(page?.successMessage, locale) ??
-      fallback.successMessage,
+      pickLocalized(getItem(formSection, "successMessage")?.text, locale) ?? fallback.successMessage,
     formats,
     suitableFor,
     steps,

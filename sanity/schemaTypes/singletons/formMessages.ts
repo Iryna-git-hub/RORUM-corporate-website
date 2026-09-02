@@ -162,8 +162,8 @@ export default defineType({
     // invalidPhoneMessage, fileRequiredMessage, fileTypeMessage,
     // fileSizeMessage, uploadCvLabel, removeFileLabel, shortMessageLabel,
     // sendingLabel, applicationSentLabel, sendApplicationLabel,
-    // submitCvLabel, formNotConfiguredMessage, contactFormMessagePlaceholder,
-    // contactFallbackNote.
+    // submitCvLabel, formNotConfiguredMessage, formSubmitFailedMessage,
+    // contactFormMessagePlaceholder, contactFallbackNote.
     defineField({
       name: "extraLabels",
       title: "Additional shared labels",

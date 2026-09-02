@@ -61,7 +61,12 @@ function pick(entries: I18nEntry[] | undefined, lang: string): string | undefine
 const LOCALES = ["en", "da", "uk"] as const;
 
 // Chosen from live data (read-only query, not modified by this suite):
-// - AVAILABLE: not sold out, has a positive ticketsLeft, fully translated en/da/uk.
+// - AVAILABLE: not sold out, fully translated en/da/uk, has a non-empty
+//   `whatToExpect`. Used only by the date-agnostic detail-page + "What to
+//   Expect" checks below (a detail page is always reachable regardless of the
+//   event's date). The cross-page-consistency test does NOT use these pinned
+//   slugs — it resolves the first currently-listed event dynamically, so it
+//   keeps working whatever's in the dataset (see that test).
 // - SOLD_OUT: isSoldOut === true live.
 // - BASELINE: the same event tests/routes.ts's SAMPLE_EVENT_ROUTE already uses
 //   elsewhere in this suite (interactions/breakpoints/locale/visual specs).
@@ -304,32 +309,37 @@ test.describe("Cross-page consistency — same event, no contradictions", () => 
     "Sanity not configured in this environment",
   );
 
-  test(`${AVAILABLE_SLUG}: title/date/sold-out-state/destination consistent across Home strip, listing, and detail`, async ({ page }) => {
-    const event = await sanity.fetch<RawEvent | null>(eventQuery, { slug: AVAILABLE_SLUG });
-    const title = pick(event?.title, "en");
-    expect(title).toBeTruthy();
+  test(`the first event on the listing is consistent across the listing card, its detail page, and (when shown) the Home strip`, async ({ page }) => {
+    // Resolve the event the listing actually shows first, rather than pinning a
+    // slug to a specific dataset state. Both the Home strip (allEventsQuery) and
+    // the Events listing (EventsClientPage default sort) order by date ascending
+    // and do NOT hide past events, so the earliest-dated published event is the
+    // first card on both surfaces — a real, always-present consistency subject.
+    const firstEvent = await sanity.fetch<RawEvent | null>(
+      `*[_type == "event" && defined(slug.current) && defined(date) && "en" in visibleLocales]
+        | order(date asc)[0]{ "slug": slug.current, title, date }`,
+    );
+    expect(firstEvent?.slug, "at least one published event shown on the EN site must exist").toBeTruthy();
+    const slug = firstEvent!.slug!;
+    const title = pick(firstEvent!.title, "en");
+    expect(title, `${slug}.title (en) must be published`).toBeTruthy();
 
+    // Listing: the first card must be this event and show its title.
+    await page.goto(localizedHref("/events", "en"));
+    const listingCard = page.locator(`a[href$="/events/${slug}"]`).first();
+    await expect(listingCard).toBeVisible();
+    await expect(listingCard).toContainText(title!);
+
+    // Home strip: shows the same date-ordered set — assert consistency when the
+    // card is present (it is, unless the strip is deliberately empty for EN).
     await page.goto(localizedHref("/", "en"));
-    const homeCard = page.locator(`a[href$="/events/${AVAILABLE_SLUG}"]`).first();
+    const homeCard = page.locator(`a[href$="/events/${slug}"]`).first();
     if (await homeCard.count()) {
       await expect(homeCard).toContainText(title!);
     }
 
-    await page.goto(localizedHref("/events", "en"));
-    // The listing paginates — the card may not be on page 1, so page
-    // forward (mirroring tests/interactions.spec.ts's own pagination
-    // pattern) until it's found or pagination is exhausted.
-    let listingCard = page.locator(`a[href$="/events/${AVAILABLE_SLUG}"]`).first();
-    for (let i = 0; i < 10 && !(await listingCard.count()); i++) {
-      const next = page.getByRole("link", { name: "Next page" });
-      if (!(await next.count())) break;
-      await next.click();
-      listingCard = page.locator(`a[href$="/events/${AVAILABLE_SLUG}"]`).first();
-    }
-    await expect(listingCard).toBeVisible();
-    await expect(listingCard).toContainText(title!);
-
-    await page.goto(localizedHref(`/events/${AVAILABLE_SLUG}`, "en"));
+    // Detail page: always reachable, H1 must match.
+    await page.goto(localizedHref(`/events/${slug}`, "en"));
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(title!);
   });
 });

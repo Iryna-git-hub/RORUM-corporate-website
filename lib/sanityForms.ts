@@ -38,6 +38,8 @@ export interface ResolvedFormMessages {
   sendApplicationLabel: string;
   submitCvLabel: string;
   formNotConfiguredMessage: string;
+  /** Shown when a form submit fails for a reason OTHER than "no endpoint configured" (a real network/server error, once delivery is wired). */
+  formSubmitFailedMessage: string;
   contactFormMessagePlaceholder: string;
   contactFallbackNote: string;
 }
@@ -82,6 +84,7 @@ export const defaultFormMessages: ResolvedFormMessages = {
   sendApplicationLabel: "Send Application",
   submitCvLabel: "Submit CV",
   formNotConfiguredMessage: "This form isn't fully set up yet — please contact us directly.",
+  formSubmitFailedMessage: "Something went wrong sending your message. Please try again, or contact us directly.",
   contactFormMessagePlaceholder: "Tell us a little about your request, timing and preferences.",
   contactFallbackNote: "Contact us directly at",
 };
@@ -143,6 +146,12 @@ export function resolveFormMessages(doc: FormMessages | null | undefined, locale
       "formNotConfiguredMessage",
       locale,
       defaultFormMessages.formNotConfiguredMessage,
+    ),
+    formSubmitFailedMessage: pickLabel(
+      doc?.extraLabels,
+      "formSubmitFailedMessage",
+      locale,
+      defaultFormMessages.formSubmitFailedMessage,
     ),
     contactFormMessagePlaceholder: pickLabel(
       doc?.extraLabels,

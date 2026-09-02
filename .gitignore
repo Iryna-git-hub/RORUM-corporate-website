@@ -13,6 +13,12 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+# Playwright MCP session scratch output (browser snapshots / traces)
+/.playwright-mcp/
+
+# Isolated production-build output dir used only when RORUM_DIST_DIR is set
+# (lets a Playwright prod build run without colliding with `next dev`'s .next)
+/.next-prodtest/
 
 # Temporary local screenshots / scratch debug output
 _*.png

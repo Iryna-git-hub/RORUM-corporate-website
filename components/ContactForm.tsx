@@ -1,10 +1,11 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { PrivacyConsent, validatePrivacyConsent } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
 import { useLocale } from "@/lib/useLocale";
+import { formspreeConfig, isFormspreeConfigured, submitToFormspree } from "@/lib/formspree";
 import { resolveContactFormFields, type ContactFormFieldType } from "@/lib/sanityContact";
 import type { RawPageSection } from "@/lib/sanity-sections";
 import type { ResolvedPrivacyConsentSettings } from "@/lib/sanityContact";
@@ -48,14 +49,15 @@ const HTML_INPUT_TYPE: Record<ContactFormFieldType, string> = {
  * serializable prop); when absent (Sanity unavailable / page not migrated),
  * the original hardcoded Name/Phone/Email/Message fields render unchanged.
  *
- * IMPORTANT, disclosed limitation carried over unchanged from before this
- * refactor: this form has never submitted anywhere — there is no backend
- * endpoint or email provider wired up. On successful client-side validation
- * it only sets `sent=true` and resets the fields; no network request is
- * made and no submitted data is sent or logged anywhere. This refactor
- * makes the FIELD SET configurable from Sanity; it does not add real
- * submission — see the final report for what a later "wire up a real
- * endpoint" task would need.
+ * DELIVERY STATUS: this form uses the site's shared Formspree helper
+ * (`lib/formspree.ts`), exactly like `VolunteerApplicationForm`. No endpoint
+ * is configured in this project yet (`NEXT_PUBLIC_FORMSPREE_ENDPOINT` is the
+ * placeholder), so `submitToFormspree()` throws `FORMSPREE_NOT_CONFIGURED`
+ * before making any network request — a valid submit then shows
+ * `formNotConfiguredMessage` ("…please contact us directly"), keeps the
+ * user's typed text, and never shows a success state. It only shows the
+ * success message + resets once a real endpoint is configured and the POST
+ * succeeds. Wiring an actual endpoint/recipient is a separate task.
  */
 export function ContactForm({
   formTitle = "We want to hear from you",
@@ -74,13 +76,17 @@ export function ContactForm({
   const { locale } = useLocale();
   const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const submissionLock = useRef(false);
 
   const fields = resolveContactFormFields(formSection, messages, locale);
   const showPrivacyConsent = privacyConsent?.shown ?? true;
   const requirePrivacyConsent = privacyConsent?.required ?? true;
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submissionLock.current || sent) return;
     const form = event.currentTarget;
     const formData = new FormData(form);
     const nextErrors: Record<string, string> = {};
@@ -95,22 +101,53 @@ export function ContactForm({
     }
 
     setErrors(nextErrors);
+    setSubmitError("");
     if (Object.keys(nextErrors).length) {
       setSent(false);
       return;
     }
 
-    // No network request — see this component's own doc comment above.
-    setSent(true);
-    form.reset();
+    submissionLock.current = true;
+    setIsSubmitting(true);
+    try {
+      await submitToFormspree(formData);
+      setSent(true);
+      form.reset();
+    } catch (error: unknown) {
+      // The message was NOT delivered — never set `sent`, never reset the
+      // form: the user keeps their text. `FORMSPREE_NOT_CONFIGURED` (the
+      // current state — no endpoint is set, see lib/formspree.ts) shows the
+      // "not set up, contact us directly" notice; any other failure (a real
+      // network/server error, once delivery is wired) shows the generic
+      // retry-or-contact-us message. Same split VolunteerApplicationForm uses.
+      setSubmitError(
+        error instanceof Error && error.message === "FORMSPREE_NOT_CONFIGURED"
+          ? messages.formNotConfiguredMessage
+          : messages.formSubmitFailedMessage,
+      );
+    } finally {
+      submissionLock.current = false;
+      setIsSubmitting(false);
+    }
   }
 
   return (
     <form
       className="grid gap-4 border-0 rounded-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] text-text-primary overflow-hidden p-[clamp(20px,3vw,4rem)]"
+      // Native `action` only once a real endpoint exists — otherwise a no-JS
+      // submit would POST to the placeholder URL and 404. The JS path
+      // (`onSubmit` → `submitToFormspree`) handles the configured case and
+      // shows the "not set up" notice when it isn't.
+      action={isFormspreeConfigured() ? formspreeConfig.endpoint : undefined}
+      method="post"
       onSubmit={onSubmit}
       noValidate
+      aria-busy={isSubmitting}
     >
+      {/* Formspree categorisation once a real endpoint is set — mirrors
+          VolunteerApplicationForm.tsx. Inert until then. */}
+      <input type="hidden" name="form_name" value="Contact" />
+      <input type="hidden" name="subject" value="New contact message" />
       <div className="grid gap-2 mb-1">
         <h2 className="m-0 font-body text-[clamp(17px,1.35vw,20px)] leading-tight font-black tracking-normal normal-case text-text-primary">
           {formTitle}
@@ -122,6 +159,14 @@ export function ContactForm({
           role="status"
         >
           {successMessage}
+        </div>
+      ) : null}
+      {submitError ? (
+        <div
+          className="border border-[rgba(var(--rgb-red),0.24)] bg-[rgba(var(--rgb-red),0.08)] p-3.5 text-accent text-sm font-bold leading-[1.55]"
+          role="alert"
+        >
+          {submitError}
         </div>
       ) : null}
       {fields.map((field) => {
@@ -157,7 +202,7 @@ export function ContactForm({
               />
             )}
             {error ? (
-              <small className="block mt-1.75 text-accent text-xs font-bold" id={errorId}>
+              <small className="block mt-1.75 text-accent text-xs font-bold" id={errorId} role="alert">
                 {error}
               </small>
             ) : null}
@@ -170,8 +215,9 @@ export function ContactForm({
       <button
         className="inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] lg:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker disabled:cursor-not-allowed disabled:opacity-[0.62] disabled:transform-none"
         type="submit"
+        disabled={isSubmitting || sent}
       >
-        {submitLabel}
+        {isSubmitting ? messages.sendingLabel : submitLabel}
       </button>
     </form>
   );

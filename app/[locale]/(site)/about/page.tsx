@@ -20,7 +20,6 @@ import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
-import { aboutPageQuery } from "@/sanity/queries/pages";
 
 const fallbackIntroLinks: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/host-at-rorum", label: "Host at RORUM", icon: CalendarPlus },
@@ -100,10 +99,7 @@ async function getData(locale: Locale) {
     };
   }
 
-  const [{ data: page }, { data: newPage }] = await Promise.all([
-    sanityFetch({ query: aboutPageQuery }),
-    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "about" } }),
-  ]);
+  const { data: newPage } = await sanityFetch({ query: pageByKeyQuery, params: { pageKey: "about" } });
 
   const heroSection = getSection(newPage?.sections, "hero");
   const statementSection = getSection(newPage?.sections, "statement");
@@ -111,18 +107,8 @@ async function getData(locale: Locale) {
   const pillarsSection = getSection(newPage?.sections, "pillars");
   const closingCtaSection = getSection(newPage?.sections, "closingCta");
 
-  function resolveIconLinks(
-    links: typeof page extends null | undefined ? never : NonNullable<typeof page>["introLinks"],
-    fb: { href: string; label: string; icon: LucideIcon }[],
-  ) {
-    return links?.length
-      ? links.map((l, i) => ({
-          href: l?.href ?? fb[i]?.href ?? "/",
-          label: pickLocalized(l?.label, locale) ?? fb[i]?.label ?? "",
-          Icon: l?.icon ? getIconCardIcon(l.icon) : (fb[i]?.icon ?? CalendarPlus),
-        }))
-      : fb.map(({ href, label, icon }) => ({ href, label, Icon: icon }));
-  }
+  const iconLinksFallback = (fb: { href: string; label: string; icon: LucideIcon }[]) =>
+    fb.map(({ href, label, icon }) => ({ href, label, Icon: icon }));
 
   function resolveIconLinksFromSection(section: typeof heroSection, fb: { href: string; label: string; icon: LucideIcon }[]) {
     return section?.items?.length
@@ -143,15 +129,7 @@ async function getData(locale: Locale) {
             .url() ?? fallbackAtmosphereImages[i]?.image ?? "",
         alt: pickLocalized(m.alt, locale) ?? fallbackAtmosphereImages[i]?.alt ?? "",
       }))
-    : page?.atmosphereImages?.length
-      ? page.atmosphereImages.map((img, i) => ({
-          image:
-            urlForImage(img as unknown as Parameters<typeof urlForImage>[0])
-              ?.width(700)
-              .url() ?? fallbackAtmosphereImages[i]?.image ?? "",
-          alt: pickLocalized(img?.alt, locale) ?? fallbackAtmosphereImages[i]?.alt ?? "",
-        }))
-      : fallbackAtmosphereImages;
+    : fallbackAtmosphereImages;
 
   const pillars = pillarsSection?.items?.length
     ? pillarsSection.items.map((p, i) => ({
@@ -159,13 +137,7 @@ async function getData(locale: Locale) {
         title: pickLocalized(p.title, locale) ?? "",
         text: pickLocalized(p.text, locale) ?? "",
       }))
-    : page?.pillars?.length
-      ? page.pillars.map((p, i) => ({
-          number: String(i + 1).padStart(2, "0"),
-          title: pickLocalized(p?.title, locale) ?? "",
-          text: pickLocalized(p?.text, locale) ?? "",
-        }))
-      : fallbackPillars.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }));
+    : fallbackPillars.map(([title, text], i) => ({ number: String(i + 1).padStart(2, "0"), title, text }));
 
   const closingLinkItems = closingCtaSection?.items?.filter((i) => i.itemKey?.startsWith("link"));
   const closingLinks = closingLinkItems?.length
@@ -173,81 +145,49 @@ async function getData(locale: Locale) {
         href: l.href ?? closingLinksFallback[i]?.href ?? "/",
         label: pickLocalized(l.label, locale) ?? closingLinksFallback[i]?.label ?? "",
       }))
-    : page?.closingSection?.links?.length
-      ? page.closingSection.links.map((l, i) => ({
-          href: l?.href ?? closingLinksFallback[i]?.href ?? "/",
-          label: pickLocalized(l?.label, locale) ?? closingLinksFallback[i]?.label ?? "",
-        }))
-      : closingLinksFallback;
+    : closingLinksFallback;
 
   return {
-    heroLabel: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
-    heroTitle: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
-    heroLead: pickLocalized(heroSection?.text, locale) ?? pickLocalized(page?.heroLead, locale) ?? fallback.heroLead,
-    statementTitle:
-      pickLocalized(statementSection?.title, locale) ?? pickLocalized(page?.statementTitle, locale) ?? fallback.statementTitle,
-    statementText:
-      pickLocalized(statementSection?.text, locale) ?? pickLocalized(page?.statementText, locale) ?? fallback.statementText,
-    communityTitle:
-      pickLocalized(communitySection?.title, locale) ?? pickLocalized(page?.communityTitle, locale) ?? fallback.communityTitle,
-    communityText:
-      pickLocalized(communitySection?.text, locale) ?? pickLocalized(page?.communityText, locale) ?? fallback.communityText,
-    pillarsLabel:
-      pickLocalized(pillarsSection?.label, locale) ?? pickLocalized(page?.pillarsLabel, locale) ?? fallback.pillarsLabel,
-    locationTitle:
-      pickLocalized(pillarsSection?.title, locale) ?? pickLocalized(page?.locationTitle, locale) ?? fallback.locationTitle,
-    locationText:
-      pickLocalized(pillarsSection?.text, locale) ?? pickLocalized(page?.locationText, locale) ?? fallback.locationText,
-    // Reads the current page-about document's own SEO field — previously
-    // read `page?.seo?.description` from the obsolete `aboutPageQuery`
-    // result, which always returned null (0 `aboutPage` documents in
-    // production), so this silently ignored every editor's SEO
-    // description. `pickLocalized` still falls back to English internally
-    // when only EN is set, and to `fallback.description` only as the true
-    // last resort (no Sanity content at all) — same fallback chain Home
-    // already uses.
+    heroLabel: pickLocalized(heroSection?.label, locale) ?? fallback.heroLabel,
+    heroTitle: pickLocalized(heroSection?.title, locale) ?? fallback.heroTitle,
+    heroLead: pickLocalized(heroSection?.text, locale) ?? fallback.heroLead,
+    statementTitle: pickLocalized(statementSection?.title, locale) ?? fallback.statementTitle,
+    statementText: pickLocalized(statementSection?.text, locale) ?? fallback.statementText,
+    communityTitle: pickLocalized(communitySection?.title, locale) ?? fallback.communityTitle,
+    communityText: pickLocalized(communitySection?.text, locale) ?? fallback.communityText,
+    pillarsLabel: pickLocalized(pillarsSection?.label, locale) ?? fallback.pillarsLabel,
+    locationTitle: pickLocalized(pillarsSection?.title, locale) ?? fallback.locationTitle,
+    locationText: pickLocalized(pillarsSection?.text, locale) ?? fallback.locationText,
+    // `pickLocalized` falls back to English internally when only EN is set,
+    // and to `fallback.description` only as the true last resort (no Sanity
+    // content at all) — same fallback chain Home uses.
     description: pickLocalized(newPage?.seo?.description, locale) ?? fallback.description,
-    // Same fallback shape as description above. `seo.title` is not a new
-    // field — it already exists on the shared `seo` object type used by
-    // every page/event/singleton (0 new Content Lake attributes) — this is
-    // wiring only; production content for it is still empty on About as of
-    // this change, so `<title>` keeps showing the hardcoded fallback until
-    // an editor fills it in.
+    // `seo.title` lives on the shared `seo` object type used by every
+    // page/event — production content for it may still be empty on About, in
+    // which case `<title>` shows the hardcoded fallback until an editor fills it in.
     seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
     ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
       ?.width(1200)
       .url(),
     ogImageAlt: pickLocalized(newPage?.seo?.ogImage?.alt, locale),
-    closingEyebrow:
-      pickLocalized(closingCtaSection?.label, locale) ?? pickLocalized(page?.closingSection?.eyebrow, locale) ?? fallback.closingEyebrow,
-    closingTitle:
-      pickLocalized(closingCtaSection?.title, locale) ?? pickLocalized(page?.closingSection?.title, locale) ?? fallback.closingTitle,
-    closingText:
-      pickLocalized(closingCtaSection?.text, locale) ?? pickLocalized(page?.closingSection?.text, locale) ?? fallback.closingText,
-    // Same shared resolver Home already uses for every CTA — wires
-    // href/openInNewTab/enabled together with the label instead of only
-    // ever reading .label (the previous behavior here). The legacy
-    // `page?.closingSection?.cta` fallback leg is dropped: `page` (the
-    // aboutPage singleton) always resolves to null in production (0
-    // documents, confirmed via a read-only count query), so that branch
-    // was already dead code, not a behavior this removes.
+    closingEyebrow: pickLocalized(closingCtaSection?.label, locale) ?? fallback.closingEyebrow,
+    closingTitle: pickLocalized(closingCtaSection?.title, locale) ?? fallback.closingTitle,
+    closingText: pickLocalized(closingCtaSection?.text, locale) ?? fallback.closingText,
+    // Shared resolver Home uses for every CTA — wires href/openInNewTab/enabled
+    // together with the label.
     closingMainAction: resolveAction(closingCtaSection, "main", locale, { label: fallback.closingCta, href: "/contact" }),
     closingFaqQuestion:
-      pickLocalized(getItem(closingCtaSection, "faqQuestion")?.title, locale) ??
-      pickLocalized(page?.closingSection?.faqQuestion, locale) ??
-      fallback.closingFaqQuestion,
+      pickLocalized(getItem(closingCtaSection, "faqQuestion")?.title, locale) ?? fallback.closingFaqQuestion,
     closingFaqLabel:
-      pickLocalized(getItem(closingCtaSection, "faqLabel")?.title, locale) ??
-      pickLocalized(page?.closingSection?.faqLabel, locale) ??
-      fallback.closingFaqLabel,
+      pickLocalized(getItem(closingCtaSection, "faqLabel")?.title, locale) ?? fallback.closingFaqLabel,
     pillars,
     closingLinks,
-    introLinks: resolveIconLinksFromSection(heroSection, fallbackIntroLinks) ?? resolveIconLinks(page?.introLinks, fallbackIntroLinks),
+    introLinks: resolveIconLinksFromSection(heroSection, fallbackIntroLinks) ?? iconLinksFallback(fallbackIntroLinks),
     serviceLinks:
-      resolveIconLinksFromSection(statementSection, fallbackServiceLinks) ?? resolveIconLinks(page?.serviceLinks, fallbackServiceLinks),
+      resolveIconLinksFromSection(statementSection, fallbackServiceLinks) ?? iconLinksFallback(fallbackServiceLinks),
     communityQuickLinks:
       resolveIconLinksFromSection(communitySection, fallbackCommunityQuickLinks) ??
-      resolveIconLinks(page?.communityLinks, fallbackCommunityQuickLinks),
+      iconLinksFallback(fallbackCommunityQuickLinks),
     atmosphereImages,
   };
 }

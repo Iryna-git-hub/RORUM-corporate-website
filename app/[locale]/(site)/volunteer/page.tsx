@@ -12,7 +12,6 @@ import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
-import { volunteerPageQuery } from "@/sanity/queries/pages";
 
 const fallbackHeroParagraphs = [
   "It often starts with something simple — a conversation, a shared idea, a moment that brings people together.",
@@ -63,10 +62,7 @@ async function getData(locale: Locale) {
     };
   }
 
-  const [{ data: page }, { data: newPage }] = await Promise.all([
-    sanityFetch({ query: volunteerPageQuery }),
-    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "volunteer" } }),
-  ]);
+  const { data: newPage } = await sanityFetch({ query: pageByKeyQuery, params: { pageKey: "volunteer" } });
 
   const heroSection = getSection(newPage?.sections, "hero");
   const formSection = getSection(newPage?.sections, "applicationForm");
@@ -74,53 +70,36 @@ async function getData(locale: Locale) {
   const heroParagraphItems = (heroSection?.items ?? []).filter((i) => i.itemKey?.startsWith("hero"));
   const heroParagraphs = heroParagraphItems.length
     ? compact(heroParagraphItems.map((i) => pickLocalized(i.text, locale)))
-    : page?.heroParagraphs
-      ? compact(page.heroParagraphs.map((p) => pickLocalized(p?.text, locale)))
-      : fallbackHeroParagraphs;
+    : fallbackHeroParagraphs;
 
   const closingParagraphItems = (heroSection?.items ?? []).filter((i) => i.itemKey?.startsWith("closing"));
   const closingParagraphs = closingParagraphItems.length
     ? compact(closingParagraphItems.map((i) => pickLocalized(i.text, locale)))
-    : page?.closingParagraphs
-      ? compact(page.closingParagraphs.map((p) => pickLocalized(p?.text, locale)))
-      : fallbackClosingParagraphs;
+    : fallbackClosingParagraphs;
 
   const highlightItems = (heroSection?.items ?? []).filter((i) => i.itemKey?.startsWith("highlight"));
   const highlights = highlightItems.length
     ? highlightItems.map((h) => ({ text: pickLocalized(h.title, locale) ?? "", Icon: getIconCardIcon(h.icon ?? undefined) }))
-    : page?.highlights?.length
-      ? page.highlights.map((h) => ({ text: pickLocalized(h?.title, locale) ?? "", Icon: getIconCardIcon(h?.icon) }))
-      : fallbackHighlights.map((h) => ({ text: h.text, Icon: h.icon }));
+    : fallbackHighlights.map((h) => ({ text: h.text, Icon: h.icon }));
 
   const applicationForm: VolunteerFormContent = {
     modalTitle:
-      pickLocalized(getItem(formSection, "modalTitle")?.title, locale) ??
-      pickLocalized(page?.applicationForm?.modalTitle, locale) ??
-      fallbackApplicationForm.modalTitle,
+      pickLocalized(getItem(formSection, "modalTitle")?.title, locale) ?? fallbackApplicationForm.modalTitle,
     messagePlaceholder:
-      pickLocalized(getItem(formSection, "messagePlaceholder")?.title, locale) ??
-      pickLocalized(page?.applicationForm?.messagePlaceholder, locale) ??
-      fallbackApplicationForm.messagePlaceholder,
+      pickLocalized(getItem(formSection, "messagePlaceholder")?.title, locale) ?? fallbackApplicationForm.messagePlaceholder,
     successMessage:
-      pickLocalized(getItem(formSection, "successMessage")?.text, locale) ??
-      pickLocalized(page?.applicationForm?.successMessage, locale) ??
-      fallbackApplicationForm.successMessage,
+      pickLocalized(getItem(formSection, "successMessage")?.text, locale) ?? fallbackApplicationForm.successMessage,
     errorMessage:
-      pickLocalized(getItem(formSection, "errorMessage")?.text, locale) ??
-      pickLocalized(page?.applicationForm?.errorMessage, locale) ??
-      fallbackApplicationForm.errorMessage,
+      pickLocalized(getItem(formSection, "errorMessage")?.text, locale) ?? fallbackApplicationForm.errorMessage,
   };
 
   return {
-    heroLabel: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
-    heroTitle: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.heroTitle, locale) ?? fallback.heroTitle,
+    heroLabel: pickLocalized(heroSection?.label, locale) ?? fallback.heroLabel,
+    heroTitle: pickLocalized(heroSection?.title, locale) ?? fallback.heroTitle,
     applyCta:
-      pickLocalized(getAction(heroSection, "apply")?.label, locale) ??
-      pickLocalized(page?.applyCta?.label, locale) ??
-      fallback.applyCta,
-    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? pickLocalized(page?.seo?.title, locale) ?? fallback.seoTitle,
-    description:
-      pickLocalized(newPage?.seo?.description, locale) ?? pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+      pickLocalized(getAction(heroSection, "apply")?.label, locale) ?? fallback.applyCta,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
+    description: pickLocalized(newPage?.seo?.description, locale) ?? fallback.description,
     ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
       ?.width(1200)
       .url(),
@@ -131,13 +110,9 @@ async function getData(locale: Locale) {
     heroImage:
       urlForImage(heroSection?.media?.[0]?.image as unknown as Parameters<typeof urlForImage>[0])
         ?.width(900)
-        .url() ??
-      urlForImage(page?.heroImage as unknown as Parameters<typeof urlForImage>[0])
-        ?.width(900)
-        .url() ??
-      fallbackHeroImage,
+        .url() ?? fallbackHeroImage,
     heroImageAlt:
-      pickLocalized(heroSection?.media?.[0]?.alt, locale) ?? pickLocalized(page?.heroImage?.alt, locale) ?? fallbackHeroImageAlt,
+      pickLocalized(heroSection?.media?.[0]?.alt, locale) ?? fallbackHeroImageAlt,
     applicationForm,
   };
 }

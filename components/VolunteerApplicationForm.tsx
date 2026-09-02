@@ -8,7 +8,7 @@ import {
   validatePrivacyConsent,
 } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
-import { formspreeConfig, submitToFormspree } from "@/lib/formspree";
+import { formspreeConfig, isFormspreeConfigured, submitToFormspree } from "@/lib/formspree";
 
 export interface VolunteerFormContent {
   modalTitle: string;
@@ -140,7 +140,11 @@ function VolunteerApplicationDialog({
     >
     <form
       className="grid gap-4"
-      action={formspreeConfig.endpoint}
+      // Only set the native action when Formspree is actually configured —
+      // otherwise a no-JS submit would POST to the 404 placeholder endpoint.
+      // JS submit (handleSubmit) always runs and surfaces the "not set up"
+      // notice. Matches components/ContactForm.tsx.
+      action={isFormspreeConfigured() ? formspreeConfig.endpoint : undefined}
       method="post"
       onSubmit={handleSubmit}
       noValidate

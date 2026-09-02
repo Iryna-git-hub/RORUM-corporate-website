@@ -142,6 +142,16 @@ export function isPageCommunityMembership(document: unknown): boolean {
   return doc?._id?.replace(/^drafts\./, "") === "page-community-membership";
 }
 
+export function isPageVolunteer(document: unknown): boolean {
+  const doc = document as { _id?: string } | undefined;
+  return doc?._id?.replace(/^drafts\./, "") === "page-volunteer";
+}
+
+export function isPageWorkWithUs(document: unknown): boolean {
+  const doc = document as { _id?: string } | undefined;
+  return doc?._id?.replace(/^drafts\./, "") === "page-work-with-us";
+}
+
 // Contact's hero ("Contact intro") genuinely uses label/title/text/items
 // (the default "hero"-kind visibility already covers those) but never
 // media/actions — confirmed by the live audit (no media/actions ever
@@ -184,6 +194,15 @@ const COMMUNITY_MEMBERSHIP_INTRO_FORCE_HIDDEN_FIELDS = new Set(["text", "media",
 // though — sectionKind "cta"'s own FIELD_VISIBILITY already omits `settings`
 // for every closingCta section on every page (Home/About included).
 const EVENTS_FILTERS_FORCE_HIDDEN_FIELDS = new Set(["label", "title"]);
+
+// Volunteer's "applicationForm" and Work With Us's "cvUploadForm" sections
+// (sectionKind "form") hold ONLY the modal-copy rows in `items` (modalTitle,
+// messagePlaceholder, successMessage, … — see contentItem.ts's own
+// "Volunteer application-modal" / "Work With Us CV-modal" roles and each
+// page.tsx's `getItem(formSection, key)` reads). The section's own
+// label/title/text are never read for either — hidden so a manager isn't
+// shown three empty fields that look editable but do nothing.
+const VOLUNTEER_WORKWITHUS_FORM_FORCE_HIDDEN_FIELDS = new Set(["label", "title", "text"]);
 
 /**
  * The one, site-wide, document-agnostic rule for `sectionKey`/`sectionKind`
@@ -254,6 +273,13 @@ function fieldHidden(fieldName: string) {
       return true;
     }
     if (isPageCommunityMembership(document) && parent?.sectionKey === "intro" && COMMUNITY_MEMBERSHIP_INTRO_FORCE_HIDDEN_FIELDS.has(fieldName)) {
+      return true;
+    }
+    if (
+      ((isPageVolunteer(document) && parent?.sectionKey === "applicationForm") ||
+        (isPageWorkWithUs(document) && parent?.sectionKey === "cvUploadForm")) &&
+      VOLUNTEER_WORKWITHUS_FORM_FORCE_HIDDEN_FIELDS.has(fieldName)
+    ) {
       return true;
     }
     const kind = parent?.sectionKind as (typeof SECTION_KINDS)[number] | undefined;

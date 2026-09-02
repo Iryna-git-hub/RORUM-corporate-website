@@ -123,6 +123,17 @@ const ITEM_KEY_PREVIEW_LABELS: Record<string, string> = {
   supportText: "Donation — closing note",
   column0: "Intro — column 1",
   column1: "Intro — column 2",
+  // Volunteer application modal / Work With Us CV-upload modal. Keyed by
+  // itemKey alone (like every entry here), so keep these specific enough not
+  // to mislead if a same-named itemKey ever appears in another role — e.g.
+  // NOT a bare "description" (that itemKey is also "Home editorial
+  // description"). These are only a fallback preview shown when the row's
+  // title/text is empty.
+  modalTitle: "Modal heading",
+  modalTitleSent: "Modal heading (after sending)",
+  dropzoneText: "File drop-zone text",
+  descriptionSent: "Modal text (after sending)",
+  errorMessage: "Error / failure message",
 };
 
 export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
@@ -440,6 +451,84 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
     itemKeyPattern: /^step\d*$/,
     visible: ["title", "text"],
     requiredFields: ["title", "text"],
+  },
+
+  // ==========================================================================
+  // Volunteer (page-volunteer) + Work With Us (page-work-with-us) — the
+  // application/CV-upload modal copy + Work With Us' "features" bullets. Each
+  // modal row is a fixed, singular reserved row read via ONE of `.title` /
+  // `.text` (see the respective page.tsx's getData() —
+  // `getItem(formSection, "<itemKey>")?.title|text`). The technical chain
+  // (schema/resolver/component) fully supports EN/DA/UK; the stored DA/UK
+  // VALUES are currently missing (SANITY_MIGRATION.md §20.9).
+  //
+  // These ARE marked `requiredFields`. An earlier version deliberately left
+  // them off, reasoning that would keep the pages publishable while the
+  // translations were missing — that reasoning was wrong. `title`/`text`
+  // already carry the shared all-or-nothing i18n rule (see requiredWhen in
+  // i18nValidation.ts): a row filled for EN only but not DA/UK is invalid and
+  // blocks Publish regardless of `requiredFields`. Since both pages' rows are
+  // currently EN-only, both pages are already un-republishable from Studio
+  // until a translator fills the gap. Marking `requiredFields` doesn't change
+  // that; it only upgrades the Studio error from the confusing "filled in for
+  // some languages but not all — … or clear the field completely" to the
+  // direct "Please add the Danish and Ukrainian translations." — and removes
+  // the "clear the field to unblock" footgun (which would silently drop the
+  // EN copy and leave the frontend on its hardcoded fallback). The content
+  // gap itself is tracked in SANITY_MIGRATION.md §20.9. `documentIds`-scoped
+  // since "applicationForm"/"cvUploadForm"/"features" are page-specific keys.
+  // ==========================================================================
+  {
+    role: "Volunteer application-modal heading/placeholder",
+    documentIds: ["page-volunteer"],
+    sectionKeys: ["applicationForm"],
+    itemKeyPattern: /^(modalTitle|messagePlaceholder)$/,
+    visible: ["title"],
+    requiredFields: ["title"],
+    fieldLabels: { title: "Text" },
+  },
+  {
+    role: "Volunteer application-modal message",
+    documentIds: ["page-volunteer"],
+    sectionKeys: ["applicationForm"],
+    itemKeyPattern: /^(successMessage|errorMessage)$/,
+    visible: ["text"],
+    requiredFields: ["text"],
+    fieldLabels: { text: "Message" },
+  },
+  {
+    role: "Work With Us CV-modal heading/placeholder",
+    documentIds: ["page-work-with-us"],
+    sectionKeys: ["cvUploadForm"],
+    itemKeyPattern: /^(modalTitle|modalTitleSent|messagePlaceholder|dropzoneText)$/,
+    visible: ["title"],
+    requiredFields: ["title"],
+    fieldLabels: { title: "Text" },
+  },
+  {
+    role: "Work With Us CV-modal message",
+    documentIds: ["page-work-with-us"],
+    sectionKeys: ["cvUploadForm"],
+    itemKeyPattern: /^(description|descriptionSent|errorMessage)$/,
+    visible: ["text"],
+    requiredFields: ["text"],
+    fieldLabels: { text: "Message" },
+  },
+  // Work With Us' "Why work with us" bullets (sectionKey "features",
+  // sectionKind "iconGrid") — icon + one line of text, read via
+  // `featuresSection.items.map((f) => pickLocalized(f.title, locale))` +
+  // `getIconCardIcon(f.icon)` (see work-with-us/page.tsx). Same shape as
+  // Home's "editorial feature bullet" role. Currently EN-only in Sanity
+  // (SANITY_MIGRATION.md §20.9) — `requiredFields: ["title"]` for the same
+  // reason as the modal rows above.
+  {
+    role: "Work With Us feature bullet",
+    documentIds: ["page-work-with-us"],
+    sectionKeys: ["features"],
+    itemKeyPattern: /^(feature\d*)?$/,
+    visible: ["icon", "title"],
+    requiredFields: ["title"],
+    fieldLabels: { title: "Feature text" },
   },
 ];
 

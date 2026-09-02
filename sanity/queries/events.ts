@@ -1,6 +1,8 @@
 import { defineQuery } from "next-sanity";
 
-export const eventsPageQuery = defineQuery(`*[_type == "eventsPage"][0]`);
+// The Attend Events listing page's own editorial content lives on the shared
+// `page` document (`pageKey == "events"`), read via `pageByKeyQuery`. The
+// events themselves are `event` documents, queried below.
 
 // Filters by `visibleLocales` in GROQ, BEFORE pagination/slicing happens in
 // application code — an event not shown on `$locale`'s website version is

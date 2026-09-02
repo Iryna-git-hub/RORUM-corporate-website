@@ -11,7 +11,6 @@ import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
-import { contactPageQuery } from "@/sanity/queries/pages";
 import { contactInfoQuery, socialLinksQuery } from "@/sanity/queries/globals";
 import {
   resolveContactDetailOrder,
@@ -50,8 +49,7 @@ async function getData(locale: Locale) {
     };
   }
 
-  const [{ data: page }, { data: newPage }, { data: contactInfoDoc }, { data: socialLinksDoc }] = await Promise.all([
-    sanityFetch({ query: contactPageQuery }),
+  const [{ data: newPage }, { data: contactInfoDoc }, { data: socialLinksDoc }] = await Promise.all([
     sanityFetch({ query: pageByKeyQuery, params: { pageKey: "contact" } }),
     sanityFetch({ query: contactInfoQuery }),
     sanityFetch({ query: socialLinksQuery, stega: false }),
@@ -61,25 +59,18 @@ async function getData(locale: Locale) {
   const formSection = getSection(newPage?.sections, "form");
 
   return {
-    heroLabel: pickLocalized(heroSection?.label, locale) ?? pickLocalized(page?.heroLabel, locale) ?? fallback.heroLabel,
-    introTitle: pickLocalized(heroSection?.title, locale) ?? pickLocalized(page?.introTitle, locale) ?? fallback.introTitle,
-    introText: pickLocalized(heroSection?.text, locale) ?? pickLocalized(page?.introText, locale) ?? fallback.introText,
+    heroLabel: pickLocalized(heroSection?.label, locale) ?? fallback.heroLabel,
+    introTitle: pickLocalized(heroSection?.title, locale) ?? fallback.introTitle,
+    introText: pickLocalized(heroSection?.text, locale) ?? fallback.introText,
     followUsTitle:
-      pickLocalized(getItem(heroSection, "followUsTitle")?.title, locale) ??
-      pickLocalized(page?.followUsTitle, locale) ??
-      fallback.followUsTitle,
-    formTitle: pickLocalized(formSection?.title, locale) ?? pickLocalized(page?.formTitle, locale) ?? fallback.formTitle,
+      pickLocalized(getItem(heroSection, "followUsTitle")?.title, locale) ?? fallback.followUsTitle,
+    formTitle: pickLocalized(formSection?.title, locale) ?? fallback.formTitle,
     successMessage:
-      pickLocalized(getItem(formSection, "successMessage")?.text, locale) ??
-      pickLocalized(page?.successMessage, locale) ??
-      fallback.successMessage,
+      pickLocalized(getItem(formSection, "successMessage")?.text, locale) ?? fallback.successMessage,
     submitLabel:
-      pickLocalized(getItem(formSection, "submitLabel")?.title, locale) ??
-      pickLocalized(page?.submitLabel, locale) ??
-      fallback.submitLabel,
-    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? pickLocalized(page?.seo?.title, locale) ?? fallback.seoTitle,
-    description:
-      pickLocalized(newPage?.seo?.description, locale) ?? pickLocalized(page?.seo?.description, locale) ?? fallback.description,
+      pickLocalized(getItem(formSection, "submitLabel")?.title, locale) ?? fallback.submitLabel,
+    seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
+    description: pickLocalized(newPage?.seo?.description, locale) ?? fallback.description,
     ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
       ?.width(1200)
       .url(),

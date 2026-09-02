@@ -684,11 +684,10 @@ export const homeContract: PageContentContract = {
       editorVisibility: "visible",
       classification: "connected",
       notes:
-        "Fixed this pass: generateMetadata() previously read `page?.seo?.description` from the obsolete, always-" +
-        "null homePageQuery result instead of the current page-home document — see the Home Content Audit's " +
-        "disconnected-field report for the original defect. Now reads newPage?.seo?.description. \"Connected\" " +
-        "describes the code path, not the content: page-home's own seo.description is currently an empty string, " +
-        "so every locale still renders the hardcoded fallback today — connected in code, not yet populated in Sanity.",
+        "generateMetadata() reads newPage?.seo?.description from the page-home document. (The old " +
+        "always-null homePageQuery path was removed entirely in the R8 cleanup — SANITY_MIGRATION.md §20.8.) " +
+        "\"Connected\" describes the code path, not the content: page-home's seo.description may still be empty " +
+        "on the published document (approved copy sits in drafts — §20.7), in which case the hardcoded fallback renders.",
     },
     {
       pageKey: "home",

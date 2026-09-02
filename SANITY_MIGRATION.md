@@ -548,14 +548,17 @@ A page may be marked COMPLETE only when:
   `sanity/schemaTypes/documents/page.ts`, `objects/pageSection.ts`, `objects/contentItem.ts`,
   `objects/ctaAction.ts`, `objects/mediaItem.ts`). This replaced ~18 per-page singletons to stay
   under Sanity's free-plan 2,000-attribute cap (MIGRATION_REPORT Parts 16–17).
-- **All 12 legacy page singletons are deleted from the dataset** (`homePage`, `aboutPage`,
+- **All 12 legacy page singletons are gone from the *published* dataset** (`homePage`, `aboutPage`,
   `cateringPage`, `cateringMenuExamplesPage`, `eventDecorationPage`, `hostAtRorumPage`,
   `communityMembershipPage`, `volunteerPage`, `workWithUsPage`, `contactPage`, `eventsPage`,
-  `faqPage` — confirmed 0 documents each). Their **schema type definitions and GROQ queries are
-  still registered** (`schemaTypes/index.ts`, `queries/pages.ts` / `queries/faq.ts` /
-  `queries/events.ts`) and 8 route files still fetch the dead singleton query alongside
-  `pageByKeyQuery` — always returns `null`, harmless, but dead weight. Phase 6 schema cleanup is
-  **not done** (disclosed in Part 17 §17.4).
+  `faqPage` — 0 documents under `perspective: "published"`, which is all the public site and
+  `sanityFetch` ever read). **11 of them still exist as orphaned `drafts.<type>` documents**
+  (all except `contactPage`) — the old delete scripts removed only the published copy. Harmless to
+  the site, but they now reference schema types Phase B removed. A read-only-by-default cleanup
+  script is ready: `npm run sanity:delete-orphaned-legacy-singleton-drafts:dry-run` /
+  (live) `npm run sanity:delete-orphaned-legacy-singleton-drafts` — owner action, §20.6 / §20.8.
+- Their **schema types and GROQ queries are removed** (Phase B, §20.8) — Phase 6 schema cleanup
+  is **done** for the frontend/schema side; only the 11 draft documents above remain.
 - Locale resolution is in application code (`lib/sanity-i18n.ts` `pickLocalized()` /
   `lib/sanity-sections.ts`), not GROQ. i18n storage = `sanity-plugin-internationalized-array`
   (EN/DA/UK), registry is static in `sanity.config.ts` (do not filter it — see the long comment there).
@@ -578,13 +581,13 @@ Route segment: `app/[locale]/(site)/<route>/page.tsx`. `en` is unprefixed; `da`/
 | 6 | `/event-decoration` | `page-event-decoration` | **Fully connected.** Hero + CTA, "Suitable Decoration Formats" chips + gallery (14 photos, DA/UK alt backfilled, real video supported), "What we style" split (intro migrated into section `text`), 3-step setup, inquiry form. | COMPLETE |
 | 7 | `/host-at-rorum` | `page-host-at-rorum` | **Fully connected.** Hero, 15-photo gallery (DA/UK alt backfilled), "Each Session Includes", Hosting Packages (3 tiers, price + checklist), 3-step setup, inquiry form. Package `<select>` + Additional-Services checkboxes now driven by the same canonical Sanity items as the cards (stable `itemKey` values, not localized labels). | COMPLETE |
 | 8 | `/community-membership` (WECODA) | `page-community-membership` | **Fully connected.** Hero (intro migrated into `text`, external WECODA link + apply-CTA DA/UK fixed), Donation section (9 bank rows, 2 copyable — bug fixed, QR image), "Connecting Women" 2-column intro, "What You Gain" benefit grid (image authoritative over icon), Application section + steps, gallery (8 photos + 2 videos, DA/UK alt backfilled). | COMPLETE |
-| 9 | `/volunteer` | `page-volunteer` | **Mostly connected.** Hero eyebrow + heading + body copy + "Apply to volunteer" CTA from Sanity. The **application modal** (`VolunteerApplicationForm` / `ApplicationModal`) copy is EN-only in Sanity (pre-existing gap, Part 17 §17.5) and has **no automated test coverage** (Part 22 §5). Form does not submit anywhere. | PARTIAL |
-| 10 | `/work-with-us` | `page-work-with-us` | **Mostly connected.** Hero + body copy + "Send your CV" / "Work with us" CTAs from Sanity. The **CV upload modal** (`CvUploadModal`) copy is EN-only in Sanity (pre-existing gap) and has no automated test coverage. Form does not submit anywhere. | PARTIAL |
+| 9 | `/volunteer` | `page-volunteer` | **Technical chain complete** (verified Phase C): hero eyebrow/heading/body/closing paragraphs + "Apply to volunteer" CTA all render EN/DA/UK from `page-volunteer`; `/da/volunteer` renders Danish. **BUT** the **application-modal** copy (4 items in `sections[applicationForm]`: `modalTitle`, `messagePlaceholder`, `successMessage`, `errorMessage`) is stored **EN-only**. Because `contentItem` `title`/`text` carry the shared all-or-nothing i18n rule, a half-translated row is invalid → **Studio cannot re-publish `page-volunteer` until these 4 strings get DA/UK** (the published version stays live; API writes bypassed the check). Schema/resolver/`<VolunteerApplicationButton>` all support DA/UK — only the content is missing. Form does not deliver (R6). | CONTENT-BLOCKED — 4 modal strings need DA/UK before Studio re-publish (§20.9) |
+| 10 | `/work-with-us` | `page-work-with-us` | Hero + CTAs render EN/DA/UK (`/da/work-with-us` = "Arbejd med os"). **BUT** two item groups are stored **EN-only**, so — same mechanism as Volunteer — **Studio cannot re-publish `page-work-with-us`** until they get DA/UK: the **CV-upload-modal** copy (7 items in `sections[cvUploadForm]`: `modalTitle`, `modalTitleSent`, `description`, `descriptionSent`, `messagePlaceholder`, `dropzoneText`, `errorMessage`) **and** the 3 **"Why work with us" feature bullets** (`sections[features]`: `feature0/1/2` — visible untranslated on `/da` `/uk` today). Technical chain fully supports DA/UK. | CONTENT-BLOCKED — 7 modal strings + 3 feature bullets need DA/UK before Studio re-publish (§20.9) |
 | 11 | `/contact` | `page-contact` + `contactInfo` + `socialLinks` + `formMessages` | **Fully connected.** Hero (intro text, reorderable address/phone/email rows), form section (4 configured fields Full Name/Phone/Email/Message, privacy-consent show/require, FAQ-prompt override), map, social icons (Instagram+Facebook after the R3 guard). The "0 form fields" seen during the audit was a stale dev-server cache (B1 — resolved, not a code defect); the clean build renders all fields + working validation. SEO empty on the published doc — approved copy in `drafts.page-contact` (§20.7). | COMPLETE |
-| 12 | `/faq` | `page-faq` | **Structurally connected, content gap.** 4 categories / 9 questions render from `page-faq` (`faqCategory` sections, per-question optional link supported). Category titles / questions / answers are **EN-only** — `/da/faq` and `/uk/faq` show English (pre-existing, `faqGroup` never translated; Part 17 §17.5). Legacy `faqPage`/`faqGroup` schema kept, unused. | PARTIAL |
-| 13 | `/terms` | `legalPage-terms` | **Connected.** Body = Portable Text from `legalPage`. DA/UK bodies mostly translated but some headings still EN (e.g. "1. Company details" on `/da/terms`). `legalPage.seo` fields exist but the approved SEO copy was **skipped pending owner decision** (Part 24 §6) — `<title>` shows the short MVP fallback ("Terms") and is not localized. Company facts (`getCompanyContactFacts`) still from `lib/siteContent.ts`/`siteConfig.ts`, not Sanity. | PARTIAL |
-| 14 | `/privacy-policy` | `legalPage-privacy-policy` | Same as `/terms`. | PARTIAL |
-| 15 | `/cookie-policy` | `legalPage-cookie-policy` | Same as `/terms`. | PARTIAL |
+| 12 | `/faq` | `page-faq` | **Fully connected.** 4 categories / 9 questions render from `page-faq` (`faqCategory` sections, per-question optional link). **Category titles, questions AND answers are fully translated EN/DA/UK — verified live on a clean build (`/da/faq` renders Danish end to end).** The Phase 1 audit's "EN-only" claim was a stale-dev-cache artifact, now corrected. `faqPage`/`faqGroup` legacy schema removed (§20.8). Only outstanding item: publish the SEO draft (§20.7). | COMPLETE |
+| 13 | `/terms` | `legalPage-terms` + `siteSettings` + `contactInfo` | **Sections 2+ fully connected & translated** (Portable Text from `legalPage.body`, EN/DA/UK). **Section 1 "Company details"** is a hardcoded block in `terms/page.tsx` — the *facts* (company name, CVR, email, address) already come from Sanity (`getCompanyContactFacts()` → `siteSettings`/`contactInfo`), but the **heading ("1. Company details"), the intro sentence, and the field labels ("Address:", "CVR:", …) are hardcoded English** and show untranslated on `/da` `/uk`. Needs an owner decision (§20.6) — fold Section 1 into `legalPage.body`, or localize the chrome. `legalPage.seo`: draft pending (§20.7) + R4 EN-copy decision. `lastUpdated` renders (⚠ the SEO draft blanks it — §20.7). | PARTIAL — legal Section 1 hardcoded EN |
+| 14 | `/privacy-policy` | `legalPage-privacy-policy` + `siteSettings`/`contactInfo` | Same shape as `/terms`. | PARTIAL — legal Section 1 hardcoded EN |
+| 15 | `/cookie-policy` | `legalPage-cookie-policy` + `siteSettings`/`contactInfo` | Same shape as `/terms`. | PARTIAL — legal Section 1 hardcoded EN |
 
 Non-public / infra routes: `/studio` (Sanity Studio, `noindex`, disallowed in robots.txt),
 `/sitemap.xml`, `/robots.txt` — all correct, canonical domain `https://ro-rum.dk`, hreflang +
@@ -687,19 +690,42 @@ Terms/Privacy/Cookie EN `seo.title`/`seo.description` were deliberately NOT over
 approved long copy (current values are the short MVP originals). `<title>` is not localized for
 these routes. Needs an owner yes/no (Part 24 §6).
 
-**R5 — DA/UK content gaps (pre-existing, not introduced by migration).**
-- FAQ: all category titles / questions / answers EN-only.
-- Legal pages: some section headings still English in DA/UK bodies.
-- Volunteer application modal + Work-With-Us CV modal: copy EN-only.
-- `sanity:audit-translations` baseline (Part 17 §17.5): ~139 gaps under `page` (mostly gallery/
-  dish alt text, form-modal copy), 73 under `event`, 6 under `legalPage`, 1 under `socialLinks`.
-Fixing requires authoring real DA/UK translations — a content task, needs owner sign-off on
+**R5 — DA/UK content gaps (pre-existing; corrected during Phase C verification — NOT as broad as the audit first thought).**
+- ~~FAQ EN-only~~ → **FALSE.** `page-faq` is fully translated EN/DA/UK (titles + questions + answers);
+  `/da/faq` renders Danish end to end on a clean build. The audit's claim was a stale-cache read.
+- **Legal pages — Section 1 "Company details" only.** Sections 2+ of Terms/Privacy/Cookie ARE
+  fully translated (Sanity `legalPage.body`, EN/DA/UK). Section 1 is a hardcoded block in the 3
+  `*/page.tsx` components — the facts are Sanity-sourced but the heading/intro/labels are English.
+  Needs an owner decision on how to make it editable/localized (§20.6).
+- **Volunteer application modal (4 strings) + Work-With-Us CV modal (7 strings)** — stored EN-only.
+  Technical chain fully supports DA/UK (verified). Exact keys listed in the route table (rows 9–10)
+  and §20.6. **Do not invent — owner/translator must supply.**
+- `sanity:audit-translations` baseline (Part 17 §17.5): remaining gaps are mostly gallery/dish
+  `alt` text (informative, not visible copy) plus the 11 form-modal strings above; `event` (73,
+  unrelated); `legalPage` (6 — the SEO fields, §20.7); `socialLinks` (1 — the stray LinkedIn, R3).
+Fixing the visible-copy gaps requires authoring real DA/UK translations — a content task, needs owner sign-off on
 provenance.
 
-**R6 — No form actually submits anywhere.**
-Every form on the site (Contact, Catering, Decoration, Host, Volunteer, CV) is client-side
-validation only — no endpoint / email provider. This is a product decision, disclosed since
-Part 21. Volunteer/CV forms additionally have zero automated test coverage.
+**R6 — No form actually delivers anywhere (no Formspree endpoint configured).**
+`NEXT_PUBLIC_FORMSPREE_ENDPOINT` is the placeholder, so `lib/formspree.ts`'s `submitToFormspree()`
+throws `FORMSPREE_NOT_CONFIGURED` before any network call. Wiring a real endpoint + recipient is a
+product decision (Part 21), out of scope for the CMS migration.
+**Phase A (2026-09-01) — false-success removed on Contact:** `ContactForm` previously showed
+"Thank you…" and reset on any valid submit even though nothing was sent. It now uses the same
+`submitToFormspree` + `formNotConfiguredMessage` pattern `VolunteerApplicationForm` already uses —
+a valid submit shows "This form isn't fully set up yet — please contact us directly." (translatable,
+from the shared `formMessages` singleton), keeps the user's text, and never shows a success state
+until a real endpoint is configured and the POST succeeds.
+**Final-review follow-up:** `VolunteerApplicationForm` had the right JS handling but still hardcoded
+`action={formspreeConfig.endpoint}`, so a no-JS submit would POST to the 404 placeholder. Now gated
+`action={isFormspreeConfigured() ? … : undefined}`, matching `ContactForm`. `CvUploadModal` /
+`InquiryForm` / `CateringInquiryForm` have no native `action` at all (JS-only).
+**Still carrying the same false-success bug: `components/CvUploadModal.tsx`** (`submitCvApplication()`
+is a 500 ms `setTimeout` that always "succeeds" — explicit TODO in the file) and, to a lesser
+extent, `components/InquiryForm.tsx` (Catering / Host inquiry). Not fixed this pass — flagged for
+the Work-With-Us page work (Phase C) / a dedicated form pass. Volunteer/CV forms also still have
+zero dedicated automated test coverage (Part 22 §5); `ContactForm.test.tsx` now covers the
+Contact delivery paths.
 
 **R7 — Dataset safety: automated mutation testing targets `production`.**
 `.env.local` → `NEXT_PUBLIC_SANITY_DATASET=production`, and a **write token is present**
@@ -707,11 +733,11 @@ Part 21. Volunteer/CV forms additionally have zero automated test coverage.
 follow §11/§18: record → change draft only where possible → publish → verify → restore → verify.
 Prefer never bulk-mutating; consider requesting a `staging` dataset before heavy CMS test work.
 
-**R8 — Legacy schema/query dead weight (cleanup, not a blocker).**
-12 deleted-singleton schema types still registered in `schemaTypes/index.ts`; `queries/pages.ts`
-etc. still export their queries; 8 route files still fetch a guaranteed-`null` legacy query
-alongside `pageByKeyQuery`. Also `sanity.types.ts` / `schema.json` should be re-checked with
-`npm run sanity:typegen` for drift. Phase 6 cleanup (MIGRATION_REPORT §17.4) is unstarted.
+**R8 — Legacy schema/query dead weight → DONE (Phase B, 2026-09-02).**
+Removed the 12 dead singleton schema types, the ~13 dead queries (`queries/faq.ts` deleted;
+`queries/pages.ts` reduced to `legalPageQuery`), and the guaranteed-`null` legacy fetch +
+`?? page?.x` fallback tiers from all 8 route files. `npm run sanity:typegen` regenerated
+(`sanity.types.ts` −1113 lines). Behaviour-preserving, verified. Full detail in §20.8.
 
 **R9 — Studio UX not verified against the running Studio.**
 Login-gated; this pass reviewed schema source only. `pageSection.ts` has grown a large set of
@@ -728,29 +754,53 @@ re-verified against a fresh production build.
 
 **Phase 1 (done, 2026-09-01):** B1 diagnosed (stale cache, no code change), R3 fixed in code,
 R1/R2 checklist prepared (§20.7), R8 plan produced (§20.8).
+**Phase A (done, 2026-09-01):** Contact form false-success removed (R6) — now uses the shared
+`submitToFormspree` + translatable "not set up" notice, no fake success/reset. Independent review:
+SHIP.
+**Phase B (done, 2026-09-02):** R8 dead-code cleanup executed — §20.8. Per-batch review: SHIP;
+the later full-site review then caught that the cleanup's "0 documents" claim missed 11 orphaned
+`drafts.*` docs and that `sanity.types.ts` was stale — both corrected, see §20.8.
+**Phase C (done, 2026-09-02):** partially-migrated pages — §20.9. FAQ was already complete;
+Volunteer/WWU are technically complete + given editor-UX polish, content pending; legal Section 1
+needs an owner decision.
+**Phase D (done, 2026-09-02):** global/shared CMS audit — §20.10. All connected; two owner
+content decisions (`siteSettings.defaultSeo`, legal Section 1).
 
-**Next batch (Phase 2), in order:**
+**Next batch — MANUAL / OWNER actions, in order:**
 
-1. **Manual: publish the SEO drafts** per the §20.7 checklist — start with the 11 clean pages,
+1. **Publish the SEO drafts** per the §20.7 checklist — start with the 11 clean pages,
    then handle `legalPage-terms` + `legalPage-privacy-policy` carefully (they lose `lastUpdated`
    on publish — re-set it in Studio right after). Then re-run
    `npx playwright test tests/cms-catering-contract.spec.ts tests/seo.spec.ts` to re-green the
    SEO assertions.
-2. **Manual: delete the `linkedin` entry** from the `socialLinks` singleton in Studio (the R3
+2. **Delete the `linkedin` entry** from the `socialLinks` singleton in Studio (the R3
    code guard already hides it on the site, but the published document keeps a schema validation
    error until the entry is gone).
-3. **R8 — Phase 6 schema/query cleanup** (§20.8). Code-only, no Sanity writes. Removes the 12
-   dead singleton types + their queries + the 9 redundant legacy fetches; re-run
-   `npm run sanity:typegen`; full `npm run typecheck` + `npm run test:unit` + `npm run test:e2e`
-   + `npm run build`.
+3. **Add DA/UK translations** for the Volunteer / Work-With-Us EN-only strings (§20.9) — until
+   this is done **neither page can be re-published from Studio** (the all-or-nothing i18n rule
+   rejects a half-translated row). They now have clean labelled single-field editors:
+   - `page-volunteer` → `applicationForm` items: `modalTitle`, `messagePlaceholder`,
+     `successMessage`, `errorMessage` (4)
+   - `page-work-with-us` → `cvUploadForm` items: `modalTitle`, `modalTitleSent`, `description`,
+     `descriptionSent`, `messagePlaceholder`, `dropzoneText`, `errorMessage` (7)
+   - `page-work-with-us` → `features` items: `feature0`, `feature1`, `feature2` (3 — these render
+     untranslated English on `/da` `/uk` today)
+3b. **Delete the 11 orphaned legacy-singleton drafts** (§20.8) — harmless to the site, but dead
+    weight referencing removed schema types. Dry-run first, then run live with a write token:
+    `npm run sanity:delete-orphaned-legacy-singleton-drafts:dry-run` →
+    `npm run sanity:delete-orphaned-legacy-singleton-drafts`.
 4. **R4 — Legal-page EN SEO decision** (owner): keep the short MVP copy, or apply the approved
    long copy (already in the drafts' DA/UK; EN was intentionally left). Then publish.
-5. **R9 — Studio UX walkthrough**, page by page, in the real Studio with the manager — confirm
+5. **Legal Section 1 decision** (§20.9): fold "Company details" into `legalPage.body` (manager
+   authors + translates it), or add a structured localized block with the facts still pulled live.
+6. **`siteSettings.defaultSeo` decision** (§20.10): populate a trilingual site-wide default, or
+   leave it (per-page fallbacks then apply).
+7. **R9 — Studio UX walkthrough**, page by page, in the real Studio with the manager — confirm
    field order/labels/previews/reorder/validation against spec §10 and §19. Fold in a
    representative Publish test per page (§18) using draft-only changes on `production`.
-6. **R5 — DA/UK content authoring** (FAQ, legal-page headings, form-modal copy) with the owner.
-7. **R6 — Form delivery** (product decision: wire a real endpoint; add Volunteer/CV form tests).
-8. **Responsive + Publish sign-off** for every page (§19 items still ⬜ in 20.4), then mark
+8. **R6 — Form delivery** (product decision: wire a real endpoint; add Volunteer/CV form tests;
+   fix the same false-success in `CvUploadModal.tsx` / `InquiryForm.tsx`).
+9. **Responsive + Publish sign-off** for every page (§19 items still ⬜ in 20.4), then mark
    COMPLETE.
 
 ## 20.7 SEO publish checklist (Phase 1 — 2026-09-01, read-only analysis; nothing published)
@@ -790,55 +840,128 @@ EN `<title>` (the approved EN copy equals each page's existing fallback constant
 empty-row residue, the `step3` icon, and the `lastUpdated` regression entirely. Say the word and
 this can be written (dry-run first, per §10/§11).
 
-## 20.8 R8 — dead-code cleanup plan (preparation only; nothing removed this pass)
+## 20.8 R8 — dead-code cleanup — DONE (Phase B, 2026-09-02; no Sanity writes)
 
-The `page` + `sections[]` migration (Parts 16–17) deleted all 12 legacy per-page singleton
-**documents** but left their **schema types, queries and some fetch call-sites** in place for
-rollback/typegen safety (Part 17 §17.4 — "the honest way to finish this refactor, not yet done").
-Confirmed this pass: **0 documents** exist for any of the 12 legacy types.
+The `page` + `sections[]` migration (Parts 16–17) deleted the *published* copy of all 12 legacy
+per-page singleton **documents** but left their **schema types, queries and fallback fetch
+call-sites** in place for rollback/typegen safety (Part 17 §17.4 — "the honest way to finish this
+refactor"). Confirmed 0 **published** documents for all 12 legacy types, then removed all the code:
 
-**A. Legacy singleton schema types — remove all 12** (`sanity/schemaTypes/singletons/`):
-`homePage.ts`, `aboutPage.ts`, `cateringPage.ts`, `cateringMenuExamplesPage.ts`,
-`eventDecorationPage.ts`, `hostAtRorumPage.ts`, `communityMembershipPage.ts`, `volunteerPage.ts`,
-`workWithUsPage.ts`, `contactPage.ts`, `eventsPage.ts`, `faqPage.ts`.
-Then in `sanity/schemaTypes/index.ts`: drop the 12 imports + array entries, and prune
-`SINGLETON_TYPES` (remove those 12 names — keep the real singletons: `siteSettings`,
-`contactInfo`, `socialLinks`, `navigation`, `footer`, `formMessages`, `eventMessages`).
-`PAGE_KEYS` / `LEGAL_PAGE_KEYS` stay. `sanity.config.ts`'s `newDocumentOptions` /
-`document.actions` special-casing can be simplified (they already also check `"page"` /
-`"legalPage"`, which is what still matters).
+> **⚠ Correction (final review, 2026-09-02):** the earlier "0 documents, confirmed" wording was
+> published-perspective only. A `perspective: "raw"` query shows **11 of the 12 legacy singletons
+> still exist as `drafts.<type>` documents** (`drafts.homePage`, `drafts.aboutPage`,
+> `drafts.eventsPage`, `drafts.cateringPage`, `drafts.cateringMenuExamplesPage`,
+> `drafts.eventDecorationPage`, `drafts.hostAtRorumPage`, `drafts.communityMembershipPage`,
+> `drafts.volunteerPage`, `drafts.workWithUsPage`, `drafts.faqPage` — only `contactPage` is fully
+> gone). The old delete scripts used `client.delete(<publishedId>)`, which never removes the
+> `drafts.` sibling. **The public site is unaffected** (`sanity/lib/client.ts` +
+> `sanityFetch` read `perspective: "published"`, and there are 0 published legacy docs — the
+> removed `?? page?.x` code tiers were genuinely dead for site visitors), but these 11 drafts now
+> reference schema types this cleanup removed, so they show in Studio's "unknown type" surface and
+> still cost attribute budget. **Finishing this needs one Sanity write (draft deletion) — an
+> owner action.** A read-only-by-default script is ready and dry-run-verified against production:
+> `npm run sanity:delete-orphaned-legacy-singleton-drafts:dry-run` then (with a write token)
+> `npm run sanity:delete-orphaned-legacy-singleton-drafts` — backup + revision-guarded atomic
+> delete, exactly 11 hardcoded ids, no wildcard. See §20.6 item.
 
-**B. Dead queries — remove:**
-- `sanity/queries/pages.ts`: `homePageQuery`, `aboutPageQuery`, `cateringPageQuery`,
-  `cateringMenuExamplesPageQuery`, `eventDecorationPageQuery`, `hostAtRorumPageQuery`,
-  `communityMembershipPageQuery`, `contactPageQuery`, `volunteerPageQuery`, `workWithUsPageQuery`.
-  **Keep `legalPageQuery`** (live — used by the 3 legal routes + `layout.tsx`).
-- `sanity/queries/faq.ts`: `faqPageQuery` (file then only re-exports nothing — can delete the file,
-  update `faq/page.tsx`).
-- `sanity/queries/events.ts`: `eventsPageQuery` (dead export — never imported). Keep the rest.
+- **A — deleted 12 legacy singleton schema files** (`sanity/schemaTypes/singletons/{homePage,
+  aboutPage, cateringPage, cateringMenuExamplesPage, eventDecorationPage, hostAtRorumPage,
+  communityMembershipPage, volunteerPage, workWithUsPage, contactPage, eventsPage, faqPage}.ts`);
+  pruned `sanity/schemaTypes/index.ts` (12 imports + 12 array entries + 12 `SINGLETON_TYPES`
+  entries — kept the 7 real singletons); refreshed the now-stale `PAGE_KEYS` doc comment.
+  `sanity.config.ts` needed no change (its `SINGLETON_TYPES.has()` / `"page"` / `"legalPage"`
+  checks just see a smaller set).
+- **B — removed the dead queries.** `sanity/queries/pages.ts` now holds only `legalPageQuery`.
+  `sanity/queries/faq.ts` deleted (was only `faqPageQuery`). `eventsPageQuery` removed from
+  `sanity/queries/events.ts`.
+- **C — removed the redundant legacy fetch + `?? page?.x` fallback tiers** from all 8 route files
+  (`about`, `community-membership`, `contact`, `event-decoration`, `faq`, `host-at-rorum`,
+  `volunteer`, `work-with-us`). Each dropped: the legacy import, one `sanityFetch({query:
+  <legacy>})` from its `Promise.all`, and every `?? pickLocalized(page?.X, locale)` /
+  `: page?.X?.length ? … :` branch that could never resolve (`page` was always `null` — 0
+  documents). Also removed now-dead helpers (`about`'s `resolveIconLinks`,
+  `community-membership`'s `splitBenefit`, `host-at-rorum`'s `pickLabel` import,
+  `event-decoration`/`host-at-rorum`'s `legacyGalleryMedia`). **Behaviour is provably unchanged**
+  — the removed tiers always returned `null`/`undefined`; the fallback chain now goes
+  section → hardcoded-fallback directly, exactly as it already did at runtime. `catering`/`events`
+  route files were already clean — untouched.
+- **D — regenerated types** (`npm run sanity:typegen`): `sanity.types.ts` −1113 lines net (26 →
+  14 queries, 68 → 56 schema types); `schema.json` regenerated (gitignored). `resolveContactFormFields`
+  and every other resolver unaffected. **Final-review correction (2026-09-02):** the working-tree
+  `sanity.types.ts` was found still carrying the removed legacy singleton *document* types
+  (`WorkWithUsPage`, `VolunteerPage`, …) — the `git stash` incident recovery had left it at the
+  pre-cleanup revision. Re-ran `npm run sanity:typegen`: legacy doc types now gone, all shared
+  types (`Seo`, `ImageWithAlt`, `InternationalizedArrayString`, …) retained, `tsc --noEmit` clean.
+  No code imported the legacy types by name, so nothing broke in the interim.
+- The `lib/content-contracts/*.ts` prose notes that referenced the old query names are now
+  historically inaccurate (they're `querySource:` string fields, not code — they don't break
+  anything); flagged for a light touch-up, not done this pass to keep the diff mechanical.
 
-**C. Redundant fetch call-sites — remove the legacy `sanityFetch` + its result-merge branch**
-(each currently fetches a guaranteed-`null` doc and threads a `?? legacyPage?.x` fallback that can
-never fire — mirror the Home fix already applied in `app/[locale]/(site)/page.tsx`):
-`about/page.tsx` (`aboutPageQuery`), `event-decoration/page.tsx` (`eventDecorationPageQuery`),
-`host-at-rorum/page.tsx` (`hostAtRorumPageQuery`), `community-membership/page.tsx`
-(`communityMembershipPageQuery`), `volunteer/page.tsx` (`volunteerPageQuery`),
-`work-with-us/page.tsx` (`workWithUsPageQuery`), `contact/page.tsx` (`contactPageQuery`),
-`faq/page.tsx` (`faqPageQuery`). `catering/page.tsx` already only uses `pageByKeyQuery` — no
-change. `events/page.tsx` never imported `eventsPageQuery` — no change.
-The `lib/content-contracts/*.ts` files (`about.ts`, `catering.ts`, `events-studio-visibility.ts`,
-`about-studio-visibility.ts`) reference these by name in prose — update those notes or mark them
-historical.
+**Verification:** `npx tsc --noEmit` clean · `npx eslint` (all changed files) 0 errors ·
+`npx vitest run` 528/528 · `next build` (isolated prod dir) succeeded, 148 static pages ·
+Playwright interactions/locale/sanity/schema-visibility/cms-about/cms-events/cms-home/
+cms-event-decoration — all pass · browser spot-checks (about, community-membership,
+host-at-rorum EN+DA) render identically to the pre-cleanup audit, 0 console errors.
+Pre-existing stale test **fully fixed after the final review**: `cms-events-contract.spec.ts`'s
+"cross-page consistency" test pinned `mindful-morning-yoga` (now past-dated) and hung 30 s on a
+disabled "Next page" link. Phase B guarded the click but left the strip/listing half skipped for a
+past fixture (silent coverage loss). It's now rewritten to **resolve the first currently-listed
+event dynamically** (`order(date asc)[0]`, matching both the Home strip and the listing's own
+default sort) — real, always-present consistency coverage regardless of dataset dates, no skip, no
+pinned slug. `AVAILABLE_SLUG`/`SOLD_OUT_SLUG`/`BASELINE_SLUG` remain only for the date-agnostic
+detail-page + "What to Expect" checks (a detail page is always reachable). The 6
+`cms-catering-contract.spec.ts` SEO failures are the same pre-existing unpublished-`page-catering.seo`
+gap (§20.7), unrelated.
 
-**D. Typegen drift:** after B is done, run `npm run sanity:typegen` — it regenerates
-`sanity.types.ts` + `schema.json`, dropping ~13 now-unused `*PageQueryResult` types and the 12
-singleton document types. Review the `git diff` (expect it to only shrink). This is the only step
-that touches generated files.
+> **Content observation (not a code defect):** every one of the ~34 published `event` documents is
+> now past-dated (latest 2026-08-26; today 2026-09-02). The frontend deliberately does **not**
+> hide past events (see the comment in `EventsClientPage.tsx` — changing that is a live
+> filtering-behaviour decision), so `/events` and the Home strip still render, just showing past
+> events. Owner should add upcoming events; until then the "upcoming" framing is inaccurate.
 
-**E. Verification for the whole of R8:** `npm run typecheck`, `npm run lint`,
-`npm run test:unit`, `npm run test:e2e`, `npm run build`. No Sanity writes anywhere in R8.
+Follow-up not done (LOW, flagged by the Phase B reviewer): the `lib/content-contracts/*.ts`
+`querySource:` prose still names removed queries (harmless — no script/test consumes those
+strings; `about.ts`/`home.ts`'s misleading "proposed fix / not fixed" notes WERE corrected). A
+full content-contracts accuracy refresh is a small standalone pass.
 
-**Not required by Phase 1 items 1–3 — do it as its own dedicated pass.**
+## 20.9 Phase C — partially-migrated pages (2026-09-02)
+
+| Page | Outcome |
+|---|---|
+| **FAQ** | Was **not** actually a gap. `page-faq` is fully translated EN/DA/UK; `/da/faq` renders Danish end to end on a clean build. → **COMPLETE** (SEO draft still to publish, §20.7). |
+| **Volunteer** | Technical chain (schema `internationalizedArray` → `pickLocalized(...locale)` resolver → `<VolunteerApplicationButton content={applicationForm}>`) is complete. Added Studio editor-UX: `contentItem.ts` roles "Volunteer application-modal heading/placeholder" + "…message" (show only the one relevant field, human label, friendly preview label), and `pageSection.ts` hides the `applicationForm` section's own unused label/title/text. **Correction after the final review:** the roles are now marked `requiredFields` (`title`/`text`). The earlier "left un-required so the page stays publishable" note was wrong — `contentItem` `title`/`text` already carry the shared all-or-nothing i18n rule, so a row filled for EN only (which is the current state of all 4) is invalid and **blocks Studio re-publish** regardless. `requiredFields` doesn't change that; it just makes the Studio error say "Please add the Danish and Ukrainian translations." instead of the confusing "…or clear the field completely", and removes the clear-to-unblock footgun. → **CONTENT-BLOCKED.** Owner/translator must add DA/UK for `modalTitle`, `messagePlaceholder`, `successMessage`, `errorMessage` on `page-volunteer`'s `applicationForm` items before the page can be re-published from Studio. (The live published page is unaffected until someone edits it.) |
+| **Work With Us** | Same treatment as Volunteer for the 7 `cvUploadForm` items. **Also** (found in the final review): the 3 **"Why work with us" feature bullets** (`sections[features]` — `feature0/1/2`) are EN-only too, had **no** item role, and render untranslated English on `/da` `/uk`. Added a "Work With Us feature bullet" role (`icon` + `title`, `title` required) so Studio surfaces them cleanly and flags the gap. → **CONTENT-BLOCKED.** DA/UK needed for `modalTitle`, `modalTitleSent`, `description`, `descriptionSent`, `messagePlaceholder`, `dropzoneText`, `errorMessage` (`cvUploadForm`) **and** `feature0`, `feature1`, `feature2` (`features`) on `page-work-with-us` before Studio re-publish. |
+| **Terms / Privacy / Cookie** | Sections 2+ fully translated (`legalPage.body`). **Section 1 "Company details"** is a hardcoded `<h2>1. Company details</h2>` + intro sentence + field labels in `terms/page.tsx` / `privacy-policy/page.tsx` / `cookie-policy/page.tsx`. The *facts* (company name, CVR, email, address) already come from Sanity (`getCompanyContactFacts()` → `siteSettings` + `contactInfo`, verified: `companyName: RORUM`, `cvr: 46033213`, `website: ro-rum.dk`). The wrapper chrome shows untranslated English on `/da` `/uk`. **NOT changed** — removing the hardcoded block before a Sanity replacement exists would drop Section 1 from the live pages, and translating the block myself is out of bounds ("do not invent legal language"). → **PARTIAL — owner decision needed** (fold Section 1 into `legalPage.body`, or add a structured localized block). |
+
+Verification: `tsc` clean · `eslint` clean · `vitest` 528/528 · `sanity-schema-visibility.spec.ts`
+326/326 (Volunteer/WWU role + field-hide + required-field + feature-bullet tests) ·
+`cms-events-contract.spec.ts` 29/29 · clean prod build renders `/volunteer`, `/work-with-us`
+(EN + DA), `/da/faq` (fully Danish), all 3 legal pages EN/DA/UK unchanged.
+
+## 20.10 Phase D — global / shared CMS (2026-09-02, audit only — no code needed)
+
+| Area | State |
+|---|---|
+| Navigation, Footer, contactInfo, formMessages, eventMessages | **Fully CMS, trilingual.** No work. |
+| socialLinks | R3 code guard in place; **owner must delete the stray `linkedin` entry in Studio** (§20.6). |
+| Company / legal facts (`getCompanyContactFacts`) | **Already CMS** — reads `siteSettings.companyName`/`.cvr`/`.website` + `contactInfo.email`/`.shortAddress`; `lib/siteConfig.ts` is only the Sanity-unavailable fallback. Not a gap. |
+| `siteSettings.defaultSeo` | **Empty** (not defined). The site-wide default-SEO fallback tier therefore contributes nothing; each page falls to its own hardcoded English fallback. Not a code gap — an **owner content decision** (populate a trilingual default, or leave it). |
+| `siteSettings.siteUrl` | Fixed / read-only `https://ro-rum.dk` (Part 26). Correct. |
+| Shared CTAs / gallery collections | Covered by Parts 18–28; no new gap. |
+| Legal Section 1 chrome | See §20.9 (owner decision). |
+
+## 20.11 Phase E — re-audit of the 8 "fully connected" pages (2026-09-02, verification only)
+
+Re-checked Home / About / Events listing / Event detail / Catering / Event Decoration / Host at
+RORUM / Community Membership against a clean production build, EN + DA (+ UK on Home). No rebuild
+needed; no new gaps found. Confirmed: every page's section content renders from `page-*.sections`
+and is localized (h1s + body all translate); Home SEO title/description **published** EN/DA/UK;
+Event detail Event JSON-LD + share actions present; Catering 66-image gallery renders with
+**zero empty `alt`** attributes; Community Membership 2 videos + exactly 2 bank-detail Copy
+buttons + WECODA link; all pages 0 console errors. The **only** outstanding item common to
+About / Events / Catering / Event Decoration / Host / Community is that their published
+`page-*.seo` is still empty → `<title>`/description render the (correct) per-page English
+fallback on every locale until the §20.7 drafts are published.
 
 ---
 

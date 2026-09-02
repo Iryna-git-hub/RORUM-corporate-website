@@ -2615,3 +2615,99 @@ test.describe("contentItem.ts — Community Membership reserved item roles", () 
     }
   });
 });
+
+test.describe("Volunteer / Work With Us — modal-copy item roles + form-section field hiding (Phase C)", () => {
+  function docWithItem(documentId: string, sectionKey: string, itemKey: string) {
+    return { _id: documentId, sections: [{ sectionKey, sectionKind: "form", items: [{ _key: "x", itemKey }] }] };
+  }
+  const sectionField = (name: string) => field(pageSectionType as unknown as { fields: FieldDef[] }, name);
+
+  test("Volunteer applicationForm: modalTitle/messagePlaceholder show only Title; successMessage/errorMessage show only Text", () => {
+    for (const itemKey of ["modalTitle", "messagePlaceholder"]) {
+      const doc = docWithItem("page-volunteer", "applicationForm", itemKey);
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBe("Volunteer application-modal heading/placeholder");
+      expect(callHidden(field(contentItemType, "title"), { document: doc, parent }), itemKey).toBe(false);
+      expect(callHidden(field(contentItemType, "text"), { document: doc, parent }), itemKey).toBe(true);
+      // Required in all 3 languages (see contentItem.ts comment): these rows are
+      // rendered modal copy. The shared all-or-nothing i18n rule already blocks
+      // Publish on the current EN-only data; `requiredFields` just makes the
+      // Studio error clear ("Please add the Danish and Ukrainian translations").
+      expect(isFieldRequiredByItemRole("title")(doc, parent), itemKey).toBe(true);
+    }
+    for (const itemKey of ["successMessage", "errorMessage"]) {
+      const doc = docWithItem("page-volunteer", "applicationForm", itemKey);
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBe("Volunteer application-modal message");
+      expect(callHidden(field(contentItemType, "text"), { document: doc, parent }), itemKey).toBe(false);
+      expect(callHidden(field(contentItemType, "title"), { document: doc, parent }), itemKey).toBe(true);
+      expect(isFieldRequiredByItemRole("text")(doc, parent), itemKey).toBe(true);
+    }
+  });
+
+  test("Work With Us cvUploadForm: 4 heading/placeholder rows are Title-only; 3 message rows are Text-only; all required EN/DA/UK", () => {
+    for (const itemKey of ["modalTitle", "modalTitleSent", "messagePlaceholder", "dropzoneText"]) {
+      const doc = docWithItem("page-work-with-us", "cvUploadForm", itemKey);
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBe("Work With Us CV-modal heading/placeholder");
+      expect(callHidden(field(contentItemType, "title"), { document: doc, parent }), itemKey).toBe(false);
+      expect(callHidden(field(contentItemType, "text"), { document: doc, parent }), itemKey).toBe(true);
+      expect(isFieldRequiredByItemRole("title")(doc, parent), itemKey).toBe(true);
+    }
+    for (const itemKey of ["description", "descriptionSent", "errorMessage"]) {
+      const doc = docWithItem("page-work-with-us", "cvUploadForm", itemKey);
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBe("Work With Us CV-modal message");
+      expect(callHidden(field(contentItemType, "text"), { document: doc, parent }), itemKey).toBe(false);
+      expect(isFieldRequiredByItemRole("text")(doc, parent), itemKey).toBe(true);
+    }
+  });
+
+  test("Work With Us features: feature bullets show Icon + Title only, Title required EN/DA/UK", () => {
+    for (const itemKey of ["feature0", "feature1", "feature2"]) {
+      const doc = {
+        _id: "page-work-with-us",
+        sections: [{ sectionKey: "features", sectionKind: "iconGrid", items: [{ _key: "x", itemKey }] }],
+      };
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBe("Work With Us feature bullet");
+      expect(callHidden(field(contentItemType, "icon"), { document: doc, parent }), itemKey).toBe(false);
+      expect(callHidden(field(contentItemType, "title"), { document: doc, parent }), itemKey).toBe(false);
+      expect(callHidden(field(contentItemType, "text"), { document: doc, parent }), itemKey).toBe(true);
+      expect(isFieldRequiredByItemRole("title")(doc, parent), itemKey).toBe(true);
+    }
+  });
+
+  test("the form section's own label/title/text are hidden for both pages (all copy lives in items)", () => {
+    for (const [docId, sectionKey] of [
+      ["page-volunteer", "applicationForm"],
+      ["page-work-with-us", "cvUploadForm"],
+    ] as const) {
+      const parent = { sectionKey, sectionKind: "form" };
+      const document = { _id: docId };
+      for (const name of ["label", "title", "text"]) {
+        expect(callHidden(sectionField(name), { parent, document }), `${docId}/${name}`).toBe(true);
+      }
+      // `items` still visible
+      expect(callHidden(sectionField("items"), { parent, document }), docId).toBe(false);
+    }
+  });
+
+  test("regression: these roles/hides never activate on the wrong document, and a plain `form` section elsewhere keeps its default visibility", () => {
+    // wrong document (Contact reusing the section key)
+    const wrong = docWithItem("page-contact", "applicationForm", "modalTitle");
+    expect(matchItemRoleInContext(wrong, wrong.sections[0]!.items[0]!)).toBeUndefined();
+    // the Volunteer role must NOT fire on the Work-With-Us doc, and vice-versa
+    const wwuItemOnVol = docWithItem("page-volunteer", "cvUploadForm", "dropzoneText");
+    expect(matchItemRoleInContext(wwuItemOnVol, wwuItemOnVol.sections[0]!.items[0]!)).toBeUndefined();
+    const volItemOnWwu = docWithItem("page-work-with-us", "applicationForm", "modalTitle");
+    expect(matchItemRoleInContext(volItemOnWwu, volItemOnWwu.sections[0]!.items[0]!)).toBeUndefined();
+    // a `form` section on another page keeps label/title visible (only the sectionKind default applies)
+    const parent = { sectionKey: "form", sectionKind: "form" };
+    expect(callHidden(sectionField("title"), { parent, document: { _id: "page-catering" } })).toBe(false);
+    // a hidden section field never blocks Publish: title/text on a `form`-kind section carry no
+    // required rule (not menuCategory/faqCategory), so hiding them changes nothing about validation.
+    const volCtx = { parent: { sectionKey: "applicationForm", sectionKind: "form" }, document: { _id: "page-volunteer" } };
+    expect(captureCustomValidator(sectionField("title"))([{ _key: "en", language: "en", value: "" }], volCtx)).toBe(true);
+  });
+});
