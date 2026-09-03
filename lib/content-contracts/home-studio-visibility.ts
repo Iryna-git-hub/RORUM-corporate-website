@@ -1,6 +1,14 @@
 import type { StudioVisibilityContract, StudioVisibilityEntry } from "./studio-visibility-types";
 
 /**
+ * NOTE (Phase G, 2026-09-03): the machine-readable, CI-checked source of
+ * truth for which pageSection fields each section shows the editor is now
+ * `SECTION_FIELD_VISIBILITY` in sanity/schemaTypes/objects/pageSection.ts
+ * (+ `npm run sanity:audit-sections`). This file remains the detailed
+ * per-field prose rationale.
+ */
+
+/**
  * Home Studio Visibility Contract — the reverse-direction companion to
  * lib/content-contracts/home.ts. That contract already proved every
  * CONNECTED field renders correctly; this one instead starts from every

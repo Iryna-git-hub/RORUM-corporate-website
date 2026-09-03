@@ -1,6 +1,15 @@
 import type { StudioVisibilityContract, StudioVisibilityEntry } from "./studio-visibility-types";
 
 /**
+ * NOTE (Phase G, 2026-09-03): the machine-readable, CI-checked source of
+ * truth for which pageSection fields each section shows the editor is now
+ * `SECTION_FIELD_VISIBILITY` in sanity/schemaTypes/objects/pageSection.ts
+ * (+ `npm run sanity:audit-sections`). This file remains the detailed
+ * per-field prose rationale; About's `statement`/`community` empty Small
+ * label was tightened away by that allow-list.
+ */
+
+/**
  * About Studio Visibility Contract — the reverse-direction companion to
  * lib/content-contracts/about.ts. Independent pass: About's own
  * sectionKind choices are checked against About's own field usage, not

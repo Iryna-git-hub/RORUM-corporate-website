@@ -1050,6 +1050,88 @@ form type is always first. Website success/error/unavailable copy stays localize
 No second form, no per-form endpoints, no code change. After step 4 the forms switch from the
 "not available yet" message to real delivery automatically.
 
+## 20.13 Phase G — Studio field-visibility allow-list + section-order verification (2026-09-03)
+
+**Owner's complaint:** on `/events`, the "Upcoming Events" section (its H1) showed Label,
+Buttons, Photos and Items in Studio even though the frontend reads only the Title. Symptom of a
+systemic modelling issue, not a one-off.
+
+**Root cause.** `pageSection.ts` decided field visibility by `sectionKind` (loose — e.g. every
+`hero`-kind section showed label/title/text/media/actions/items) and then patched the exceptions
+back out with a growing pile of per-document constant Sets
+(`SECTION_FIELD_FORCE_HIDDEN`, `CONTACT_HERO_FORCE_HIDDEN_FIELDS`, `HERO_MEDIA_ITEMS_FORCE_HIDDEN_FIELDS`,
+`COMMUNITY_MEMBERSHIP_*`, `EVENTS_FILTERS_*`, `ABOUT_TEXT_FORCE_VISIBLE_SECTION_KEYS`, …). A section
+only got its irrelevant fields hidden if someone had already written a constant for it —
+`page-events:hero` never had one, so it showed everything.
+
+**Fix — explicit allow-list.** `sanity/schemaTypes/objects/pageSection.ts` now has one
+`SECTION_FIELD_VISIBILITY` map keyed `<page-id>:<sectionKey>` → exactly the `pageSection` fields
+that section's own `getData()`/resolver reads (49 concrete sections, audited field-by-field
+against every `app/[locale]/(site)/*/page.tsx` + the live published document). `fieldHidden()` is
+now: *explicit allow-list entry if there is one, else the looser `SECTION_KIND_FALLBACK_VISIBILITY`
+by kind* — so an un-audited or brand-new section, and the open manager-extensible sets (menu
+categories, FAQ categories), are never over-hidden by omission. All ~10 per-document constant Sets
+are deleted.
+
+**Upcoming Events, before → after:**
+
+| Section | Before (Studio showed) | After |
+|---|---|---|
+| `/events` hero ("Upcoming Events at RORUM") | Small label, Title, Text, Photos/video, Buttons, Items | **Title only** |
+| Home "eventsStrip" | Small label, Title, Buttons | Small label, Title, Buttons (unchanged — the frontend does read all three) |
+
+**Other sections corrected** (populated-but-hidden or empty-and-irrelevant fields, per
+`npm run sanity:audit-sections`): About `statement`/`community` (dropped empty Small label);
+Catering `hero` (Photos), `menuFormats`/`inquiryForm` (Small label), `philosophy` (Small label +
+Buttons); Catering Menu Examples `banner` (Small label/Text/Buttons), `closing` (Small label/Buttons);
+Community Membership `benefits` (Small label), `application` (Small label), **`gallery` — its
+heading was hidden-but-rendered, now shown**; Contact `hero` (Photos/Buttons); Event Decoration
+`hero` (Photos/Items), `styling` (Buttons), `inquiryForm`/`steps`; Events `hero` (see above),
+`filters` (Small label/Title — items only); Host at RORUM `gallery` (down to Photos only),
+`session` (Text/Buttons), `packages` (Buttons); Volunteer/Work With Us form sections (items only);
+Work With Us `features` (items only). Full table: `npm run sanity:audit-sections`.
+
+**Obsolete stored data found, intentionally preserved** (hidden from editors, not deleted — the
+`variant` flag on 4 sections is stored but never read; the frontend hardcodes the variant in JSX):
+`page-home:closingCta.settings` (`variant=final`), `page-about:closingCta.settings` (`variant=final`),
+`page-events:closingCta.settings` (`variant=host`), `page-home:editorialHostAtRorum.settings`
+(`variant=reversed`). No production write. A future cleanup could `unset` these 4 `settings`
+arrays; there is no urgency since they're hidden and inert. `page-contact:form.settings` is the
+ONLY section whose `settings` is genuinely read (`privacyConsentShown`/`Required`,
+`faqPromptShown` via `getSetting()`) — there the raw field stays hidden because the friendly
+`ContactFormSectionInput` card is the editor interface for those toggles.
+
+**Section order (Studio = website).** The frontend looks sections up by key, so the stored
+`sections[]` array order is purely the Studio display order. `npm run sanity:audit-sections`
+(a **local / pre-release** check — it needs `.env.local` + a Sanity token, so it does NOT run in
+plain `npm test` / CI) checks each page's stored order against its rendered order
+(`EXPECTED_SECTION_ORDER`) — **all 10 routed pages already match; 0 drift** as of 2026-09-03. No
+reorder needed. FAQ / Catering-Menu-Examples have an open-ended set of category sections after the
+first section — order within that set is editorial.
+
+**Field order within a section** (`sectionKey`, `sectionKind`, then `label` → `title` → `text` →
+`media` → `actions` → `items` → `settings`) already follows editorial order (eyebrow, heading,
+description, image, buttons, list, advanced) — unchanged.
+
+**Tests:** `tests/sanity-schema-visibility.spec.ts` — the old 15-row `cases` table is replaced by
+(1) a data-driven loop over every `SECTION_FIELD_VISIBILITY` entry (published + draft id) asserting
+the schema's `hidden` callback agrees field-by-field, (2) an independent hand-written
+"expected reality" spot-check for 20 sections incl. the owner's exact example, (3) the owner's
+literal wording (`/events` "Upcoming Events" hides Label/Buttons/Photos/Items), (4) fallback tests
+(un-listed section → kind fallback; open sets; unshaped section → everything visible), (5) a
+1:1 map-vs-live check against a hand-maintained `liveSections` snapshot (catches stale keys / a
+new section added to the map without a live counterpart; update the snapshot when sections
+change). All of (1)–(5) run in plain `npm test` with no Sanity access.
+New read-only script `scripts/audit-page-sections.ts` (`npm run sanity:audit-sections`) — a
+**local / pre-release** check (needs `.env.local` + a Sanity token, so NOT part of CI): it
+compares the *live* dataset field-by-field against the schema resolver (`resolveVisibleSectionFields`),
+and fails on any populated-but-hidden field, stale key, or section-order drift.
+
+**Files:** `sanity/schemaTypes/objects/pageSection.ts` (rewritten visibility model),
+`tests/sanity-schema-visibility.spec.ts`, `scripts/audit-page-sections.ts` (new), `package.json`
+(new script). No schema field added/removed; no `sanity.types.ts` change; no production content
+touched.
+
 ---
 
 # 21. Shared Components

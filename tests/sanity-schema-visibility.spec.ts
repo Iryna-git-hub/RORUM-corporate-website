@@ -1,7 +1,15 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import pageSectionType, { isFaqCategorySection, isPageFaq, isPageContact, isPageEvents } from "@/sanity/schemaTypes/objects/pageSection";
+import pageSectionType, {
+  isFaqCategorySection,
+  isPageFaq,
+  isPageContact,
+  isPageEvents,
+  PAGE_SECTION_FIELDS,
+  SECTION_FIELD_VISIBILITY,
+  SECTION_KIND_FALLBACK_VISIBILITY,
+} from "@/sanity/schemaTypes/objects/pageSection";
 import contentItemType, { ITEM_ROLE_RULES, matchItemRoleInContext, isFaqQuestionRole, isFieldRequiredByItemRole, fieldLabelForItemRole } from "@/sanity/schemaTypes/objects/contentItem";
 import socialLinkType from "@/sanity/schemaTypes/objects/socialLink";
 import { allOrNothingLanguages, allOrNothingForSelectedEventLocales, requireAllLanguages } from "@/sanity/lib/i18nValidation";
@@ -62,93 +70,234 @@ function callReadOnly(f: FieldDef, ctx: Record<string, unknown>): boolean {
 }
 
 // ============================================================================
-// pageSection.ts — fieldHidden() per sectionKind, including the Approved
-// Fix 1/2/10 narrow overrides (About text force-visible, eventsStrip's
-// unused fields, About hero actions).
+// pageSection.ts — the explicit per-section field-visibility allow-list
+// (SECTION_FIELD_VISIBILITY), keyed <page-id>:<sectionKey>. Studio must show
+// exactly the fields the frontend reads for a section, and nothing else.
 // ============================================================================
-test.describe("pageSection.ts — section-level field visibility (mocked contexts, no Studio runtime)", () => {
-  const aboutDoc = { _id: "page-about" };
-  const aboutDraftDoc = { _id: "drafts.page-about" };
-  const homeDoc = { _id: "page-home" };
-  const cateringDoc = { _id: "page-catering" };
 
-  const cases: { document: unknown; sectionKind: string; sectionKey: string; expectVisible: Record<string, boolean> }[] = [
-    { document: homeDoc, sectionKind: "hero", sectionKey: "hero", expectVisible: { label: true, title: true, text: true, media: true, actions: true, items: true, settings: false } },
-    { document: homeDoc, sectionKind: "quickPaths", sectionKey: "quickPaths", expectVisible: { label: true, title: true, text: false, media: false, actions: false, items: true, settings: false } },
-    { document: homeDoc, sectionKind: "custom", sectionKey: "eventsStrip", expectVisible: { label: true, title: true, text: false, media: false, actions: true, items: false, settings: false } },
-    { document: homeDoc, sectionKind: "custom", sectionKey: "someOtherCustomSection", expectVisible: { label: true, title: true, text: true, media: true, actions: true, items: true, settings: true } },
-    { document: homeDoc, sectionKind: "editorial", sectionKey: "editorialAttendEvents", expectVisible: { label: true, title: true, text: true, media: true, actions: true, items: true, settings: false } },
-    { document: homeDoc, sectionKind: "servicesTeaser", sectionKey: "servicesTeaser", expectVisible: { label: true, title: true, text: false, media: false, actions: false, items: true, settings: false } },
-    { document: homeDoc, sectionKind: "communityTeaser", sectionKey: "communityTeaser", expectVisible: { label: true, title: true, text: true, media: true, actions: false, items: true, settings: false } },
-    { document: homeDoc, sectionKind: "cta", sectionKey: "closingCta", expectVisible: { label: true, title: true, text: true, media: false, actions: true, items: true, settings: false } },
-    { document: aboutDoc, sectionKind: "hero", sectionKey: "hero", expectVisible: { label: true, title: true, text: true, media: true, actions: false, items: true, settings: false } },
-    { document: aboutDoc, sectionKind: "iconGrid", sectionKey: "statement", expectVisible: { label: true, title: true, text: true, media: false, actions: false, items: true, settings: false } },
-    { document: aboutDraftDoc, sectionKind: "iconGrid", sectionKey: "statement", expectVisible: { label: true, title: true, text: true, media: false, actions: false, items: true, settings: false } },
-    { document: aboutDoc, sectionKind: "iconGrid", sectionKey: "community", expectVisible: { label: true, title: true, text: true, media: false, actions: false, items: true, settings: false } },
-    { document: aboutDoc, sectionKind: "steps", sectionKey: "pillars", expectVisible: { label: true, title: true, text: true, media: false, actions: false, items: true, settings: false } },
-    { document: aboutDoc, sectionKind: "cta", sectionKey: "closingCta", expectVisible: { label: true, title: true, text: true, media: false, actions: true, items: true, settings: false } },
-    // Unrelated iconGrid/steps sections on OTHER pages must be unaffected — text stays hidden there.
-    { document: cateringDoc, sectionKind: "iconGrid", sectionKey: "menuFormats", expectVisible: { label: true, title: true, text: false, media: false, actions: false, items: true, settings: false } },
-    { document: cateringDoc, sectionKind: "steps", sectionKey: "steps", expectVisible: { label: true, title: true, text: false, media: false, actions: false, items: true, settings: false } },
-    // Home's hero, despite sharing sectionKey "hero" with About, must keep its actions field.
-  ];
+const ALL_FIELDS = PAGE_SECTION_FIELDS;
 
-  for (const c of cases) {
-    const docId = (c.document as { _id: string })._id;
-    test(`document="${docId}" sectionKind="${c.sectionKind}" sectionKey="${c.sectionKey}"`, () => {
-      const parent = { sectionKind: c.sectionKind, sectionKey: c.sectionKey };
-      for (const [fieldName, expected] of Object.entries(c.expectVisible)) {
-        const actualVisible = !callHidden(field(pageSectionType, fieldName), { parent, document: c.document });
-        expect(actualVisible, `${fieldName} visibility for ${docId}/${c.sectionKind}/${c.sectionKey}`).toBe(expected);
+// Illustrative `sectionKind` per section — only used to build a realistic
+// mocked `parent` context. `fieldHidden` ignores `sectionKind` entirely when
+// there's an explicit allow-list entry, so an inexact value here is harmless;
+// it only matters for the fallback tests, which use their own values.
+const SECTION_KIND: Record<string, string> = {
+  "page-home:hero": "hero", "page-home:quickPaths": "quickPaths", "page-home:eventsStrip": "custom",
+  "page-home:editorialAttendEvents": "editorial", "page-home:editorialHostAtRorum": "editorial",
+  "page-home:servicesTeaser": "servicesTeaser", "page-home:communityTeaser": "communityTeaser", "page-home:closingCta": "cta",
+  "page-about:hero": "hero", "page-about:statement": "iconGrid", "page-about:community": "iconGrid",
+  "page-about:pillars": "steps", "page-about:closingCta": "cta",
+  "page-catering:hero": "hero", "page-catering:gallery": "gallery", "page-catering:menuFormats": "iconGrid",
+  "page-catering:philosophy": "split", "page-catering:steps": "steps", "page-catering:inquiryForm": "form",
+  "page-catering-menu-examples:banner": "hero", "page-catering-menu-examples:closing": "cta",
+  "page-community-membership:hero": "hero", "page-community-membership:donation": "donation",
+  "page-community-membership:intro": "split", "page-community-membership:benefits": "benefits",
+  "page-community-membership:application": "cta", "page-community-membership:gallery": "gallery",
+  "page-contact:hero": "hero", "page-contact:form": "form",
+  "page-event-decoration:hero": "hero", "page-event-decoration:gallery": "gallery", "page-event-decoration:styling": "split",
+  "page-event-decoration:steps": "steps", "page-event-decoration:inquiryForm": "form",
+  "page-events:hero": "hero", "page-events:filters": "filters", "page-events:closingCta": "cta",
+  "page-faq:hero": "hero",
+  "page-host-at-rorum:hero": "hero", "page-host-at-rorum:gallery": "gallery", "page-host-at-rorum:session": "split",
+  "page-host-at-rorum:packages": "cta", "page-host-at-rorum:steps": "steps", "page-host-at-rorum:inquiryForm": "form",
+  "page-volunteer:hero": "hero", "page-volunteer:applicationForm": "form",
+  "page-work-with-us:hero": "hero", "page-work-with-us:features": "iconGrid", "page-work-with-us:cvUploadForm": "form",
+};
+
+test.describe("pageSection.ts — explicit SECTION_FIELD_VISIBILITY allow-list (mocked contexts, no Studio runtime)", () => {
+  // 1. Data-driven: the schema's own `hidden` callback must agree, field by
+  //    field, with every declared entry — for both the published and draft id.
+  //    This is what stops a section growing an irrelevant field back.
+  for (const [key, allowed] of Object.entries(SECTION_FIELD_VISIBILITY)) {
+    const [docId, sectionKey] = key.split(":");
+    const sectionKind = SECTION_KIND[key];
+    test(`allow-list: ${key}  →  [${allowed.join(", ")}]`, () => {
+      expect(sectionKind, `missing SECTION_KIND for ${key} — add it to the test map`).toBeTruthy();
+      for (const idPrefix of ["", "drafts."]) {
+        const document = { _id: `${idPrefix}${docId}` };
+        const parent = { sectionKind, sectionKey };
+        for (const f of ALL_FIELDS) {
+          const shouldBeVisible = (allowed as readonly string[]).includes(f);
+          expect(!callHidden(field(pageSectionType, f), { parent, document }), `${key} · ${f} (${idPrefix || "published"})`).toBe(shouldBeVisible);
+        }
       }
     });
   }
 
-  test("settings is hidden for eventsStrip specifically, regardless of a future kind change", () => {
-    const hidden = callHidden(field(pageSectionType, "settings"), { parent: { sectionKind: "custom", sectionKey: "eventsStrip" }, document: homeDoc });
-    expect(hidden).toBe(true);
-  });
-
-  test("About text force-visible does NOT leak to a different sectionKey on the same document", () => {
-    // statement/community/pillars are force-visible; a hypothetical 4th
-    // iconGrid section on page-about itself should NOT be force-visible.
-    const hidden = callHidden(field(pageSectionType, "text"), {
-      parent: { sectionKind: "iconGrid", sectionKey: "someOtherAboutSection" },
-      document: aboutDoc,
-    });
-    expect(hidden).toBe(true);
-  });
-
-  test("Approved Fix 1 — About statement/community/pillars text visible, unrelated iconGrid/steps text stays hidden, draft/published identical", () => {
-    for (const document of [aboutDoc, aboutDraftDoc]) {
-      for (const sectionKey of ["statement", "community"]) {
-        expect(callHidden(field(pageSectionType, "text"), { parent: { sectionKind: "iconGrid", sectionKey }, document })).toBe(false);
+  // 2. Independent "expected reality" table — hand-written from each page's
+  //    own getData()/resolver, NOT derived from SECTION_FIELD_VISIBILITY, so a
+  //    wrong entry in the map is caught here. Covers ALL 49 concrete sections.
+  //    Keep this in sync with the map by reasoning from the frontend, never by
+  //    copying the map.
+  const EXPECTED: { key: string; visible: readonly string[] }[] = [
+    // ── Home
+    { key: "page-home:hero", visible: ["label", "title", "text", "media", "actions", "items"] },
+    { key: "page-home:quickPaths", visible: ["label", "title", "items"] },
+    { key: "page-home:eventsStrip", visible: ["label", "title", "actions"] }, // "What's on" + heading + "View all events" link; the event cards are separate `event` docs
+    { key: "page-home:editorialAttendEvents", visible: ["label", "title", "text", "media", "actions", "items"] },
+    { key: "page-home:editorialHostAtRorum", visible: ["label", "title", "text", "media", "actions", "items"] }, // `reversed` is a JSX literal, not a stored setting
+    { key: "page-home:servicesTeaser", visible: ["label", "title", "items"] },
+    { key: "page-home:communityTeaser", visible: ["label", "title", "text", "media", "items"] },
+    { key: "page-home:closingCta", visible: ["label", "title", "text", "actions", "items"] }, // `variant=final` setting is hardcoded in JSX → settings hidden
+    // ── About
+    { key: "page-about:hero", visible: ["label", "title", "text", "media", "items"] }, // CTA lives in items, not actions
+    { key: "page-about:statement", visible: ["title", "text", "items"] }, // no eyebrow read
+    { key: "page-about:community", visible: ["title", "text", "items"] },
+    { key: "page-about:pillars", visible: ["label", "title", "text", "items"] },
+    { key: "page-about:closingCta", visible: ["label", "title", "text", "actions", "items"] },
+    // ── Catering
+    { key: "page-catering:hero", visible: ["label", "title", "text", "actions", "items"] }, // no photos on this hero
+    { key: "page-catering:gallery", visible: ["label", "media", "items"] },
+    { key: "page-catering:menuFormats", visible: ["title", "items"] },
+    { key: "page-catering:philosophy", visible: ["title", "text", "media", "items"] }, // eyebrow/buttons never read
+    { key: "page-catering:steps", visible: ["label", "title", "items"] },
+    { key: "page-catering:inquiryForm", visible: ["title", "text", "items"] },
+    // ── Catering Menu Examples overlay
+    { key: "page-catering-menu-examples:banner", visible: ["title", "media", "items"] },
+    { key: "page-catering-menu-examples:closing", visible: ["title", "text", "items"] },
+    // ── Community Membership
+    { key: "page-community-membership:hero", visible: ["label", "title", "text", "actions", "items"] },
+    { key: "page-community-membership:donation", visible: ["label", "title", "text", "media", "items"] }, // label/title/text rendered by WecodaDonationSection (fallback-backed)
+    { key: "page-community-membership:intro", visible: ["label", "title", "items"] },
+    { key: "page-community-membership:benefits", visible: ["title", "items"] },
+    { key: "page-community-membership:application", visible: ["title", "text", "actions", "items"] },
+    { key: "page-community-membership:gallery", visible: ["label", "title", "media"] }, // heading `data.galleryTitle` IS rendered (was hidden under the old gallery-kind default)
+    // ── Contact
+    { key: "page-contact:hero", visible: ["label", "title", "text", "items"] }, // no map/actions on this hero
+    { key: "page-contact:form", visible: ["title", "items"] }, // privacy/FAQ toggles = ContactFormSectionInput card, raw settings hidden
+    // ── Event Decoration
+    { key: "page-event-decoration:hero", visible: ["label", "title", "text", "actions"] },
+    { key: "page-event-decoration:gallery", visible: ["label", "media", "items"] },
+    { key: "page-event-decoration:styling", visible: ["label", "title", "text", "media", "items"] },
+    { key: "page-event-decoration:steps", visible: ["label", "title", "items"] },
+    { key: "page-event-decoration:inquiryForm", visible: ["title", "text", "items"] },
+    // ── Events listing — the owner's example
+    { key: "page-events:hero", visible: ["title"] }, // ONLY the listing H1
+    { key: "page-events:filters", visible: ["items"] },
+    { key: "page-events:closingCta", visible: ["label", "title", "text", "actions", "items"] },
+    // ── FAQ
+    { key: "page-faq:hero", visible: ["label", "title", "text"] },
+    // ── Host at RORUM
+    { key: "page-host-at-rorum:hero", visible: ["label", "title", "text", "actions"] },
+    { key: "page-host-at-rorum:gallery", visible: ["media"] }, // no heading/chips on this gallery
+    { key: "page-host-at-rorum:session", visible: ["label", "title", "media", "items"] },
+    { key: "page-host-at-rorum:packages", visible: ["label", "title", "text", "items"] },
+    { key: "page-host-at-rorum:steps", visible: ["label", "title", "items"] },
+    { key: "page-host-at-rorum:inquiryForm", visible: ["title", "text", "items"] },
+    // ── Volunteer
+    { key: "page-volunteer:hero", visible: ["label", "title", "media", "actions", "items"] }, // no section-level text
+    { key: "page-volunteer:applicationForm", visible: ["items"] },
+    // ── Work With Us
+    { key: "page-work-with-us:hero", visible: ["label", "title", "media", "items"] },
+    { key: "page-work-with-us:features", visible: ["items"] }, // no section heading read
+    { key: "page-work-with-us:cvUploadForm", visible: ["items"] },
+  ];
+  for (const { key, visible } of EXPECTED) {
+    const [docId, sectionKey] = key.split(":");
+    test(`expected reality (independent): ${key} shows exactly [${visible.join(", ")}]`, () => {
+      const parent = { sectionKind: SECTION_KIND[key], sectionKey };
+      const document = { _id: docId };
+      for (const f of ALL_FIELDS) {
+        expect(!callHidden(field(pageSectionType, f), { parent, document }), `${key} · ${f}`).toBe(visible.includes(f));
       }
-      expect(callHidden(field(pageSectionType, "text"), { parent: { sectionKind: "steps", sectionKey: "pillars" }, document })).toBe(false);
+    });
+  }
+
+  test("the independent EXPECTED table covers every SECTION_FIELD_VISIBILITY entry (it can't fall behind the map)", () => {
+    expect(EXPECTED.map((e) => e.key).sort()).toEqual(Object.keys(SECTION_FIELD_VISIBILITY).sort());
+  });
+
+  // 3. The owner's exact wording: on /events "Upcoming Events", Label /
+  //    Buttons / Photos / Items must all be HIDDEN.
+  test("owner's example: page-events 'Upcoming Events' section hides Label, Buttons, Photos and Items", () => {
+    const parent = { sectionKind: "hero", sectionKey: "hero" };
+    const document = { _id: "page-events" };
+    for (const f of ["label", "actions", "media", "items", "text"] as const) {
+      expect(callHidden(field(pageSectionType, f), { parent, document }), `${f} must be hidden`).toBe(true);
     }
-    // Other iconGrid/steps sections, any other page, remain hidden.
-    for (const [sectionKind, sectionKey] of [["iconGrid", "menuFormats"], ["iconGrid", "features"], ["steps", "steps"]] as const) {
-      expect(callHidden(field(pageSectionType, "text"), { parent: { sectionKind, sectionKey }, document: cateringDoc })).toBe(true);
+    expect(callHidden(field(pageSectionType, "title"), { parent, document }), "title stays visible").toBe(false);
+  });
+
+  // 4. Fallback: a section NOT in the allow-list (a brand-new one, or an open
+  //    manager-extensible set) falls back to the looser sectionKind rules —
+  //    never over-hidden by omission.
+  test("fallback: an un-listed section uses SECTION_KIND_FALLBACK_VISIBILITY for its kind", () => {
+    const document = { _id: "page-home" };
+    const parent = { sectionKind: "custom", sectionKey: "someBrandNewCustomSection" };
+    for (const f of ALL_FIELDS) {
+      const expectVisible = SECTION_KIND_FALLBACK_VISIBILITY.custom.has(f);
+      expect(!callHidden(field(pageSectionType, f), { parent, document }), f).toBe(expectVisible);
     }
   });
 
-  test("Approved Fix 10 — About hero actions hidden (page-about + drafts.page-about only), Home hero actions unaffected", () => {
-    expect(callHidden(field(pageSectionType, "actions"), { parent: { sectionKind: "hero", sectionKey: "hero" }, document: aboutDoc })).toBe(true);
-    expect(callHidden(field(pageSectionType, "actions"), { parent: { sectionKind: "hero", sectionKey: "hero" }, document: aboutDraftDoc })).toBe(true);
-    expect(callHidden(field(pageSectionType, "actions"), { parent: { sectionKind: "hero", sectionKey: "hero" }, document: homeDoc })).toBe(false);
+  test("fallback: menuCategory / faqCategory (open sets, no explicit entry) use their kind's rules", () => {
+    const menuParent = { sectionKind: "menuCategory", sectionKey: "category-manager-added" };
+    const menuDoc = { _id: "page-catering-menu-examples" };
+    for (const f of ALL_FIELDS) {
+      expect(!callHidden(field(pageSectionType, f), { parent: menuParent, document: menuDoc }), `menuCategory · ${f}`).toBe(
+        SECTION_KIND_FALLBACK_VISIBILITY.menuCategory.has(f),
+      );
+    }
+    const faqParent = { sectionKind: "faqCategory", sectionKey: "group-manager-added" };
+    const faqDoc = { _id: "page-faq" };
+    for (const f of ALL_FIELDS) {
+      expect(!callHidden(field(pageSectionType, f), { parent: faqParent, document: faqDoc }), `faqCategory · ${f}`).toBe(
+        SECTION_KIND_FALLBACK_VISIBILITY.faqCategory.has(f),
+      );
+    }
   });
 
-  test("Approved Fix 2 — eventsStrip text/media/items hidden, label/title/actions still visible, published and draft identical", () => {
-    for (const document of [homeDoc, { _id: "drafts.page-home" }]) {
-      const parent = { sectionKind: "custom", sectionKey: "eventsStrip" };
-      expect(callHidden(field(pageSectionType, "text"), { parent, document })).toBe(true);
-      expect(callHidden(field(pageSectionType, "media"), { parent, document })).toBe(true);
-      expect(callHidden(field(pageSectionType, "items"), { parent, document })).toBe(true);
-      expect(callHidden(field(pageSectionType, "settings"), { parent, document })).toBe(true);
-      expect(callHidden(field(pageSectionType, "label"), { parent, document })).toBe(false);
-      expect(callHidden(field(pageSectionType, "title"), { parent, document })).toBe(false);
-      expect(callHidden(field(pageSectionType, "actions"), { parent, document })).toBe(false);
+  test("fallback: a section with no sectionKind yet shows every field (never hidden-but-required)", () => {
+    for (const f of ALL_FIELDS) {
+      expect(callHidden(field(pageSectionType, f), { parent: { sectionKey: "brand-new" }, document: { _id: "page-home" } }), f).toBe(false);
     }
+  });
+
+  // 5. Same sectionKey, different page → independent visibility. "hero" and
+  //    "gallery" are shared by nearly every page but resolve per page.
+  test("shared sectionKeys resolve per page: page-events:hero (title only) vs page-home:hero (6 fields) vs page-catering:hero (5 fields)", () => {
+    const heroParent = { sectionKind: "hero", sectionKey: "hero" };
+    expect(!callHidden(field(pageSectionType, "media"), { parent: heroParent, document: { _id: "page-events" } })).toBe(false);
+    expect(!callHidden(field(pageSectionType, "media"), { parent: heroParent, document: { _id: "page-home" } })).toBe(true);
+    expect(!callHidden(field(pageSectionType, "media"), { parent: heroParent, document: { _id: "page-catering" } })).toBe(false); // catering hero has no photos
+    expect(!callHidden(field(pageSectionType, "actions"), { parent: heroParent, document: { _id: "page-catering" } })).toBe(true);
+  });
+
+  test("sectionKey / sectionKind are hidden once a section is shaped, shown while sectionKind is unset", () => {
+    for (const f of ["sectionKey", "sectionKind"] as const) {
+      expect(callHidden(field(pageSectionType, f), { parent: { sectionKind: "hero" } }), `${f} hidden when shaped`).toBe(true);
+      expect(callHidden(field(pageSectionType, f), { parent: {} }), `${f} shown when unshaped`).toBe(false);
+    }
+  });
+
+  test("every declared section maps 1:1 to the live-dataset snapshot (no stale keys, no unaudited sections)", () => {
+    // The set of keys the schema declares...
+    const declared = new Set(Object.keys(SECTION_FIELD_VISIBILITY));
+    // ...must equal this HAND-MAINTAINED SNAPSHOT of the (non-open-set)
+    // sections that exist in the production dataset. Regenerate it whenever a
+    // section is added/removed/renamed — the authoritative check against the
+    // *current* live dataset is `npm run sanity:audit-sections` (needs a token).
+    // menuCategory + faqCategory sections are deliberately absent (open sets).
+    const liveSections = [
+      "page-home:hero", "page-home:quickPaths", "page-home:eventsStrip", "page-home:editorialAttendEvents",
+      "page-home:editorialHostAtRorum", "page-home:servicesTeaser", "page-home:communityTeaser", "page-home:closingCta",
+      "page-about:hero", "page-about:statement", "page-about:community", "page-about:pillars", "page-about:closingCta",
+      "page-catering:hero", "page-catering:gallery", "page-catering:menuFormats", "page-catering:philosophy",
+      "page-catering:steps", "page-catering:inquiryForm",
+      "page-catering-menu-examples:banner", "page-catering-menu-examples:closing",
+      "page-community-membership:hero", "page-community-membership:donation", "page-community-membership:intro",
+      "page-community-membership:benefits", "page-community-membership:application", "page-community-membership:gallery",
+      "page-contact:hero", "page-contact:form",
+      "page-event-decoration:hero", "page-event-decoration:gallery", "page-event-decoration:styling",
+      "page-event-decoration:steps", "page-event-decoration:inquiryForm",
+      "page-events:hero", "page-events:filters", "page-events:closingCta",
+      "page-faq:hero",
+      "page-host-at-rorum:hero", "page-host-at-rorum:gallery", "page-host-at-rorum:session",
+      "page-host-at-rorum:packages", "page-host-at-rorum:steps", "page-host-at-rorum:inquiryForm",
+      "page-volunteer:hero", "page-volunteer:applicationForm",
+      "page-work-with-us:hero", "page-work-with-us:features", "page-work-with-us:cvUploadForm",
+    ];
+    expect([...declared].sort()).toEqual([...new Set(liveSections)].sort());
   });
 });
 
@@ -2459,7 +2608,7 @@ test.describe("contentItem.ts — Host at RORUM session-includes / package / ste
   });
 });
 
-test.describe("pageSection.ts — Community Membership hero/intro force-hidden fields", () => {
+test.describe("pageSection.ts — Community Membership section visibility (allow-list)", () => {
   function mediaField() {
     return field(pageSectionType as unknown as { fields: FieldDef[] }, "media");
   }
@@ -2503,13 +2652,21 @@ test.describe("pageSection.ts — Community Membership hero/intro force-hidden f
     }
   });
 
-  test("regression: Community Membership's OTHER sections (donation/benefits/application/gallery) are unaffected — the hides are scoped to sectionKey \"hero\"/\"intro\" only", () => {
-    for (const sectionKey of ["donation", "benefits", "application", "gallery"]) {
-      const parent = { sectionKey, sectionKind: "split" };
-      const document = { _id: "page-community-membership" };
-      expect(callHidden(mediaField(), { parent, document }), sectionKey).toBe(false);
-      expect(callHidden(textField(), { parent, document }), sectionKey).toBe(false);
-      expect(callHidden(actionsField(), { parent, document }), sectionKey).toBe(false);
+  test("Community Membership's other sections each show exactly their audited fields", () => {
+    const document = { _id: "page-community-membership" };
+    const expected: Record<string, { kind: string; visible: string[] }> = {
+      donation: { kind: "donation", visible: ["label", "title", "text", "media", "items"] },
+      benefits: { kind: "benefits", visible: ["title", "items"] },
+      application: { kind: "cta", visible: ["title", "text", "actions", "items"] },
+      // gallery has a rendered heading (`<SectionHeader title={data.galleryTitle}>`)
+      // that the default gallery-kind visibility hides — the allow-list restores it.
+      gallery: { kind: "gallery", visible: ["label", "title", "media"] },
+    };
+    for (const [sectionKey, { kind, visible }] of Object.entries(expected)) {
+      const parent = { sectionKey, sectionKind: kind };
+      for (const f of ["label", "title", "text", "media", "actions", "items", "settings"] as const) {
+        expect(!callHidden(field(pageSectionType, f), { parent, document }), `${sectionKey} · ${f}`).toBe(visible.includes(f));
+      }
     }
   });
 });

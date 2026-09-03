@@ -48,6 +48,7 @@
     "sanity:audit-translations": "tsx --env-file=.env.local scripts/audit-translations.ts",
     "sanity:audit-contract": "tsx --env-file=.env.local scripts/audit-content-contract.ts",
     "sanity:audit-studio-visibility": "tsx --env-file=.env.local scripts/audit-studio-visibility.ts",
+    "sanity:audit-sections": "tsx --env-file=.env.local scripts/audit-page-sections.ts",
     "sanity:audit-home-about": "tsx --env-file=.env.local scripts/audit-home-about-i18n.ts",
     "sanity:repair-home-about:dry-run": "tsx --env-file=.env.local scripts/repair-home-about-validation.ts --dry-run",
     "sanity:repair-home-about": "tsx --env-file=.env.local scripts/repair-home-about-validation.ts",

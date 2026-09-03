@@ -1,6 +1,15 @@
 import type { StudioVisibilityContract, StudioVisibilityEntry } from "./studio-visibility-types";
 
 /**
+ * NOTE (Phase G, 2026-09-03): the machine-readable, CI-checked source of
+ * truth for which pageSection fields each section shows the editor is now
+ * `SECTION_FIELD_VISIBILITY` in sanity/schemaTypes/objects/pageSection.ts
+ * (+ `npm run sanity:audit-sections`). This file remains the detailed
+ * per-field prose rationale; a few "correctly-hidden" entries below were
+ * tightened further by that allow-list.
+ */
+
+/**
  * Events Studio Visibility Contract — reverse-direction companion to
  * lib/content-contracts/events.ts. Covers page-events, every `event`
  * document, and eventMessages. Verified against the live documents (raw

@@ -5,17 +5,32 @@ import { CateringMenuDishItemsInput } from "@/sanity/components/CateringMenuDish
 import { CateringMenuCategoryInput } from "@/sanity/components/CateringMenuCategoryInput";
 import { CateringAllLanguagesInput } from "@/sanity/components/CateringAllLanguagesInput";
 
-// The one section shape every page in the new `page` document type is built
-// from. `sectionKind` picks what the section visually is; the remaining
-// fields (label/title/text/media/actions/items/settings) are generic and
-// reused by every kind — this is the entire reason a 15-page site with
-// dozens of one-off named fields per page can live under Sanity's free-plan
-// 2,000-attribute cap: every section of every page shares the same handful
-// of paths instead of inventing new ones. See MIGRATION_REPORT.md.
+// The one section shape every page in the `page` document type is built from.
+// `sectionKind` picks what the section visually is; the remaining fields
+// (label/title/text/media/actions/items/settings) are generic and reused by
+// every kind — this is the entire reason a 15-page site with dozens of
+// one-off named fields per page can live under Sanity's free-plan
+// 2,000-attribute cap: every section of every page shares the same handful of
+// paths instead of inventing new ones. See MIGRATION_REPORT.md.
 //
-// `hidden` below only shows the fields a given `sectionKind` actually uses,
-// so editors never see empty, irrelevant fields — this is presentation only
-// and doesn't add attributes.
+// Field visibility (`hidden` below) is PRESENTATION ONLY — it never adds or
+// removes an attribute path, it just decides which fields a content editor
+// sees for a given section. The model is an explicit allow-list:
+//
+//   SECTION_FIELD_VISIBILITY["<page-id>:<sectionKey>"] = exactly the fields
+//   the frontend actually reads for that concrete section.
+//
+// That list is audited field-by-field against each page's own
+// `getData()` / resolver + the live document (see
+// `npm run sanity:audit-sections` and lib/content-contracts/*-studio-visibility.ts).
+// A section with NO explicit entry — a brand-new one a manager just added, an
+// open manager-extensible set (menu categories, FAQ categories), or a page
+// not yet audited — falls back to the looser `SECTION_KIND_FALLBACK_VISIBILITY`
+// keyed by `sectionKind`, so nothing is ever over-hidden by omission.
+
+export const PAGE_SECTION_FIELDS = ["label", "title", "text", "media", "actions", "items", "settings"] as const;
+export type PageSectionField = (typeof PAGE_SECTION_FIELDS)[number];
+
 const SECTION_KINDS = [
   "hero",
   "gallery",
@@ -36,7 +51,111 @@ const SECTION_KINDS = [
   "custom",
 ] as const;
 
-const FIELD_VISIBILITY: Record<(typeof SECTION_KINDS)[number], Set<string>> = {
+type SectionKind = (typeof SECTION_KINDS)[number];
+
+/**
+ * The EXPLICIT per-section allow-list — one entry per concrete section on
+ * every page, keyed `<page-id>:<sectionKey>` (the page's dash id, e.g.
+ * `page-events:hero`). The value is exactly the `pageSection` fields the
+ * frontend reads for that section — every other field is hidden from the
+ * editor there.
+ *
+ * Audited against each page's own `app/[locale]/(site)/<page>/page.tsx`
+ * `getData()` / resolver, cross-checked with the live published document
+ * (`npm run sanity:audit-sections`). "Empty but read with a fallback" still
+ * counts as used — the field stays visible so an editor can fill it in.
+ *
+ * `sectionKey`/`sectionKind` (the technical routing fields) are NOT part of
+ * this list — their visibility is handled separately by
+ * `isCorrectlyShapedSection`.
+ */
+const SECTION_FIELD_VISIBILITY: Record<string, readonly PageSectionField[]> = {
+  // ── Home (app/[locale]/(site)/page.tsx) ────────────────────────────────
+  "page-home:hero": ["label", "title", "text", "media", "actions", "items"], // eyebrow, H1, intro, bg image/video, primary+secondary CTA, trust badges
+  "page-home:quickPaths": ["label", "title", "items"], // 4 quick-path cards (title/text/href/image/label/icon)
+  "page-home:eventsStrip": ["label", "title", "actions"], // "What's on" eyebrow, heading, "View all events" link — the event cards themselves are separate `event` documents
+  "page-home:editorialAttendEvents": ["label", "title", "text", "media", "actions", "items"], // eyebrow, heading, intro, image, CTA, description + feature bullets
+  "page-home:editorialHostAtRorum": ["label", "title", "text", "media", "actions", "items"], // same shape (the `reversed` layout is a code literal, not a stored setting)
+  "page-home:servicesTeaser": ["label", "title", "items"], // 2 service teaser cards
+  "page-home:communityTeaser": ["label", "title", "text", "media", "items"], // eyebrow, heading, paragraph, image, 3 community links
+  "page-home:closingCta": ["label", "title", "text", "actions", "items"], // eyebrow, heading, text, main CTA, FAQ prompt + 4 suggested-path links
+
+  // ── About (app/[locale]/(site)/about/page.tsx) ─────────────────────────
+  "page-about:hero": ["label", "title", "text", "media", "items"], // eyebrow, H1, lead, 3 atmosphere photos, 2 intro quick-links (its CTA lives in items, not actions)
+  "page-about:statement": ["title", "text", "items"], // heading, services paragraph, 2 service links
+  "page-about:community": ["title", "text", "items"], // heading, community paragraph, 3 community links
+  "page-about:pillars": ["label", "title", "text", "items"], // eyebrow, location heading, pillars intro, 4 pillar cards
+  "page-about:closingCta": ["label", "title", "text", "actions", "items"], // eyebrow, heading, text, main CTA, FAQ prompt + suggested-path links
+
+  // ── Catering (app/[locale]/(site)/catering/page.tsx) ───────────────────
+  "page-catering:hero": ["label", "title", "text", "actions", "items"], // eyebrow, H1, intro, "Request catering" CTA, "Menu examples" button
+  "page-catering:gallery": ["label", "media", "items"], // "Suitable for" label, ~60 gallery photos, aria-label + "suitable for" chips
+  "page-catering:menuFormats": ["title", "items"], // heading, 3 format cards (title/text/image)
+  "page-catering:philosophy": ["title", "text", "media", "items"], // heading, paragraph, image, "tailored" note + 6 "what we offer" bullets
+  "page-catering:steps": ["label", "title", "items"], // "How it works" eyebrow, heading, 3 steps
+  "page-catering:inquiryForm": ["title", "text", "items"], // form heading, intro, submit label / placeholder / success / footer note
+
+  // ── Catering Menu Examples overlay (page-catering-menu-examples) ───────
+  "page-catering-menu-examples:banner": ["title", "media", "items"], // overlay heading, banner image, "request" CTA + 2 intro paragraphs + empty-state message
+  "page-catering-menu-examples:closing": ["title", "text", "items"], // "custom menu" heading + text, "featured dishes" label / disclaimer / "back to catering" link
+  // menuCategory sections have no explicit entry — they're an open,
+  // manager-extensible set, so they fall through to the `menuCategory` kind.
+
+  // ── Community Membership (app/[locale]/(site)/community-membership/page.tsx)
+  "page-community-membership:hero": ["label", "title", "text", "actions", "items"], // eyebrow, H1, intro, apply/support/external CTAs, price-strip row
+  "page-community-membership:donation": ["label", "title", "text", "media", "items"], // section eyebrow/heading/paragraph (fallback-backed), QR image, scan/bank/support rows
+  "page-community-membership:intro": ["label", "title", "items"], // "WECODA community" eyebrow, "Connecting Women…" heading, 2 text columns
+  "page-community-membership:benefits": ["title", "items"], // "What You Gain" heading, 9 benefit cards
+  "page-community-membership:application": ["title", "text", "actions", "items"], // heading, closing paragraph, "Become a Member" CTA, 4 application steps
+  "page-community-membership:gallery": ["label", "title", "media"], // "Gallery" eyebrow, "WECODA Community Meetings" heading, 8 photos + 2 videos
+
+  // ── Contact (app/[locale]/(site)/contact/page.tsx) ─────────────────────
+  "page-contact:hero": ["label", "title", "text", "items"], // eyebrow, intro heading, intro text, "Follow us" heading + address/phone/email display-order rows
+  "page-contact:form": ["title", "items"], // form heading + configurable fields / submit / success rows. Privacy-consent + FAQ-prompt toggles are a dedicated settings card (ContactFormSectionInput), so the raw `settings` field stays hidden.
+
+  // ── Event Decoration (app/[locale]/(site)/event-decoration/page.tsx) ───
+  "page-event-decoration:hero": ["label", "title", "text", "actions"], // eyebrow, H1, intro, "Request decoration" CTA
+  "page-event-decoration:gallery": ["label", "media", "items"], // "Suitable for" label, 14 photos, aria-label + "suitable for" chips
+  "page-event-decoration:styling": ["label", "title", "text", "media", "items"], // eyebrow, "What we style" heading, intro, image, "tailored" note + 5 style cards
+  "page-event-decoration:steps": ["label", "title", "items"], // "How it works" eyebrow, heading, 3 steps
+  "page-event-decoration:inquiryForm": ["title", "text", "items"], // form heading, intro, submit / placeholder / success rows
+
+  // ── Events listing (app/[locale]/(site)/events/page.tsx) ───────────────
+  "page-events:hero": ["title"], // ONLY the listing H1 ("Upcoming Events at RORUM"). No eyebrow/text/photos/buttons/items are read for this section.
+  "page-events:filters": ["items"], // the 18 filter-bar / empty-state label rows (each uses `.title` only, via ITEM_ROLE_RULES)
+  "page-events:closingCta": ["label", "title", "text", "actions", "items"], // "Would you like to host?" eyebrow, heading, text, main CTA. `items` stays visible only because EventsClosingCtaItemsInput renders a read-only "edit these in Shared form messages" card there — the public "Have questions?" prompt is actually read from `formMessages`, not these rows.
+
+  // ── FAQ (app/[locale]/(site)/faq/page.tsx) ─────────────────────────────
+  "page-faq:hero": ["label", "title", "text"], // eyebrow, H1, intro paragraph
+  // faqCategory sections have no explicit entry — open, manager-extensible
+  // set, so they fall through to the `faqCategory` kind (title + questions).
+
+  // ── Host at RORUM (app/[locale]/(site)/host-at-rorum/page.tsx) ─────────
+  "page-host-at-rorum:hero": ["label", "title", "text", "actions"], // eyebrow, H1, intro, apply + "view packages" CTAs
+  "page-host-at-rorum:gallery": ["media"], // 14 photos only — this gallery has no heading or chips
+  "page-host-at-rorum:session": ["label", "title", "media", "items"], // "Session details" eyebrow, "Each session includes" heading, photo, 7 included + optional-label + 2 optional rows
+  "page-host-at-rorum:packages": ["label", "title", "text", "items"], // "Packages" eyebrow, heading, intro, 3 package cards + footer CTA/text + "select package" + cancellation rows
+  "page-host-at-rorum:steps": ["label", "title", "items"], // "How it works" eyebrow, "3-step setup" heading, 3 steps + aria-label row
+  "page-host-at-rorum:inquiryForm": ["title", "text", "items"], // form heading, intro, submit / placeholder / success + 4 additional-service rows
+
+  // ── Volunteer (app/[locale]/(site)/volunteer/page.tsx) ────────────────
+  "page-volunteer:hero": ["label", "title", "media", "actions", "items"], // eyebrow, H1, photo, "Apply to volunteer" CTA, hero/highlight/closing paragraph rows
+  "page-volunteer:applicationForm": ["items"], // ONLY the modal-copy rows (modalTitle / messagePlaceholder / successMessage / errorMessage)
+
+  // ── Work With Us (app/[locale]/(site)/work-with-us/page.tsx) ──────────
+  "page-work-with-us:hero": ["label", "title", "media", "items"], // eyebrow, H1, 2 collaboration photos, hero-paragraph rows + "Send your CV" button row
+  "page-work-with-us:features": ["items"], // ONLY the 3 "Why work with us" bullets (icon + one line each) — no section heading is read
+  "page-work-with-us:cvUploadForm": ["items"], // ONLY the CV-modal copy rows
+};
+
+/**
+ * Fallback visibility for any section NOT in `SECTION_FIELD_VISIBILITY`
+ * above — a brand-new section a manager just added, an open
+ * manager-extensible set (menu categories, FAQ categories), or a page whose
+ * sections haven't been audited yet. Deliberately loose: it's better to show
+ * an unused field on an unaudited section than to hide a used one.
+ */
+const SECTION_KIND_FALLBACK_VISIBILITY: Record<SectionKind, ReadonlySet<PageSectionField>> = {
   hero: new Set(["label", "title", "text", "media", "actions", "items"]),
   gallery: new Set(["label", "media", "items"]),
   iconGrid: new Set(["label", "title", "items"]),
@@ -49,180 +168,53 @@ const FIELD_VISIBILITY: Record<(typeof SECTION_KINDS)[number], Set<string>> = {
   servicesTeaser: new Set(["label", "title", "items"]),
   communityTeaser: new Set(["label", "title", "text", "media", "items"]),
   benefits: new Set(["label", "title", "items"]),
+  // A menu category: its nav-tab label, heading, description and dishes. All
+  // required (see isMenuCategorySection) — a blank one renders an empty tab.
   menuCategory: new Set(["label", "title", "text", "items"]),
   donation: new Set(["label", "title", "text", "media", "items"]),
   filters: new Set(["label", "title", "items"]),
-  // A FAQ category: only its Title and its Questions (items) — label/text/
-  // media/actions/settings are all genuinely unused for this role (see
-  // Task 1's audit — every existing category section only ever stores
-  // title/items). See isCorrectlyShapedSection below for why sectionKey/
-  // sectionKind are ALSO hidden once a category is correctly shaped —
-  // same site-wide rule every other section now uses too.
+  // A FAQ category: only its heading and its questions.
   faqCategory: new Set(["title", "items"]),
-  custom: new Set(["label", "title", "text", "media", "actions", "items", "settings"]),
+  custom: new Set(["label", "title", "text", "media", "actions", "items"]),
 };
 
-// Section-level field-hide overrides: fieldName -> Set<sectionKey> where
-// that field is hidden even though its sectionKind would otherwise show it.
-// Narrowly scoped per `sectionKey`, not per kind, so any *other* section of
-// the same kind keeps its normal visibility. Current entries, from the Home
-// eventsStrip Studio-visibility audit: the section's own copy (`text`),
-// photos (`media`) and generic list rows (`items`) are all empty in
-// production and read by no frontend code for this section — the visible
-// event cards come entirely from separate `event` documents, matched only
-// by page position, never by anything stored here (see the section's own
-// `description` below). Presented to a non-technical editor these 3 fields
-// (plus `settings`, hidden here for the same reason) look editable but are
-// dead ends. Still stored (not deleted) and still visible for every other
-// "custom"-kind section.
-const SECTION_FIELD_FORCE_HIDDEN: Partial<Record<string, ReadonlySet<string>>> = {
-  settings: new Set(["eventsStrip"]),
-  text: new Set(["eventsStrip"]),
-  media: new Set(["eventsStrip"]),
-  items: new Set(["eventsStrip"]),
-};
+// `settings` (a raw key/value array of layout flags) is never in any explicit
+// allow-list entry and no longer in any kind fallback either — it is a
+// code-side concern, not editorial. Its one genuine consumer,
+// `page-contact:form`, exposes those flags through the friendly
+// `ContactFormSectionInput` toggle card instead. A future section that truly
+// needs an editor-visible flag should get an explicit `SECTION_FIELD_VISIBILITY`
+// entry that lists `"settings"`, not a loosening of the fallback.
 
-// About's statement/community/pillars sections use sectionKind "iconGrid"/
-// "steps", whose FIELD_VISIBILITY doesn't include "text" — but all 3
-// sections' `text` holds real, published, rendered copy (the services
-// paragraph, the community paragraph, the pillars intro). Rather than
-// adding "text" to iconGrid/steps globally (which would also reveal empty,
-// genuinely-unused text fields on catering/workWithUs/eventDecoration/
-// hostAtRorum's iconGrid/steps sections, none of which have been audited
-// yet), this force-shows `text` only for these 3 exact sections on the
-// About document specifically — narrowed by document id (draft-stripped)
-// AND sectionKey together, the same two-part scoping mediaItem.ts's
-// isHomeDecorativeBackgroundMedia already uses for the equivalent problem
-// in the opposite direction.
-const ABOUT_TEXT_FORCE_VISIBLE_SECTION_KEYS = new Set(["statement", "community", "pillars"]);
-
-// About's hero section has an empty, unused `actions` array — its 2 quick
-// links live in `items`, not `actions` (unlike Home's hero, which uses
-// `actions` for its 2 real CTA buttons and must keep seeing this field).
-// Hidden only for page-about's own hero, not sectionKind "hero" generally.
-const ABOUT_HERO_ACTIONS_HIDDEN_SECTION_KEYS = new Set(["hero"]);
-
-function isPageAbout(document: unknown): boolean {
-  const doc = document as { _id?: string } | undefined;
-  return doc?._id?.replace(/^drafts\./, "") === "page-about";
+function normalizeDocId(id: string | undefined): string | undefined {
+  return id?.replace(/^drafts\./, "");
 }
 
 export function isPageCateringMenuExamples(document: unknown): boolean {
-  const doc = document as { _id?: string } | undefined;
-  return doc?._id?.replace(/^drafts\./, "") === "page-catering-menu-examples";
+  return normalizeDocId((document as { _id?: string } | undefined)?._id) === "page-catering-menu-examples";
 }
 
 export function isPageFaq(document: unknown): boolean {
-  const doc = document as { _id?: string } | undefined;
-  return doc?._id?.replace(/^drafts\./, "") === "page-faq";
+  return normalizeDocId((document as { _id?: string } | undefined)?._id) === "page-faq";
 }
 
 export function isPageContact(document: unknown): boolean {
-  const doc = document as { _id?: string } | undefined;
-  return doc?._id?.replace(/^drafts\./, "") === "page-contact";
+  return normalizeDocId((document as { _id?: string } | undefined)?._id) === "page-contact";
 }
 
 export function isPageEvents(document: unknown): boolean {
-  const doc = document as { _id?: string } | undefined;
-  return doc?._id?.replace(/^drafts\./, "") === "page-events";
+  return normalizeDocId((document as { _id?: string } | undefined)?._id) === "page-events";
 }
-
-export function isPageEventDecoration(document: unknown): boolean {
-  const doc = document as { _id?: string } | undefined;
-  return doc?._id?.replace(/^drafts\./, "") === "page-event-decoration";
-}
-
-export function isPageHostAtRorum(document: unknown): boolean {
-  const doc = document as { _id?: string } | undefined;
-  return doc?._id?.replace(/^drafts\./, "") === "page-host-at-rorum";
-}
-
-export function isPageCommunityMembership(document: unknown): boolean {
-  const doc = document as { _id?: string } | undefined;
-  return doc?._id?.replace(/^drafts\./, "") === "page-community-membership";
-}
-
-export function isPageVolunteer(document: unknown): boolean {
-  const doc = document as { _id?: string } | undefined;
-  return doc?._id?.replace(/^drafts\./, "") === "page-volunteer";
-}
-
-export function isPageWorkWithUs(document: unknown): boolean {
-  const doc = document as { _id?: string } | undefined;
-  return doc?._id?.replace(/^drafts\./, "") === "page-work-with-us";
-}
-
-// Contact's hero ("Contact intro") genuinely uses label/title/text/items
-// (the default "hero"-kind visibility already covers those) but never
-// media/actions — confirmed by the live audit (no media/actions ever
-// stored on this section). Contact's form section never uses label/text —
-// its title is "Form title" and everything else lives in items (Form
-// fields/Privacy consent/FAQ prompt/Submit button/Success message, laid out
-// by ContactFormSectionInput).
-const CONTACT_HERO_FORCE_HIDDEN_FIELDS = new Set(["media", "actions"]);
-const CONTACT_FORM_FORCE_HIDDEN_FIELDS = new Set(["label", "text"]);
-
-// Event Decoration's and Host at RORUM's hero sections both genuinely use
-// label/title/text/actions (the default "hero"-kind visibility already
-// covers those) but never media or items — confirmed by the live audit (no
-// media/items ever stored on either hero section; their own real gallery
-// photos live in a separate "gallery" section, and their real CTA is the
-// hero's own `actions` array, not `items`).
-const HERO_MEDIA_ITEMS_FORCE_HIDDEN_FIELDS = new Set(["media", "items"]);
-
-// Community Membership's hero genuinely uses label/title/text (after the
-// intro0/intro1 -> text migration)/actions/items (the price-strip row) —
-// only `media` is confirmed unused (its own real gallery lives in the
-// separate "gallery" section). Its "intro" section (the "Connecting
-// Women..." block) genuinely uses label/title/items (the 2 text columns)
-// but never text/media/actions — its own visible buttons are read from the
-// hero section's actions instead (see page.tsx's own `membershipFormHref`/
-// `externalSiteCta` — a disclosed, unchanged cross-section reuse, not a
-// hidden dead field on THIS section).
-const COMMUNITY_MEMBERSHIP_HERO_FORCE_HIDDEN_FIELDS = new Set(["media"]);
-const COMMUNITY_MEMBERSHIP_INTRO_FORCE_HIDDEN_FIELDS = new Set(["text", "media", "actions"]);
-
-// Live audit (Events Listing Studio task): `app/[locale]/(site)/events/page.tsx`
-// reads the page's own H1 from `sections[sectionKey=="hero"].title` — the
-// `filters` section's own `label`/`title` fields are never read anywhere
-// (only `getItem(filtersSection, key)?.title` for individual filter-label
-// ITEMS, via a completely separate field path) — so `filters`'s own
-// section-level Title/Small label would otherwise mislead a manager into
-// thinking IT controls the page heading. `closingCta`'s `settings` (a
-// `variant` flag) is likewise stored but never read — the frontend hardcodes
-// `variant="host"` directly in JSX; no separate override is needed for it,
-// though — sectionKind "cta"'s own FIELD_VISIBILITY already omits `settings`
-// for every closingCta section on every page (Home/About included).
-const EVENTS_FILTERS_FORCE_HIDDEN_FIELDS = new Set(["label", "title"]);
-
-// Volunteer's "applicationForm" and Work With Us's "cvUploadForm" sections
-// (sectionKind "form") hold ONLY the modal-copy rows in `items` (modalTitle,
-// messagePlaceholder, successMessage, … — see contentItem.ts's own
-// "Volunteer application-modal" / "Work With Us CV-modal" roles and each
-// page.tsx's `getItem(formSection, key)` reads). The section's own
-// label/title/text are never read for either — hidden so a manager isn't
-// shown three empty fields that look editable but do nothing.
-const VOLUNTEER_WORKWITHUS_FORM_FORCE_HIDDEN_FIELDS = new Set(["label", "title", "text"]);
 
 /**
- * The one, site-wide, document-agnostic rule for `sectionKey`/`sectionKind`
- * visibility (Phase 1 — technical-field hygiene): once a section already
- * has a `sectionKind` value, it is a real, correctly-shaped section —
- * `sectionKey`/`sectionKind` are stable technical routing facts the
- * frontend depends on, never something a manager should read or edit, on
- * ANY page. This generalizes the exact reasoning first established for
- * Catering Menu Examples' categories and FAQ's categories (every section a
- * semantic "+ Add" action creates already has its `sectionKind` set) to
- * every section of every document, replacing what used to be a growing set
- * of per-document special cases (Contact's fixed hero/form, Events' fixed
- * hero/filters/closingCta, Catering Menu Examples' categories, FAQ's
- * categories) with one shared predicate.
- *
- * Deliberately NEVER hidden while `sectionKind` is unset — a stray raw
- * section added through Sanity's own generic array "add" control (still
- * technically reachable, just not the advertised path) still shows these
- * two required fields until they're filled in, instead of being
- * hidden-but-required and silently blocking Publish forever.
+ * The one, site-wide rule for `sectionKey`/`sectionKind` visibility: once a
+ * section already has a `sectionKind` value it is a real, correctly-shaped
+ * section — `sectionKey`/`sectionKind` are stable technical routing facts the
+ * frontend depends on, never something a manager should read or edit.
+ * Deliberately NEVER hidden while `sectionKind` is unset, so a stray raw
+ * section added through Sanity's generic array control still shows these two
+ * required fields until they're filled in, instead of being hidden-but-
+ * required and silently blocking Publish forever.
  */
 function isCorrectlyShapedSection(parent: { sectionKind?: string } | undefined): boolean {
   return Boolean(parent?.sectionKind);
@@ -233,69 +225,51 @@ export function isFaqCategorySection(parent: { sectionKind?: string } | undefine
 }
 
 /**
- * A menu category's label/title/text are NOT optional the way most
- * sections' are — see requiredWhen()'s own doc comment in i18nValidation.ts
- * for the frontend proof (no fallback text exists beyond the original 6
- * hardcoded categories; a blank one renders an empty nav tab/heading/
- * description). Scoped by `sectionKind` alone (not document id) so this
- * requirement follows the role wherever a `menuCategory`-kind section
- * exists, matching contentItem.ts's ITEM_ROLE_RULES `sectionKinds`
- * precedent for the same open, manager-extensible-set reasoning.
+ * A menu category's label/title/text are NOT optional the way most sections'
+ * are — see requiredWhen()'s own doc comment in i18nValidation.ts for the
+ * frontend proof (no fallback text exists beyond the original 6 hardcoded
+ * categories; a blank one renders an empty nav tab/heading/description).
+ * Scoped by `sectionKind` alone so this follows the role wherever a
+ * `menuCategory`-kind section exists.
  */
 function isMenuCategorySection(parent: { sectionKind?: string } | undefined): boolean {
   return parent?.sectionKind === "menuCategory";
 }
 
-function fieldHidden(fieldName: string) {
+/**
+ * The set of fields visible for a concrete section: the explicit allow-list
+ * entry if there is one, otherwise the loose `sectionKind` fallback. Returns
+ * `undefined` only when there is neither (no `sectionKind` yet).
+ */
+function visibleFieldsFor(
+  document: unknown,
+  parent: { sectionKind?: string; sectionKey?: string } | undefined,
+): ReadonlySet<PageSectionField> | undefined {
+  const docId = normalizeDocId((document as { _id?: string } | undefined)?._id);
+  const sectionKey = parent?.sectionKey;
+  if (docId && sectionKey) {
+    const explicit = SECTION_FIELD_VISIBILITY[`${docId}:${sectionKey}`];
+    if (explicit) return new Set(explicit);
+  }
+  const kind = parent?.sectionKind as SectionKind | undefined;
+  if (!kind) return undefined;
+  return SECTION_KIND_FALLBACK_VISIBILITY[kind];
+}
+
+function fieldHidden(fieldName: PageSectionField) {
   return ({ parent, document }: { parent?: { sectionKind?: string; sectionKey?: string }; document?: unknown }) => {
-    if (fieldName === "text" && parent?.sectionKey && ABOUT_TEXT_FORCE_VISIBLE_SECTION_KEYS.has(parent.sectionKey) && isPageAbout(document)) {
-      return false; // force-visible override wins before the sectionKind-based hide below would otherwise hide it
-    }
-    if (fieldName === "actions" && parent?.sectionKey && ABOUT_HERO_ACTIONS_HIDDEN_SECTION_KEYS.has(parent.sectionKey) && isPageAbout(document)) {
-      return true;
-    }
-    if (parent?.sectionKey && SECTION_FIELD_FORCE_HIDDEN[fieldName]?.has(parent.sectionKey)) {
-      return true;
-    }
-    if (isPageContact(document) && parent?.sectionKey === "hero" && CONTACT_HERO_FORCE_HIDDEN_FIELDS.has(fieldName)) {
-      return true;
-    }
-    if (isPageContact(document) && parent?.sectionKey === "form" && CONTACT_FORM_FORCE_HIDDEN_FIELDS.has(fieldName)) {
-      return true;
-    }
-    if (isPageEvents(document) && parent?.sectionKey === "filters" && EVENTS_FILTERS_FORCE_HIDDEN_FIELDS.has(fieldName)) {
-      return true;
-    }
-    if ((isPageEventDecoration(document) || isPageHostAtRorum(document)) && parent?.sectionKey === "hero" && HERO_MEDIA_ITEMS_FORCE_HIDDEN_FIELDS.has(fieldName)) {
-      return true;
-    }
-    if (isPageCommunityMembership(document) && parent?.sectionKey === "hero" && COMMUNITY_MEMBERSHIP_HERO_FORCE_HIDDEN_FIELDS.has(fieldName)) {
-      return true;
-    }
-    if (isPageCommunityMembership(document) && parent?.sectionKey === "intro" && COMMUNITY_MEMBERSHIP_INTRO_FORCE_HIDDEN_FIELDS.has(fieldName)) {
-      return true;
-    }
-    if (
-      ((isPageVolunteer(document) && parent?.sectionKey === "applicationForm") ||
-        (isPageWorkWithUs(document) && parent?.sectionKey === "cvUploadForm")) &&
-      VOLUNTEER_WORKWITHUS_FORM_FORCE_HIDDEN_FIELDS.has(fieldName)
-    ) {
-      return true;
-    }
-    const kind = parent?.sectionKind as (typeof SECTION_KINDS)[number] | undefined;
-    if (!kind) return false;
-    const visible = FIELD_VISIBILITY[kind];
-    return visible ? !visible.has(fieldName) : false;
+    const visible = visibleFieldsFor(document, parent);
+    if (!visible) return false; // section not shaped yet — show everything
+    return !visible.has(fieldName);
   };
 }
 
 /**
  * A hidden field must never block publishing — reuses `fieldHidden`'s exact
- * logic (via the same `parent`/`document` shape validation contexts already
- * carry) so a section-level field's `hidden` and `validation` can never
- * drift out of sync.
+ * logic so a section-level field's `hidden` and `validation` can never drift
+ * out of sync.
  */
-function skipValidationWhenHidden(fieldName: string) {
+function skipValidationWhenHidden(fieldName: PageSectionField) {
   return ({ parent, document }: { parent?: unknown; document?: unknown }) =>
     fieldHidden(fieldName)({ parent: parent as { sectionKind?: string; sectionKey?: string } | undefined, document });
 }
@@ -305,23 +279,15 @@ export default defineType({
   title: "Section",
   type: "object",
   description: "One section of the page, shown in the order sections appear below. / Один розділ сторінки — показується в тому порядку, у якому розділи розташовані нижче.",
-  // CateringMenuCategoryInput is scoped internally to page-catering-menu-
-  // examples's menuCategory sections only — it renders the reserved
-  // categoryIcon item as a real Icon field above the rest of the (otherwise
-  // unmodified) default form. Every other pageSection instance on every
-  // other document/section renders exactly as before.
+  // CateringMenuCategoryInput is the type-level input; it delegates to
+  // ContactFormSectionInput / the default input for every non-menu-category
+  // section, so every other pageSection instance renders exactly as before.
   components: { input: CateringMenuCategoryInput },
   fields: [
     defineField({
       name: "sectionKey",
       title: "Key (do not change)",
       type: "string",
-      // Locked once set (matching contentItem.itemKey/ctaAction.actionKey's
-      // existing convention) — not unconditionally read-only. Every
-      // pre-existing section already has a value, so this is a no-op for
-      // them; the one case this unlocks is a brand-new section a manager
-      // adds themselves (e.g. a new catering menu category), which needs to
-      // receive a fresh, unique key once before it locks for good.
       readOnly: ({ value }) => Boolean(value),
       validation: (rule) => rule.required(),
       description: "Stable identifier the website looks this section up by. / Стабільний ідентифікатор, за яким сайт знаходить цей розділ.",
@@ -395,12 +361,10 @@ export default defineType({
       of: [defineArrayMember({ type: "contentItem" })],
       hidden: fieldHidden("items"),
       // CateringMenuDishItemsInput is scoped internally to
-      // page-catering-menu-examples's menuCategory sections (Dishes) — for
-      // every other items array (including page-catering's "philosophy"
-      // section) it delegates unchanged to CateringOfferItemsInput, which
-      // itself is scoped to that one case and otherwise renders the
-      // unmodified default input. Chained (not both wired independently)
-      // because `items` can only ever have one `components.input`.
+      // page-catering-menu-examples's menuCategory sections (Dishes); for
+      // every other items array it delegates to CateringOfferItemsInput,
+      // itself scoped to page-catering's "philosophy" and otherwise the
+      // unmodified default input.
       components: { input: CateringMenuDishItemsInput },
     }),
     defineField({
@@ -436,3 +400,16 @@ export default defineType({
     },
   },
 });
+
+/**
+ * Exported for tests + the audit script: the resolved set of visible fields
+ * for a `(document, parent)` context, exactly as `fieldHidden` sees it.
+ */
+export function resolveVisibleSectionFields(
+  document: unknown,
+  parent: { sectionKind?: string; sectionKey?: string } | undefined,
+): ReadonlySet<PageSectionField> {
+  return visibleFieldsFor(document, parent) ?? new Set(PAGE_SECTION_FIELDS);
+}
+
+export { SECTION_FIELD_VISIBILITY, SECTION_KIND_FALLBACK_VISIBILITY, SECTION_KINDS };
