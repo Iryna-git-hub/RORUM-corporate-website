@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
+import { draftMode } from "next/headers";
 import Image from "next/image";
 import { Container } from "@/components/ui";
 import { EventShare } from "@/components/EventShare";
@@ -19,7 +20,7 @@ import { getEventLanguageLabel } from "@/lib/eventLanguage";
 import { getUiText } from "@/lib/uiText";
 import { compact, pickLabel, pickLabelExact } from "@/lib/sanity-i18n";
 import { isSanityConfigured } from "@/sanity/env";
-import { sanityFetch } from "@/sanity/lib/live";
+import { sanityFetch, sanityFetchStatic } from "@/sanity/lib/live";
 import { allEventSlugsQuery, eventBySlugQuery } from "@/sanity/queries/events";
 import { eventMessagesQuery } from "@/sanity/queries/globals";
 import { ArrowRight, CalendarDays, CircleCheckBig, Clock, MapPin, Ticket } from "lucide-react";
@@ -143,13 +144,13 @@ async function getEventMessages(locale: Locale): Promise<EventDetailMessages> {
 // one are handled identically, correctly, with no separate branch needed.
 // Never renders English (or any other locale's) content as a fallback for
 // an unsupported locale.
-async function getEvent(slug: string, locale: Locale): Promise<RorumEvent | undefined> {
+async function getEvent(slug: string, locale: Locale, editable = false): Promise<RorumEvent | undefined> {
     if (!isSanityConfigured) {
         return staticEvents.find((event) => event.slug === slug);
     }
     const { data: doc } = await sanityFetch({ query: eventBySlugQuery, params: { slug } });
     if (!doc) return staticEvents.find((event) => event.slug === slug);
-    const event = sanityEventToRorumEvent(doc as SanityEventLike, locale);
+    const event = sanityEventToRorumEvent(doc as SanityEventLike, locale, editable);
     return isEventVisibleInLocale(event, locale) ? event : undefined;
 }
 
@@ -431,7 +432,10 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
     if (!isSanityConfigured) {
         return staticEvents.filter((event) => event.slug).map((event) => ({ slug: event.slug }));
     }
-    const { data: slugs } = await sanityFetch({ query: allEventSlugsQuery });
+    // `sanityFetchStatic` (published, stega:false) — the bare `sanityFetch`
+    // reads `draftMode()` here, which throws in `generateStaticParams` (no
+    // request scope). Draft events must never create a static path anyway.
+    const { data: slugs } = await sanityFetchStatic({ query: allEventSlugsQuery });
     const resolved = compact(slugs ?? []);
     return resolved.length ? resolved.map((slug) => ({ slug })) : staticEvents.map((event) => ({ slug: event.slug }));
 }
@@ -491,7 +495,8 @@ export default async function EventDetailPage({
 }) {
     const { locale: rawLocale, slug } = await params;
     const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-    const event = await getEvent(slug, locale);
+    const { isEnabled: isDraftMode } = await draftMode();
+    const event = await getEvent(slug, locale, isDraftMode);
     if (!event) notFound();
     const messages = await getEventMessages(locale);
     const { siteUrl } = await getSeoSiteDefaults();
@@ -528,7 +533,11 @@ export default async function EventDetailPage({
             organizerName: "RORUM",
           })}
         />
-        <section className="event-detail-hero" aria-label={`${event.title} ${messages.eventImageAriaSuffix}`}>
+        <section
+          className="event-detail-hero"
+          aria-label={`${event.title} ${messages.eventImageAriaSuffix}`}
+          data-sanity={event.imageEditAttr}
+        >
           <Image
             className={
               event.isSoldOut

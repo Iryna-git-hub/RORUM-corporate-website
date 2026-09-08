@@ -1,5 +1,5 @@
 import { isSanityConfigured } from "@/sanity/env";
-import { sanityFetch } from "@/sanity/lib/live";
+import { sanityFetchStatic } from "@/sanity/lib/live";
 import { siteSettingsQuery } from "@/sanity/queries/globals";
 import { urlForImage } from "@/sanity/lib/image";
 import type { I18nEntry } from "@/lib/sanity-i18n";
@@ -18,11 +18,13 @@ export interface SeoSiteDefaults {
  * The one shared authority for the production site URL and the sitewide
  * Default SEO fallback (siteSettings.defaultSeo) — used by lib/seo.ts's
  * resolver, app/sitemap.ts and app/robots.ts so all three agree on the same
- * URL instead of each hardcoding it separately. `siteSettings` is a
- * singleton read via the same `sanityFetch`/Next fetch-memoization every
- * other server read in this project uses, so calling this more than once
- * per request (e.g. once from generateMetadata, once from the page body)
- * doesn't cause a duplicate network round trip.
+ * URL instead of each hardcoding it separately. Reads via `sanityFetchStatic`
+ * (published, stega:false): everything it feeds is a stega-unsafe /
+ * build-time context (SEO `<head>`, canonical, sitemap, robots) and must
+ * never reflect a draft — and `app/sitemap.ts`/`robots.ts` run in
+ * `generateStaticParams`-like build contexts where the request-aware
+ * `sanityFetch` would call `draftMode()` and throw. Next fetch-memoization
+ * still de-dupes repeat calls within one request.
  *
  * `siteUrl` is always `PRODUCTION_ORIGIN` — deliberately NOT read from
  * `data.siteUrl` (see MIGRATION_REPORT.md's domain-authority correction):
@@ -36,7 +38,7 @@ export async function getSeoSiteDefaults(): Promise<SeoSiteDefaults> {
   const fallback: SeoSiteDefaults = { siteUrl: PRODUCTION_ORIGIN };
   if (!isSanityConfigured) return fallback;
 
-  const { data } = await sanityFetch({ query: siteSettingsQuery });
+  const { data } = await sanityFetchStatic({ query: siteSettingsQuery });
   if (!data) return fallback;
 
   return {

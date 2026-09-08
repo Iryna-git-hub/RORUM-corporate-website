@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { draftMode } from "next/headers";
 import { InquiryForm } from "@/components/InquiryForm";
 import { PackageGrid, type PackageItem } from "@/components/Cards";
 import { HorizontalGallery } from "@/components/HorizontalGallery";
@@ -18,6 +19,7 @@ import { isLocale, type Locale } from "@/lib/i18n";
 import { compact, pickLocalized } from "@/lib/sanity-i18n";
 import { getAction, getItem, getSection, listItems } from "@/lib/sanity-sections";
 import { isSanityConfigured } from "@/sanity/env";
+import { sanitySectionMediaAttr } from "@/sanity/lib/dataAttr";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
@@ -92,7 +94,7 @@ const fallback = {
   successMessage: "Thank you. Your Host at RORUM request is ready for the RORUM team.",
 };
 
-async function getData(locale: Locale) {
+async function getData(locale: Locale, editable = false) {
   if (!isSanityConfigured) {
     return {
       ...fallback,
@@ -122,6 +124,8 @@ async function getData(locale: Locale) {
     gallerySection as { media?: MediaItem[] } | undefined,
     locale,
     hostAtRorumGalleryImages,
+    undefined,
+    (mediaKey) => sanitySectionMediaAttr(editable, newPage?._id, gallerySection?._key, mediaKey),
   );
 
   const includedAllFromSections = (sessionSection?.items ?? []).filter((i) => i.itemKey?.startsWith("included"));
@@ -213,6 +217,12 @@ async function getData(locale: Locale) {
         .url() ?? fallback.sessionImage,
     sessionImageAlt:
       pickLocalized(sessionSection?.media?.[0]?.alt, locale) ?? fallback.sessionImageAlt,
+    sessionImageEditAttr: sanitySectionMediaAttr(
+      editable,
+      newPage?._id,
+      sessionSection?._key,
+      sessionSection?.media?.[0]?._key,
+    ),
     inquiryIntro:
       pickLocalized(formSection?.text, locale) ?? fallback.inquiryIntro,
     seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
@@ -263,7 +273,8 @@ export async function generateMetadata({
 export default async function HostAtRorumPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const data = await getData(locale);
+  const { isEnabled: isDraftMode } = await draftMode();
+  const data = await getData(locale, isDraftMode);
 
   return (
     <>
@@ -325,6 +336,7 @@ export default async function HostAtRorumPage({ params }: { params: Promise<{ lo
               role="img"
               aria-label={data.sessionImageAlt}
               style={{ backgroundImage: `url(${data.sessionImage})` }}
+              data-sanity={data.sessionImageEditAttr}
             />
             <div className="grid gap-4.5 content-center py-[clamp(56px,8vw,96px)] pr-[max(16px,calc((100vw-1180px)/2))] pl-[clamp(42px,6vw,86px)] min-w-0 *:max-w-140 max-lg:py-11 max-lg:px-[max(16px,calc((100vw-720px)/2))]">
               <SectionHeader

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { draftMode } from "next/headers";
 import type { LucideIcon } from "lucide-react";
 import { isQuickPathHref, QuickPathsGrid, type QuickPathHref } from "@/app/shared";
 import { EventList } from "@/components/EventCard";
@@ -27,6 +28,7 @@ import { compact, pickLocalized } from "@/lib/sanity-i18n";
 import { getItem, getSection, resolveAction, type RawPageSection, type ResolvedAction } from "@/lib/sanity-sections";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
 import { isSanityConfigured } from "@/sanity/env";
+import { sanitySectionItemAttr, sanitySectionMediaAttr } from "@/sanity/lib/dataAttr";
 import { urlForFile, urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { allEventsQuery } from "@/sanity/queries/events";
@@ -165,7 +167,7 @@ const fallback = {
     "RORUM is a place for events, ideas and meaningful connections. Join our community, collaborate with us or become part of the team behind the experiences.",
 };
 
-async function getData(locale: Locale) {
+async function getData(locale: Locale, editable = false) {
   // `data` is a real (possibly empty) array whenever Sanity is configured —
   // an empty result means "no event is visible on this locale's website"
   // (per that event's own `visibleLocales`), which must render as a
@@ -174,7 +176,7 @@ async function getData(locale: Locale) {
   // isn't configured at all (see the other branch below).
   const eventsPromise = isSanityConfigured
     ? sanityFetch({ query: allEventsQuery, params: { locale } }).then(({ data }) =>
-        (data ?? []).map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale)),
+        (data ?? []).map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale, editable)),
       )
     : Promise.resolve(staticEvents);
 
@@ -199,12 +201,14 @@ async function getData(locale: Locale) {
   if (!isSanityConfigured) {
     return {
       ...fallback,
+      heroMediaEditAttr: undefined as string | undefined,
+      communityMediaEditAttr: undefined as string | undefined,
       heroPrimaryAction: noAction(fallback.hostAtRorumCta, "/host-at-rorum"),
       heroSecondaryAction: noAction(fallback.attendEventsCta, "/events"),
       eventsViewAllAction: noAction(fallback.eventsViewAllLabel, "/events"),
       closingMainAction: noAction(fallback.closingCta, "/contact"),
-      attendFeature: noActionFeature(fallback.attendFeature),
-      hostFeature: noActionFeature(fallback.hostFeature),
+      attendFeature: { ...noActionFeature(fallback.attendFeature), mediaEditAttr: undefined as string | undefined },
+      hostFeature: { ...noActionFeature(fallback.hostFeature), mediaEditAttr: undefined as string | undefined },
       quickPaths: fallbackQuickPaths.map(([title, text], i) => ({
         title,
         text,
@@ -212,8 +216,9 @@ async function getData(locale: Locale) {
         cta: undefined as string | undefined,
         icon: undefined as LucideIcon | undefined,
         iconName: undefined as string | undefined,
+        editAttr: undefined as string | undefined,
       })),
-      services: fallbackServices,
+      services: fallbackServices.map((s) => ({ ...s, editAttr: undefined as string | undefined })),
       communityLinks: fallbackCommunityLinks,
       events: await eventsPromise,
     };
@@ -271,6 +276,7 @@ async function getData(locale: Locale) {
             const valid = resolved && resolved !== CircleEllipsis;
             return { icon: valid ? resolved : undefined, iconName: valid ? trimmed : undefined };
           })(),
+          editAttr: sanitySectionItemAttr(editable, newPage?._id, quickPathsSection?._key, item._key),
         };
       })
     : undefined;
@@ -283,6 +289,7 @@ async function getData(locale: Locale) {
       cta: undefined as string | undefined,
       icon: undefined as LucideIcon | undefined,
       iconName: undefined as string | undefined,
+      editAttr: undefined as string | undefined,
     }));
 
   const heroTrustSectionItems = heroSection?.items?.filter((i) => i.itemKey?.startsWith("trust"));
@@ -346,6 +353,7 @@ async function getData(locale: Locale) {
           ?.width(900)
           .url() ?? fb.image,
       imageAlt: pickLocalized(media?.alt, locale) ?? fb.imageAlt,
+      mediaEditAttr: sanitySectionMediaAttr(editable, newPage?._id, section?._key, media?._key),
     };
   }
 
@@ -359,6 +367,7 @@ async function getData(locale: Locale) {
           urlForImage(s.image as unknown as Parameters<typeof urlForImage>[0])
             ?.width(700)
             .url() ?? serviceImages[i] ?? serviceImages[0]!,
+        editAttr: sanitySectionItemAttr(editable, newPage?._id, servicesTeaserSection?._key, s._key),
       }))
     : undefined;
   const services: ServiceTeaser[] = servicesFromSections ?? fallbackServices;
@@ -388,8 +397,10 @@ async function getData(locale: Locale) {
 
   const heroVideoMedia = heroSection?.media?.find((m) => m.kind === "video");
   const heroImageMedia = heroSection?.media?.find((m) => m.kind !== "video") ?? heroVideoMedia;
+  const heroMediaEditAttr = sanitySectionMediaAttr(editable, newPage?._id, heroSection?._key, heroImageMedia?._key);
 
   return {
+    heroMediaEditAttr,
     heroLabel: pickLocalized(heroSection?.label, locale) ?? fallback.heroLabel,
     heroTitle: pickLocalized(heroSection?.title, locale) ?? fallback.heroTitle,
     heroText: pickLocalized(heroSection?.text, locale) ?? fallback.heroText,
@@ -438,6 +449,12 @@ async function getData(locale: Locale) {
     communityImageUrl: urlForImage(communityTeaserSection?.media?.[0]?.image as unknown as Parameters<typeof urlForImage>[0])
       ?.width(1600)
       .url(),
+    communityMediaEditAttr: sanitySectionMediaAttr(
+      editable,
+      newPage?._id,
+      communityTeaserSection?._key,
+      communityTeaserSection?.media?.[0]?._key,
+    ),
     heroImageUrl:
       urlForImage(heroImageMedia?.image as unknown as Parameters<typeof urlForImage>[0])
         ?.width(1600)
@@ -470,7 +487,8 @@ export async function generateMetadata({
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const data = await getData(locale);
+  const { isEnabled: isDraftMode } = await draftMode();
+  const data = await getData(locale, isDraftMode);
 
   return (
     <>
@@ -478,6 +496,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         label={data.heroLabel}
         title={data.heroTitle}
         text={data.heroText}
+        mediaEditAttr={data.heroMediaEditAttr}
         trustItems={data.heroTrustItems}
         image={data.heroImageUrl}
         video={data.heroVideoUrl}
@@ -532,7 +551,16 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             data-testid="home-quickpaths-label"
           />
           <QuickPathsGrid
-            items={data.quickPaths.map(({ title, text, href, image, cta, icon, iconName }) => [title, text, href, image, cta, icon, iconName])}
+            items={data.quickPaths.map(({ title, text, href, image, cta, icon, iconName, editAttr }) => [
+              title,
+              text,
+              href,
+              image,
+              cta,
+              icon,
+              iconName,
+              editAttr,
+            ])}
           />
         </Container>
       </section>
@@ -577,6 +605,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         ctaRel={data.attendFeature.ctaRel}
         image={data.attendFeature.image}
         imageAlt={data.attendFeature.imageAlt}
+        mediaEditAttr={data.attendFeature.mediaEditAttr}
       />
       <EditorialFeatureSection
         data-testid="home-feature-host"
@@ -591,6 +620,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         ctaRel={data.hostFeature.ctaRel}
         image={data.hostFeature.image}
         imageAlt={data.hostFeature.imageAlt}
+        mediaEditAttr={data.hostFeature.mediaEditAttr}
         reversed
       />
       <ServicesTeaserSection
@@ -604,6 +634,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         text={data.communityText}
         links={data.communityLinks}
         backgroundImage={data.communityImageUrl}
+        mediaEditAttr={data.communityMediaEditAttr}
       />
       <CTASection
         variant="final"

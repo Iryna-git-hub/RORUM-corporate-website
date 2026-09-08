@@ -21,9 +21,27 @@ function devWarn(message: string) {
  * in practice — Sanity always assigns `_key` to array-of-objects items —
  * but keeps id generation total rather than throwing on malformed data).
  */
-function resolveOne(media: MediaItem & { _key?: string }, locale: Locale, fallbackImage: GalleryImage | undefined, fallbackId: string): HorizontalGalleryItem | undefined {
+/**
+ * Builds the `data-sanity` attribute for a gallery media element, given its
+ * own `_key`. Supplied by the caller (which knows the document id + section
+ * key); returns `undefined` outside Draft Mode. See lib/sanityGallery.ts
+ * call sites.
+ */
+export type GalleryEditAttrFor = (mediaKey: string | undefined) => string | undefined;
+
+function resolveOne(
+  media: MediaItem & { _key?: string },
+  locale: Locale,
+  fallbackImage: GalleryImage | undefined,
+  fallbackId: string,
+  editAttrFor?: GalleryEditAttrFor,
+): HorizontalGalleryItem | undefined {
   const alt = pickLocalized(media.alt, locale) ?? fallbackImage?.alt ?? "";
   const id = media._key ?? fallbackId;
+  // Spread conditionally so a published (non-Draft-Mode) gallery item keeps
+  // exactly the shape it had before this field existed — no `editAttr: undefined`.
+  const editAttr = editAttrFor?.(media._key);
+  const editAttrProp = editAttr ? { editAttr } : {};
 
   if (media.kind === "video") {
     // Uploaded file takes precedence over an external URL (matches the
@@ -50,7 +68,7 @@ function resolveOne(media: MediaItem & { _key?: string }, locale: Locale, fallba
     // the gallery deliberately shows the video's own frame instead (see
     // components/HorizontalGallery.tsx and mediaItem.ts's posterImage
     // field, which is now unused/hidden site-wide).
-    return { id, kind: "video", src, accessibleLabel: alt || "Video" };
+    return { id, kind: "video", src, accessibleLabel: alt || "Video", ...editAttrProp };
   }
 
   // Photo (default/undefined kind is treated as a photo, matching the
@@ -60,7 +78,7 @@ function resolveOne(media: MediaItem & { _key?: string }, locale: Locale, fallba
     devWarn(`dropping image item with no resolvable source and no positional fallback — _key: ${media._key ?? "(none)"}`);
     return undefined;
   }
-  return { id, kind: "image", src, alt };
+  return { id, kind: "image", src, alt, ...editAttrProp };
 }
 
 /**
@@ -81,10 +99,11 @@ export function resolveGalleryItems(
   media: (MediaItem & { _key?: string })[] | null | undefined,
   locale: Locale,
   fallback: GalleryImage[],
+  editAttrFor?: GalleryEditAttrFor,
 ): HorizontalGalleryItem[] {
   if (!media?.length) return fallback.map((f, i) => ({ id: `fallback-${i}`, kind: "image" as const, ...f }));
   return media
-    .map((item, i) => resolveOne(item, locale, fallback[i], `fallback-media-${i}`))
+    .map((item, i) => resolveOne(item, locale, fallback[i], `fallback-media-${i}`, editAttrFor))
     .filter((item): item is HorizontalGalleryItem => item !== undefined);
 }
 
@@ -123,8 +142,9 @@ export function resolveCanonicalGalleryItems(
   locale: Locale,
   fallback: GalleryImage[],
   legacyMedia?: (MediaItem & { _key?: string })[] | null,
+  editAttrFor?: GalleryEditAttrFor,
 ): HorizontalGalleryItem[] {
-  if (!gallerySection) return resolveGalleryItems(legacyMedia, locale, fallback);
+  if (!gallerySection) return resolveGalleryItems(legacyMedia, locale, fallback, editAttrFor);
   if (!gallerySection.media?.length) return [];
-  return resolveGalleryItems(gallerySection.media, locale, fallback);
+  return resolveGalleryItems(gallerySection.media, locale, fallback, editAttrFor);
 }

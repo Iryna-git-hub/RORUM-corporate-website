@@ -12,6 +12,9 @@ vi.mock("@/sanity/env", () => ({
 }));
 vi.mock("@/sanity/lib/live", () => ({
   sanityFetch: vi.fn(async () => ({ data: mockSanityFetchResult })),
+  // getSeoSiteDefaults reads via the build-safe published fetch (it feeds
+  // sitemap.ts/robots.ts, which run without a request scope).
+  sanityFetchStatic: vi.fn(async () => ({ data: mockSanityFetchResult })),
 }));
 
 import { getSeoSiteDefaults } from "./siteSettings";

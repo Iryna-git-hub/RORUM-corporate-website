@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { draftMode } from "next/headers";
 import { ArrowRight } from "lucide-react";
 import { CateringInquiryForm } from "@/components/CateringInquiryForm";
 import {
@@ -22,6 +23,7 @@ import { cateringGalleryImages } from "@/lib/galleryImages";
 import { resolveGalleryItems, resolveCanonicalGalleryItems } from "@/lib/sanityGallery";
 import { resolveCateringMenuCategories } from "@/lib/cateringMenuResolve";
 import { isSanityConfigured } from "@/sanity/env";
+import { sanitySectionItemAttr, sanitySectionMediaAttr } from "@/sanity/lib/dataAttr";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
@@ -171,7 +173,7 @@ const fallbackOverlayText: CateringMenuOverlayText = {
     "No menu examples are available right now — please get in touch and we'll help create a menu for your event.",
 };
 
-async function getData(locale: Locale) {
+async function getData(locale: Locale, editable = false) {
   if (!isSanityConfigured) {
     return {
       ...fallback,
@@ -179,6 +181,7 @@ async function getData(locale: Locale) {
       menuFormats: fallbackMenuFormats.map((m, i) => ({
         ...m,
         ...menuFormatImages[i],
+        editAttr: undefined as string | undefined,
       })),
       formats: fallbackFormats.map((f) => ({
         title: f.title,
@@ -201,8 +204,8 @@ async function getData(locale: Locale) {
   }
 
   const [{ data: newPage }, { data: newMenuPage }] = await Promise.all([
-    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "catering" }, stega: false }),
-    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "cateringMenuExamples" }, stega: false }),
+    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "catering" } }),
+    sanityFetch({ query: pageByKeyQuery, params: { pageKey: "cateringMenuExamples" } }),
   ]);
 
   // Compact page+sections model (see MIGRATION_REPORT.md) — the sole live
@@ -237,7 +240,13 @@ async function getData(locale: Locale) {
   // no legacy singleton left to read (confirmed dead in production — see
   // this file's own comment on `newPage`/`newMenuPage` above), so no
   // `legacyMedia` argument is passed.
-  const galleryItems = resolveCanonicalGalleryItems(gallerySection as { media?: MediaItem[] } | undefined, locale, cateringGalleryImages);
+  const galleryItems = resolveCanonicalGalleryItems(
+    gallerySection as { media?: MediaItem[] } | undefined,
+    locale,
+    cateringGalleryImages,
+    undefined,
+    (mediaKey) => sanitySectionMediaAttr(editable, newPage?._id, gallerySection?._key, mediaKey),
+  );
 
   // Extracted to lib/cateringMenuResolve.ts so the "document missing (->
   // fallback) vs document exists with zero categories (-> [], never
@@ -245,10 +254,10 @@ async function getData(locale: Locale) {
   // states: 6/1/0 categories, document missing, Sanity unavailable — the
   // last of which is covered by the earlier `!isSanityConfigured` early
   // return, which never calls this function at all).
-  const menuCategories = resolveCateringMenuCategories(newMenuPage, locale, fallbackMenuCategories);
+  const menuCategories = resolveCateringMenuCategories(newMenuPage, locale, fallbackMenuCategories, { editable });
 
   const menuFormats = !menuFormatsSection
-    ? fallbackMenuFormats.map((m, i) => ({ ...m, ...menuFormatImages[i] })) // section missing -> fallback
+    ? fallbackMenuFormats.map((m, i) => ({ ...m, ...menuFormatImages[i], editAttr: undefined as string | undefined })) // section missing -> fallback
     : (menuFormatsSection.items ?? []).map((m, i) => ({
         title: pickLocalized(m.title, locale) ?? fallbackMenuFormats[i]?.title ?? "",
         description: pickLocalized(m.text, locale) ?? fallbackMenuFormats[i]?.description ?? "",
@@ -257,6 +266,7 @@ async function getData(locale: Locale) {
             ?.width(800)
             .url() ?? menuFormatImages[i]?.image ?? menuFormatImages[0]!.image,
         alt: pickLocalized(m.image?.alt, locale) ?? menuFormatImages[i]?.alt ?? menuFormatImages[0]!.alt,
+        editAttr: sanitySectionItemAttr(editable, newPage?._id, menuFormatsSection._key, m._key),
       })); // section present but empty -> [] (respected)
 
   const formats = !philosophySection
@@ -318,6 +328,7 @@ async function getData(locale: Locale) {
         ?.width(900)
         .url() ?? fallback.philosophyImage,
     philosophyImageAlt: pickLocalized(philosophyMedia?.alt, locale) ?? fallback.philosophyImageAlt,
+    philosophyImageEditAttr: sanitySectionMediaAttr(editable, newPage?._id, philosophySection?._key, philosophyMedia?._key),
     menuExamplesCta: pickLocalized(getItem(heroSection, "menuExamplesCta")?.title, locale) ?? fallback.menuExamplesCta,
     menuOverlayText: {
       title: pickLocalized(bannerSection?.title, locale) ?? fallbackOverlayText.title,
@@ -340,6 +351,7 @@ async function getData(locale: Locale) {
       ?.width(1600)
       .url(),
     bannerImageAlt: pickLocalized(bannerMedia?.alt, locale),
+    bannerImageEditAttr: sanitySectionMediaAttr(editable, newMenuPage?._id, bannerSection?._key, bannerMedia?._key),
     menuCategories,
     menuFormats,
     formats,
@@ -379,7 +391,8 @@ export default async function CateringPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const data = await getData(locale);
+  const { isEnabled: isDraftMode } = await draftMode();
+  const data = await getData(locale, isDraftMode);
 
   return (
     <>
@@ -416,6 +429,7 @@ export default async function CateringPage({
                   overlayText={data.menuOverlayText}
                   bannerImageUrl={data.bannerImageUrl}
                   bannerImageAlt={data.bannerImageAlt}
+                  bannerEditAttr={data.bannerImageEditAttr}
                 >
                   {data.menuExamplesCta}
                 </CateringMenuButton>
@@ -463,8 +477,8 @@ export default async function CateringPage({
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-[clamp(30px,4vw,48px)] gap-x-[clamp(22px,3vw,36px)]">
-            {data.menuFormats.map(({ title, description, image, alt }) => (
-              <article className="min-w-0" key={title}>
+            {data.menuFormats.map(({ title, description, image, alt, editAttr }) => (
+              <article className="min-w-0" key={title} data-sanity={editAttr}>
                 <img
                   src={image}
                   alt={alt}
@@ -488,7 +502,10 @@ export default async function CateringPage({
       <section className="section bg-white">
         <Container>
           <div className="grid grid-cols-[minmax(320px,0.8fr)_minmax(0,0.95fr)] gap-[clamp(28px,5vw,72px)] items-start max-lg:grid-cols-1">
-            <div className="block w-full h-[min(560px,48vw)] min-h-90 overflow-hidden shadow-[0_18px_40px_rgba(var(--rgb-brown),0.08)] max-lg:-order-1 max-sm:h-auto max-sm:min-h-90 max-sm:aspect-4/3 lg:sticky lg:top-24">
+            <div
+              className="block w-full h-[min(560px,48vw)] min-h-90 overflow-hidden shadow-[0_18px_40px_rgba(var(--rgb-brown),0.08)] max-lg:-order-1 max-sm:h-auto max-sm:min-h-90 max-sm:aspect-4/3 lg:sticky lg:top-24"
+              data-sanity={data.philosophyImageEditAttr}
+            >
               <img
                 className="block w-full h-full min-h-0 object-cover object-center shadow-none"
                 src={data.philosophyImage}
@@ -543,6 +560,7 @@ export default async function CateringPage({
                 overlayText={data.menuOverlayText}
                 bannerImageUrl={data.bannerImageUrl}
                 bannerImageAlt={data.bannerImageAlt}
+                bannerEditAttr={data.bannerImageEditAttr}
               >
                 {data.menuExamplesCta}
               </CateringMenuButton>

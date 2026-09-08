@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { CSSProperties, ReactNode } from "react";
+import { draftMode } from "next/headers";
 import Image from "next/image";
 import { ArrowRight, BadgeCheck, ExternalLink } from "lucide-react";
 import {
@@ -17,6 +18,7 @@ import { isLocale, type Locale } from "@/lib/i18n";
 import { compact, pickLocalized, type I18nEntry } from "@/lib/sanity-i18n";
 import { getAction, getItem, getSection } from "@/lib/sanity-sections";
 import { isSanityConfigured } from "@/sanity/env";
+import { sanitySectionItemAttr, sanitySectionMediaAttr } from "@/sanity/lib/dataAttr";
 import { urlForFile, urlForImage } from "@/sanity/lib/image";
 import { isDirectVideoFileUrl } from "@/sanity/lib/videoUrl";
 import { sanityFetch } from "@/sanity/lib/live";
@@ -32,6 +34,8 @@ interface MembershipWeekMediaItem {
   alt?: string;
   label?: string;
   featured?: boolean;
+  /** `data-sanity` for the whole media element — set only in Draft Mode; undefined on the hardcoded fallback set. */
+  editAttr?: string;
 }
 
 const membershipWeekMedia: MembershipWeekMediaItem[] = [
@@ -128,11 +132,16 @@ function MembershipButton({ children, variant = "primary", href = fallbackWecoda
 
 type BenefitIndexStyle = CSSProperties & { "--benefit-index": number };
 
-async function getData(locale: Locale) {
+async function getData(locale: Locale, editable = false) {
   if (!isSanityConfigured) {
     return {
       ...fallback,
-      benefits: fallbackBenefits.map(([title, text], i) => ({ title, text, icon: benefitIcons[i]! })),
+      benefits: fallbackBenefits.map(([title, text], i) => ({
+        title,
+        text,
+        icon: benefitIcons[i]!,
+        editAttr: undefined as string | undefined,
+      })),
       applicationSteps: fallbackApplicationSteps.map(([title, text], i) => ({
         number: String(i + 1).padStart(2, "0"),
         title,
@@ -141,6 +150,7 @@ async function getData(locale: Locale) {
       membershipFormHref: fallbackWecodaFormUrl,
       externalSiteHref: fallbackWecodaExternalUrl,
       donationQrSrc: fallbackWecodaDonationQrSrc,
+      donationQrEditAttr: undefined as string | undefined,
       bankFields: defaultBankFields,
       gallery: membershipWeekMedia,
     };
@@ -175,8 +185,14 @@ async function getData(locale: Locale) {
           urlForImage(b.image as unknown as Parameters<typeof urlForImage>[0])
             ?.width(96)
             .url() ?? benefitIcons[i] ?? benefitIcons[0]!,
+        editAttr: sanitySectionItemAttr(editable, newPage?._id, benefitsSection?._key, b._key),
       }))
-    : fallbackBenefits.map(([title, text], i) => ({ title, text, icon: benefitIcons[i]! }));
+    : fallbackBenefits.map(([title, text], i) => ({
+        title,
+        text,
+        icon: benefitIcons[i]!,
+        editAttr: undefined as string | undefined,
+      }));
 
   const applyAction = getAction(heroSection, "apply");
   const membershipFormHref = applyAction?.href || fallbackWecodaFormUrl;
@@ -185,6 +201,12 @@ async function getData(locale: Locale) {
   const donationQrSrc =
     urlForImage(donationSection?.media?.[0]?.image as unknown as Parameters<typeof urlForImage>[0])?.width(800).url() ??
     fallbackWecodaDonationQrSrc;
+  const donationQrEditAttr = sanitySectionMediaAttr(
+    editable,
+    newPage?._id,
+    donationSection?._key,
+    donationSection?.media?.[0]?._key,
+  );
 
   const bankItemsFromSections = (donationSection?.items ?? []).filter((i) => i.itemKey?.startsWith("bank"));
   const bankFields: BankField[] = bankItemsFromSections.length
@@ -209,14 +231,15 @@ async function getData(locale: Locale) {
   // rejecting a non-direct-file URL) to avoid re-introducing the bug that
   // helper exists to prevent.
   function resolveMembershipMedia(
-    item: { image?: unknown; videoFile?: unknown; videoUrl?: string | null; alt?: I18nEntry<string>[] | null },
+    item: { _key?: string; image?: unknown; videoFile?: unknown; videoUrl?: string | null; alt?: I18nEntry<string>[] | null },
     fb: MembershipWeekMediaItem | undefined,
   ): MembershipWeekMediaItem | undefined {
+    const editAttr = sanitySectionMediaAttr(editable, newPage?._id, gallerySection?._key, item._key);
     const imageUrl = urlForImage(item.image as unknown as Parameters<typeof urlForImage>[0])
       ?.width(700)
       .url();
     if (imageUrl) {
-      return { type: "image", src: imageUrl, alt: pickLocalized(item.alt, locale) ?? fb?.alt, featured: fb?.featured };
+      return { type: "image", src: imageUrl, alt: pickLocalized(item.alt, locale) ?? fb?.alt, featured: fb?.featured, editAttr };
     }
     const uploadedSrc = urlForFile(item.videoFile as Parameters<typeof urlForFile>[0]);
     let videoSrc = uploadedSrc;
@@ -226,7 +249,7 @@ async function getData(locale: Locale) {
       }
     }
     if (!videoSrc) return undefined;
-    return { type: "video", src: videoSrc, label: pickLocalized(item.alt, locale) ?? fb?.label, featured: fb?.featured };
+    return { type: "video", src: videoSrc, label: pickLocalized(item.alt, locale) ?? fb?.label, featured: fb?.featured, editAttr };
   }
 
   const galleryFromSections = gallerySection?.media?.length
@@ -291,6 +314,7 @@ async function getData(locale: Locale) {
     membershipFormHref,
     externalSiteHref,
     donationQrSrc,
+    donationQrEditAttr,
     bankFields,
     gallery,
   };
@@ -317,7 +341,8 @@ export async function generateMetadata({
 export default async function CommunityMembershipPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const data = await getData(locale);
+  const { isEnabled: isDraftMode } = await draftMode();
+  const data = await getData(locale, isDraftMode);
 
   return (
     <>
@@ -388,6 +413,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
 
       <WecodaDonationSection
         qrSrc={data.donationQrSrc}
+        qrEditAttr={data.donationQrEditAttr}
         label={data.donationLabel}
         title={data.donationTitle}
         text={data.donationText}
@@ -439,11 +465,12 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
             className="mb-[clamp(28px,4vw,42px)]!"
           />
           <MembershipBenefitsGrid>
-            {data.benefits.map(({ title, text, icon }, index) => (
+            {data.benefits.map(({ title, text, icon, editAttr }, index) => (
               <article
                 className="wecoda-benefit-item grid grid-cols-1 content-start gap-4 p-[clamp(20px,2.6vw,28px)] border-0 rounded-none bg-white text-text-primary shadow-[0_12px_30px_rgba(var(--rgb-brown),0.06)]"
                 key={title}
                 style={{ "--benefit-index": index } as BenefitIndexStyle}
+                data-sanity={editAttr}
               >
                 <span className="flex items-center justify-start w-12 h-12 shrink-0">
                   <Image
@@ -567,6 +594,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
                     : ""
                 }`}
                 key={item.src}
+                data-sanity={item.editAttr}
               >
                 {item.type === "video" ? (
                   <video

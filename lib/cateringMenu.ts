@@ -6,6 +6,8 @@ export interface CateringMenuItem {
   description: string;
   image: string;
   alt: string;
+  /** `data-sanity` for the whole dish `contentItem` — set only in Draft Mode; undefined on the hardcoded fallback dishes. */
+  editAttr?: string;
 }
 
 export interface CateringMenuCategory {

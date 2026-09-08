@@ -1,3 +1,4 @@
+import { stegaClean } from "next-sanity";
 import { pickLocalized } from "@/lib/sanity-i18n";
 import type { Locale } from "@/lib/i18n";
 import { contactDetails, socialLinks as fallbackSocialLinks, type SocialIconName } from "@/lib/siteConfig";
@@ -272,9 +273,13 @@ export function resolveContactFormFields(
       continue;
     }
     seenNames.add(name);
+    // `contentItem.value` is a control token here (the field TYPE), but it is
+    // an editorial string elsewhere (bank-detail values), so it stays stega-
+    // encoded — clean it for this comparison. See sanity/lib/stegaFilter.ts.
+    const fieldType = stegaClean(item.value ?? undefined);
     result.push({
       name,
-      type: isSupportedContactFormFieldType(item.value) ? item.value : "text",
+      type: isSupportedContactFormFieldType(fieldType) ? fieldType : "text",
       label: pickLocalized(item.title, locale) ?? "",
       placeholder: pickLocalized(item.text, locale) ?? "",
     });

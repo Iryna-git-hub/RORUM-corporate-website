@@ -1132,6 +1132,44 @@ and fails on any populated-but-hidden field, stale key, or section-order drift.
 (new script). No schema field added/removed; no `sanity.types.ts` change; no production content
 touched.
 
+## 20.14 Phase H — Presentation Tool + secure Draft Mode preview (MIGRATION_REPORT Parts 29–31)
+
+Editors preview **unpublished drafts** on the real frontend inside Studio's **Presentation**
+view before publishing (§18 "Publish works" is now testable without guessing what a change
+will look like), with click-to-edit overlays on **every visible editorial element** — hero
+headings, eyebrows, paragraphs, buttons, section copy, footer, nav, and the Home hero image —
+in EN, DA and UK. Read-only Viewer token (`SANITY_API_READ_TOKEN`) is used for both server
+draft reads and the draft-only browser live connection; the Editor write token is never in
+the Next.js runtime. Normal visitors are unaffected — published content only, no stega, no
+static-generation regression, no deprecation warnings (`middleware.ts` → `proxy.ts`,
+`@sanity/image-url` named import).
+
+Part 30 root cause: stega encoding was polluting the `sectionKey`/`itemKey`/`kind`
+discriminators that `lib/sanity-sections.ts` matches with `===`, which broke every page-body
+lookup in Draft Mode (fell back to hardcoded English — no overlay, no localization). Fixed
+with `sanity/lib/stegaFilter.ts` (a `stega.filter` excluding those non-editorial fields).
+
+**Part 31 completed the non-text coverage.** Text carries its overlay via stega; images,
+galleries, editor-picked icons and event banners get an explicit `data-sanity` (Draft Mode
+only) via `sanity/lib/dataAttr.ts` — three wrappers over `sanityFieldAttr`
+(`sanitySectionMediaAttr` / `sanitySectionItemAttr` / `sanityEventImageAttr`), stable
+`_key`-based field paths, whole-`mediaItem`/`contentItem` focus. Now click-to-edit: Home
+(hero, quick paths, editorial section images, services cards, community bg), About
+(atmosphere images), Events (card + detail banner — only when the event has its own asset),
+Catering (gallery, menu-format cards, philosophy image, menu-examples banner + dishes),
+Event Decoration (gallery, styling image), Host at RORUM (gallery, session image), Community
+Membership (benefit cards, donation QR, gallery mosaic). Intentionally static: hardcoded
+WECODA logos, structural Lucide icons, the Contact map, header/footer social icons, all
+static fallback images. Tests: `tests/draft-mode.spec.ts` 19/19 (per-page image-annotation
+assertions verifying doc id + type + `_key` path + no positional indexes; published pages
+still assert 0 `[data-sanity]`), `sanity/lib/dataAttr.unit.test.ts` new. `npx next build`
+still all-SSG. See MIGRATION_REPORT.md Part 31.
+
+**Owner action:** `SANITY_API_READ_TOKEN` is configured locally; add it to the Netlify env
+and register the site as a CORS origin in sanity.io/manage. Upload a Social Sharing Image on
+`page-catering` (clears 3 pre-existing `cms-catering-contract` failures). No new Part 31
+owner action.
+
 ---
 
 # 21. Shared Components

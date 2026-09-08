@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
+import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import { VisualEditing } from "next-sanity/visual-editing";
 import { merriweather, nunito, quicksand } from "@/app/fonts";
+import { DisableDraftMode } from "@/components/DisableDraftMode";
 import { JsonLd } from "@/components/JsonLd";
 import { isLocale, locales, localeTags, type Locale } from "@/lib/i18n";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/structuredData";
 import { getSeoSiteDefaults } from "@/lib/siteSettings";
+import { isSanityConfigured } from "@/sanity/env";
 import { SanityLive } from "@/sanity/lib/live";
 import { PRODUCTION_ORIGIN } from "@/shared/siteIdentity";
 import "@/app/globals.css";
@@ -58,13 +62,35 @@ export default async function LocaleLayout({
   const bodyFont = locale === "uk" ? nunito.variable : quicksand.variable;
   const { siteUrl } = await getSeoSiteDefaults();
 
+  // Draft Mode is only ever on for a logged-in editor previewing through
+  // Sanity Presentation. Reading `draftMode()` here does NOT make pages
+  // dynamic for normal visitors — during static generation / a cookie-less
+  // request it resolves to `false` and the prerendered page is served.
+  const isDraftMode = (await draftMode()).isEnabled;
+  const showDraftTools = isSanityConfigured && isDraftMode;
+
   return (
     <html lang={localeTags[locale]} data-scroll-behavior="smooth">
       <body className={`${merriweather.variable} ${bodyFont}`}>
         <JsonLd data={organizationJsonLd({ siteUrl, name: "RORUM", logoUrl: `${siteUrl}/logos/rorum-logo.png` })} />
         <JsonLd data={websiteJsonLd({ siteUrl, name: "RORUM" })} />
         {children}
-        <SanityLive />
+        {/* `includeDrafts` is what opens the draft-capable live connection
+            (and the only thing that ships `browserToken` to the browser).
+            Explicitly tied to Draft Mode: a normal visitor's <SanityLive>
+            gets no token and streams published events only, exactly as
+            before. In Draft Mode it enables edit-a-field → iframe updates
+            with no Publish. */}
+        <SanityLive includeDrafts={showDraftTools} />
+        {showDraftTools && (
+          <>
+            {/* Exactly one <VisualEditing /> instance, mounted only in Draft
+                Mode — it draws the click-to-edit overlays and maps a clicked
+                node back to its Sanity field via stega metadata. */}
+            <VisualEditing />
+            <DisableDraftMode />
+          </>
+        )}
       </body>
     </html>
   );

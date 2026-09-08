@@ -10,6 +10,7 @@ import {
 import { pickExactLocalized, pickLocalized, type I18nEntry } from "@/lib/sanity-i18n";
 import type { Locale } from "@/lib/i18n";
 import { computeDurationFromTimeRange, parseDurationText, type EventDuration } from "@/lib/eventDuration";
+import { sanityEventImageAttr } from "@/sanity/lib/dataAttr";
 import { urlForImage } from "@/sanity/lib/image";
 
 // Used only when a Sanity event has no uploaded image asset of its own —
@@ -26,6 +27,7 @@ type Localized = I18nEntry<string>[] | null | undefined;
 // shape rather than fighting it with casts — same reasoning as
 // lib/sanity-i18n.ts's I18nEntry.
 export interface SanityEventLike {
+  _id?: string | null;
   slug?: { current?: string | null } | null;
   title?: Localized;
   image?: (Image & { alt?: Localized }) | null;
@@ -69,7 +71,7 @@ function isShareActionType(value: string | null | undefined): value is ShareActi
   return !!value && (SHARE_ACTION_TYPES as string[]).includes(value);
 }
 
-export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale): RorumEvent {
+export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale, editable = false): RorumEvent {
   const slug = doc.slug?.current ?? "";
   const fallback = staticBySlug.get(slug);
 
@@ -148,6 +150,10 @@ export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale): R
     isSoldOut: doc.isSoldOut ?? fallback?.isSoldOut ?? false,
     image,
     imageAlt,
+    // Only real when this event has its own uploaded Sanity image AND we're
+    // rendering in Draft Mode — a `data-sanity` on a static/fallback image
+    // would point Studio at a field the visible picture doesn't come from.
+    imageEditAttr: sanityImageUrl ? sanityEventImageAttr(editable, doc._id) : undefined,
     ticketsLeft: doc.ticketsLeft ?? fallback?.ticketsLeft,
     seo: {
       title: pickLocalized(doc.seo?.title, locale) ?? undefined,

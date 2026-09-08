@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { draftMode } from "next/headers";
 import { ArrowRight } from "lucide-react";
 import { HorizontalGallery } from "@/components/HorizontalGallery";
 import { InquiryForm } from "@/components/InquiryForm";
@@ -18,6 +19,7 @@ import { getIconCardIcon } from "@/lib/iconCardIcons";
 import { eventDecorationGalleryImages } from "@/lib/galleryImages";
 import { resolveGalleryItems, resolveCanonicalGalleryItems } from "@/lib/sanityGallery";
 import { isSanityConfigured } from "@/sanity/env";
+import { sanitySectionMediaAttr } from "@/sanity/lib/dataAttr";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
@@ -75,7 +77,7 @@ const fallback = {
   successMessage: "Thank you. Your request is ready for the RORUM team.",
 };
 
-async function getData(locale: Locale) {
+async function getData(locale: Locale, editable = false) {
   if (!isSanityConfigured) {
     return {
       ...fallback,
@@ -99,6 +101,8 @@ async function getData(locale: Locale) {
     gallerySection as { media?: MediaItem[] } | undefined,
     locale,
     eventDecorationGalleryImages,
+    undefined,
+    (mediaKey) => sanitySectionMediaAttr(editable, newPage?._id, gallerySection?._key, mediaKey),
   );
 
   // Canonical source (current): the section's own real `text` field,
@@ -165,6 +169,7 @@ async function getData(locale: Locale) {
         .url() ?? fallback.stylingImage,
     stylingImageAlt:
       pickLocalized(stylingMedia?.alt, locale) ?? fallback.stylingImageAlt,
+    stylingImageEditAttr: sanitySectionMediaAttr(editable, newPage?._id, stylingSection?._key, stylingMedia?._key),
     suitableForLabel:
       pickLocalized(gallerySection?.label, locale) ?? fallback.suitableForLabel,
     suitableForAriaLabel:
@@ -219,7 +224,8 @@ export async function generateMetadata({
 export default async function DecorationPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const data = await getData(locale);
+  const { isEnabled: isDraftMode } = await draftMode();
+  const data = await getData(locale, isDraftMode);
 
   return (
     <>
@@ -333,6 +339,7 @@ export default async function DecorationPage({ params }: { params: Promise<{ loc
               className="block w-full h-[min(560px,48vw)] min-h-[360px] object-cover object-center shadow-[0_18px_40px_rgba(var(--rgb-brown),0.08)] self-start lg:sticky lg:top-24 max-sm:h-[280px] max-sm:min-h-[280px]"
               src={data.stylingImage}
               alt={data.stylingImageAlt}
+              data-sanity={data.stylingImageEditAttr}
             />
           </div>
           <div className="decoration-tailored-row">

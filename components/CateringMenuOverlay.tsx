@@ -142,7 +142,10 @@ function waitForStableLayout(
 
 function FeaturedCard({ item }: { item: CateringMenuItem }) {
   return (
-    <article className="min-w-0 overflow-hidden rounded-none border border-[rgba(var(--rgb-brown),0.08)] bg-white shadow-[0_16px_30px_rgba(var(--rgb-brown),0.055)]">
+    <article
+      className="min-w-0 overflow-hidden rounded-none border border-[rgba(var(--rgb-brown),0.08)] bg-white shadow-[0_16px_30px_rgba(var(--rgb-brown),0.055)]"
+      data-sanity={item.editAttr}
+    >
       <div className="relative aspect-[16/9] overflow-hidden bg-beige">
         <img
           src={item.image}
@@ -174,6 +177,7 @@ function CateringMenuOverlay({
   text = defaultOverlayText,
   bannerImageUrl = DEFAULT_BANNER_IMAGE_URL,
   bannerImageAlt = DEFAULT_BANNER_IMAGE_ALT,
+  bannerEditAttr,
 }: {
   open: boolean;
   onClose: () => void;
@@ -182,6 +186,8 @@ function CateringMenuOverlay({
   text?: CateringMenuOverlayText;
   bannerImageUrl?: string;
   bannerImageAlt?: string;
+  /** `data-sanity` for the banner media element — set only in Draft Mode. */
+  bannerEditAttr?: string;
 }) {
   const { messages } = useFormContent();
   const orderedMenuCategories = withIcons(categories);
@@ -486,6 +492,7 @@ function CateringMenuOverlay({
           style={{ backgroundImage: `linear-gradient(90deg,rgba(var(--rgb-white),0.14),rgba(var(--rgb-white),0)), url('${bannerImageUrl}')` }}
           role="img"
           aria-label={bannerImageAlt}
+          data-sanity={bannerEditAttr}
         />
 
         <main className="mx-auto w-full pt-10 px-[clamp(24px,4.5vw,60px)] max-lg:w-[min(calc(100%-32px),820px)] max-lg:pt-7 max-sm:w-[min(calc(100%-24px),100%)] max-sm:pt-4.5 max-sm:px-0">
@@ -694,6 +701,7 @@ export function CateringMenuButton({
   overlayText,
   bannerImageUrl,
   bannerImageAlt,
+  bannerEditAttr,
 }: {
   children?: ReactNode;
   variant?: "primary" | "secondary";
@@ -703,6 +711,7 @@ export function CateringMenuButton({
   overlayText?: CateringMenuOverlayText;
   bannerImageUrl?: string;
   bannerImageAlt?: string;
+  bannerEditAttr?: string;
 }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -753,6 +762,7 @@ export function CateringMenuButton({
         text={overlayText}
         bannerImageUrl={bannerImageUrl}
         bannerImageAlt={bannerImageAlt}
+        bannerEditAttr={bannerEditAttr}
       />
     </>
   );

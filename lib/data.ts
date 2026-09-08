@@ -219,6 +219,11 @@ export interface RorumEvent {
   // hardcoded static events below have no Sanity asset to read alt text
   // from — consumers fall back to a generated string when this is unset.
   imageAlt?: string;
+  // `data-sanity` attribute for the event banner image, so Presentation can
+  // draw a click-to-edit overlay on the card/hero image in Draft Mode. Set
+  // only for Sanity-backed events viewed in Draft Mode (see
+  // lib/sanityEvents.ts); always undefined for the hardcoded static events.
+  imageEditAttr?: string;
   // Optional override for the ticket button's label — defaults to "Buy
   // Ticket" in the UI when unset.
   ticketButtonLabel?: string;

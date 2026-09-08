@@ -71,8 +71,11 @@ export function WecodaDonationSection({
   bankDetailsTitle = "Bank Details",
   supportText = "RORUM proudly supports WECODA by providing a welcoming space for community events, learning, and collaboration.",
   bankFields = defaultBankFields,
+  qrEditAttr,
 }: {
   qrSrc: string;
+  /** `data-sanity` for the QR image's media element — set only in Draft Mode. */
+  qrEditAttr?: string;
   label?: string;
   title?: string;
   text?: string;
@@ -123,7 +126,10 @@ export function WecodaDonationSection({
             </p>
 
             <div className="grid justify-items-center gap-1 max-w-full mt-[6px] p-[clamp(24px,3vw,32px)] bg-white max-sm:w-full max-sm:max-w-[420px] max-sm:mx-auto">
-              <div className="grid place-items-center w-[clamp(160px,16vw,190px)] aspect-square mb-3">
+              <div
+                className="grid place-items-center w-[clamp(160px,16vw,190px)] aspect-square mb-3"
+                data-sanity={qrEditAttr}
+              >
                 <Image
                   src={qrSrc}
                   alt="QR code for supporting WECODA"

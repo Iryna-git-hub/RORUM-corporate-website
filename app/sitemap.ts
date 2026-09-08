@@ -3,7 +3,7 @@ import { events, pages } from "@/lib/data";
 import { locales, localeTags, localizedHref, isLocale, type Locale } from "@/lib/i18n";
 import { getSeoSiteDefaults } from "@/lib/siteSettings";
 import { isSanityConfigured } from "@/sanity/env";
-import { sanityFetch } from "@/sanity/lib/live";
+import { sanityFetchStatic } from "@/sanity/lib/live";
 import { allEventsForSitemapQuery } from "@/sanity/queries/events";
 import { pagesUpdatedAtQuery } from "@/sanity/queries/page";
 
@@ -55,9 +55,9 @@ const BUILD_FALLBACK_DATE = new Date();
 
 /**
  * Published Sanity `event` documents are the authoritative source for
- * event sitemap entries — `sanityFetch` reads the same published-only
- * perspective the rest of the public site uses, so drafts are already
- * excluded without extra filtering. Each event expands into a URL only for
+ * event sitemap entries — `sanityFetchStatic` pins the read to the published
+ * perspective (a sitemap runs at build time / on ISR revalidate, with no
+ * request scope, and must never list draft URLs). Each event expands into a URL only for
  * the locales listed in its own `visibleLocales` ("Show on website
  * languages"): a deselected or unmigrated (no `visibleLocales` at all)
  * locale never gets a sitemap entry. Falls back to the hardcoded static
@@ -81,7 +81,7 @@ async function getEventSitemapEntries(siteUrl: string): Promise<MetadataRoute.Si
     });
   }
 
-  const { data } = await sanityFetch({ query: allEventsForSitemapQuery });
+  const { data } = await sanityFetchStatic({ query: allEventsForSitemapQuery });
   return (data ?? []).flatMap((event) => {
     if (!event.slug) return [];
     const path = `/events/${event.slug}`;
@@ -110,7 +110,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [{ siteUrl }, updatedAtByPageKey] = await Promise.all([
     getSeoSiteDefaults(),
     isSanityConfigured
-      ? sanityFetch({ query: pagesUpdatedAtQuery }).then(({ data }) => {
+      ? sanityFetchStatic({ query: pagesUpdatedAtQuery }).then(({ data }) => {
           const map = new Map<string, string>();
           for (const doc of data ?? []) {
             if (doc.pageKey && doc._updatedAt) map.set(doc.pageKey, doc._updatedAt);

@@ -1,6 +1,7 @@
 import type { Locale } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/sanity-i18n";
 import { getItem, listItems, type RawPage } from "@/lib/sanity-sections";
+import { sanitySectionItemAttr } from "@/sanity/lib/dataAttr";
 import { urlForImage } from "@/sanity/lib/image";
 import type { CateringMenuCategory } from "@/lib/cateringMenu";
 
@@ -24,6 +25,7 @@ export function resolveCateringMenuCategories(
   newMenuPage: RawPage | null | undefined,
   locale: Locale,
   fallbackMenuCategories: readonly CateringMenuCategory[],
+  opts: { editable?: boolean } = {},
 ): CateringMenuCategory[] {
   if (!newMenuPage) return [...fallbackMenuCategories];
 
@@ -41,15 +43,19 @@ export function resolveCateringMenuCategories(
       icon: iconItem?.icon ?? undefined,
       featuredItems: dishes.map((item, j) => {
         const fbItem = fb?.featuredItems[j];
+        const src =
+          urlForImage(item.image as unknown as Parameters<typeof urlForImage>[0])
+            ?.width(600)
+            .height(338)
+            .url() ?? fbItem?.image ?? "";
         return {
           name: pickLocalized(item.title, locale) ?? fbItem?.name ?? "",
           description: pickLocalized(item.text, locale) ?? fbItem?.description ?? "",
-          image:
-            urlForImage(item.image as unknown as Parameters<typeof urlForImage>[0])
-              ?.width(600)
-              .height(338)
-              .url() ?? fbItem?.image ?? "",
+          image: src,
           alt: pickLocalized(item.image?.alt, locale) ?? fbItem?.alt ?? "",
+          // Focuses the whole dish `contentItem` (name + description + image);
+          // the row's stega text still targets the specific string field.
+          editAttr: sanitySectionItemAttr(opts.editable ?? false, newMenuPage._id, cat._key, item._key),
         };
       }),
     };

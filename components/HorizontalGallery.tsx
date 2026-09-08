@@ -7,8 +7,8 @@ import type { Locale } from "@/lib/i18n";
 import { getUiText } from "@/lib/uiText";
 
 export type HorizontalGalleryItem =
-  | { id: string; kind: "image"; src: string; alt: string }
-  | { id: string; kind: "video"; src: string; accessibleLabel: string };
+  | { id: string; kind: "image"; src: string; alt: string; editAttr?: string }
+  | { id: string; kind: "video"; src: string; accessibleLabel: string; editAttr?: string };
 
 /**
  * Mixed-media Lightbox decision (superseded an earlier photo-only design —
@@ -507,7 +507,11 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
           <div className="horizontal-gallery-track" ref={trackRef}>
             {availableItems.map((item, index) =>
               item.kind === "video" ? (
-                <div key={item.id} className="horizontal-gallery-item horizontal-gallery-video-item">
+                <div
+                  key={item.id}
+                  className="horizontal-gallery-item horizontal-gallery-video-item"
+                  data-sanity={item.editAttr}
+                >
                   <VideoWithState
                     item={item}
                     locale={locale}
@@ -536,6 +540,7 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
                   key={item.id}
                   className="horizontal-gallery-item"
                   type="button"
+                  data-sanity={item.editAttr}
                   onClick={(event) => {
                     openerRef.current = event.currentTarget;
                     setLightboxIndex(index);

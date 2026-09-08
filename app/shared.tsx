@@ -60,6 +60,7 @@ function QuickPathCard({
   cta,
   icon,
   iconName,
+  editAttr,
 }: {
   title: string;
   text: string;
@@ -70,6 +71,8 @@ function QuickPathCard({
   icon?: LucideIcon;
   /** The Sanity icon field's raw string value, paired 1:1 with `icon` — stamped as `data-icon` regardless of source (Sanity or fallback) so tests can assert the exact icon rendered. */
   iconName?: string;
+  /** `data-sanity` for the whole `contentItem` behind this card (photo + icon + copy) — set only in Draft Mode. */
+  editAttr?: string;
 }) {
   const meta = quickPathMeta[href];
   const Icon = icon ?? meta.icon;
@@ -97,7 +100,7 @@ function QuickPathCard({
   );
 
   return (
-    <Link className={cardClassName} href={href}>
+    <Link className={cardClassName} href={href} data-sanity={editAttr}>
       {inner}
     </Link>
   );
@@ -106,12 +109,31 @@ function QuickPathCard({
 export function QuickPathsGrid({
   items,
 }: {
-  items: [title: string, text: string, href: QuickPathHref, image: string, cta?: string, icon?: LucideIcon, iconName?: string][];
+  items: [
+    title: string,
+    text: string,
+    href: QuickPathHref,
+    image: string,
+    cta?: string,
+    icon?: LucideIcon,
+    iconName?: string,
+    editAttr?: string,
+  ][];
 }) {
   return (
     <div className="grid grid-cols-4 gap-[18px] items-stretch max-sm:grid-cols-1 sm:max-xl:grid-cols-2">
-      {items.map(([title, text, href, image, cta, icon, iconName]) => (
-        <QuickPathCard key={title} title={title} text={text} href={href} image={image} cta={cta} icon={icon} iconName={iconName} />
+      {items.map(([title, text, href, image, cta, icon, iconName, editAttr]) => (
+        <QuickPathCard
+          key={title}
+          title={title}
+          text={text}
+          href={href}
+          image={image}
+          cta={cta}
+          icon={icon}
+          iconName={iconName}
+          editAttr={editAttr}
+        />
       ))}
     </div>
   );

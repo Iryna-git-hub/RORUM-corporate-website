@@ -1868,3 +1868,501 @@ New: `tests/sanity-schema-visibility.spec.ts` gained a "Community Membership her
 ### 12. Manual Studio checklist
 
 See the task's own checklist, reproduced verbatim in the final chat report.
+
+---
+
+## Part 29 — Sanity Presentation Tool + secure Next.js Draft Mode
+
+Activates the previously-configured-but-never-exercised draft preview path
+(flagged unfinished in Part 5 §1 / §8 / §12 and in this document's env table).
+A logged-in Sanity editor can now open the real Next.js site inside Studio's
+**Presentation** view and see **unpublished draft** changes (text, images,
+buttons, everything the `page`/`event`/`legalPage` GROQ returns) before
+pressing Publish. Normal visitors are completely unaffected — they still get
+published content only.
+
+### 1. How it works (current official next-sanity 13.x / App Router approach)
+
+- **`sanity/lib/live.ts`** — `defineLive` now receives `serverToken:
+  process.env.SANITY_API_READ_TOKEN` and `browserToken: false`. With
+  `strict: false` (the default) `sanityFetch` inspects `draftMode()` on every
+  call: cookie-less request → published perspective, no token, no stega
+  (byte-identical to before); inside Draft Mode → draft perspective + token +
+  stega. Verified against `next-sanity/dist/live/conditions/react-server`.
+  The client also gets `stega: { studioUrl: "/studio" }` so the server can
+  encode invisible edit-links into *draft* strings for Presentation's
+  click-to-edit overlays — stega encoding itself stays gated on Draft Mode.
+- **`app/api/draft-mode/enable/route.ts`** — `defineEnableDraftMode` from
+  `next-sanity/draft-mode`. The Presentation Tool mints a one-time
+  `sanity.previewUrlSecret` (stored in the dataset), appends it to the preview
+  URL; this route validates it **server-side** with the Viewer token
+  (`@sanity/preview-url-secret`) before calling `draftMode().enable()`. No
+  valid secret → `401`. No `SANITY_API_READ_TOKEN` on the server → `501`.
+  There is deliberately no `?preview=1`-style bypass.
+- **`app/api/draft-mode/disable/route.ts`** — `draftMode().disable()` +
+  redirect to `/`.
+- **`app/[locale]/layout.tsx`** — `const showDraftTools = isSanityConfigured
+  && (await draftMode()).isEnabled;` then `{showDraftTools && (<><VisualEditing
+  /><DisableDraftMode /></>)}`. `<SanityLive />` stays rendered unconditionally
+  as before. Reading `draftMode()` here does **not** make pages dynamic — the
+  production build still shows every `[locale]` route as `● SSG`.
+- **`sanity.config.ts`** — `presentationTool({ resolve, previewUrl: { initial:
+  PREVIEW_ORIGIN ?? "/", previewMode: { enable: "/api/draft-mode/enable" } }
+  })`. `initial` is a **relative `/`** by default: the Studio is embedded at
+  `/studio` on the same origin as the site, so this is identical on localhost
+  and in production with zero env config.
+- **`sanity/presentation/resolve.ts`** — `defineDocuments` / `defineLocations`
+  mapping `page`/`legalPage`/`event` ↔ routes, via the new dependency-free
+  `shared/pageRoutes.ts`.
+- **`components/DisableDraftMode.tsx`** — small fixed "exit preview" badge,
+  shown only while Draft Mode is on AND not inside the Presentation iframe
+  (`useIsPresentationTool()`).
+- **`sanity/lib/client.ts`** — removed the now-obsolete manual `getDraftClient()`
+  (0 imports; the modern flow never uses it).
+
+### 2. Security posture
+
+- `SANITY_API_READ_TOKEN` is server-only. `browserToken: false` — no token is
+  ever shipped to the browser. Presentation previews drafts through its own
+  authenticated Studio session + server-rendered stega, so no browser token
+  is needed.
+- `SANITY_API_WRITE_TOKEN` is **not** imported anywhere in the Next.js runtime
+  (only `scripts/**` and `tests/**`). Enforced by
+  `sanity/lib/draftMode.unit.test.ts`.
+- The read token is attached only to a short-lived `getClient().withConfig(...)`
+  derived client in the enable route — never to the shared published singleton.
+- `disallow: /api/` added to `robots.ts`.
+
+### 3. Environment variables
+
+| Variable | Scope | Required for | Notes |
+|---|---|---|---|
+| `SANITY_API_READ_TOKEN` | Server only | Draft Mode / Presentation preview | Sanity **Viewer** (read-only) role. Never `NEXT_PUBLIC_*`. Without it the site is unaffected; the enable route returns 501. |
+| `NEXT_PUBLIC_SANITY_PREVIEW_ORIGIN` | Client (Studio bundle) | Only cross-origin Studio→site preview | Optional. Leave blank for the embedded Studio (relative `/` preview). A URL, not a secret. |
+
+`SANITY_PREVIEW_SECRET` (reserved-but-unused in the old env table) was removed
+from `.env.example` — the modern handshake uses a dataset-stored secret managed
+by Presentation, not an env var.
+
+- **Local (`.env.local`)**: add `SANITY_API_READ_TOKEN=<viewer token from
+  sanity.io/manage → API → Tokens>`. Nothing else.
+- **Netlify**: add the same `SANITY_API_READ_TOKEN` as an environment variable.
+  No preview-origin var needed (embedded Studio). Redeploy. Same code path as local.
+
+### 4. Verification
+
+- `npm run typecheck`: clean. `npx eslint` (changed files): clean.
+- `npm run build --webpack`: succeeds; route table — every `[locale]` route
+  still `● SSG` (no static-generation regression), `/api/draft-mode/{enable,disable}`
+  are `ƒ`.
+- `npx vitest run`: 586/586 (43 files) + `sanity/lib/draftMode.unit.test.ts`
+  14/14 (token-exposure + isolation contract).
+- `npx playwright test tests/draft-mode.spec.ts`: 6 passed, 1 skipped —
+  isolation (`/`, `/about`, `/events` serve published content, no
+  `__prerender_bypass` cookie, no `[data-sanity]`, no stega chars, no exit
+  badge), enable route rejects requests with no / forged secret (501 here as
+  no read token is set on this machine; 401 once it is), disable redirects,
+  `robots.txt` hides `/api/`. The **full draft round-trip** test
+  (draft-only reversible edit → published unaffected → secret handshake →
+  draft visible + overlay → exit) is written and wired but **skips until
+  `SANITY_API_READ_TOKEN` is present** in the run environment.
+- Regression: `tests/sanity.spec.ts tests/seo.spec.ts tests/interactions.spec.ts
+  tests/locale.spec.ts` 105+ passed / 1 skipped; `tests/breakpoints.spec.ts
+  tests/sanity-schema-visibility.spec.ts tests/cms-home-contract.spec.ts
+  tests/cms-about-contract.spec.ts tests/cms-events-contract.spec.ts` 657
+  passed / 15 skipped; `tests/cms-event-decoration-contract.spec.ts
+  tests/catering-responsive.spec.ts tests/forms-formspree.spec.ts
+  tests/horizontal-gallery-video-layout.spec.ts` 54 passed / 1 skipped.
+- **Pre-existing, unrelated:** `tests/cms-catering-contract.spec.ts` — 5 failures
+  (was 6 at Part 28 §11). Cause is content, not this diff: `page-catering.seo`
+  has no `ogImage` asset uploaded, and `/da/`+`/uk/` `/catering` render the
+  English `seo.title`/`description` while `/da/about` and `/da` (home) — same
+  `pickLocalized(newPage?.seo?.title, locale)` code path — correctly render
+  Danish, so it is a Catering-document / CDN content gap. This diff's only
+  `lib/seo.ts` change is `stegaClean()`, a no-op on the (stega-free) published
+  strings involved — `git show HEAD:lib/seo.ts` confirms identical resolution
+  logic. Owner action: upload a Social Sharing Image on `page-catering` and
+  re-publish its DA/UK SEO.
+
+### 5. Independent review
+
+An independent reviewer audited the diff for token exposure, Draft Mode
+security, normal-visitor behaviour, `<SanityLive>` regression risk, and
+draft/published isolation.
+
+- **No HIGH findings.** Cleared as non-issues (verified against installed
+  `next-sanity`/`@sanity/client`/`@sanity/preview-url-secret` source): no token
+  in the browser bundle (`sanity.config.ts` imports only NEXT_PUBLIC/pure
+  modules); `browserToken: false` is behaviourally identical to `undefined`
+  for `<SanityLive>`; `getClient().withConfig()` returns a new client, never
+  mutates the singleton; `stega.studioUrl` survives `defineLive`'s internal
+  `withConfig({stega:false})` (client merges stega config) and encoding stays
+  gated on `draftMode().isEnabled`; the enable route is a real dataset-secret
+  handshake (`401` on forged/absent secret); no open redirect
+  (`parsePreviewUrl` strips host/scheme from the redirect target); cookie-less
+  visitor is byte-identical to pre-change; no path serves or caches a draft
+  for a non-preview request.
+- **1 MEDIUM — fixed.** With `stega.studioUrl` set, an editor viewing the site
+  in Presentation got stega zero-width characters in `<title>`/`<meta>`/OG/
+  Twitter and in Sanity-derived JSON-LD (the same `getData()` fetch feeds both
+  the stega-wanting body and the stega-unwanted `<head>`). Fixed by
+  `stegaClean()` at the two choke points — `lib/seo.ts` `localizedPageMetadata`
+  (title/description/imageAlt) and `components/JsonLd.tsx` (whole LD object).
+  No-op for normal visitors. `tests/draft-mode.spec.ts` now asserts `<head>`
+  carries no stega in both the published and the draft-preview cases.
+- **2 LOW — accepted, not changed.** (a) `/api/draft-mode/disable` is a
+  cookie-clearing GET with no origin check — a cross-site `<img>` can log an
+  editor out of preview; impact is trivial (re-enter via Presentation) and the
+  enable direction is secret-gated. (b) `robots.ts` disallows all of `/api/`
+  rather than just `/api/draft-mode/` — correct today (that is the only API
+  route), flagged only so a future crawlable API route is a conscious choice.
+
+### 6. Owner action to finish
+
+1. Create a **Viewer**-role token in sanity.io/manage → your project → API → Tokens.
+2. `SANITY_API_READ_TOKEN=<token>` in `.env.local` (local) and in Netlify env (deploy).
+3. Register the site origin as a CORS origin in sanity.io/manage (needed for the
+   Presentation iframe + live) — same manual step Part 5 §12 already flagged.
+4. Re-run `npx playwright test tests/draft-mode.spec.ts` to exercise the full
+   round-trip (now un-skipped).
+5. In Studio → **Presentation**, open Home / About / Events, edit a heading,
+   confirm it updates before Publish; Publish still propagates via `<SanityLive />`.
+
+---
+
+## Part 30 — Presentation/Draft Mode: build fix, body-content overlays, Draft-Mode localization, live browser token
+
+Follow-up to Part 29 after `SANITY_API_READ_TOKEN` was configured locally.
+Three observed problems, all fixed; plus the safe deprecations in the same area.
+
+### Problem 1 — `next build` failed: `draftMode()` inside `generateStaticParams`
+
+**Root cause.** Once `serverToken` was a real value, next-sanity's non-strict
+`sanityFetch` began auto-detecting the perspective by reading `draftMode()` /
+`cookies()` on every call. That is illegal in `generateStaticParams` (no
+request scope) — `Route /[locale]/events/[slug] used draftMode() inside
+generateStaticParams`. It only surfaced now because the token was absent
+before, so the auto-detection branch was skipped.
+
+**Architecture — one clear split, not scattered workarounds.**
+`sanity/lib/live.ts` now exports **two** helpers:
+
+| Helper | For | Behaviour |
+|---|---|---|
+| `sanityFetch` (unchanged) | rendered page **bodies** + `generateMetadata` | request-aware — serves drafts inside Draft Mode |
+| `sanityFetchStatic` (new) | `generateStaticParams`, `app/sitemap.ts`, `app/robots.ts`, `lib/siteSettings.ts` `getSeoSiteDefaults` | passes explicit `perspective: "published"` + `stega: false` → next-sanity never calls `draftMode()`/`cookies()`; always published, always stega-free |
+
+This is the official next-sanity pattern (its own `generateStaticParams`
+example passes `perspective: "published", stega: false`). Drafts can never
+create a static path or a sitemap/robots entry. `generateMetadata` keeps using
+the request-aware `sanityFetch` (Next allows `draftMode()` there; it returns
+`false` at build) — its Sanity strings are already `stegaClean`-ed in
+`lib/seo.ts` (Part 29 section 5).
+
+**Result.** `next build` passes; every `[locale]` route is still `SSG`;
+`/events/[slug]` still prerenders exactly the published events (33 x 3 locales).
+
+### Problem 2 + 3 — same root cause: stega broke the resolver layer
+
+**Symptom.** In Presentation, navigation/footer were editable but page-body
+headings/text/buttons were not, AND `/da` `/uk` previews showed English body
+content.
+
+**Root cause.** `lib/sanity-sections.ts`'s lookups (`getSection`/`getItem`/
+`getAction`) match sections and items by an **exact `===`** on `sectionKey` /
+`itemKey` / `actionKey` (also `kind` in `lib/sanityGallery.ts` and
+`page.tsx`). Stega encoding appends invisible characters to string values, so
+in Draft Mode `s.sectionKey` became `"hero..."` (plus hidden chars) and
+`=== "hero"` failed. Every lookup missed, the page rendered its hardcoded
+**English fallback**, no Sanity string reached the DOM (Problem 2: no overlay)
+and `pickLocalized` never ran (Problem 3: no localization). Navigation/footer
+resolve **positionally** (`.map`, never `.find(x => x.key === ...)`), so they
+were immune. `pickLocalized` itself was fine — it matches on `language`, which
+`@sanity/client` already excludes from encoding.
+
+**Fix — `sanity/lib/stegaFilter.ts`.** A `stega.filter` on the Live client
+that extends `@sanity/client`'s built-in denylist (`key`, `language`, `slug`,
+`href`, `icon`, `type`, ...) with the project's own discriminator field names
+(`sectionKey`, `sectionKind`, `itemKey`, `actionKey`, `itemRole`, `pageKey`,
+`kind`, `linkType`, `iconName`) **and** `pageSection.settings[].value` (a
+control token — `"true"`/`"false"`/a variant name — read by `getSetting()`
+with `!== "false"`, never rendered; scoped to the `settings` array so
+`contentItem.value` bank-detail strings stay editorial). Those fields are
+never encoded; **every visible editorial string still is**, so its Content
+Source Map reaches `<VisualEditing />` intact — no `stegaClean` on rendered
+body text. The one remaining dual-purpose field, `contentItem.value` used as
+the Contact-form field TYPE, is `stegaClean`-ed at that single comparison
+(`lib/sanityContact.ts`). This also let
+`app/[locale]/(site)/catering/page.tsx` drop its `stega: false` workaround (it
+was there for exactly this bug), so Catering body content is now editable too.
+
+**Verified** (draft-only reversible edits, cleaned up): `/`, `/da`, `/uk`,
+`/about`, `/catering`, `/events` previews render the correct locale; the hero
+`<h1>`, hero paragraph, hero CTA and section labels each carry stega; a
+draft-only edit to `drafts.page-home` appeared in preview within ~2 s with no
+Publish and never on the published site.
+
+### Images — `data-sanity` for non-text fields
+
+`sanity/lib/dataAttr.ts` `sanityFieldAttr(editable, docId, type, path)` builds
+a `data-sanity` attribute (via `createDataAttribute`) and returns `undefined`
+unless `editable` is true, so it never appears in normal published HTML. Wired
+into the **Home hero** (`sections[_key].media[_key]` -> the hero image/video)
+as the representative implementation. Verified: 0 real `data-sanity` element
+attributes on published `/`; exactly 1 (`path=sections:hero.media:heroVideo`)
+in Draft Mode. Extending to other images/galleries/icons follows the identical
+pattern — flagged as follow-up, not blocking.
+
+### Browser token — true live draft preview
+
+`sanity/lib/live.ts` `browserToken` changed from `false` to the **same
+read-only Viewer token** as `serverToken`. next-sanity only ships it to the
+browser when `<SanityLive>` opens a draft-capable connection, which the root
+layout now gates explicitly: `<SanityLive includeDrafts={showDraftTools} />`
+where `showDraftTools = isSanityConfigured && (await draftMode()).isEnabled`. A
+normal visitor's `<SanityLive>` requests published events only and receives no
+token (verified: published HTML/JS carries no token, no draft connection). The
+Editor **write** token is still never imported into the Next.js runtime
+(`sanity/lib/draftMode.unit.test.ts` enforces this).
+
+### Comlink / stopped-actor warnings
+
+`[@sanity/comlink] Received no response to 'comlink/heartbeat'` and
+`Event "observe"/"unobserve" was sent to stopped actor` appear **only in
+`next dev`**. They are Fast-Refresh / iframe-reload lifecycle noise from
+`@sanity/visual-editing`'s XState actors and the iframe<->Studio postMessage
+channel being torn down and re-created on HMR — a well-known dev-only artifact.
+Confirmed: **exactly one `<VisualEditing />`** is mounted (root layout, Draft
+Mode only) and one `<SanityLive>`. Not present in a production build; no
+functional impact (overlays + live updates verified working). No code change.
+
+### Deprecations fixed (same area, project-owned)
+
+- **`@sanity/image-url`** — `sanity/lib/image.ts` now uses the named
+  `import { createImageUrlBuilder }` instead of the deprecated default import.
+  Image URLs unchanged.
+- **`middleware.ts` -> `proxy.ts`** — Next.js 16 renamed the file convention
+  (`export function middleware` -> `export function proxy`; `config`/`matcher`
+  unchanged). Applied the rename. `tests/seo.spec.ts`'s redirect tests (old
+  domain -> canonical, HTTP -> HTTPS, `/en/*` canonicalisation, locale rewrite)
+  all still pass.
+
+### Independent review (2 rounds)
+
+Round 1 found **1 HIGH (H1)** + 3 LOW.
+
+**H1 — every event DETAIL route 404'd in Draft Mode.** `eventBySlugQuery` is
+projection-free, so the Content Source Map covered the `event.visibleLocales`
+**array primitives** (`"en"/"da"/"uk"`), which got stega-encoded (the
+built-in denylist keys on the leaf field name, and an array element's leaf is
+its numeric index, so `"language"`/`"visibleLocales"` never matched).
+`lib/eventVisibility.ts` `event.visibleLocales.includes(locale)` then always
+returned `false` → `getEvent()` → `notFound()`. Same class of bug as
+Problem 2, one layer the section fix didn't reach.
+**Fixed** in `stegaFilter.ts`: `isNonEditorial()` now also excludes any
+primitive under a `settings` **or** `visibleLocales` path segment. Regression
+test added (`tests/draft-mode.spec.ts` — draft `/events/<slug>` + `/da/…` +
+`/uk/…` all 200, not the 404 page).
+
+**LOW, all addressed:** dead denylist entries (`iconName`, `itemRole`,
+`linkType` — no real frontend call site) removed, leaving only the six
+verified ones; `dataAttr.ts` doc comment corrected to match the call site;
+`sanityFieldAttr` now strips the `drafts.` id prefix so the `data-sanity`
+attribute always names the published document.
+
+Round 2 (this pass): H1 fix verified, no HIGH/MEDIUM remaining.
+
+### Files changed
+
+`sanity/lib/live.ts` (sanityFetchStatic, browserToken, stega.filter),
+`sanity/lib/stegaFilter.ts` + `sanity/lib/dataAttr.ts` (new),
+`sanity/lib/image.ts` (named import), `app/[locale]/layout.tsx`
+(`<SanityLive includeDrafts>`), `app/[locale]/(site)/page.tsx` (hero
+`data-sanity`), `app/[locale]/(site)/catering/page.tsx` (drop `stega:false`),
+`app/[locale]/(site)/events/[slug]/page.tsx` + `app/sitemap.ts` +
+`lib/siteSettings.ts` (`sanityFetchStatic`), `lib/sanityContact.ts`
+(`stegaClean` the form-field-type token), `components/ui.tsx` (`HomeHero`
+`mediaEditAttr`), `components/JsonLd.tsx` + `lib/seo.ts` (unchanged from
+Part 29), `middleware.ts` -> `proxy.ts`, `sanity/lib/draftMode.unit.test.ts`
++ `sanity/lib/stegaFilter.unit.test.ts` (new) + `tests/draft-mode.spec.ts` +
+`lib/siteSettings.test.ts` (coverage).
+
+### Tests / results
+
+`npm run typecheck` clean; `npx eslint` 0 errors (9 pre-existing `<img>` LCP
+warnings); `npm run build` passes, all `[locale]` routes `SSG`, no deprecation
+warnings; `npx vitest run` **610/610** (45 files);
+`npx playwright test tests/draft-mode.spec.ts` **13/13** (full round-trip +
+body-overlay + EN/DA/UK draft localization + event-detail Draft-Mode routes,
+no skips);
+`tests/{sanity,locale,seo,cms-home-contract,cms-about-contract,cms-events-contract,interactions}.spec.ts`
+pass; `tests/{breakpoints,sanity-schema-visibility,cms-event-decoration-contract,catering-responsive,forms-formspree,horizontal-gallery-video-layout}.spec.ts`
+pass; **pre-existing unrelated:** `tests/cms-catering-contract.spec.ts` 3
+failures (was 5 before this work) — `page-catering.seo.ogImage` has no
+uploaded asset; the assertion reads the raw Sanity value, nothing in this diff
+touches `ogImage`.
+
+### Owner action
+
+Upload a Social Sharing Image on `page-catering` in Studio (clears the 3
+`cms-catering-contract` failures). Everything else works with the
+`SANITY_API_READ_TOKEN` already configured locally + on Netlify.
+
+---
+
+## Part 31 — Presentation: non-text Visual Editing across the whole site
+
+Part 30 wired a `data-sanity` overlay onto the **Home hero image** only and
+flagged "extend to the remaining images/galleries/icons" as follow-up. Part 31
+completes that: every genuinely editor-controlled non-text visual element on
+every public page now carries a click-to-edit overlay in Draft Mode and none
+in published mode.
+
+### One annotation system (no parallel abstraction)
+
+`sanity/lib/dataAttr.ts` keeps `sanityFieldAttr(editable, docId, docType, path)`
+(from Part 30) as the single source and adds three thin wrappers so call sites
+stay terse and identical in shape:
+
+| Wrapper | Field path built |
+|---|---|
+| `sanitySectionMediaAttr(editable, docId, sectionKey, mediaKey)` | `sections[_key==sectionKey].media[_key==mediaKey]` — a whole `mediaItem` (photo **or** video) |
+| `sanitySectionItemAttr(editable, docId, sectionKey, itemKey)` | `sections[_key==sectionKey].items[_key==itemKey]` — a whole `contentItem` (image + editor-picked icon + copy) |
+| `sanityEventImageAttr(editable, eventId)` | `image` on an `event` document |
+
+- **Stable `_key` paths, never positional indexes.** `sectionKey`/`mediaKey`/
+  `itemKey` here are the array elements' own Sanity `_key`s (from
+  `getSection(...)` → section object, `section.media[i]._key`,
+  `section.items[i]._key`), NOT the `sectionKey`/`itemKey` discriminator
+  strings. Serialized by `createDataAttribute` as
+  `path=sections:<key>.media:<key>`.
+- **`editable`** is `(await draftMode()).isEnabled`, read in each page/detail
+  **component** (not in `getData`, not in `generateStaticParams`) and threaded
+  as a plain boolean into `getData(locale, editable)` / the gallery + event +
+  menu resolvers. `sanityFieldAttr` returns `undefined` when `!editable` (or
+  Sanity unconfigured, or an id/`_key` is missing), so the attribute is simply
+  absent from published HTML.
+- **Whole-element focus, not field-level.** Following the same philosophy as the
+  Part 30 hero (`media[_key]`, not `media[_key].image`), the overlay targets the
+  containing `mediaItem`/`contentItem`. This lets one overlay edit the photo,
+  the video, or the icon; a stega-encoded string rendered inside the same
+  element still provides the finer field-level target for `<VisualEditing />`.
+  Editor-picked **icons** (`contentItem.icon`, which `@sanity/client` excludes
+  from stega) are therefore reachable via their card's overlay — no separate
+  icon annotation needed.
+
+### What is now click-to-edit (Draft Mode only)
+
+| Page | Non-text elements annotated |
+|---|---|
+| Home | hero media (P30) · 4 quick-path cards · Attend/Host editorial section images · 2 services-teaser cards · community-teaser background |
+| About | 3 "atmosphere" hero images |
+| Events listing | each event card image (`event` doc — only when the event has its own uploaded asset) |
+| Event detail | event banner image (`event` doc, same gating) |
+| Catering | `HorizontalGallery` (~66 photos/videos) · 3 menu-format cards · philosophy side image · Menu-Examples banner · Menu-Examples dish cards |
+| Event Decoration | `HorizontalGallery` (14) · "What we style" side image |
+| Host at RORUM | `HorizontalGallery` (15) · "Each session includes" side image |
+| Community Membership | 9 benefit cards · donation QR · gallery mosaic (photos + videos) |
+
+**Deliberately NOT annotated** (classified STATIC / DERIVED): the hardcoded
+WECODA logo images and the Freepik attribution (not Sanity), the closing-CTA
+`MessagesSquare` background flourish, all structural Lucide icons (arrows,
+chevrons, calendar/clock chrome), the Contact map embed (derived from
+`contactInfo.mapQueryAddress`), header/footer social icons (a `socialLinks`
+singleton, positionally resolved, out of page-body scope), and every static
+fallback image (only rendered when Sanity is unconfigured — no document to
+point at). `event` card/hero images are annotated **only** when the event has
+its own uploaded asset — a static fallback picture has no `event.image` to
+target.
+
+### Threading
+
+- `lib/sanityGallery.ts` — `resolveOne` / `resolveGalleryItems` /
+  `resolveCanonicalGalleryItems` gained an optional trailing
+  `editAttrFor?: (mediaKey) => string | undefined`; `HorizontalGalleryItem`
+  gained `editAttr?`. The attr is spread **conditionally** so a published
+  (non-Draft-Mode) gallery item keeps byte-identical shape.
+- `lib/sanityEvents.ts` — `sanityEventToRorumEvent(doc, locale, editable = false)`
+  sets `imageEditAttr` only when `sanityImageUrl` resolved; `SanityEventLike`
+  gained `_id?`; `RorumEvent` (lib/data.ts) gained `imageEditAttr?`.
+- `lib/cateringMenuResolve.ts` — `resolveCateringMenuCategories(…, { editable })`;
+  `CateringMenuItem` (lib/cateringMenu.ts) gained `editAttr?`.
+- Components gained optional, default-`undefined` props (`mediaEditAttr` /
+  `editAttr` / `qrEditAttr` / `bannerEditAttr`) rendered as `data-sanity={…}`:
+  `HomeEditorialSections` (3 sections), `app/shared.tsx` `QuickPathsGrid`,
+  `HorizontalGallery`, `EventCard`, `WecodaDonationSection`,
+  `CateringMenuOverlay`. `components/ui.tsx` `HomeHero` already had it (P30).
+
+### Verification
+
+- `npm run typecheck` clean · `npx eslint .` 0 errors (9 pre-existing `<img>`
+  LCP + 1 test unused-var warnings) · `npx next build` passes, **every
+  `[locale]` route still `● SSG`** including `/events/[slug]` (adding
+  `draftMode()` to the page components does not opt them into dynamic — same as
+  the Part 30 Home precedent) · `npx vitest run` **615/615** (45 → 46 files:
+  new `sanity/lib/dataAttr.unit.test.ts`, +5 tests).
+- `npx playwright test tests/draft-mode.spec.ts` **19/19** (was 13). New:
+  (1) the isolation loop now covers 9 published paths incl. `/event-decoration`,
+  `/host-at-rorum`, `/community-membership`, `/da/catering` — each asserts
+  `[data-sanity]` count **0**, no stega, no draft cookie; (2) "page-body
+  images/media carry data-sanity on EVERY representative page" — for `/`,
+  `/about`, `/catering`, `/event-decoration`, `/host-at-rorum`,
+  `/community-membership` it enters Draft Mode via the real preview-secret
+  handshake and asserts ≥1 `data-sanity` naming that page's own `page` doc with
+  a `.media:`/`.items:` `_key` path and **no** positional-index segment;
+  (3) "a Sanity-backed event's banner image is annotated on its detail page" —
+  asserts the shape (`id=<uuid>;type=event;path=image`, no `drafts.` prefix)
+  when present.
+- Regression: `tests/{sanity,locale,interactions,cms-home-contract,cms-about-contract,cms-events-contract}.spec.ts`
+  245 passed / 16 skipped; `tests/{breakpoints,cms-event-decoration-contract,catering-responsive,horizontal-gallery-video-layout,sanity-schema-visibility}.spec.ts`
+  478 passed / 1 skipped; `tests/{seo,forms-formspree}.spec.ts` pass.
+- **Pre-existing, unrelated:** `tests/cms-catering-contract.spec.ts:158` — 3
+  failures (en/da/uk), unchanged since Part 30: `page-catering.seo.ogImage` has
+  no uploaded asset; the assertion reads the raw Sanity value, nothing in this
+  diff touches `ogImage`.
+
+### Independent review
+
+Round 1 (independent agent, cross-checked every call site against the schema,
+GROQ, resolvers and rendering): **0 HIGH, 0 MEDIUM.** Confirmed: every `_key`
+passed is the array-element key (never the discriminator string); published
+isolation airtight (`editable` only ever from `draftMode().isEnabled`); no token
+handling changed; build-time safety preserved; event-image gating correct;
+gallery `editAttrFor` is passed in the right positional slot everywhere;
+undefined `_key` yields `undefined`, never a positional path. One LOW style nit
+(home hero built its attr inline instead of via the wrapper) — **fixed**. One
+documented limitation: the annotations are proven well-formed and correctly
+addressed by automated Draft-Mode tests, but a real click-through inside an
+**authenticated** Presentation session could not be performed here (Studio is
+login-gated: Google / GitHub / email, no credentials — same limitation noted
+in SANITY_MIGRATION.md §20).
+
+### Browser / Presentation acceptance — what was and wasn't possible
+
+Automated (Playwright, real preview-secret handshake against the production
+dataset, draft-only reversible `drafts.page-home` edit, cleaned up in
+`afterAll`): draft content renders; page-body text carries stega on every
+representative page; EN/DA/UK preview all render the correct locale; every
+representative page carries a correctly-addressed non-text `data-sanity`;
+event-detail routes 200 in every visible locale; a cookie-less/incognito
+request gets published content only, 0 `data-sanity`, 0 stega. **Not possible
+here:** logging into Studio to click an overlay and watch Studio focus the
+field — requires interactive OAuth. `createDataAttribute(...).scope([{_key}])`
+is the official next-sanity API consumed natively by `<VisualEditing />`, and
+the attribute strings are asserted to name the exact document + type + `_key`
+path, so the remaining risk is limited to the Studio-side focus behavior of a
+well-formed attribute.
+
+### Files changed
+
+`sanity/lib/dataAttr.ts` (+3 wrappers), `sanity/lib/dataAttr.unit.test.ts`
+(new), `lib/sanityGallery.ts`, `lib/sanityEvents.ts`, `lib/data.ts`,
+`lib/cateringMenu.ts`, `lib/cateringMenuResolve.ts`, `app/shared.tsx`,
+`components/{HomeEditorialSections,HorizontalGallery,EventCard,WecodaDonationSection,CateringMenuOverlay}.tsx`,
+`app/[locale]/(site)/{page,about/page,events/page,events/[slug]/page,catering/page,event-decoration/page,host-at-rorum/page,community-membership/page}.tsx`,
+`tests/draft-mode.spec.ts`.
+
+### Owner action
+
+Unchanged from Part 30 (`SANITY_API_READ_TOKEN` in Netlify env + CORS origin;
+upload a `page-catering` Social Sharing Image). No new owner action for Part 31.

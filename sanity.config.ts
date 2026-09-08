@@ -3,8 +3,11 @@
 import { visionTool } from "@sanity/vision";
 import { defineConfig } from "sanity";
 import { internationalizedArray } from "sanity-plugin-internationalized-array";
+import { presentationTool } from "sanity/presentation";
 import { structureTool } from "sanity/structure";
 import { apiVersion, assertConfigured } from "@/sanity/env";
+import { DRAFT_MODE_ENABLE_ROUTE, PREVIEW_ORIGIN } from "@/sanity/lib/presentation";
+import { resolve as presentationResolve } from "@/sanity/presentation/resolve";
 import { schemaTypes, SINGLETON_TYPES } from "@/sanity/schemaTypes";
 import { structure } from "@/sanity/structure";
 
@@ -22,6 +25,22 @@ export default defineConfig({
 
   plugins: [
     structureTool({ structure }),
+    // Presentation: opens the real Next.js site in a side-by-side preview and
+    // lets an editor see UNPUBLISHED draft changes before publishing. Clicking
+    // "Preview" triggers the secure Draft Mode handshake at
+    // DRAFT_MODE_ENABLE_ROUTE (app/api/draft-mode/enable). `initial` is a
+    // RELATIVE "/" by default — the Studio is embedded on the same origin as
+    // the site, so this is identical on localhost and in production with no
+    // env var. `PREVIEW_ORIGIN` overrides it only when the Studio is opened
+    // from a different origin than the site it previews (see sanity/lib/presentation.ts).
+    presentationTool({
+      resolve: presentationResolve,
+      previewUrl: {
+        initial: PREVIEW_ORIGIN ?? "/",
+        ...(PREVIEW_ORIGIN ? { allowOrigins: [PREVIEW_ORIGIN] } : {}),
+        previewMode: { enable: DRAFT_MODE_ENABLE_ROUTE },
+      },
+    }),
     // Local development helper for testing GROQ queries — not linked from
     // the main navigation for editors, available at /studio/vision.
     visionTool({ defaultApiVersion: apiVersion }),

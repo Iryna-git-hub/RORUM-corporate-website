@@ -257,6 +257,7 @@ export function HomeHero({
   image = "/images/hero.jpg",
   video,
   actions,
+  mediaEditAttr,
 }: {
   label?: string;
   title: ReactNode;
@@ -266,11 +267,14 @@ export function HomeHero({
   image?: string;
   video?: string;
   actions?: ReactNode;
+  /** `data-sanity` for the hero background media — set only in Draft Mode (see sanity/lib/dataAttr.ts). */
+  mediaEditAttr?: string;
 }) {
   return (
     <section
       className="home-hero-full relative min-h-[100svh] w-full grid items-center -mt-[78px] pt-[78px] bg-center bg-cover bg-no-repeat overflow-hidden max-sm:-mt-[68px] max-sm:pt-[68px]"
       style={{ backgroundImage: `url(${image})` }}
+      data-sanity={mediaEditAttr}
     >
       {video ? (
         <video

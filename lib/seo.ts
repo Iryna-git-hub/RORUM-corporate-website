@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { stegaClean } from "next-sanity";
 import { locales, localeTags, localizedHref, type Locale } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/sanity-i18n";
 import { getSeoSiteDefaults } from "@/lib/siteSettings";
@@ -67,23 +68,36 @@ export async function localizedPageMetadata({
   // own resolved documentOverride/documentContent/pageDefault tier (see this
   // function's own doc comment); only the deepest two tiers, siteDefault and
   // emergencyDefault, are added here.
-  const resolvedTitle = resolveSeoField([
-    { source: "pageDefault", value: title },
-    { source: "siteDefault", value: pickLocalized(siteDefaults.title, locale) },
-    { source: "emergencyDefault", value: EMERGENCY_SEO_TITLE },
-  ]).value;
-  const resolvedDescription = resolveSeoField([
-    { source: "pageDefault", value: description },
-    { source: "siteDefault", value: pickLocalized(siteDefaults.description, locale) },
-    { source: "emergencyDefault", value: EMERGENCY_SEO_DESCRIPTION },
-  ]).value;
+  // `stegaClean` every Sanity-derived string before it lands in <head>: when a
+  // logged-in editor views the site through Presentation (Draft Mode on),
+  // `sanityFetch` stega-encodes strings with invisible edit-link characters
+  // for the click-to-edit overlay. Those are wanted in visible body copy but
+  // would corrupt <title>/<meta>/OG/Twitter values (and JSON-LD — cleaned in
+  // components/JsonLd.tsx). A no-op for normal visitors (strings are never
+  // stega-encoded outside Draft Mode).
+  const resolvedTitle = stegaClean(
+    resolveSeoField([
+      { source: "pageDefault", value: title },
+      { source: "siteDefault", value: pickLocalized(siteDefaults.title, locale) },
+      { source: "emergencyDefault", value: EMERGENCY_SEO_TITLE },
+    ]).value,
+  );
+  const resolvedDescription = stegaClean(
+    resolveSeoField([
+      { source: "pageDefault", value: description },
+      { source: "siteDefault", value: pickLocalized(siteDefaults.description, locale) },
+      { source: "emergencyDefault", value: EMERGENCY_SEO_DESCRIPTION },
+    ]).value,
+  );
   const resolvedImageInput = image || siteDefaults.image || STATIC_FALLBACK_IMAGE;
   // `image` is either a relative local path ("/images/hero.jpg") or an
   // already-absolute Sanity CDN URL (urlForImage(...).url()) — concatenating
   // siteUrl onto an absolute URL unconditionally would silently produce a
   // broken, doubled-up string, so only relative paths get siteUrl prefixed.
   const imageUrl = /^https?:\/\//.test(resolvedImageInput) ? resolvedImageInput : `${siteUrl}${resolvedImageInput}`;
-  const resolvedAlt = imageAlt?.trim() || pickLocalized(siteDefaults.imageAlt, locale) || deriveConciseAlt(resolvedTitle);
+  const resolvedAlt = stegaClean(
+    imageAlt?.trim() || pickLocalized(siteDefaults.imageAlt, locale) || deriveConciseAlt(resolvedTitle),
+  );
 
   // `x-default` should point at an alternate that actually exists — prefer
   // English when it's one of the available locales, otherwise the first

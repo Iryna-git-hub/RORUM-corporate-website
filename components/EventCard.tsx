@@ -101,7 +101,7 @@ export function EventCard({
       className={`event-card ${isListingCard ? "event-card-listing" : ""} ${event.isSoldOut ? "is-sold-out" : ""}`.trim()}
       variant="event"
     >
-      <div className="event-media">
+      <div className="event-media" data-sanity={event.imageEditAttr}>
         <span
           className={`absolute inset-0 bg-center bg-cover bg-no-repeat scale-100 transition-[transform_0.42s_ease,filter_0.24s_ease] group-hover:scale-[1.07] group-focus-visible:scale-[1.07] ${
             event.isSoldOut

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { draftMode } from "next/headers";
 import { LocaleLink as Link } from "@/components/LocaleLink";
 import {
   CalendarCheck,
@@ -17,6 +18,7 @@ import { pickLocalized } from "@/lib/sanity-i18n";
 import { getItem, getSection, resolveAction } from "@/lib/sanity-sections";
 import { getIconCardIcon } from "@/lib/iconCardIcons";
 import { isSanityConfigured } from "@/sanity/env";
+import { sanitySectionMediaAttr } from "@/sanity/lib/dataAttr";
 import { urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { pageByKeyQuery } from "@/sanity/queries/page";
@@ -86,7 +88,7 @@ const fallbackPillars = [
   ["Personal without noise", "The space has character, but leaves enough space for each format to feel like its own."],
 ];
 
-async function getData(locale: Locale) {
+async function getData(locale: Locale, editable = false) {
   if (!isSanityConfigured) {
     return {
       ...fallback,
@@ -95,7 +97,7 @@ async function getData(locale: Locale) {
       introLinks: fallbackIntroLinks.map(({ href, label, icon }) => ({ href, label, Icon: icon })),
       serviceLinks: fallbackServiceLinks.map(({ href, label, icon }) => ({ href, label, Icon: icon })),
       communityQuickLinks: fallbackCommunityQuickLinks.map(({ href, label, icon }) => ({ href, label, Icon: icon })),
-      atmosphereImages: fallbackAtmosphereImages,
+      atmosphereImages: fallbackAtmosphereImages.map((x) => ({ ...x, editAttr: undefined as string | undefined })),
     };
   }
 
@@ -128,8 +130,9 @@ async function getData(locale: Locale) {
             ?.width(700)
             .url() ?? fallbackAtmosphereImages[i]?.image ?? "",
         alt: pickLocalized(m.alt, locale) ?? fallbackAtmosphereImages[i]?.alt ?? "",
+        editAttr: sanitySectionMediaAttr(editable, newPage?._id, heroSection?._key, m._key),
       }))
-    : fallbackAtmosphereImages;
+    : fallbackAtmosphereImages.map((x) => ({ ...x, editAttr: undefined as string | undefined }));
 
   const pillars = pillarsSection?.items?.length
     ? pillarsSection.items.map((p, i) => ({
@@ -213,6 +216,7 @@ export async function generateMetadata({
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
+  const { isEnabled: isDraftMode } = await draftMode();
   const {
     heroLabel,
     heroTitle,
@@ -236,7 +240,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     serviceLinks,
     communityQuickLinks,
     atmosphereImages,
-  } = await getData(locale);
+  } = await getData(locale, isDraftMode);
 
   return (
     <>
@@ -317,11 +321,12 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
               className="grid grid-cols-[minmax(0,1fr)_minmax(0,0.72fr)] grid-rows-[repeat(2,minmax(170px,1fr))] gap-3 min-h-[clamp(380px,43vw,560px)] max-lg:min-h-auto max-lg:grid-rows-[auto] max-sm:grid-cols-1"
               aria-label="RORUM atmosphere"
             >
-              {atmosphereImages.map(({ image, alt }, i) => (
+              {atmosphereImages.map(({ image, alt, editAttr }, i) => (
                 <img
                   className={`${VISUAL_IMG_CLASS} ${i === 0 ? "row-span-2 max-sm:[grid-row:auto]" : ""}`}
                   src={image}
                   alt={alt}
+                  data-sanity={editAttr}
                   key={image}
                 />
               ))}

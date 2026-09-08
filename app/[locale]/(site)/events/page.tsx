@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { draftMode } from "next/headers";
 import { Suspense } from "react";
 import { EventsClientPage } from "@/components/EventsClientPage";
 import { defaultEventFilterLabels } from "@/components/EventFilters";
@@ -52,7 +53,7 @@ function availableEventLanguagesOf(events: { language: string }[]): string[] {
   return Array.from(new Set(events.map((event) => event.language).filter(Boolean)));
 }
 
-async function getData(locale: Locale) {
+async function getData(locale: Locale, editable = false) {
   if (!isSanityConfigured) {
     return {
       ...fallback,
@@ -80,7 +81,7 @@ async function getData(locale: Locale) {
   // An empty result is a real, legitimate state (no event has this locale in
   // its own `visibleLocales`) and must render as the genuine empty-state UI,
   // never silently fall back to the hardcoded English static events.
-  const events = (eventDocs ?? []).map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale));
+  const events = (eventDocs ?? []).map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale, editable));
 
   const messages = resolveFormMessages(formMessagesDoc, locale);
 
@@ -156,7 +157,8 @@ export async function generateMetadata({
 export default async function EventsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const data = await getData(locale);
+  const { isEnabled: isDraftMode } = await draftMode();
+  const data = await getData(locale, isDraftMode);
 
   return (
     <>

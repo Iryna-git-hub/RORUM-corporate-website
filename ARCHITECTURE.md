@@ -243,6 +243,44 @@ Local Sanity Studio still connects to a hosted Sanity dataset.
 
 Never treat localhost Studio as a local content database.
 
+## Content preview (Draft Mode)
+
+Editors preview unpublished drafts through Sanity Studio's **Presentation**
+tool, backed by Next.js Draft Mode:
+
+- `sanity/lib/live.ts` — `defineLive` with a **read-only Viewer token**
+  (`SANITY_API_READ_TOKEN`) as BOTH `serverToken` and `browserToken`. The
+  browser token is only ever sent when `<SanityLive includeDrafts>` opens a
+  draft connection, which the root layout gates on `draftMode().isEnabled` —
+  so a normal visitor receives no token and sees published content only. The
+  Editor **write** token is never imported into the Next.js runtime.
+- **Two fetch helpers, one rule:** rendered page bodies + `generateMetadata`
+  use the request-aware `sanityFetch` (draft-aware); `generateStaticParams`,
+  `sitemap.ts`, `robots.ts` and the SEO site-defaults use `sanityFetchStatic`
+  (explicit `perspective: "published"` + `stega: false`, so next-sanity never
+  reads `draftMode()`/`cookies()` in a build context).
+- `sanity/lib/stegaFilter.ts` — a `stega.filter` that keeps structural
+  discriminator fields (`sectionKey`, `itemKey`, `actionKey`, `kind`, …)
+  **out** of stega encoding so `lib/sanity-sections.ts`'s `===` lookups keep
+  working in Draft Mode; every visible editorial string is still encoded so
+  Visual Editing overlays map back to the right field.
+- `app/api/draft-mode/enable` — secret-validated handshake
+  (`defineEnableDraftMode`). `app/api/draft-mode/disable` — clears it.
+- `<VisualEditing />` (exactly one instance) + the exit-preview badge mount
+  only inside Draft Mode. Non-text fields — images, galleries, editor-picked
+  icons, event banners — get an explicit `data-sanity` attribute via
+  `sanity/lib/dataAttr.ts` (`sanitySectionMediaAttr` / `sanitySectionItemAttr`
+  / `sanityEventImageAttr`, all over `sanityFieldAttr` → `createDataAttribute`),
+  emitted only in Draft Mode, using stable `_key`-based field paths and
+  focusing the whole containing `mediaItem`/`contentItem`. Coverage is
+  site-wide (every public page) — see MIGRATION_REPORT.md Part 31 for the
+  per-page inventory and the STATIC/DERIVED exclusions.
+- The Presentation preview URL is a relative `/` (Studio is embedded on the
+  same origin), so no per-environment code or URL config is needed.
+
+See `MIGRATION_REPORT.md` Parts 29–30 for the full rationale, the stega
+root-cause analysis, and the write token / read token isolation rules.
+
 ---
 
 # 11. Dataset Environments
