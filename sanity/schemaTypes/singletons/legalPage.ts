@@ -39,9 +39,14 @@ export default defineType({
     defineField({ name: "seo", title: "SEO", type: "seo" }),
   ],
   preview: {
-    select: { pageKey: "pageKey" },
-    prepare({ pageKey }) {
-      return { title: `Legal page — ${pageKey}` };
+    select: { pageKey: "pageKey", title: "title" },
+    prepare({ pageKey, title }) {
+      const en = (title as { language?: string; _key?: string; value?: string }[] | undefined)?.find(
+        (v) => v.language === "en" || v._key === "en",
+      );
+      const name =
+        pageKey === "terms" ? "Terms" : pageKey === "privacy-policy" ? "Privacy Policy" : pageKey === "cookie-policy" ? "Cookie Policy" : "Legal page";
+      return { title: en?.value?.trim() || name, subtitle: en?.value?.trim() ? name : undefined };
     },
   },
 });

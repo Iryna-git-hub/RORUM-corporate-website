@@ -300,8 +300,13 @@ test.describe("Draft Mode preview (draft content + Visual Editing source maps)",
     // Only Sanity events that have uploaded their OWN banner asset get an
     // overlay (a static fallback image has no `event.image` to point at) —
     // assert the shape only when present rather than forcing a data precondition.
+    // Event ids come in two live schemes — dash-prefixed (`event-8df3fa20c44d`,
+    // the bulk imported set) and bare UUIDs — so match either, and rely on the
+    // `drafts.`-absent check for the "published document" half.
     for (const a of eventImageAttrs) {
-      expect(a, "event image annotation must name a real published event id").toMatch(/id=[0-9a-f-]{6,};type=event/);
+      expect(a, "event image annotation must name a real published event id, targeting the image field").toMatch(
+        /id=[a-z0-9][a-z0-9-]{5,};type=event;path=image/,
+      );
       expect(a, "must target the published document, never a drafts. id").not.toContain("drafts.");
     }
     await ctx.close();

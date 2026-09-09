@@ -24,6 +24,17 @@ import {
   PAGE_SECTION_FIELDS,
   resolveVisibleSectionFields,
 } from "@/sanity/schemaTypes/objects/pageSection";
+import { ALL_EVENT_FILTER_ITEM_KEYS } from "@/shared/eventFilterDefinitions";
+
+// Sections whose `items[]` are a FIXED, closed semantic set — no manager-added
+// rows are ever valid (unlike FAQ questions / menu dishes, which are open).
+// Any row here whose `itemKey` isn't in the allowed set is Studio residue
+// (an "add" click before the input disabled that action, an array paste, …):
+// it renders as a confusing unlabelled "Other items" card in the editor and
+// is read by nothing. Reported so it gets cleaned up.
+const CLOSED_ITEM_SETS: Record<string, ReadonlySet<string>> = {
+  "page-events:filters": new Set(ALL_EVENT_FILTER_ITEM_KEYS),
+};
 
 const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
@@ -90,6 +101,7 @@ async function main() {
   let obsolete = 0;
   let unlisted = 0;
   let orderDrift = 0;
+  let residueRows = 0;
 
   for (const page of pages.sort((a, b) => a._id.localeCompare(b._id))) {
     console.log(`\n################ ${page._id} ################`);
@@ -134,6 +146,17 @@ async function main() {
       if (visibleButEmpty.length) {
         console.log(`      ·  visible-but-empty: ${visibleButEmpty.join(", ")}`);
       }
+
+      const closedSet = CLOSED_ITEM_SETS[key];
+      if (closedSet) {
+        const strays = ((section.items as { _key?: string; itemKey?: string }[] | undefined) ?? []).filter(
+          (it) => !it.itemKey || !closedSet.has(it.itemKey),
+        );
+        if (strays.length) {
+          console.log(`      🐛 UNRECOGNIZED items[] row(s) in a closed set: ${strays.map((s) => s.itemKey ?? `(no itemKey, _key=${s._key})`).join(", ")}`);
+          residueRows += strays.length;
+        }
+      }
     }
   }
 
@@ -144,7 +167,8 @@ async function main() {
   console.log(`  live sections with no allow-list entry (fell back to kind): ${unlisted}`);
   console.log(`  stale allow-list keys (declared, no live section): ${stale.length ? stale.join(", ") : "none"}`);
   console.log(`  pages with section-order drift: ${orderDrift}`);
-  if (bugs > 0 || stale.length > 0 || orderDrift > 0) process.exitCode = 1;
+  console.log(`  unrecognized items[] rows in a closed set (Studio residue): ${residueRows}`);
+  if (bugs > 0 || stale.length > 0 || orderDrift > 0 || residueRows > 0) process.exitCode = 1;
 }
 
 main().catch((error) => {

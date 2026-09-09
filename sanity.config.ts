@@ -98,13 +98,19 @@ export default defineConfig({
     // structure tool's fixed-id items (see sanity/structure.ts) — hides
     // singleton types from the generic "+ Create" menu so an editor can't
     // accidentally create a second, orphaned instance.
+    //
+    // `galleryCollection` / `faqGroup` / `cateringMenuCategory` are superseded
+    // document types — galleries, FAQ categories and menu categories are all
+    // `pageSection`s on the relevant `page` document now (0 live docs of any
+    // of these types, none referenced anywhere). They stay registered so any
+    // stray legacy document still renders with a real schema, but a manager
+    // should never be offered them as something new to create. The type
+    // definitions themselves are a separate dead-code cleanup.
     newDocumentOptions: (prev, { creationContext }) => {
       if (creationContext.type !== "global") return prev;
+      const HIDDEN_FROM_CREATE = new Set(["legalPage", "page", "galleryCollection", "faqGroup", "cateringMenuCategory"]);
       return prev.filter(
-        (template) =>
-          !SINGLETON_TYPES.has(template.templateId) &&
-          template.templateId !== "legalPage" &&
-          template.templateId !== "page",
+        (template) => !SINGLETON_TYPES.has(template.templateId) && !HIDDEN_FROM_CREATE.has(template.templateId),
       );
     },
   },

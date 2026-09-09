@@ -3,20 +3,30 @@ import { matchItemRole } from "@/sanity/schemaTypes/objects/contentItem";
 import { getEventVisibleLocales } from "@/sanity/lib/i18nValidation";
 import { CateringAllLanguagesInput } from "@/sanity/components/CateringAllLanguagesInput";
 
-// `contentItem.image` (type imageWithAlt) is Studio-visible for two Home item
-// roles where the photo itself IS used but only ever as a plain CSS
-// background-image with aria-hidden="true" — no role="img"/aria-label
-// anywhere in the component that renders it (confirmed by reading
-// app/shared.tsx's QuickPathCard and components/HomeEditorialSections.tsx's
-// ServicesTeaserSection). An editor's alt text there has zero effect, unlike
-// every other use of imageWithAlt (About's atmosphere photos, editorial
-// feature images, etc.), which ARE rendered with a real accessible name and
-// must keep requiring alt text. Scoped by document (page-home only) +
-// sectionKey + itemKey pattern together, same shape as contentItem.ts's
-// ITEM_ROLE_RULES, so no other page or item role is ever affected.
-const DECORATIVE_CONTENT_ITEM_IMAGE_ROLES: readonly { sectionKeys: readonly string[]; itemKeyPattern: RegExp }[] = [
-  { sectionKeys: ["quickPaths"], itemKeyPattern: /^(events|hostAtRorum|catering|eventDecoration)$/ },
-  { sectionKeys: ["servicesTeaser"], itemKeyPattern: /^(catering|eventDecoration)$/ },
+// `contentItem.image` (type imageWithAlt) is Studio-visible for a handful of
+// item roles where the photo itself IS used but only ever as a decorative
+// image — a plain CSS background-image, or an <Image alt="" aria-hidden="true">
+// icon — with no role="img"/aria-label anywhere in the component that renders
+// it. An editor's alt text there has zero effect, unlike every other use of
+// imageWithAlt (About's atmosphere photos, editorial feature images, etc.),
+// which ARE rendered with a real accessible name and must keep requiring alt
+// text. Scoped by document id + sectionKey + itemKey pattern together, same
+// shape as contentItem.ts's ITEM_ROLE_RULES, so no other page or item role is
+// ever affected.
+//
+//  - page-home quickPaths / servicesTeaser cards: photo rendered only as a
+//    plain CSS background-image with aria-hidden="true" (confirmed by reading
+//    app/shared.tsx's QuickPathCard and components/HomeEditorialSections.tsx's
+//    ServicesTeaserSection).
+//  - page-community-membership benefit cards: image rendered as a decorative
+//    <Image alt="" aria-hidden="true"> icon next to a visible <h3>/<p>
+//    (app/[locale]/(site)/community-membership/page.tsx). Requiring alt there
+//    only ever blocked Publish on legacy benefit content — and forced fake
+//    descriptions onto images that screen readers never announce anyway.
+const DECORATIVE_CONTENT_ITEM_IMAGE_ROLES: readonly { docId: string; sectionKeys: readonly string[]; itemKeyPattern: RegExp }[] = [
+  { docId: "page-home", sectionKeys: ["quickPaths"], itemKeyPattern: /^(events|hostAtRorum|catering|eventDecoration)$/ },
+  { docId: "page-home", sectionKeys: ["servicesTeaser"], itemKeyPattern: /^(catering|eventDecoration)$/ },
+  { docId: "page-community-membership", sectionKeys: ["benefits"], itemKeyPattern: /^benefit\d*$/ },
 ];
 
 type PathSegment = string | number | { _key: string };
@@ -48,9 +58,9 @@ function resolveEnclosingSectionAndItem(document: unknown, path: PathSegment[] |
 
 function isDecorativeContentItemImageAlt(document: unknown, path: PathSegment[] | undefined): boolean {
   const ctx = resolveEnclosingSectionAndItem(document, path);
-  if (!ctx || ctx.docId !== "page-home") return false;
+  if (!ctx) return false;
   return DECORATIVE_CONTENT_ITEM_IMAGE_ROLES.some(
-    (r) => r.sectionKeys.includes(ctx.sectionKey) && r.itemKeyPattern.test(ctx.itemKey),
+    (r) => r.docId === ctx.docId && r.sectionKeys.includes(ctx.sectionKey) && r.itemKeyPattern.test(ctx.itemKey),
   );
 }
 

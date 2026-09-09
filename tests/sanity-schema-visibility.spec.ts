@@ -9,7 +9,9 @@ import pageSectionType, {
   PAGE_SECTION_FIELDS,
   SECTION_FIELD_VISIBILITY,
   SECTION_KIND_FALLBACK_VISIBILITY,
+  SECTION_KINDS,
 } from "@/sanity/schemaTypes/objects/pageSection";
+import legalPageType from "@/sanity/schemaTypes/singletons/legalPage";
 import contentItemType, { ITEM_ROLE_RULES, matchItemRoleInContext, isFaqQuestionRole, isFieldRequiredByItemRole, fieldLabelForItemRole } from "@/sanity/schemaTypes/objects/contentItem";
 import socialLinkType from "@/sanity/schemaTypes/objects/socialLink";
 import { allOrNothingLanguages, allOrNothingForSelectedEventLocales, requireAllLanguages } from "@/sanity/lib/i18nValidation";
@@ -17,6 +19,7 @@ import mediaItemType from "@/sanity/schemaTypes/objects/mediaItem";
 import { isInformativeMedia } from "@/sanity/lib/galleryMediaContext";
 import ctaActionType from "@/sanity/schemaTypes/objects/ctaAction";
 import imageWithAltType from "@/sanity/schemaTypes/objects/imageWithAlt";
+import ctaLinkType from "@/sanity/schemaTypes/objects/ctaLink";
 import seoType from "@/sanity/schemaTypes/objects/seo";
 import eventType from "@/sanity/schemaTypes/documents/event";
 import pageType from "@/sanity/schemaTypes/documents/page";
@@ -263,10 +266,26 @@ test.describe("pageSection.ts — explicit SECTION_FIELD_VISIBILITY allow-list (
     expect(!callHidden(field(pageSectionType, "actions"), { parent: heroParent, document: { _id: "page-catering" } })).toBe(true);
   });
 
-  test("sectionKey / sectionKind are hidden once a section is shaped, shown while sectionKind is unset", () => {
+  test("sectionKey / sectionKind are hidden ONLY once a section has BOTH — shown while either is still empty (hidden-required guard)", () => {
     for (const f of ["sectionKey", "sectionKind"] as const) {
-      expect(callHidden(field(pageSectionType, f), { parent: { sectionKind: "hero" } }), `${f} hidden when shaped`).toBe(true);
+      // fully shaped -> hidden (every live section)
+      expect(callHidden(field(pageSectionType, f), { parent: { sectionKind: "hero", sectionKey: "hero" } }), `${f} hidden when fully shaped`).toBe(true);
+      // both `sectionKey` and `sectionKind` carry rule.required() — hiding one
+      // while it's still empty would silently block Publish forever
       expect(callHidden(field(pageSectionType, f), { parent: {} }), `${f} shown when unshaped`).toBe(false);
+      expect(callHidden(field(pageSectionType, f), { parent: { sectionKind: "hero" } }), `${f} shown when sectionKey still empty`).toBe(false);
+      expect(callHidden(field(pageSectionType, f), { parent: { sectionKey: "hero" } }), `${f} shown when sectionKind still empty`).toBe(false);
+    }
+  });
+
+  test("the sectionKind dropdown shows plain-language titles, not the internal kind values (Phase B — STEP 10)", () => {
+    const kindField = pageSectionType.fields.find((f) => f.name === "sectionKind") as { options?: { list?: { title: string; value: string }[] } };
+    const list = kindField.options?.list ?? [];
+    expect(list.length).toBe(SECTION_KINDS.length);
+    for (const opt of list) {
+      expect(SECTION_KINDS as readonly string[]).toContain(opt.value); // stable value preserved
+      expect(opt.title, `kind "${opt.value}" needs a friendly title`).not.toBe(opt.value);
+      expect(/^[a-z]+[A-Z]/.test(opt.title), `title "${opt.title}" still looks like a camelCase identifier`).toBe(false);
     }
   });
 
@@ -849,6 +868,100 @@ test.describe("imageWithAlt.ts — decorative-alt hide + hidden-field validation
     const context = { document, path: path(4).concat(["image", "alt"]) };
     const strayValue = [{ _key: "en", language: "en", value: "" }];
     expect(captureCustomValidator(field(imageWithAltType, "alt"))(strayValue, context)).toBe(true);
+  });
+
+  // 2026-09 validation-integrity audit: Community Membership's 9 Benefit cards
+  // render their image as <Image alt="" aria-hidden="true"> (decorative icon
+  // next to a visible <h3>/<p>) — see community-membership/page.tsx. Requiring
+  // alt there only ever blocked Publish on legacy benefit content.
+  const cmBenefitDoc = (itemKey: string, id = "page-community-membership") => ({
+    _id: id,
+    sections: [{ _key: "sec1", sectionKey: "benefits", items: [{ _key: "item1", itemKey }] }],
+  });
+
+  test("a Community Membership benefit card image.alt is hidden + validation-skipped (decorative)", () => {
+    const context = { document: cmBenefitDoc("benefit3"), path: path(4).concat(["image", "alt"]) };
+    expect(callHidden(field(imageWithAltType, "alt"), context)).toBe(true);
+    expect(captureCustomValidator(field(imageWithAltType, "alt"))(undefined, context)).toBe(true);
+    // a stray English-only value left on a now-decorative image also can't block
+    expect(captureCustomValidator(field(imageWithAltType, "alt"))([{ _key: "en", language: "en", value: "old alt" }], context)).toBe(true);
+  });
+
+  test("the decorative-benefit exemption is document-scoped: the same benefits/benefitN role on another page keeps alt required", () => {
+    const context = { document: cmBenefitDoc("benefit0", "page-about"), path: path(4).concat(["image", "alt"]) };
+    expect(callHidden(field(imageWithAltType, "alt"), context)).toBe(false);
+    expect(captureCustomValidator(field(imageWithAltType, "alt"))(undefined, context)).toBe("English alt text is required.");
+  });
+
+  test("a non-benefit item on Community Membership still requires alt (scoped to the benefit role only)", () => {
+    const context = { document: cmBenefitDoc("somethingElse"), path: path(4).concat(["image", "alt"]) };
+    expect(captureCustomValidator(field(imageWithAltType, "alt"))(undefined, context)).toBe("English alt text is required.");
+  });
+});
+
+// ============================================================================
+// ctaLink.ts — an entirely-empty `siteSettings.announcementLink` is valid
+// (2026-09 validation-integrity audit). That field is `hidden` unless the
+// announcement banner is enabled, but its nested href/label `required()` rules
+// still fired — so an empty Studio-scaffolded announcement link left behind
+// after the manager turned the banner off made `drafts.siteSettings`
+// permanently un-publishable. A partially-filled link must still be completed,
+// and every other ctaLink user (serviceHero / editorialFeature /
+// nextStepSection) is untouched.
+// ============================================================================
+test.describe("ctaLink.ts — empty siteSettings.announcementLink never blocks Publish", () => {
+  const hrefValidate = captureCustomValidator(field(ctaLinkType, "href"));
+  const labelValidate = captureCustomValidator(field(ctaLinkType, "label"));
+  const ssHref = (announcementLink: unknown) => ({ document: { _type: "siteSettings", announcementLink }, path: ["announcementLink", "href"] });
+  const ssLabel = (announcementLink: unknown) => ({ document: { _type: "siteSettings", announcementLink }, path: ["announcementLink", "label"] });
+
+  test("entirely-empty announcementLink: href + label both valid", () => {
+    const link = { _type: "ctaLink", label: [{ _key: "en", language: "en" }], localizedHrefOverride: [{ _key: "en", language: "en" }] };
+    expect(hrefValidate(undefined, ssHref(link))).toBe(true);
+    expect(labelValidate([{ _key: "en", language: "en" }], ssLabel(link))).toBe(true);
+  });
+
+  test("fully-filled announcementLink still validates normally (positive path)", () => {
+    const link = { _type: "ctaLink", href: "/events", label: [{ _key: "en", language: "en", value: "See events" }] };
+    expect(hrefValidate("/events", ssHref(link))).toBe(true);
+    expect(labelValidate(link.label, ssLabel(link))).toBe(true);
+  });
+
+  test("partially-filled announcementLink (label started, no href): href is still required", () => {
+    const link = { _type: "ctaLink", label: [{ _key: "en", language: "en", value: "Read more" }] };
+    expect(hrefValidate(undefined, ssHref(link))).toBe("A destination is required.");
+  });
+
+  test("partially-filled announcementLink (href set, no label): English label is still required", () => {
+    const link = { _type: "ctaLink", href: "/events", label: [] };
+    expect(labelValidate([], ssLabel(link))).toBe("English label is required.");
+  });
+
+  test("a ctaLink outside siteSettings (serviceHero/editorialFeature/nextStepSection) is completely unaffected — href still required when empty", () => {
+    const ctx = { document: { _type: "page" }, parent: {}, path: ["sections", { _key: "s1" }, "cta", "href"] };
+    expect(hrefValidate(undefined, ctx)).toBe("A destination is required.");
+    expect(labelValidate([], { ...ctx, path: ["sections", { _key: "s1" }, "cta", "label"] })).toBe("English label is required.");
+  });
+});
+
+// ============================================================================
+// legalPage.ts — Studio preview shows the human page name (Phase B — STEP 10),
+// not "Legal page — privacy-policy".
+// ============================================================================
+test.describe("legalPage.ts — manager-readable Studio preview", () => {
+  const prep = (legalPageType.preview as { prepare: (v: unknown) => { title?: string; subtitle?: string } }).prepare;
+
+  test("falls back to the human page name when no title is entered", () => {
+    expect(prep({ pageKey: "privacy-policy" }).title).toBe("Privacy Policy");
+    expect(prep({ pageKey: "terms" }).title).toBe("Terms");
+    expect(prep({ pageKey: "cookie-policy" }).title).toBe("Cookie Policy");
+    expect(prep({ pageKey: "privacy-policy" }).title).not.toContain("Legal page —");
+  });
+
+  test("prefers the entered English title, with the page name as subtitle", () => {
+    const out = prep({ pageKey: "terms", title: [{ language: "en", value: "Terms & Conditions" }] });
+    expect(out.title).toBe("Terms & Conditions");
+    expect(out.subtitle).toBe("Terms");
   });
 });
 
@@ -1852,10 +1965,12 @@ test.describe("pageSection.ts — faqCategory section visibility (Task 2/4)", ()
     expect(result.subtitle).toBe("2 questions");
   });
 
-  test("a non-faqCategory section's preview subtitle is unaffected — still the raw sectionKind", () => {
+  test("a non-faqCategory section's preview subtitle is the plain-language kind name, not the raw sectionKind (Phase B — STEP 10)", () => {
     const prepare = (pageSectionType.preview as { prepare: (v: Record<string, unknown>) => { title: string; subtitle?: string } }).prepare;
-    const result = prepare({ title: [{ _key: "en", language: "en", value: "Philosophy" }], kind: "custom", key: "philosophy", items: [{ _key: "a" }] });
-    expect(result.subtitle).toBe("custom");
+    expect(prepare({ title: [{ _key: "en", language: "en", value: "Philosophy" }], kind: "split", key: "philosophy", items: [{ _key: "a" }] }).subtitle).toBe("Text beside an image");
+    expect(prepare({ kind: "servicesTeaser", key: "servicesTeaser" }).subtitle).toBe("Services teaser");
+    // an unknown/legacy kind still falls back to its raw value rather than showing nothing
+    expect(prepare({ kind: "legacyThing", key: "x" }).subtitle).toBe("legacyThing");
   });
 });
 

@@ -1172,6 +1172,126 @@ owner action.
 
 ---
 
+## 20.15 Phase I — full-dataset validation integrity audit + repair (2026-09-08)
+
+The owner hit a real Studio wall: editing **Community Membership** to add gallery media,
+Publish was blocked by 9 unrelated *"English alt text is required"* errors on the existing
+**Benefit** card images.
+
+**Authoritative audit tool** (new, read-only): `npm run sanity:audit-validation` wraps
+`sanity documents validate` (the official headless runner — real studio schema, every custom
+rule, every skip-when-hidden predicate, published **and** drafts) and classifies + separates
+genuine blockers from owner-content-decision docs. Exits non-zero only on a genuine blocker.
+`npm run sanity:audit-validation -- --warnings` also lists the non-blocking backlog.
+
+**Initial state:** 58 genuine blocking error markers across 6 documents (+2 test events).
+
+**Schema fixes** (no validation weakened globally — both narrowly scoped):
+
+- `sanity/schemaTypes/objects/imageWithAlt.ts` — `DECORATIVE_CONTENT_ITEM_IMAGE_ROLES` now
+  also covers `page-community-membership` benefit-card images (`benefits` / `benefitN`).
+  Those render `<Image alt="" aria-hidden="true">` (decorative icon beside a visible
+  `<h3>`/`<p>` — see `community-membership/page.tsx`), so alt text there is never announced;
+  requiring it only ever blocked Publish on legacy content and forced fake descriptions.
+  Document-scoped, same shape as the existing Home quickPaths/servicesTeaser exemption — About
+  and every other page keep alt required.
+- `sanity/schemaTypes/objects/ctaLink.ts` — an **entirely-empty** `siteSettings.announcementLink`
+  is now valid (a partially-filled one must still be completed). That field is `hidden` unless
+  the announcement banner is on, but its nested `href`/`label` `required()` rules still fired,
+  so a Studio-scaffolded empty link left behind after the manager turned the banner off made
+  `drafts.siteSettings` permanently un-publishable — the classic hidden-but-validated bug.
+  Scoped to `siteSettings` by document type; `serviceHero` / `editorialFeature` /
+  `nextStepSection` ctaLinks are untouched.
+
+**Data repairs** (`npm run sanity:repair-validation-integrity` — dry-run default, backs up
+every target to `scripts/backups/` before `--apply`, `ifRevisionId`-guarded, published + draft):
+
+- `page-community-membership` — `donation` bank-detail rows `bank0..bank8` `title`: added DA + UK
+  (standard banking labels; CVR/IBAN/SWIFT-BIC kept verbatim). `bank4.title`: dropped 2 stray
+  valueless i18n entries (Studio residue → "Required" on `.language`). `application.text`:
+  added DA + UK (one sentence).
+- `page-volunteer` — hero media alt + the 4 `applicationForm` modal-copy rows: DA + UK.
+- `page-work-with-us` — 2 hero media alts, the 3 `features` bullet titles (wording taken from
+  the section's own already-approved DA/UK hero paragraphs), and the 7 `cvUploadForm` modal-copy
+  rows: DA + UK. Closes the §20.9 EN-only gap for both pages.
+- `socialLinks` (published) — removed the obsolete `linkedin` row. RORUM's "no LinkedIn in the
+  shared social list" decision was already in `drafts.socialLinks` + `socialLink.ts`'s
+  `SELECTABLE_PLATFORMS`; this makes the published doc match so the live audit is clean.
+- `drafts.siteSettings` — deleted (confirmed pure empty Studio residue; every field differed
+  from the clean published doc only by a valueless stub). Published `siteSettings` untouched.
+
+**Result:** `npm run sanity:audit-validation` → **BLOCKING VALIDATION ERRORS: 0.**
+
+**Owner content decisions (still open, do not block any other document):**
+
+- Events `4db90711` (`one-more-event-test`) and `4112b7ff` (`a-new-event-at-the-rorom`) were
+  **test/demo events** — **deleted in Phase B (§20.16)** per explicit owner authorization.
+- Non-blocking warning backlog (pre-existing, `-- --warnings`): 11 orphaned legacy singleton
+  documents (`homePage`/`aboutPage`/… — the index comment's "their documents were already
+  gone" is inaccurate), a stray `event.host` field on ~35 events, `formMessages.privacyConsentLabel`.
+  None block Publish; cleanup only.
+
+Tests: `tests/sanity-schema-visibility.spec.ts` +7 (benefit decorative-alt exemption incl.
+document-scope guards; empty-announcementLink validity incl. the partially-filled + other-doc-type
+guards). Typecheck / ESLint / Vitest 615 / `next build` all green.
+
+---
+
+## 20.16 Phase B — test-event deletion + final Studio UX audit (2026-09-08)
+
+**Phase A — deleted the two test events** the owner authorized:
+
+| Slug | Base id | Copies removed |
+|---|---|---|
+| `one-more-event-test` | `4db90711-eb57-4388-930e-f9c70a3bd3bf` | published + draft |
+| `a-new-event-at-the-rorom` | `4112b7ff-3205-48f6-8c06-40d7a3d29642` | draft only (never published) |
+
+No inbound references anywhere in the dataset (checked pre-delete). Full documents backed up to
+`scripts/backups/deleted-test-events-*.json`. Published event count 33 → 32. `scripts/delete-test-events.ts`
+(dry-run default, slug + type + reference gates, backup before delete). `audit-validation.ts`'s
+`OWNER_DECISION_DOCS` emptied. `sanity:audit-validation` → **0 blocking, 0 owner-decision markers.**
+
+**Phase B — full Studio UX audit.** The visibility architecture (Phase G §20.13 allow-list +
+`ITEM_ROLE_RULES` + Events-filter groups) was found in good shape: `sanity:audit-sections` reported
+**0** populated-but-hidden fields, 0 section-order drift, 0 stale keys; `sanity:audit-validation`
+**0** blockers; the Events-filter Studio model (`EventsFiltersInput` + `shared/eventFilterDefinitions.ts`)
+already implements 4 manager-facing groups with editable localized labels, in-group reorder, and a
+fixed closed semantic set (no add/duplicate/remove, stable `value`s never editable). Fixes made:
+
+- **`page-events` `filters` — 1 unrecognized Studio-residue row** (empty `contentItem`, `_key`
+  `1c3dfe879f0a`, no `itemKey`) removed from published + draft. It rendered as a confusing
+  unlabelled "Other items" card and was read by nothing. `scripts/clean-events-filters-residue.ts`
+  (backup + revision guard). `audit-page-sections.ts` **extended** with a `CLOSED_ITEM_SETS` check
+  that now fails on any unrecognized row in `page-events:filters`.
+- **`pageSection.sectionKind` dropdown + preview subtitle** — showed raw identifiers
+  (`servicesTeaser`, `iconGrid`, …). Now plain-language via `SECTION_KIND_TITLES`
+  ("Services teaser", "Icon + text cards", …); stable `value`s unchanged; unknown kinds still
+  fall back to the raw value.
+- **`legalPage` Studio preview** — was `"Legal page — privacy-policy"`; now the entered English
+  title, or the human page name ("Privacy Policy" / "Terms" / "Cookie Policy") as a fallback.
+- **`sanity.config.ts` `newDocumentOptions`** — `galleryCollection` / `faqGroup` /
+  `cateringMenuCategory` (superseded document types, 0 live docs, unreferenced, not in the desk)
+  removed from the generic "+ Create" menu. Type definitions left registered so any stray legacy
+  document still renders with a schema; deleting the types is a separate dead-code cleanup.
+- **`isCorrectlyShapedSection` (`pageSection.ts`)** — post-review hardening: `sectionKey`/`sectionKind`
+  now hide only once a section has **both** (was: `sectionKind` alone). Both fields carry
+  `rule.required()`, so hiding one while the other is still empty was a latent hidden-required
+  blocker — the exact class Part 32 chased elsewhere. Every live section has both, so no visible
+  change; only a half-formed section now keeps showing the field it still needs.
+
+`structure.ts` desk order verified against site IA — Site singletons, then Pages in
+Home → About → Attend Events → Catering → Menu Examples → Event Decoration → Host → Community
+Membership → Volunteer → Work With Us → Contact → FAQ → legal — correct, no change. Field order
+within `pageSection` (label → title → text → media → actions → items → settings) and `contentItem`
+already editorial.
+
+Tests: `tests/sanity-schema-visibility.spec.ts` +4 (sectionKind friendly-title coverage; legalPage
+preview) and 1 updated (non-faqCategory subtitle now asserts the plain-language name). Typecheck /
+ESLint (0 errors) / Vitest 615 / `next build` (147 static pages) / `sanity:audit-sections` /
+`sanity:audit-validation` all green.
+
+---
+
 # 21. Shared Components
 
 Audited in §20.3. In-repo shared components and their CMS sources:

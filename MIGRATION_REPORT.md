@@ -2366,3 +2366,114 @@ well-formed attribute.
 
 Unchanged from Part 30 (`SANITY_API_READ_TOKEN` in Netlify env + CORS origin;
 upload a `page-catering` Social Sharing Image). No new owner action for Part 31.
+
+---
+
+## Part 32 — Full-dataset validation integrity audit + repair (2026-09-08)
+
+**Trigger:** editing Community Membership to add gallery media, the manager
+could not Publish — blocked by 9 unrelated *"English alt text is required"*
+errors on the existing Benefit-card images.
+
+**Root cause:** Benefit-card images render as `<Image alt="" aria-hidden="true">`
+(a decorative icon beside a visible heading + paragraph — see
+`community-membership/page.tsx`), but `imageWithAlt.alt` required English alt
+text for that role. Legacy benefit content never had it, so the whole document
+sat in a 9-error state and *every* unrelated edit was blocked. Sanity
+validation is per-document, so this never affected other pages — but it fully
+blocked this one.
+
+**New audit tool (read-only):** `npm run sanity:audit-validation`
+(`scripts/audit-validation.ts`) wraps `sanity documents validate` — the
+official headless runner that executes the real studio schema (every custom
+rule, every skip-when-hidden predicate) against every published and draft
+document — then classifies each error and separates genuine blockers from
+docs needing an owner content decision. Exits non-zero only on a genuine
+blocker. This is the STEP 9 regression guard; it is never run during normal
+editing.
+
+**Schema fixes** (both narrowly scoped — no rule weakened globally):
+
+| File | Change | Why |
+|---|---|---|
+| `sanity/schemaTypes/objects/imageWithAlt.ts` | `DECORATIVE_CONTENT_ITEM_IMAGE_ROLES` restructured to `{docId, sectionKeys, itemKeyPattern}`; added `page-community-membership` `benefits`/`benefitN` | Benefit images are decorative (`alt="" aria-hidden`). Same exemption Home quickPaths/servicesTeaser already had. About + every other page keep alt required (document-scoped). |
+| `sanity/schemaTypes/objects/ctaLink.ts` | An entirely-empty `siteSettings.announcementLink` is valid; a partially-filled one must still be completed | Hidden-but-validated bug: `announcementLink` is `hidden` unless the banner is on, but its `href`/`label` `required()` still fired, so an empty scaffolded link left after turning the banner off made `drafts.siteSettings` permanently un-publishable. Scoped to `siteSettings` — `serviceHero`/`editorialFeature`/`nextStepSection` untouched. |
+
+**Data repairs** (`npm run sanity:repair-validation-integrity` — dry-run
+default; `--apply` backs up every target to `scripts/backups/` first,
+`ifRevisionId`-guarded, patches published + draft):
+
+- `page-community-membership`: `donation` `bank0..bank8` `title` → DA + UK
+  (standard banking labels); `bank4.title` → dropped 2 stray valueless i18n
+  entries; `application.text` → DA + UK.
+- `page-volunteer`: hero media alt + 4 `applicationForm` modal-copy rows → DA + UK.
+- `page-work-with-us`: 2 hero media alts, 3 `features` bullet titles (from the
+  section's own approved DA/UK hero paragraphs), 7 `cvUploadForm` modal-copy
+  rows → DA + UK. (Closes the SANITY_MIGRATION.md §20.9 EN-only gap.)
+- `socialLinks` (published): removed the obsolete `linkedin` row (decision
+  already reflected in `drafts.socialLinks` + `socialLink.ts`).
+- `drafts.siteSettings`: deleted — pure empty Studio residue, published doc
+  untouched.
+
+111 field-scoped mutations across 6 documents + 1 draft deletion.
+
+**Result:** `npm run sanity:audit-validation` → **BLOCKING VALIDATION ERRORS: 0.**
+
+**Owner content decisions (open, non-blocking to any other doc):** test events
+`4db90711` (`one-more-event-test`) and `4112b7ff` (`a-new-event-at-the-rorom`)
+— Lorem Ipsum / placeholder content. **Deleted in Part 33.**
+
+**Files changed:** `sanity/schemaTypes/objects/{imageWithAlt,ctaLink}.ts`,
+`scripts/{audit-validation,repair-validation-integrity}.ts` (new), `package.json`
+(3 scripts), `tests/sanity-schema-visibility.spec.ts` (+7 tests), this report,
+`SANITY_MIGRATION.md` §20.15.
+
+---
+
+## Part 33 — Test-event deletion + final Studio UX audit (2026-09-08)
+
+**Phase A — deleted the 2 test events** (owner-authorized): `4db90711-eb57-4388-930e-f9c70a3bd3bf`
+(`one-more-event-test`, published + draft) and `4112b7ff-3205-48f6-8c06-40d7a3d29642`
+(`a-new-event-at-the-rorom`, draft only). Zero inbound references. Backed up to
+`scripts/backups/deleted-test-events-*.json`. `scripts/delete-test-events.ts` (dry-run default;
+slug/type/reference gates). Published events 33 → 32. `sanity:audit-validation` → **0 blocking,
+0 owner-decision markers**.
+
+**Phase B — final Studio UX audit.** Existing architecture found solid (`sanity:audit-sections`:
+0 populated-but-hidden, 0 order drift, 0 stale keys; Events-filter Studio model already complete —
+4 manager groups, editable localized labels, in-group reorder, closed semantic set). Fixes:
+
+| Area | Fix |
+|---|---|
+| `page-events` `filters` | Removed 1 unrecognized Studio-residue row (empty `contentItem`, `_key` `1c3dfe879f0a`) from published + draft — `scripts/clean-events-filters-residue.ts`. `audit-page-sections.ts` extended with a `CLOSED_ITEM_SETS` check. |
+| `pageSection.sectionKind` | Dropdown + preview subtitle now show plain-language names (`SECTION_KIND_TITLES`) instead of `servicesTeaser`/`iconGrid`/…; stable `value`s unchanged. |
+| `legalPage` preview | `"Legal page — privacy-policy"` → entered title, or human name ("Privacy Policy"/"Terms"/"Cookie Policy"). |
+| `sanity.config.ts` | `galleryCollection`/`faqGroup`/`cateringMenuCategory` (superseded, 0 live docs, unreferenced) removed from the "+ Create" menu. |
+| `pageSection.ts` `isCorrectlyShapedSection` | Post-review hardening — `sectionKey`/`sectionKind` hide only when **both** are set (was `sectionKind` alone); both are `required()`, so the old rule could hide an empty required field. No live section is affected. |
+
+No schema redesign. `structure.ts` desk order + `pageSection`/`contentItem` field order verified —
+already correct, unchanged. Production data: only the residue-row removal + the Phase A deletions.
+
+**Independent review:** SHIP (0 HIGH). 2 MEDIUM are disclosures, not defects — see the owner
+caveats below. LOW items addressed: the `isCorrectlyShapedSection` hardening above; a stale
+"18 filter rows" comment corrected to 17. `ctaLink`'s other three consumers (`serviceHero` /
+`editorialFeature` / `nextStepSection`) are confirmed dead object types — wired to no field
+anywhere — so Part 32's `rule.required()` → `rule.custom()` change on `ctaLink.href` reaches
+only `siteSettings.announcementLink` in practice.
+
+**Owner caveats (from the review, not blockers):**
+1. Production already carries the full **Part 32** repair — 6 documents edited, published
+   `socialLinks.linkedin` removed, `drafts.siteSettings` deleted — not only the Part 33 changes.
+   All backed up under `scripts/backups/`.
+2. The Danish/Ukrainian strings Part 32 added to Community Membership, Volunteer and Work With Us
+   are machine-authored and now live — a native speaker should proof them.
+3. `drafts.page-events` holds a pre-existing unpublished filter-reorder edit (not from this work);
+   the residue-cleanup script correctly left it intact.
+
+**Files changed:** `sanity/schemaTypes/objects/pageSection.ts`,
+`sanity/schemaTypes/singletons/legalPage.ts`, `sanity.config.ts`,
+`scripts/{delete-test-events,clean-events-filters-residue}.ts` (new),
+`scripts/audit-page-sections.ts` (+closed-set check), `scripts/audit-validation.ts`
+(`OWNER_DECISION_DOCS` emptied), `package.json` (4 scripts),
+`tests/sanity-schema-visibility.spec.ts` (+4 tests, 1 updated), this report,
+`SANITY_MIGRATION.md` §20.16.

@@ -138,7 +138,14 @@
     "sanity:migrate-cm-hero-apply-label:dry-run": "tsx --env-file=.env.local scripts/migrate-community-membership-hero-apply-label.ts",
     "sanity:migrate-cm-hero-apply-label": "tsx --env-file=.env.local scripts/migrate-community-membership-hero-apply-label.ts --apply",
     "sanity:backfill-cm-alt:dry-run": "tsx --env-file=.env.local scripts/backfill-community-membership-alt.ts",
-    "sanity:backfill-cm-alt": "tsx --env-file=.env.local scripts/backfill-community-membership-alt.ts --apply"
+    "sanity:backfill-cm-alt": "tsx --env-file=.env.local scripts/backfill-community-membership-alt.ts --apply",
+    "sanity:audit-validation": "tsx --env-file=.env.local scripts/audit-validation.ts",
+    "sanity:delete-test-events:dry-run": "tsx --env-file=.env.local scripts/delete-test-events.ts",
+    "sanity:delete-test-events": "tsx --env-file=.env.local scripts/delete-test-events.ts --apply",
+    "sanity:clean-events-filters-residue:dry-run": "tsx --env-file=.env.local scripts/clean-events-filters-residue.ts",
+    "sanity:clean-events-filters-residue": "tsx --env-file=.env.local scripts/clean-events-filters-residue.ts --apply",
+    "sanity:repair-validation-integrity:dry-run": "tsx --env-file=.env.local scripts/repair-validation-integrity.ts",
+    "sanity:repair-validation-integrity": "tsx --env-file=.env.local scripts/repair-validation-integrity.ts --apply"
   },
   "dependencies": {
     "@portabletext/react": "^7.0.1",

@@ -53,6 +53,30 @@ const SECTION_KINDS = [
 
 type SectionKind = (typeof SECTION_KINDS)[number];
 
+// Manager-facing names for the `sectionKind` dropdown. `sectionKind` is hidden
+// once a section is shaped (see isCorrectlyShapedSection) and managers don't
+// normally add sections — but on the rare occasion this control is shown, it
+// should read in plain language, not as internal identifiers.
+const SECTION_KIND_TITLES: Record<SectionKind, string> = {
+  hero: "Hero (top of the page)",
+  gallery: "Photo / video gallery",
+  iconGrid: "Icon + text cards",
+  split: "Text beside an image",
+  steps: "Numbered steps",
+  cta: "Call to action",
+  form: "Form",
+  quickPaths: "Quick links grid",
+  editorial: "Editorial feature (image + text + button)",
+  servicesTeaser: "Services teaser",
+  communityTeaser: "Community teaser",
+  benefits: "Benefits list",
+  menuCategory: "Menu category",
+  donation: "Donation details",
+  filters: "Filters",
+  faqCategory: "FAQ category",
+  custom: "Custom",
+};
+
 /**
  * The EXPLICIT per-section allow-list — one entry per concrete section on
  * every page, keyed `<page-id>:<sectionKey>` (the page's dash id, e.g.
@@ -122,7 +146,7 @@ const SECTION_FIELD_VISIBILITY: Record<string, readonly PageSectionField[]> = {
 
   // ── Events listing (app/[locale]/(site)/events/page.tsx) ───────────────
   "page-events:hero": ["title"], // ONLY the listing H1 ("Upcoming Events at RORUM"). No eyebrow/text/photos/buttons/items are read for this section.
-  "page-events:filters": ["items"], // the 18 filter-bar / empty-state label rows (each uses `.title` only, via ITEM_ROLE_RULES)
+  "page-events:filters": ["items"], // the 17 filter-bar / empty-state label rows (each uses `.title` only, via ITEM_ROLE_RULES)
   "page-events:closingCta": ["label", "title", "text", "actions", "items"], // "Would you like to host?" eyebrow, heading, text, main CTA. `items` stays visible only because EventsClosingCtaItemsInput renders a read-only "edit these in Shared form messages" card there — the public "Have questions?" prompt is actually read from `formMessages`, not these rows.
 
   // ── FAQ (app/[locale]/(site)/faq/page.tsx) ─────────────────────────────
@@ -208,16 +232,18 @@ export function isPageEvents(document: unknown): boolean {
 
 /**
  * The one, site-wide rule for `sectionKey`/`sectionKind` visibility: once a
- * section already has a `sectionKind` value it is a real, correctly-shaped
- * section — `sectionKey`/`sectionKind` are stable technical routing facts the
+ * section has BOTH a `sectionKind` and a `sectionKey` it is a real,
+ * correctly-shaped section — these are stable technical routing facts the
  * frontend depends on, never something a manager should read or edit.
- * Deliberately NEVER hidden while `sectionKind` is unset, so a stray raw
- * section added through Sanity's generic array control still shows these two
+ * Deliberately NEVER hidden while EITHER is still unset, so a stray raw
+ * section added through Sanity's generic array control keeps showing both
  * required fields until they're filled in, instead of being hidden-but-
- * required and silently blocking Publish forever.
+ * required and silently blocking Publish forever (both fields carry
+ * `rule.required()` — hiding one while it's empty is the exact
+ * hidden-required footgun this project keeps closing elsewhere).
  */
-function isCorrectlyShapedSection(parent: { sectionKind?: string } | undefined): boolean {
-  return Boolean(parent?.sectionKind);
+function isCorrectlyShapedSection(parent: { sectionKind?: string; sectionKey?: string } | undefined): boolean {
+  return Boolean(parent?.sectionKind) && Boolean(parent?.sectionKey);
 }
 
 export function isFaqCategorySection(parent: { sectionKind?: string } | undefined): boolean {
@@ -291,18 +317,18 @@ export default defineType({
       readOnly: ({ value }) => Boolean(value),
       validation: (rule) => rule.required(),
       description: "Stable identifier the website looks this section up by. / Стабільний ідентифікатор, за яким сайт знаходить цей розділ.",
-      hidden: ({ parent }) => isCorrectlyShapedSection(parent as { sectionKind?: string } | undefined),
+      hidden: ({ parent }) => isCorrectlyShapedSection(parent as { sectionKind?: string; sectionKey?: string } | undefined),
     }),
     defineField({
       name: "sectionKind",
       title: "Section type",
       type: "string",
       options: {
-        list: SECTION_KINDS.map((kind) => ({ title: kind, value: kind })),
+        list: SECTION_KINDS.map((kind) => ({ title: SECTION_KIND_TITLES[kind], value: kind })),
       },
       validation: (rule) => rule.required(),
       description: "What kind of section this is — controls which fields below apply. / Тип розділу — визначає, які поля нижче застосовуються.",
-      hidden: ({ parent }) => isCorrectlyShapedSection(parent as { sectionKind?: string } | undefined),
+      hidden: ({ parent }) => isCorrectlyShapedSection(parent as { sectionKind?: string; sectionKey?: string } | undefined),
     }),
     defineField({
       name: "label",
@@ -395,7 +421,8 @@ export default defineType({
         (v) => v.language === "en" || v._key === "en",
       );
       const itemCount = (items as unknown[] | undefined)?.length ?? 0;
-      const subtitle = kind === "faqCategory" ? `${itemCount} question${itemCount === 1 ? "" : "s"}` : (kind as string | undefined);
+      const kindTitle = typeof kind === "string" ? (SECTION_KIND_TITLES[kind as SectionKind] ?? kind) : undefined;
+      const subtitle = kind === "faqCategory" ? `${itemCount} question${itemCount === 1 ? "" : "s"}` : kindTitle;
       return { title: en?.value ?? key ?? "(untitled section)", subtitle };
     },
   },
