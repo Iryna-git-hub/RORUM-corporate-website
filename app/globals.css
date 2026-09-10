@@ -1462,11 +1462,13 @@ button.btn,
 .gallery-lightbox-close {
   position: fixed;
   z-index: 2002;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid rgba(var(--rgb-cream), 0.66);
   background: rgba(var(--rgb-cream), 0.12);
   color: var(--color-surface-light);
   cursor: pointer;
-  font-size: 0;
 }
 .gallery-lightbox-close {
   top: 22px;
@@ -1475,10 +1477,18 @@ button.btn,
   height: 42px;
   border-radius: 50%;
 }
+.gallery-lightbox-close:hover,
+.gallery-lightbox-close:focus-visible {
+  background: rgba(var(--rgb-cream), 0.22);
+  outline: none;
+}
 .gallery-lightbox-nav {
   position: absolute;
   top: 50%;
   z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 44px;
   height: 44px;
   border: 1px solid rgba(var(--rgb-cream), 0.42);
@@ -1487,7 +1497,6 @@ button.btn,
   color: var(--color-cream);
   transform: translateY(-50%);
   cursor: pointer;
-  font-size: 0;
 }
 .gallery-lightbox-nav-prev {
   left: 22px;
@@ -1495,44 +1504,10 @@ button.btn,
 .gallery-lightbox-nav-next {
   right: 22px;
 }
-.gallery-lightbox-nav::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 12px;
-  height: 12px;
-  border-top: 2px solid currentColor;
-  border-right: 2px solid currentColor;
-}
-.gallery-lightbox-nav-prev::before {
-  transform: translate(-35%, -50%) rotate(-135deg);
-}
-.gallery-lightbox-nav-next::before {
-  transform: translate(-65%, -50%) rotate(45deg);
-}
-.gallery-lightbox-nav:hover {
+.gallery-lightbox-nav:hover,
+.gallery-lightbox-nav:focus-visible {
   background: rgba(var(--rgb-dark-brown), 0.72);
-}
-.gallery-lightbox-close::before,
-.gallery-lightbox-close::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  background: currentColor;
-}
-.gallery-lightbox-close::before,
-.gallery-lightbox-close::after {
-  width: 16px;
-  height: 2px;
-  transform-origin: center;
-}
-.gallery-lightbox-close::before {
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-.gallery-lightbox-close::after {
-  transform: translate(-50%, -50%) rotate(-45deg);
+  outline: none;
 }
 
 /* Home hero */

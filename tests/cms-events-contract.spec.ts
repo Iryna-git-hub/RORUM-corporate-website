@@ -311,13 +311,15 @@ test.describe("Cross-page consistency — same event, no contradictions", () => 
 
   test(`the first event on the listing is consistent across the listing card, its detail page, and (when shown) the Home strip`, async ({ page }) => {
     // Resolve the event the listing actually shows first, rather than pinning a
-    // slug to a specific dataset state. Both the Home strip (allEventsQuery) and
-    // the Events listing (EventsClientPage default sort) order by date ascending
-    // and do NOT hide past events, so the earliest-dated published event is the
-    // first card on both surfaces — a real, always-present consistency subject.
+    // slug to a specific dataset state. Both the Home strip and the Events
+    // listing order by date ascending and hide past events (Phase 3 —
+    // isUpcomingEvent), so the first card on both surfaces is the earliest
+    // event whose date is today or later.
+    const today = new Date().toISOString().slice(0, 10);
     const firstEvent = await sanity.fetch<RawEvent | null>(
-      `*[_type == "event" && defined(slug.current) && defined(date) && "en" in visibleLocales]
+      `*[_type == "event" && defined(slug.current) && defined(date) && date >= $today && "en" in visibleLocales]
         | order(date asc)[0]{ "slug": slug.current, title, date }`,
+      { today },
     );
     expect(firstEvent?.slug, "at least one published event shown on the EN site must exist").toBeTruthy();
     const slug = firstEvent!.slug!;

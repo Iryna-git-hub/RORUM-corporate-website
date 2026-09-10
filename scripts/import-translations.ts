@@ -2378,9 +2378,9 @@ const formMessagesFields = {
   ),
   commentLabel: tri("Comment", "Kommentar", "Коментар"),
   guestsRangeMessage: tri(
-    "Please enter a whole number between 1 and 30.",
-    "Indtast venligst et helt tal mellem 1 og 30.",
-    "Будь ласка, введіть ціле число від 1 до 30.",
+    "Please enter a whole number between 1 and 12.",
+    "Indtast venligst et helt tal mellem 1 og 12.",
+    "Будь ласка, введіть ціле число від 1 до 12.",
   ),
 };
 

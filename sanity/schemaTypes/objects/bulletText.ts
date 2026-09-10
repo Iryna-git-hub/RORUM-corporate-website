@@ -4,8 +4,8 @@ import { defineField, defineType } from "sanity";
 // lists like an event's "what's included" / "what to expect", or a
 // package's line items. Wraps one `internationalizedArrayString` field in a
 // real object (matching the pattern every other localized array item in
-// this schema uses — `practicalDetail`, `cateringMenuItem`, `faqItem`,
-// `titledText`) rather than nesting `internationalizedArrayString` directly
+// this schema uses — `practicalDetail`, `titledText`, `contentItem`)
+// rather than nesting `internationalizedArrayString` directly
 // inside a plain array, which isn't how this plugin's array items are meant
 // to carry their own `_key` (the array-item `_key` and the language `_key`
 // would otherwise collide — see MIGRATION_REPORT.md's Sanity section for

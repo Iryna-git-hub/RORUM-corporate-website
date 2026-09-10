@@ -155,6 +155,50 @@ describe("EventsFiltersInput — reorder stays inside its own group, key-address
     expect(touchedKeys.some((p) => p.includes("languageLabel") || p.includes("priceLabel") || p.includes("availableLabel"))).toBe(false);
   });
 
+  it("renders each group's options in the STORED array order, not the schema-definition order (Phase 12 regression)", () => {
+    mockFormValue("page-events", "filters");
+    // Date group stored as week → month → soonest (a manager's reorder), not
+    // the definition order soonest → week → month.
+    const reordered = [
+      "dateLabel", "weekLabel", "monthLabel", "soonestLabel",
+      "languageLabel", "languageEnLabel", "languageDaLabel", "languageUkLabel",
+      "priceLabel", "priceAscLabel", "priceDescLabel",
+      "availabilityLabel", "availableLabel", "soldOutLabel",
+      "clearFiltersLabel", "emptyStateTitle", "emptyStateText",
+    ];
+    const { props, renderDefault } = fakeProps({
+      members: reordered.map(member),
+      value: reordered.map((k) => ({ _key: k, itemKey: k })),
+    });
+    renderInput(props);
+    // The order rows are handed to renderDefault in is the order the manager sees.
+    const renderedItemKeys = renderDefault.mock.calls
+      .flatMap((call) => (call[0] as ArrayOfObjectsInputProps).members)
+      .map((m) => (m.kind === "item" ? (m.item.value as { itemKey?: string }).itemKey : undefined))
+      .filter(Boolean);
+    const dateOptionRows = renderedItemKeys.filter((k) => ["soonestLabel", "weekLabel", "monthLabel"].includes(k as string));
+    expect(dateOptionRows).toEqual(["weekLabel", "monthLabel", "soonestLabel"]);
+  });
+
+  it("Move up is disabled for whichever option is FIRST in stored order (not first in definition order)", () => {
+    mockFormValue("page-events", "filters");
+    const reordered = [
+      "dateLabel", "weekLabel", "monthLabel", "soonestLabel",
+      "languageLabel", "languageEnLabel", "languageDaLabel", "languageUkLabel",
+      "priceLabel", "priceAscLabel", "priceDescLabel",
+      "availabilityLabel", "availableLabel", "soldOutLabel",
+      "clearFiltersLabel", "emptyStateTitle", "emptyStateText",
+    ];
+    const { props } = fakeProps({
+      members: reordered.map(member),
+      value: reordered.map((k) => ({ _key: k, itemKey: k })),
+    });
+    renderInput(props);
+    expect(screen.getByRole("button", { name: /move this week up/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /move soonest first down/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /move soonest first up/i })).not.toBeDisabled();
+  });
+
   it("the first option in a group can't move up, the last can't move down", () => {
     mockFormValue("page-events", "filters");
     const { props } = fakeProps();

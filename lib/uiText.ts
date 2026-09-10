@@ -16,7 +16,11 @@ export type UiTextKey =
   | "viewOnMap"
   | "developedBy"
   | "lastUpdatedLabel"
-  | "videoUnavailable";
+  | "videoUnavailable"
+  | "galleryPreviousMedia"
+  | "galleryNextMedia"
+  | "galleryClosePreview"
+  | "galleryDialogLabel";
 
 const UI_TEXT: Record<UiTextKey, Record<Locale, string>> = {
   eventOverviewHeading: { en: "Event Overview", da: "Oversigt over arrangementet", uk: "Огляд події" },
@@ -27,6 +31,10 @@ const UI_TEXT: Record<UiTextKey, Record<Locale, string>> = {
   developedBy: { en: "Developed by", da: "Udviklet af", uk: "Розроблено" },
   lastUpdatedLabel: { en: "Last updated", da: "Sidst opdateret", uk: "Востаннє оновлено" },
   videoUnavailable: { en: "Video unavailable", da: "Video utilgængelig", uk: "Відео недоступне" },
+  galleryPreviousMedia: { en: "Previous media", da: "Forrige medie", uk: "Попереднє медіа" },
+  galleryNextMedia: { en: "Next media", da: "Næste medie", uk: "Наступне медіа" },
+  galleryClosePreview: { en: "Close media preview", da: "Luk forhåndsvisning", uk: "Закрити перегляд" },
+  galleryDialogLabel: { en: "Media preview", da: "Medieforhåndsvisning", uk: "Перегляд медіа" },
 };
 
 export function getUiText(key: UiTextKey, locale: Locale): string {

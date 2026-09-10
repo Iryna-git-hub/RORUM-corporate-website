@@ -129,7 +129,7 @@ const SECTION_FIELD_VISIBILITY: Record<string, readonly PageSectionField[]> = {
   "page-community-membership:hero": ["label", "title", "text", "actions", "items"], // eyebrow, H1, intro, apply/support/external CTAs, price-strip row
   "page-community-membership:donation": ["label", "title", "text", "media", "items"], // section eyebrow/heading/paragraph (fallback-backed), QR image, scan/bank/support rows
   "page-community-membership:intro": ["label", "title", "items"], // "WECODA community" eyebrow, "Connecting Women…" heading, 2 text columns
-  "page-community-membership:benefits": ["title", "items"], // "What You Gain" heading, 9 benefit cards
+  "page-community-membership:benefits": ["label", "title", "text", "items"], // "Membership Benefits" eyebrow, "What You Gain" heading, icon-attribution sentence ({freepik}/{flaticon} link placeholders), 9 benefit cards
   "page-community-membership:application": ["title", "text", "actions", "items"], // heading, closing paragraph, "Become a Member" CTA, 4 application steps
   "page-community-membership:gallery": ["label", "title", "media"], // "Gallery" eyebrow, "WECODA Community Meetings" heading, 8 photos + 2 videos
 

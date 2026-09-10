@@ -162,7 +162,7 @@ test.describe("pageSection.ts — explicit SECTION_FIELD_VISIBILITY allow-list (
     { key: "page-community-membership:hero", visible: ["label", "title", "text", "actions", "items"] },
     { key: "page-community-membership:donation", visible: ["label", "title", "text", "media", "items"] }, // label/title/text rendered by WecodaDonationSection (fallback-backed)
     { key: "page-community-membership:intro", visible: ["label", "title", "items"] },
-    { key: "page-community-membership:benefits", visible: ["title", "items"] },
+    { key: "page-community-membership:benefits", visible: ["label", "title", "text", "items"] }, // eyebrow + heading wired to Sanity; `text` = the localized icon-attribution sentence
     { key: "page-community-membership:application", visible: ["title", "text", "actions", "items"] },
     { key: "page-community-membership:gallery", visible: ["label", "title", "media"] }, // heading `data.galleryTitle` IS rendered (was hidden under the old gallery-kind default)
     // ── Contact
@@ -906,8 +906,9 @@ test.describe("imageWithAlt.ts — decorative-alt hide + hidden-field validation
 // still fired — so an empty Studio-scaffolded announcement link left behind
 // after the manager turned the banner off made `drafts.siteSettings`
 // permanently un-publishable. A partially-filled link must still be completed,
-// and every other ctaLink user (serviceHero / editorialFeature /
-// nextStepSection) is untouched.
+// and the scoping is contained to that one field so a future ctaLink reuse
+// elsewhere would still be validated normally (its 3 former object-type
+// consumers were removed as dead schema in Part 34).
 // ============================================================================
 test.describe("ctaLink.ts — empty siteSettings.announcementLink never blocks Publish", () => {
   const hrefValidate = captureCustomValidator(field(ctaLinkType, "href"));
@@ -937,7 +938,7 @@ test.describe("ctaLink.ts — empty siteSettings.announcementLink never blocks P
     expect(labelValidate([], ssLabel(link))).toBe("English label is required.");
   });
 
-  test("a ctaLink outside siteSettings (serviceHero/editorialFeature/nextStepSection) is completely unaffected — href still required when empty", () => {
+  test("a hypothetical ctaLink outside siteSettings is completely unaffected — href still required when empty", () => {
     const ctx = { document: { _type: "page" }, parent: {}, path: ["sections", { _key: "s1" }, "cta", "href"] };
     expect(hrefValidate(undefined, ctx)).toBe("A destination is required.");
     expect(labelValidate([], { ...ctx, path: ["sections", { _key: "s1" }, "cta", "label"] })).toBe("English label is required.");
@@ -2364,16 +2365,18 @@ test.describe("Event Decoration — real document shape unaffected by Contact's 
     }
   });
 
-  test("no i18n field on Event Decoration's real items is force-required by the new isFieldRequiredByItemRole mechanism (all pre-existing roles are unaffected)", () => {
+  test("the only force-required i18n field on Event Decoration's real items is `title` on the \"suitable for\" gallery chips (Phase 6) — `text` is never force-required, and no Contact-work role leaks in", () => {
     for (const section of eventDecorationDoc.sections) {
       for (const item of section.items) {
-        for (const fieldName of ["title", "text"] as const) {
-          // Only FAQ question / Contact form field / Contact Follow-us
-          // heading / Contact success message roles set requiredFields —
-          // none of those roles can match anything in this document (proven
-          // above), so this must always be false here.
-          expect(isFieldRequiredByItemRole(fieldName)(eventDecorationDoc, item), `${section.sectionKey}.${item.itemKey}.${fieldName}`).toBe(false);
-        }
+        const isSuitableForChip = section.sectionKey === "gallery" && String(item.itemKey ?? "").startsWith("suitableFor");
+        expect(
+          isFieldRequiredByItemRole("title")(eventDecorationDoc, item),
+          `${section.sectionKey}.${item.itemKey}.title`,
+        ).toBe(isSuitableForChip);
+        expect(
+          isFieldRequiredByItemRole("text")(eventDecorationDoc, item),
+          `${section.sectionKey}.${item.itemKey}.text`,
+        ).toBe(false);
       }
     }
   });
@@ -2651,10 +2654,12 @@ test.describe("contentItem.ts — Event Decoration 'What We Style' item + shared
     expect(callHidden(field(contentItemType, "icon"), { document: doc, parent })).toBe(true);
   });
 
-  test("the existing Catering gallery ariaLabel/suitableFor chip roles apply unchanged to Event Decoration's own gallery section (same sectionKey, no documentIds scoping needed — shape is identical)", () => {
-    const doc = { _id: "page-event-decoration", sections: [{ sectionKey: "gallery", sectionKind: "gallery", items: [{ _key: "x", itemKey: "suitableFor0" }] }] };
-    const parent = doc.sections[0]!.items[0]!;
-    expect(matchItemRoleInContext(doc, parent)?.role).toBe('Catering "suitable for" chip');
+  test("the shared gallery ariaLabel/suitableFor chip roles apply to Event Decoration's own gallery section (same sectionKey), including a manager-added chip with no itemKey yet (Phase 6)", () => {
+    const doc = { _id: "page-event-decoration", sections: [{ sectionKey: "gallery", sectionKind: "gallery", items: [{ _key: "x", itemKey: "suitableFor0" }, { _key: "y" }] }] };
+    const numbered = doc.sections[0]!.items[0]!;
+    const brandNew = doc.sections[0]!.items[1]!;
+    expect(matchItemRoleInContext(doc, numbered)?.role).toBe('Catering / Event Decoration "suitable for" chip');
+    expect(matchItemRoleInContext(doc, brandNew)?.role).toBe('Catering / Event Decoration "suitable for" chip');
   });
 
   test("the existing shared 3-step-row role applies unchanged to Event Decoration's own steps section", () => {
@@ -2771,7 +2776,7 @@ test.describe("pageSection.ts — Community Membership section visibility (allow
     const document = { _id: "page-community-membership" };
     const expected: Record<string, { kind: string; visible: string[] }> = {
       donation: { kind: "donation", visible: ["label", "title", "text", "media", "items"] },
-      benefits: { kind: "benefits", visible: ["title", "items"] },
+      benefits: { kind: "benefits", visible: ["label", "title", "text", "items"] },
       application: { kind: "cta", visible: ["title", "text", "actions", "items"] },
       // gallery has a rendered heading (`<SectionHeader title={data.galleryTitle}>`)
       // that the default gallery-kind visibility hides — the allow-list restores it.

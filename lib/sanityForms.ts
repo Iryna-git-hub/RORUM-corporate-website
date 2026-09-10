@@ -71,7 +71,7 @@ export const defaultFormMessages: ResolvedFormMessages = {
   guestsPlaceholder: "Approx. number",
   additionalServicesLabel: "Additional services",
   commentLabel: "Comment",
-  guestsRangeMessage: "Please enter a whole number between 1 and 30.",
+  guestsRangeMessage: "Please enter a whole number between 1 and 12.",
   invalidPhoneMessage: "Please enter a valid phone number.",
   fileRequiredMessage: "Please upload your CV.",
   fileTypeMessage: "Please upload a PDF, DOC, or DOCX file.",

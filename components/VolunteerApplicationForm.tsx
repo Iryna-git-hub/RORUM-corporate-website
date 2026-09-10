@@ -106,7 +106,7 @@ function VolunteerApplicationDialog({
       if (error) nextErrors[name] = error;
     });
 
-    const privacyError = validatePrivacyConsent(formData);
+    const privacyError = validatePrivacyConsent(formData, messages.privacyConsentRequiredMessage);
     if (privacyError) nextErrors.privacyConsent = privacyError;
 
     setErrors(nextErrors);
@@ -120,7 +120,7 @@ function VolunteerApplicationDialog({
   return (
     <ApplicationModal
       titleId="volunteer-modal-title"
-      closeLabel="Close volunteer application dialog"
+      closeLabel={messages.closeLabel}
       onClose={onClose}
     >
     <form

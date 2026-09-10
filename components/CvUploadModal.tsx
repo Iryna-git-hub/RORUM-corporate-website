@@ -107,7 +107,7 @@ function CvUploadDialog({
       nextErrors.phone = messages.invalidPhoneMessage;
     }
     if (!selectedFile) nextErrors.file = messages.fileRequiredMessage;
-    const privacyError = validatePrivacyConsent(formData);
+    const privacyError = validatePrivacyConsent(formData, messages.privacyConsentRequiredMessage);
     if (privacyError) nextErrors.privacyConsent = privacyError;
 
     return nextErrors;
@@ -180,7 +180,7 @@ function CvUploadDialog({
     <ApplicationModal
       titleId="cv-modal-title"
       descriptionId={sent ? undefined : "cv-modal-description"}
-      closeLabel="Close Work With Us application dialog"
+      closeLabel={messages.closeLabel}
       onClose={onClose}
     >
       <div ref={dialogRef}>

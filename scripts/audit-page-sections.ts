@@ -91,6 +91,29 @@ function hasData(value: unknown): boolean {
   return true;
 }
 
+const FIXED_LOCALES = ["en", "da", "uk"] as const;
+
+/** For an internationalized-array field: which of EN/DA/UK actually carry a
+ *  non-empty value. Phase 13 — a `page-*` document's localized fields follow
+ *  the fixed EN/DA/UK model, so 1 or 2 present (not 0, not 3) is a partial
+ *  translation the manager still needs to finish. */
+function presentLocales(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return FIXED_LOCALES.filter((loc) =>
+    value.some((e: { language?: string; _key?: string; value?: unknown }) =>
+      (e.language === loc || e._key === loc) && typeof e.value === "string" && e.value.trim() !== "",
+    ),
+  );
+}
+
+function reportPartialI18n(label: string, value: unknown): number {
+  const present = presentLocales(value);
+  if (present.length === 0 || present.length === FIXED_LOCALES.length) return 0;
+  const missing = FIXED_LOCALES.filter((l) => !present.includes(l));
+  console.log(`      ⚠ PARTIAL i18n: ${label} has ${present.join("/")} but is missing ${missing.join("/")}`);
+  return 1;
+}
+
 async function main() {
   const pages = await client.fetch<{ _id: string; pageKey?: string; sections?: Record<string, unknown>[] }[]>(
     `*[_type == "page"]{ _id, pageKey, sections }`,
@@ -102,6 +125,7 @@ async function main() {
   let unlisted = 0;
   let orderDrift = 0;
   let residueRows = 0;
+  let partialI18n = 0;
 
   for (const page of pages.sort((a, b) => a._id.localeCompare(b._id))) {
     console.log(`\n################ ${page._id} ################`);
@@ -147,6 +171,15 @@ async function main() {
         console.log(`      ·  visible-but-empty: ${visibleButEmpty.join(", ")}`);
       }
 
+      // Phase 13 — partial EN/DA/UK on any visible localized field of a page.
+      for (const f of ["label", "title", "text"] as const) {
+        if (visible.has(f)) partialI18n += reportPartialI18n(`${sectionKey}.${f}`, section[f]);
+      }
+      for (const it of (section.items as { itemKey?: string; title?: unknown; text?: unknown }[] | undefined) ?? []) {
+        partialI18n += reportPartialI18n(`${sectionKey}.items[${it.itemKey ?? "?"}].title`, it.title);
+        partialI18n += reportPartialI18n(`${sectionKey}.items[${it.itemKey ?? "?"}].text`, it.text);
+      }
+
       const closedSet = CLOSED_ITEM_SETS[key];
       if (closedSet) {
         const strays = ((section.items as { _key?: string; itemKey?: string }[] | undefined) ?? []).filter(
@@ -168,6 +201,7 @@ async function main() {
   console.log(`  stale allow-list keys (declared, no live section): ${stale.length ? stale.join(", ") : "none"}`);
   console.log(`  pages with section-order drift: ${orderDrift}`);
   console.log(`  unrecognized items[] rows in a closed set (Studio residue): ${residueRows}`);
+  console.log(`  partial EN/DA/UK localized fields (manager needs to finish translating): ${partialI18n}`);
   if (bugs > 0 || stale.length > 0 || orderDrift > 0 || residueRows > 0) process.exitCode = 1;
 }
 

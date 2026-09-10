@@ -9,6 +9,7 @@ import { apiVersion, assertConfigured } from "@/sanity/env";
 import { DRAFT_MODE_ENABLE_ROUTE, PREVIEW_ORIGIN } from "@/sanity/lib/presentation";
 import { resolve as presentationResolve } from "@/sanity/presentation/resolve";
 import { schemaTypes, SINGLETON_TYPES } from "@/sanity/schemaTypes";
+import { resolveDocumentActions } from "@/sanity/lib/studioDocumentActions";
 import { structure } from "@/sanity/structure";
 
 // Studio only ever runs where real project config is required — unlike the
@@ -88,27 +89,21 @@ export default defineConfig({
     // instance) and no "delete" (the frontend assumes these always exist).
     // `legalPage`/`page` are singleton *types* with several fixed-id
     // instances instead of exactly one, so the same restriction applies.
-    actions: (input, context) =>
-      SINGLETON_TYPES.has(context.schemaType) ||
-      context.schemaType === "legalPage" ||
-      context.schemaType === "page"
-        ? input.filter(({ action }) => action && !["duplicate", "delete"].includes(action))
-        : input,
+    // Every other type — `event` especially — keeps the standard Delete
+    // action (Phase 1). See sanity/lib/studioDocumentActions.ts for the
+    // unit-tested resolver.
+    actions: (input, context) => resolveDocumentActions(input, context.schemaType),
     // New documents of a singleton type can only be created through the
     // structure tool's fixed-id items (see sanity/structure.ts) — hides
     // singleton types from the generic "+ Create" menu so an editor can't
-    // accidentally create a second, orphaned instance.
-    //
-    // `galleryCollection` / `faqGroup` / `cateringMenuCategory` are superseded
-    // document types — galleries, FAQ categories and menu categories are all
-    // `pageSection`s on the relevant `page` document now (0 live docs of any
-    // of these types, none referenced anywhere). They stay registered so any
-    // stray legacy document still renders with a real schema, but a manager
-    // should never be offered them as something new to create. The type
-    // definitions themselves are a separate dead-code cleanup.
+    // accidentally create a second, orphaned instance. `legalPage`/`page` are
+    // singleton *types* with several fixed-id instances, same restriction.
+    // (`galleryCollection` / `faqGroup` / `cateringMenuCategory` used to be
+    // hidden here too — Part 34 removed the schema types outright, so they can
+    // no longer appear in this menu at all.)
     newDocumentOptions: (prev, { creationContext }) => {
       if (creationContext.type !== "global") return prev;
-      const HIDDEN_FROM_CREATE = new Set(["legalPage", "page", "galleryCollection", "faqGroup", "cateringMenuCategory"]);
+      const HIDDEN_FROM_CREATE = new Set(["legalPage", "page"]);
       return prev.filter(
         (template) => !SINGLETON_TYPES.has(template.templateId) && !HIDDEN_FROM_CREATE.has(template.templateId),
       );

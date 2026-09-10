@@ -228,42 +228,6 @@ export type Page = {
   seo?: Seo;
 };
 
-export type GalleryCollection = {
-  _id: string;
-  _type: "galleryCollection";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  key?: Slug;
-  title?: string;
-  images?: Array<
-    {
-      _key: string;
-    } & ImageWithAlt
-  >;
-};
-
-export type Slug = {
-  _type: "slug";
-  current?: string;
-  source?: string;
-};
-
-export type FaqGroup = {
-  _id: string;
-  _type: "faqGroup";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: InternationalizedArrayString;
-  order?: number;
-  items?: Array<
-    {
-      _key: string;
-    } & FaqItem
-  >;
-};
-
 export type Event = {
   _id: string;
   _type: "event";
@@ -334,22 +298,10 @@ export type ImageWithAlt = {
   alt?: InternationalizedArrayString;
 };
 
-export type CateringMenuCategory = {
-  _id: string;
-  _type: "cateringMenuCategory";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: InternationalizedArrayString;
-  navLabel?: InternationalizedArrayString;
-  slug?: Slug;
-  description?: InternationalizedArrayText;
-  order?: number;
-  featuredItems?: Array<
-    {
-      _key: string;
-    } & CateringMenuItem
-  >;
+export type Slug = {
+  _type: "slug";
+  current?: string;
+  source?: string;
 };
 
 export type TitledText = {
@@ -364,15 +316,6 @@ export type SocialLink = {
   href?: string;
   label?: InternationalizedArrayString;
   brandColor?: string;
-};
-
-export type ServiceHero = {
-  _type: "serviceHero";
-  label?: InternationalizedArrayString;
-  title?: InternationalizedArrayString;
-  text?: InternationalizedArrayText;
-  primaryCta?: CtaLink;
-  secondaryCta?: CtaLink;
 };
 
 export type SanityImageCrop = {
@@ -455,21 +398,6 @@ export type PackageTier = {
   >;
 };
 
-export type NextStepSection = {
-  _type: "nextStepSection";
-  eyebrow?: InternationalizedArrayString;
-  title?: InternationalizedArrayString;
-  text?: InternationalizedArrayText;
-  cta?: CtaLink;
-  faqQuestion?: InternationalizedArrayString;
-  faqLabel?: InternationalizedArrayString;
-  links?: Array<
-    {
-      _key: string;
-    } & NavChild
-  >;
-};
-
 export type NavItem = {
   _type: "navItem";
   label?: InternationalizedArrayString;
@@ -547,28 +475,6 @@ export type IconCard = {
   text?: InternationalizedArrayText;
 };
 
-export type FaqItem = {
-  _type: "faqItem";
-  question?: InternationalizedArrayString;
-  answer?: InternationalizedArrayText;
-};
-
-export type EditorialFeature = {
-  _type: "editorialFeature";
-  eyebrow?: InternationalizedArrayString;
-  title?: InternationalizedArrayString;
-  intro?: InternationalizedArrayText;
-  description?: InternationalizedArrayText;
-  features?: Array<
-    {
-      _key: string;
-    } & BulletText
-  >;
-  cta?: CtaLink;
-  image?: ImageWithAlt;
-  reversed?: boolean;
-};
-
 export type CtaAction = {
   _type: "ctaAction";
   actionKey?: string;
@@ -590,13 +496,6 @@ export type ContentItem = {
   label?: InternationalizedArrayString;
   value?: string;
   copyEnabled?: boolean;
-};
-
-export type CateringMenuItem = {
-  _type: "cateringMenuItem";
-  name?: InternationalizedArrayString;
-  description?: InternationalizedArrayText;
-  image?: ImageWithAlt;
 };
 
 export type BulletText = {
@@ -759,21 +658,16 @@ export type AllSanitySchemaTypes =
   | EventMessages
   | ContactInfo
   | Page
-  | GalleryCollection
-  | Slug
-  | FaqGroup
   | Event
   | ImageWithAlt
-  | CateringMenuCategory
+  | Slug
   | TitledText
   | SocialLink
-  | ServiceHero
   | SanityImageCrop
   | SanityImageHotspot
   | PracticalDetail
   | PageSection
   | PackageTier
-  | NextStepSection
   | NavItem
   | NavChild
   | SanityFileAssetReference
@@ -781,11 +675,8 @@ export type AllSanitySchemaTypes =
   | MediaGalleryItem
   | KeyedString
   | IconCard
-  | FaqItem
-  | EditorialFeature
   | CtaAction
   | ContentItem
-  | CateringMenuItem
   | BulletText
   | BulletParagraph
   | BodyPortableText

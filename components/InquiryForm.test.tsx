@@ -149,7 +149,9 @@ async function fillBooking() {
   await userEvent.type(screen.getByLabelText(/Full Name/), "Jane Doe");
   await userEvent.type(screen.getByLabelText(/Phone number/), "+45 12 34 56 78");
   await userEvent.type(screen.getByLabelText(/^Email/), "jane@example.com");
+  // Package is optional (Phase 7); Event date is required.
   await userEvent.selectOptions(screen.getByLabelText(/Package/), "package0");
+  await userEvent.type(screen.getByLabelText(/Event date/), "2099-01-01");
   await userEvent.type(screen.getByLabelText(/Comment/), "A quiet morning meeting");
 }
 

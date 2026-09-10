@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent, TouchEvent, WheelEvent } from "react";
-import { ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Locale } from "@/lib/i18n";
 import { getUiText } from "@/lib/uiText";
@@ -564,7 +564,7 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
           className="fixed inset-0 z-2000 grid place-items-center overflow-hidden px-6 py-11 max-sm:px-0 max-sm:py-3"
           role="dialog"
           aria-modal="true"
-          aria-label="Media preview"
+          aria-label={getUiText("galleryDialogLabel", locale)}
         >
           {/* Non-interactive backdrop: closes on click, but is never a
               focusable/announced Close command of its own — the visible
@@ -595,9 +595,9 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
               className="gallery-lightbox-close"
               type="button"
               onClick={closeLightbox}
-              aria-label="Close media preview"
+              aria-label={getUiText("galleryClosePreview", locale)}
             >
-              Close
+              <X aria-hidden="true" strokeWidth={2.1} className="h-5 w-5" />
             </button>
             <div
               className="absolute left-1/2 top-5.5 z-4 -translate-x-1/2 rounded-pill bg-[rgba(var(--rgb-dark-brown),0.54)] px-3 py-2 text-[12px] font-black tracking-[0.04em] text-cream"
@@ -609,17 +609,17 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
               className="gallery-lightbox-nav gallery-lightbox-nav-prev"
               type="button"
               onClick={() => moveLightbox(-1)}
-              aria-label="Previous media"
+              aria-label={getUiText("galleryPreviousMedia", locale)}
             >
-              Previous
+              <ChevronLeft aria-hidden="true" strokeWidth={2.1} className="h-6 w-6" />
             </button>
             <button
               className="gallery-lightbox-nav gallery-lightbox-nav-next"
               type="button"
               onClick={() => moveLightbox(1)}
-              aria-label="Next media"
+              aria-label={getUiText("galleryNextMedia", locale)}
             >
-              Next
+              <ChevronRight aria-hidden="true" strokeWidth={2.1} className="h-6 w-6" />
             </button>
             <div className="gallery-lightbox-slider">
               <div className="gallery-lightbox-slide gallery-lightbox-slide-prev">

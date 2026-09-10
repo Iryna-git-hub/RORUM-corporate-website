@@ -14,6 +14,7 @@ import {
 } from "@/components/EventsPaginatedList";
 import type { EventCardMessages } from "@/components/EventCard";
 import type { RorumEvent } from "@/lib/data";
+import { isUpcomingEvent } from "@/lib/eventVisibility";
 import { useLocale } from "@/lib/useLocale";
 
 // ---------------------------------------------------------------------------
@@ -155,6 +156,9 @@ export function EventsClientPage({
 
   const visibleEvents = [...events]
     .filter((event) => {
+      // Phase 3: a past event never appears in the listing, regardless of
+      // the selected date filter — the same shared rule the Home strip uses.
+      if (!isUpcomingEvent(event, now)) return false;
       const eventDate = normalizeDate(event.date);
       if (!eventDate) return false;
       if (dateStart && eventDate < dateStart) return false;

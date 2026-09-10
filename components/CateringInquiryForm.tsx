@@ -167,6 +167,8 @@ export function CateringInquiryForm({
             id="catering-date"
             name="eventDate"
             type="date"
+            required
+            aria-required="true"
             aria-invalid={Boolean(errors.eventDate)}
             aria-describedby={
               errors.eventDate ? "catering-date-error" : undefined

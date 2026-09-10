@@ -94,7 +94,12 @@ const fallback = {
     "WECODA is an international community where ambitious women entrepreneurs, professionals, and leaders connect to exchange knowledge, build meaningful partnerships, and grow together. What makes WECODA unique is our signature concept of Diplomatic Gastronomy—a distinctive approach that brings together business, culture, and international dialogue. We believe that genuine relationships are built through shared experiences, creating an environment where conversations become collaborations and ideas evolve into lasting partnerships.",
     "Through curated networking events, business breakfasts, international forums, educational programs, and cultural initiatives, we create opportunities that extend far beyond traditional networking. Become part of a community where business meets purpose, relationships inspire growth, and every connection opens the door to new possibilities.",
   ],
+  benefitsLabel: "Membership Benefits",
   benefitsTitle: "What You Gain as a Member",
+  // {freepik} / {flaticon} are placeholders for the two attribution links —
+  // the URLs stay in code (see BenefitsAttribution), only the sentence around
+  // them is localized / manager-editable (from `benefitsSection.text`).
+  benefitsAttribution: "Membership icons designed by {freepik} from {flaticon}.",
   applicationTitle: "Application Process",
   applicationCta: "Become a Member",
   seoTitle: "Community Membership | Join RORUM",
@@ -132,6 +137,32 @@ function MembershipButton({ children, variant = "primary", href = fallbackWecoda
 
 type BenefitIndexStyle = CSSProperties & { "--benefit-index": number };
 
+const ICON_ATTRIBUTION_LINKS: Record<"freepik" | "flaticon", { href: string; label: string }> = {
+  freepik: { href: "https://www.flaticon.com/authors/freepik", label: "Freepik" },
+  flaticon: { href: "https://www.flaticon.com/", label: "Flaticon" },
+};
+
+/** Renders a localized icon-attribution sentence, substituting the two link
+ *  placeholders (`{freepik}` / `{flaticon}`) with real anchors whose URLs
+ *  live in code. Any missing placeholder just renders the plain text. */
+function BenefitsAttribution({ template }: { template: string }) {
+  const parts = template.split(/(\{freepik\}|\{flaticon\})/);
+  return (
+    <p className="text-[0.8rem] pt-8">
+      {parts.map((part, i) => {
+        const key = part === "{freepik}" ? "freepik" : part === "{flaticon}" ? "flaticon" : null;
+        if (!key) return <span key={i}>{part}</span>;
+        const link = ICON_ATTRIBUTION_LINKS[key];
+        return (
+          <a key={i} href={link.href} target="_blank" rel="noreferrer" className="hover:text-red">
+            {link.label}
+          </a>
+        );
+      })}
+    </p>
+  );
+}
+
 async function getData(locale: Locale, editable = false) {
   if (!isSanityConfigured) {
     return {
@@ -149,6 +180,9 @@ async function getData(locale: Locale, editable = false) {
       })),
       membershipFormHref: fallbackWecodaFormUrl,
       externalSiteHref: fallbackWecodaExternalUrl,
+      externalSiteEnabled: true,
+      supportCtaEnabled: true,
+      applyCtaEnabled: true,
       donationQrSrc: fallbackWecodaDonationQrSrc,
       donationQrEditAttr: undefined as string | undefined,
       bankFields: defaultBankFields,
@@ -196,7 +230,14 @@ async function getData(locale: Locale, editable = false) {
 
   const applyAction = getAction(heroSection, "apply");
   const membershipFormHref = applyAction?.href || fallbackWecodaFormUrl;
-  const externalSiteHref = getAction(heroSection, "external")?.href || fallbackWecodaExternalUrl;
+  const externalAction = getAction(heroSection, "external");
+  const externalSiteHref = externalAction?.href || fallbackWecodaExternalUrl;
+  // Phase 8: the "Shown on the site" toggle (ctaAction.enabled) on the WECODA
+  // website link now actually controls rendering — every place the link/button
+  // appears is gated on these, and the stored URL/label is kept when hidden.
+  const externalSiteEnabled = externalAction?.enabled !== false;
+  const supportCtaEnabled = getAction(heroSection, "support")?.enabled !== false;
+  const applyCtaEnabled = applyAction?.enabled !== false;
 
   const donationQrSrc =
     urlForImage(donationSection?.media?.[0]?.image as unknown as Parameters<typeof urlForImage>[0])?.width(800).url() ??
@@ -276,7 +317,9 @@ async function getData(locale: Locale, editable = false) {
       pickLocalized(getAction(heroSection, "external")?.label, locale) ?? fallback.externalSiteCta,
     priceStripText:
       pickLocalized(getItem(heroSection, "priceStripText")?.title, locale) ?? fallback.priceStripText,
+    benefitsLabel: pickLocalized(benefitsSection?.label, locale) ?? fallback.benefitsLabel,
     benefitsTitle: pickLocalized(benefitsSection?.title, locale) ?? fallback.benefitsTitle,
+    benefitsAttribution: pickLocalized(benefitsSection?.text, locale) ?? fallback.benefitsAttribution,
     applicationTitle: pickLocalized(applicationSection?.title, locale) ?? fallback.applicationTitle,
     applicationCta:
       pickLocalized(getAction(applicationSection, "apply")?.label, locale) ?? fallback.applicationCta,
@@ -313,6 +356,9 @@ async function getData(locale: Locale, editable = false) {
     applicationSteps,
     membershipFormHref,
     externalSiteHref,
+    externalSiteEnabled,
+    supportCtaEnabled,
+    applyCtaEnabled,
     donationQrSrc,
     donationQrEditAttr,
     bankFields,
@@ -371,28 +417,34 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
               />
             </div>
             <div className="wecoda-hero-actions flex flex-wrap gap-5 items-center max-sm:w-full max-sm:mt-1">
-              <MembershipButton href={data.membershipFormHref}>{data.applicationCta}</MembershipButton>
-              <Button href="#support-wecoda" variant="secondary">
-                {data.supportCta}
-                <ArrowRight
-                  className="button-arrow w-[15px] h-[15px] shrink-0 transition-transform duration-[180ms] ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1"
-                  aria-hidden="true"
-                  strokeWidth={1.9}
-                />
-              </Button>
-              <a
-                className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
-                href={data.externalSiteHref}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {data.externalSiteCta}
-                <ExternalLink
-                  className="wecoda-hero-external-link-icon w-[15px] h-[15px] shrink-0"
-                  aria-hidden="true"
-                  strokeWidth={1.9}
-                />
-              </a>
+              {data.applyCtaEnabled ? (
+                <MembershipButton href={data.membershipFormHref}>{data.applicationCta}</MembershipButton>
+              ) : null}
+              {data.supportCtaEnabled ? (
+                <Button href="#support-wecoda" variant="secondary">
+                  {data.supportCta}
+                  <ArrowRight
+                    className="button-arrow w-[15px] h-[15px] shrink-0 transition-transform duration-[180ms] ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1"
+                    aria-hidden="true"
+                    strokeWidth={1.9}
+                  />
+                </Button>
+              ) : null}
+              {data.externalSiteEnabled ? (
+                <a
+                  className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
+                  href={data.externalSiteHref}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {data.externalSiteCta}
+                  <ExternalLink
+                    className="wecoda-hero-external-link-icon w-[15px] h-[15px] shrink-0"
+                    aria-hidden="true"
+                    strokeWidth={1.9}
+                  />
+                </a>
+              ) : null}
             </div>
           </div>
         </Container>
@@ -439,20 +491,24 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
             ))}
           </div>
           <div className="wecoda-hero-actions flex flex-wrap gap-5 items-center max-sm:w-full max-sm:mt-1">
-            <MembershipButton href={data.membershipFormHref}>{data.applicationCta}</MembershipButton>
-            <a
-              className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
-              href={data.externalSiteHref}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {data.externalSiteCta}
-              <ExternalLink
-                className="wecoda-hero-external-link-icon w-[15px] h-[15px] shrink-0"
-                aria-hidden="true"
-                strokeWidth={1.9}
-              />
-            </a>
+            {data.applyCtaEnabled ? (
+              <MembershipButton href={data.membershipFormHref}>{data.applicationCta}</MembershipButton>
+            ) : null}
+            {data.externalSiteEnabled ? (
+              <a
+                className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
+                href={data.externalSiteHref}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {data.externalSiteCta}
+                <ExternalLink
+                  className="wecoda-hero-external-link-icon w-[15px] h-[15px] shrink-0"
+                  aria-hidden="true"
+                  strokeWidth={1.9}
+                />
+              </a>
+            ) : null}
           </div>
         </Container>
       </section>
@@ -460,7 +516,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
       <section className="section wecoda-benefits-section bg-cream text-text-primary">
         <Container>
           <SectionHeader
-            label="Membership Benefits"
+            label={data.benefitsLabel}
             title={data.benefitsTitle}
             className="mb-[clamp(28px,4vw,42px)]!"
           />
@@ -493,27 +549,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
               </article>
             ))}
           </MembershipBenefitsGrid>
-          <p className="text-[0.8rem] pt-8">
-            Membership icons designed by{" "}
-            <a
-              href="https://www.flaticon.com/authors/freepik"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-red"
-            >
-              Freepik
-            </a>{" "}
-            from{" "}
-            <a
-              href="https://www.flaticon.com/"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-red"
-            >
-              Flaticon
-            </a>
-            .
-          </p>
+          <BenefitsAttribution template={data.benefitsAttribution} />
         </Container>
       </section>
 
@@ -537,27 +573,31 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
                 <p className="wecoda-membership-statement max-w-[42ch] text-[rgba(var(--rgb-cream),0.9)] text-[clamp(1rem,1.3vw,1.12rem)] leading-[1.5]">
                   {data.statementText}
                 </p>
-                <a
-                  className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
-                  href={data.externalSiteHref}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {data.externalSiteCta}
-                  <ExternalLink
-                    className="wecoda-hero-external-link-icon w-[15px] h-[15px] shrink-0"
-                    aria-hidden="true"
-                    strokeWidth={1.9}
-                  />
-                </a>
+                {data.externalSiteEnabled ? (
+                  <a
+                    className="wecoda-hero-external-link inline-flex items-center gap-1.5 w-fit text-[16px] font-bold leading-[1.45] no-underline transition-[color,transform] duration-[0.18s] max-sm:w-full max-sm:justify-center"
+                    href={data.externalSiteHref}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {data.externalSiteCta}
+                    <ExternalLink
+                      className="wecoda-hero-external-link-icon w-[15px] h-[15px] shrink-0"
+                      aria-hidden="true"
+                      strokeWidth={1.9}
+                    />
+                  </a>
+                ) : null}
                 <FAQInlinePrompt
                   className="text-[rgba(var(--rgb-cream),0.72)]!"
                   linkClassName="text-gold!"
                 />
               </div>
-              <div className="wecoda-membership-cta flex justify-center min-w-max max-lg:justify-center max-lg:min-w-0">
-                <MembershipButton variant="red" href={data.membershipFormHref}>{data.applicationCta}</MembershipButton>
-              </div>
+              {data.applyCtaEnabled ? (
+                <div className="wecoda-membership-cta flex justify-center min-w-max max-lg:justify-center max-lg:min-w-0">
+                  <MembershipButton variant="red" href={data.membershipFormHref}>{data.applicationCta}</MembershipButton>
+                </div>
+              ) : null}
             </div>
             <div className="wecoda-application-process grid gap-[18px] pt-[clamp(24px,3vw,34px)]">
               <h4>{data.applicationTitle}</h4>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { draftMode } from "next/headers";
 import type { LucideIcon } from "lucide-react";
 import { isQuickPathHref, QuickPathsGrid, type QuickPathHref } from "@/app/shared";
-import { EventList } from "@/components/EventCard";
+import { EventList, resolveEventCardMessages, type EventCardMessages } from "@/components/EventCard";
 import {
   CommunityTeaserSection,
   EditorialFeatureSection,
@@ -27,11 +27,13 @@ import { isLocale, type Locale } from "@/lib/i18n";
 import { compact, pickLocalized } from "@/lib/sanity-i18n";
 import { getItem, getSection, resolveAction, type RawPageSection, type ResolvedAction } from "@/lib/sanity-sections";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
+import { isUpcomingEvent } from "@/lib/eventVisibility";
 import { isSanityConfigured } from "@/sanity/env";
 import { sanitySectionItemAttr, sanitySectionMediaAttr } from "@/sanity/lib/dataAttr";
 import { urlForFile, urlForImage } from "@/sanity/lib/image";
 import { sanityFetch } from "@/sanity/lib/live";
 import { allEventsQuery } from "@/sanity/queries/events";
+import { eventMessagesQuery } from "@/sanity/queries/globals";
 import { pageByKeyQuery } from "@/sanity/queries/page";
 import {
   ArrowRight,
@@ -43,6 +45,14 @@ import {
   SlidersHorizontal,
   Users,
 } from "lucide-react";
+
+// The Home "Upcoming events" strip is filtered to upcoming events only at
+// request time (Phase 3). Home is otherwise cached until the next build, so
+// without an ISR window a past event would linger in the strip after its day
+// ends. Matches the Events listing page's own `revalidate = 60` so the two
+// surfaces flip a just-past event at the same cadence (see
+// lib/eventVisibility.ts's `isUpcomingEvent` doc comment).
+export const revalidate = 60;
 
 // Fallback only, used when Sanity has no `services[i].image` set yet.
 const serviceImages = ["/images/catering/catering-1.png", "/images/decoration/decoration-1.png"];
@@ -174,11 +184,24 @@ async function getData(locale: Locale, editable = false) {
   // genuinely empty strip, not silently fall back to the hardcoded English
   // static events. The static fallback is only for the case Sanity itself
   // isn't configured at all (see the other branch below).
+  // Phase 3: the Home strip shows UPCOMING events only, via the same shared
+  // `isUpcomingEvent` rule the Events listing uses — a past event can never
+  // appear in one list but not the other. `revalidate` (below) keeps this
+  // fresh without a rebuild.
   const eventsPromise = isSanityConfigured
     ? sanityFetch({ query: allEventsQuery, params: { locale } }).then(({ data }) =>
-        (data ?? []).map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale, editable)),
+        (data ?? [])
+          .map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale, editable))
+          .filter((event) => isUpcomingEvent(event)),
       )
-    : Promise.resolve(staticEvents);
+    : Promise.resolve(staticEvents.filter((event) => isUpcomingEvent(event)));
+
+  // Phase 4: availability copy ("10 spots left" / "Sold out") from the SAME
+  // localized `eventMessages` singleton the Events listing reads — Home used
+  // to render the English default here.
+  const eventCardMessagesPromise: Promise<EventCardMessages | undefined> = isSanityConfigured
+    ? sanityFetch({ query: eventMessagesQuery }).then(({ data }) => resolveEventCardMessages(data?.labels, locale))
+    : Promise.resolve(undefined);
 
   const noAction = (label: string, href: string): ResolvedAction => ({ label, href, target: undefined, rel: undefined });
   const noActionFeature = (fb: typeof fallback.attendFeature | typeof fallback.hostFeature) => ({
@@ -221,6 +244,7 @@ async function getData(locale: Locale, editable = false) {
       services: fallbackServices.map((s) => ({ ...s, editAttr: undefined as string | undefined })),
       communityLinks: fallbackCommunityLinks,
       events: await eventsPromise,
+      eventCardMessages: await eventCardMessagesPromise,
     };
   }
 
@@ -232,9 +256,10 @@ async function getData(locale: Locale, editable = false) {
   // create menu via `sanity.config.ts`'s `newDocumentOptions` — unregistering
   // it globally is a later, cross-page schema-cleanup decision, not part of
   // this Home-only fix.
-  const [{ data: newPage }, events] = await Promise.all([
+  const [{ data: newPage }, events, eventCardMessages] = await Promise.all([
     sanityFetch({ query: pageByKeyQuery, params: { pageKey: "home" } }),
     eventsPromise,
+    eventCardMessagesPromise,
   ]);
 
   const heroSection = getSection(newPage?.sections, "hero");
@@ -463,6 +488,7 @@ async function getData(locale: Locale, editable = false) {
     services,
     communityLinks,
     events,
+    eventCardMessages,
   };
 }
 
@@ -589,7 +615,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               </Button>
             ) : null}
           </div>
-          <EventList events={data.events} variant="scroll" locale={locale} />
+          <EventList events={data.events} variant="scroll" locale={locale} messages={data.eventCardMessages} />
         </Container>
       </Section>
       <EditorialFeatureSection

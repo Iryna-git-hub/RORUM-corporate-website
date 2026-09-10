@@ -4,19 +4,33 @@ import { useFormValue, type ArrayOfObjectsInputProps } from "sanity";
 import { AllLanguagesRows } from "@/sanity/components/AllLanguagesRows";
 import { RoleAwareAllLanguagesInput } from "@/sanity/components/RoleAwareAllLanguagesInput";
 
-function isPageCateringMenuExamples(documentId: string | undefined): boolean {
-  return documentId?.replace(/^drafts\./, "") === "page-catering-menu-examples";
+// Every manager-facing PAGE document (`page-*`, `legalPage-*`) shows explicit
+// English / Danish / Ukrainian inputs on every localized field that wires
+// THIS input (`pageSection.label/title/text`, `contentItem.title/text`,
+// `imageWithAlt.alt`, `ctaAction.label`) — Model B in the Phase 11 spec: all
+// three locales always visible, no "+ Add language", no remove-language, no
+// anonymous-array feel. Scoped by document id, not field, because on a page
+// every one of these fields is manager-facing editorial copy that must exist
+// in all 3 locales — there is no `event`-style `visibleLocales` subset to
+// respect. (SEO fields don't wire this input and stay genuinely per-locale-
+// optional; `mediaItem.alt` has its own always-3-rows input, GalleryMediaAltInput.)
+//
+// `event` is deliberately NOT matched here — it keeps its additive,
+// per-event `visibleLocales` behaviour via EventLocaleAwareInput (the chain
+// below). Global singletons don't wire this input at all.
+function isAlwaysAllLanguagesDoc(documentId: string | undefined): boolean {
+  const id = (documentId ?? "").replace(/^drafts\./, "");
+  return id.startsWith("page-") || id.startsWith("legalPage-");
 }
 
 /**
- * Replacement input for every `internationalizedArrayString`/
- * `internationalizedArrayText` field reachable from
- * `page-catering-menu-examples` (menu category label/title/text, dish
- * title/text, dish image alt) — scoped by a live document-id check, exactly
- * like CateringMenuSectionsInput/CateringOfferItemsInput. Every other
- * document falls through to `EventLocaleAwareInput` (which itself falls
- * through to the plugin's own default input for every non-`event`
- * document), so Home/About/Events/every other Catering page is unaffected.
+ * Replacement input for the `internationalizedArrayString`/
+ * `internationalizedArrayText` fields that wire it when the open document is
+ * a manager-facing page (see `isAlwaysAllLanguagesDoc` above) — every
+ * `page-*` / `legalPage-*` document's section labels/titles/text, item
+ * titles/text, image alt text and CTA button labels render as fixed EN/DA/UK
+ * rows. `event` documents fall through to `EventLocaleAwareInput` (additive
+ * `visibleLocales` behaviour); global singletons don't wire this input.
  *
  * Root cause this fixes: sanity.config.ts's `internationalizedArray` plugin
  * is configured with `defaultLanguages: ["en"]` (site-wide) — a brand-new
@@ -42,7 +56,7 @@ function isPageCateringMenuExamples(documentId: string | undefined): boolean {
 export function CateringAllLanguagesInput(props: ArrayOfObjectsInputProps) {
   const documentId = useFormValue(["_id"]) as string | undefined;
 
-  if (!isPageCateringMenuExamples(documentId)) {
+  if (!isAlwaysAllLanguagesDoc(documentId)) {
     // Chained (not both wired independently) — an internationalizedArray*
     // field can only have one components.input. RoleAwareAllLanguagesInput
     // itself falls through to EventLocaleAwareInput for every unmatched

@@ -187,10 +187,13 @@ export function InquiryForm({
     const formData = new FormData(form);
     const requiredFields: [string, string][] = isBooking
       ? [
-          ["package", messages.packageLabel],
+          // Phase 7: "Package" is optional on the Host at RORUM form — a
+          // visitor who isn't sure yet can still submit. "Event date" is
+          // required (added here + starred + `required` on the input below).
+          ["name", messages.fullNameLabel],
           ["phone", messages.phoneLabel],
           ["email", messages.emailLabel],
-          ["name", messages.fullNameLabel],
+          ["eventDate", messages.eventDateLabel],
           ["message", messages.commentLabel],
         ]
       : [
@@ -205,7 +208,9 @@ export function InquiryForm({
       const guests = String(formData.get("guests") ?? "").trim();
       if (guests) {
         const guestCount = Number(guests);
-        if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > 30) {
+        // Phase 7: RORUM's room holds up to 12 guests — enforced here, on the
+        // input's `max`, and in the localized `guestsRangeMessage` copy.
+        if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > 12) {
           nextErrors.guests = messages.guestsRangeMessage;
         }
       }
@@ -300,14 +305,12 @@ export function InquiryForm({
 
         <div className={FORM_GRID_CLASS}>
           <label htmlFor="booking-package" className={LABEL_CLASS}>
-            {messages.packageLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+            {messages.packageLabel}
             <select
               id="booking-package"
               name="package"
               value={selectedPackage}
               onChange={(event) => setSelectedPackage(event.target.value)}
-              required
-              aria-required="true"
               aria-invalid={Boolean(errors.package)}
               aria-describedby={
                 errors.package ? "booking-package-error" : undefined
@@ -326,13 +329,18 @@ export function InquiryForm({
             <FieldError id="booking-package-error" message={errors.package} />
           </label>
           <label htmlFor="booking-date" className={LABEL_CLASS}>
-            {messages.eventDateLabel}
+            {messages.eventDateLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
             <input
               id="booking-date"
               name="eventDate"
               type="date"
+              required
+              aria-required="true"
+              aria-invalid={Boolean(errors.eventDate)}
+              aria-describedby={errors.eventDate ? "booking-date-error" : undefined}
               className={INPUT_CLASS}
             />
+            <FieldError id="booking-date-error" message={errors.eventDate} />
           </label>
         </div>
 
@@ -353,7 +361,7 @@ export function InquiryForm({
               name="guests"
               type="number"
               min="1"
-              max="30"
+              max="12"
               inputMode="numeric"
               placeholder={messages.guestsPlaceholder}
               aria-invalid={Boolean(errors.guests)}
@@ -483,6 +491,8 @@ export function InquiryForm({
             id={`${type}-date`}
             name="eventDate"
             type="date"
+            required
+            aria-required="true"
             aria-invalid={Boolean(errors.eventDate)}
             aria-describedby={
               errors.eventDate ? `${type}-date-error` : undefined

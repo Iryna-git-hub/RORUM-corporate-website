@@ -3,16 +3,17 @@ import { draftMode } from "next/headers";
 import { Suspense } from "react";
 import { EventsClientPage } from "@/components/EventsClientPage";
 import { defaultEventFilterLabels } from "@/components/EventFilters";
-import { defaultEventCardMessages, type EventCardMessages } from "@/components/EventCard";
+import { defaultEventCardMessages, resolveEventCardMessages, type EventCardMessages } from "@/components/EventCard";
 import { defaultEventsEmptyStateText, type EventsEmptyStateText } from "@/components/EventsPaginatedList";
 import { Container, CTASection, SectionHeader } from "@/components/ui";
 import { events as staticEvents } from "@/lib/data";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
-import { pickLabel, pickLocalized } from "@/lib/sanity-i18n";
+import { pickLocalized } from "@/lib/sanity-i18n";
 import { getAction, getSection } from "@/lib/sanity-sections";
 import { defaultFormMessages, resolveFormMessages } from "@/lib/sanityForms";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
+import { isUpcomingEvent } from "@/lib/eventVisibility";
 import { resolveEventFilterLabels, resolveEventsEmptyStateText, resolveOrderedEventLanguageOptions, resolveOrderedFilterOptions } from "@/lib/eventFilters";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
@@ -55,11 +56,12 @@ function availableEventLanguagesOf(events: { language: string }[]): string[] {
 
 async function getData(locale: Locale, editable = false) {
   if (!isSanityConfigured) {
+    const upcomingStatic = staticEvents.filter((event) => isUpcomingEvent(event));
     return {
       ...fallback,
-      events: staticEvents,
+      events: upcomingStatic,
       filters: defaultEventFilterLabels,
-      languageOptionOrder: resolveOrderedEventLanguageOptions(undefined, locale, availableEventLanguagesOf(staticEvents)),
+      languageOptionOrder: resolveOrderedEventLanguageOptions(undefined, locale, availableEventLanguagesOf(upcomingStatic)),
       faqQuestion: defaultFormMessages.faqQuestion,
       faqLabel: defaultFormMessages.faqLabel,
       eventCardMessages: defaultEventCardMessages,
@@ -81,7 +83,14 @@ async function getData(locale: Locale, editable = false) {
   // An empty result is a real, legitimate state (no event has this locale in
   // its own `visibleLocales`) and must render as the genuine empty-state UI,
   // never silently fall back to the hardcoded English static events.
-  const events = (eventDocs ?? []).map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale, editable));
+  //
+  // Past events are dropped here (Phase 3) via the shared `isUpcomingEvent`
+  // rule so the SSR HTML, the empty state and the filter option lists are all
+  // computed from the same "upcoming only" set the client also enforces live
+  // (see EventsClientPage). `revalidate` (60s, above) keeps this fresh.
+  const events = (eventDocs ?? [])
+    .map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale, editable))
+    .filter((event) => isUpcomingEvent(event));
 
   const messages = resolveFormMessages(formMessagesDoc, locale);
 
@@ -91,23 +100,7 @@ async function getData(locale: Locale, editable = false) {
   const priceOptionOrder = resolveOrderedFilterOptions(filtersSection, locale, "price");
   const availabilityOptionOrder = resolveOrderedFilterOptions(filtersSection, locale, "availability");
 
-  const eventCardMessages: EventCardMessages = {
-    soldOutLabel: pickLabel(eventMessagesDoc?.labels, "soldOutLabel", locale, defaultEventCardMessages.soldOutLabel),
-    spotsLeftOne: pickLabel(eventMessagesDoc?.labels, "spotsLeftOne", locale, defaultEventCardMessages.spotsLeftOne),
-    spotsLeftOther: pickLabel(eventMessagesDoc?.labels, "spotsLeftOther", locale, defaultEventCardMessages.spotsLeftOther),
-    timeToBeAnnouncedLabel: pickLabel(
-      eventMessagesDoc?.labels,
-      "timeToBeAnnouncedLabel",
-      locale,
-      defaultEventCardMessages.timeToBeAnnouncedLabel,
-    ),
-    viewEventAriaPrefix: pickLabel(
-      eventMessagesDoc?.labels,
-      "viewEventAriaPrefix",
-      locale,
-      defaultEventCardMessages.viewEventAriaPrefix,
-    ),
-  };
+  const eventCardMessages: EventCardMessages = resolveEventCardMessages(eventMessagesDoc?.labels, locale);
 
   const emptyState: EventsEmptyStateText = resolveEventsEmptyStateText(filtersSection, locale, defaultEventsEmptyStateText);
 

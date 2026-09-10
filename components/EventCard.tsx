@@ -3,6 +3,7 @@ import { CalendarDays, Clock, TicketCheck, TicketX } from "lucide-react";
 import { Card } from "@/components/ui";
 import type { RorumEvent } from "@/lib/data";
 import { localeTags, type Locale } from "@/lib/i18n";
+import { pickLabel } from "@/lib/sanity-i18n";
 
 export interface EventCardMessages {
   soldOutLabel: string;
@@ -19,6 +20,27 @@ export const defaultEventCardMessages: EventCardMessages = {
   timeToBeAnnouncedLabel: "Time to be announced",
   viewEventAriaPrefix: "View event:",
 };
+
+/**
+ * Resolves the shared `eventMessages` singleton into a localized
+ * `EventCardMessages` — the ONE place this mapping lives, so the Events
+ * listing and the Home "Upcoming events" strip render availability copy
+ * ("10 spots left" / "1 spot left" / "Sold out") from the exact same
+ * localized source (Phase 4). Every key falls back to its English default
+ * when the singleton hasn't been translated yet.
+ */
+export function resolveEventCardMessages(
+  labels: Parameters<typeof pickLabel>[0],
+  locale: Locale,
+): EventCardMessages {
+  return {
+    soldOutLabel: pickLabel(labels, "soldOutLabel", locale, defaultEventCardMessages.soldOutLabel),
+    spotsLeftOne: pickLabel(labels, "spotsLeftOne", locale, defaultEventCardMessages.spotsLeftOne),
+    spotsLeftOther: pickLabel(labels, "spotsLeftOther", locale, defaultEventCardMessages.spotsLeftOther),
+    timeToBeAnnouncedLabel: pickLabel(labels, "timeToBeAnnouncedLabel", locale, defaultEventCardMessages.timeToBeAnnouncedLabel),
+    viewEventAriaPrefix: pickLabel(labels, "viewEventAriaPrefix", locale, defaultEventCardMessages.viewEventAriaPrefix),
+  };
+}
 
 export function EventList({
   events,

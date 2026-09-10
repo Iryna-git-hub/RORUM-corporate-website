@@ -129,10 +129,33 @@ export function EventsFiltersInput(props: ArrayOfObjectsInputProps) {
     );
   }
 
+  // Each group's options rendered in the manager's OWN stored order — read
+  // from `props.members` (the live array order), NOT the static
+  // FILTER_GROUPS definition order. This is the Phase 12 fix: `moveOption`
+  // always emitted a correct reorder patch, but the editor re-rendered the
+  // rows in definition order regardless, so Move up/down looked like it did
+  // nothing. Any of the group's known option keys not yet stored is appended
+  // (in definition order) so a data gap can't drop an option from the editor.
+  const orderedOptionKeysFor = (group: (typeof FILTER_GROUPS)[number]): string[] => {
+    const groupKeys = new Set(group.options.map((o) => o.itemKey));
+    const stored = props.members
+      .map(itemKeyOf)
+      .filter((k): k is string => k !== undefined && groupKeys.has(k));
+    const missing = group.options.map((o) => o.itemKey).filter((k) => !stored.includes(k));
+    // `[...new Set(...)]` — a duplicate stored itemKey (Studio residue, which
+    // audit-page-sections.ts flags separately) must never render two rows for
+    // the same option (React key collision + a second Move control).
+    return [...new Set([...stored, ...missing])];
+  };
+
   return (
     <Stack space={5}>
       {FILTER_GROUPS.map((group) => {
-        const presentOptionKeys = group.options.map((o) => o.itemKey).filter((k) => memberByItemKey.has(k));
+        const orderedOptionKeys = orderedOptionKeysFor(group);
+        const orderedOptions = orderedOptionKeys.map(
+          (key) => group.options.find((o) => o.itemKey === key)!,
+        );
+        const presentOptionKeys = orderedOptionKeys.filter((k) => memberByItemKey.has(k));
         return (
           <Stack key={group.groupKey} space={3}>
             <Text size={1} weight="semibold">
@@ -147,7 +170,7 @@ export function EventsFiltersInput(props: ArrayOfObjectsInputProps) {
               </Stack>
             </Card>
             <Stack space={2}>
-              {group.options.map((option) => {
+              {orderedOptions.map((option) => {
                 const itemKey = option.itemKey;
                 const isPresent = memberByItemKey.has(itemKey);
                 const presentIndex = presentOptionKeys.indexOf(itemKey);

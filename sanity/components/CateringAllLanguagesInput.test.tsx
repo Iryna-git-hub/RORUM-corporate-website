@@ -57,11 +57,30 @@ describe("CateringAllLanguagesInput — scoping", () => {
     expect(screen.getByRole("button", { name: "+ Add English" })).toBeInTheDocument();
   });
 
-  it("a plain page document that is not page-catering-menu-examples falls through to the default input (via EventLocaleAwareInput's own passthrough)", () => {
+  it("EVERY page-* document now shows the fixed EN/DA/UK rows (Phase 11 Model B) — e.g. page-home", () => {
     mockFormValue({ _id: "page-home", _type: "page" });
     const { props } = fakeProps();
     renderInput(props);
-    expect(screen.getByTestId("rendered-default")).toBeInTheDocument();
+    expect(screen.getByText("English")).toBeInTheDocument();
+    expect(screen.getByText("Danish")).toBeInTheDocument();
+    expect(screen.getByText("Ukrainian")).toBeInTheDocument();
+    expect(screen.queryByTestId("rendered-default")).not.toBeInTheDocument();
+  });
+
+  it("legalPage-* documents also show the fixed EN/DA/UK rows", () => {
+    mockFormValue({ _id: "legalPage-terms", _type: "legalPage" });
+    const { props } = fakeProps();
+    renderInput(props);
+    expect(screen.getByText("English")).toBeInTheDocument();
+    expect(screen.getByText("Danish")).toBeInTheDocument();
+    expect(screen.getByText("Ukrainian")).toBeInTheDocument();
+  });
+
+  it("an `event` document still delegates to EventLocaleAwareInput (additive visibleLocales, NOT fixed 3 rows)", () => {
+    mockFormValue({ _id: "some-event-id", _type: "event", visibleLocales: ["en"] });
+    const { props } = fakeProps();
+    renderInput(props);
+    expect(screen.getByRole("button", { name: "+ Add English" })).toBeInTheDocument();
   });
 
   it("page-catering-menu-examples: shows the always-present EN/DA/UK rows, no gating", () => {
@@ -80,6 +99,24 @@ describe("CateringAllLanguagesInput — scoping", () => {
     expect(screen.getByText("English")).toBeInTheDocument();
     expect(screen.getByText("Danish")).toBeInTheDocument();
     expect(screen.getByText("Ukrainian")).toBeInTheDocument();
+  });
+
+  it("page-community-membership (+ its draft): every localized field shows explicit EN/DA/UK rows — no plugin 'Add language' hunt", () => {
+    for (const _id of ["page-community-membership", "drafts.page-community-membership"]) {
+      cleanup();
+      mockFormValue({ _id });
+      const { props } = fakeProps();
+      renderInput(props);
+      for (const lang of ["English", "Danish", "Ukrainian"]) {
+        expect(screen.queryByText(lang), `${_id}: expected an explicit "${lang}" row`).toBeInTheDocument();
+      }
+    }
+  });
+
+  it("ctaAction.label wires this input — so a Community Membership CTA button label also gets the 3 explicit rows", async () => {
+    const ctaActionType = (await import("@/sanity/schemaTypes/objects/ctaAction")).default;
+    const labelField = ctaActionType.fields.find((f) => f.name === "label") as { components?: { input?: unknown } };
+    expect(labelField.components?.input).toBe(CateringAllLanguagesInput);
   });
 });
 

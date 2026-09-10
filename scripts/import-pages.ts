@@ -996,7 +996,7 @@ const formMessages: Doc = {
   guestsPlaceholder: en("Approx. number"),
   additionalServicesLabel: en("Additional services"),
   commentLabel: en("Comment"),
-  guestsRangeMessage: en("Please enter a whole number between 1 and 30."),
+  guestsRangeMessage: en("Please enter a whole number between 1 and 12."),
 };
 
 // ---------------------------------------------------------------------------

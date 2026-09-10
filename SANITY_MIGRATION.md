@@ -1292,6 +1292,96 @@ ESLint (0 errors) / Vitest 615 / `next build` (147 static pages) / `sanity:audit
 
 ---
 
+## 20.17 Phase C — Community Membership localization, page-events draft, legacy cleanup (2026-09-09)
+
+### A. Community Membership localization
+
+**Root cause of the manager's "English-only / raw Add item" complaint:** `RoleAwareAllLanguagesInput`
+only forced the always-EN/DA/UK input for FAQ / Contact / Events roles — every localized field on
+`page-community-membership` fell through to the plugin's English-only default (manager has to
+"+ Add language" twice per field). **Fix:** `CateringAllLanguagesInput` now checks
+`ALWAYS_ALL_LANGUAGES_DOCS` (was a single `page-catering-menu-examples` id) — `page-community-membership`
+added — and it is now also the `components.input` for `ctaAction.label` (so CM's CTA button labels
+get the 3 explicit rows too; every other page's CTA editing chains through to the plugin default
+unchanged). Every localized field on Community Membership now shows explicit English / Danish /
+Ukrainian inputs.
+
+**Content that was English-only (empty in Sanity → hardcoded fallback rendered on /da /uk),
+now EN+DA+UK** (`scripts/backfill-community-membership-donation-copy.ts` — EN written verbatim from
+the existing frontend fallback so English visitors see no change; DA/UK are new):
+donation `label`/`title`/`text`; donation message rows `scanText` / `scanSubtext` / `orText` /
+`bankTransferText` / `bankDetailsTitle` / `supportText`; `intro` `label`/`title`; `gallery`
+`label`/`title`; `benefits` `label`. 14 fields, published only (no draft exists). Bank row VALUES
+untouched (single-source, never localized); bank row LABELS already EN/DA/UK from Part 32.
+
+**Frontend wiring:** the `benefits` section eyebrow "Membership Benefits" was a `.tsx` literal —
+now read from `benefitsSection.label` (allow-list `page-community-membership:benefits` gains
+`label`), fallback-backed. Donation message rows got `fieldLabels` ("Message text" / "Closing
+note") so the field inside each labelled row reads clearly.
+
+### B. `drafts.page-events` filter-order draft — INSPECTED ONLY, not published or discarded
+
+`drafts.page-events` contains **exactly** two filter-option reorders and nothing else
+(`sections` are byte-identical once filter items are sorted by `itemKey` — no text edits, no
+group-order change, no Price/Availability change):
+
+| Group | Published (live) order | Draft order |
+|---|---|---|
+| Date options | Soonest first → This week → This month | This week → This month → Soonest first |
+| Language options | Danish → English → Ukrainian | Ukrainian → English → Danish |
+
+**Recommendation: DISCARD.** "Soonest first" is the natural primary date sort and belongs first;
+the draft reads like an un-published drag experiment, not deliberate editorial work. Left for the
+owner to publish or discard in Studio — **this task did not touch it.**
+
+### C. Legacy cleanup (all read-first-verified, backed up)
+
+- **`event.host`** (35 events): not in `event` schema, grep-verified unread by any frontend/lib/query
+  code. Unset (`scripts/remove-legacy-unknown-fields.ts`). No more "Unknown field found: host".
+- **`formMessages.privacyConsentLabel`**: superseded by `privacyConsentPrefixText` (frontend reads
+  the prefix + a Privacy Policy link, never `privacyConsentLabel`). Unset.
+- **11 orphaned legacy `*Page` drafts** (`drafts.homePage` … `drafts.faqPage`): dead schema types,
+  no published counterpart, each redundant with its `page-*` replacement. Deleted via the existing
+  `sanity:delete-orphaned-legacy-singleton-drafts` (atomic, revision-guarded, backed up).
+- **`sanity.previewUrlSecret` documents**: audited — 0 present in the dataset (these are
+  ephemeral Presentation-tool tokens Sanity auto-expires). Nothing created or deleted here.
+- **6 dead schema TYPES removed outright** — `galleryCollection`, `faqGroup` (+`faqItem`),
+  `cateringMenuCategory` (+`cateringMenuItem`), `serviceHero`, `editorialFeature`, `nextStepSection`:
+  0 live documents, 0 references, never wired to any field (typecheck confirms). Files deleted,
+  `schemaTypes/index.ts` + `sanity.config.ts` create-menu cleaned, `sanity typegen` regenerated
+  (56 → 48 schema types). `ctaLink` now has exactly one consumer (`siteSettings.announcementLink`).
+
+**Result:** `sanity:audit-validation` 0 blocking · `sanity:audit-sections` clean · warning backlog
+cleared (0 events with `host`, 0 `privacyConsentLabel`, 0 legacy `*Page` docs). Typecheck / ESLint
+(0 errors) / Vitest 617 / `next build` (147 pages) / relevant Playwright (incl. new
+`cms-community-membership-contract` + `legacy-schema-cleanup`) all green.
+
+---
+
+## 20.18 Part 35 — event UX, past-event hiding, forms, filter reorder, fixed EN/DA/UK inputs (2026-09-09)
+
+Full detail: **MIGRATION_REPORT.md Part 35.** Studio/CMS-relevant highlights:
+
+- **Fixed EN/DA/UK inputs everywhere (Phase 11B):** `CateringAllLanguagesInput` now renders the
+  3 fixed language rows for **every `page-*` / `legalPage-*` document** (was a 2-id allow-list) —
+  no "+ Add language", no remove-language, on `pageSection`/`contentItem`/`ctaAction`/
+  `imageWithAlt` localized fields. `event` keeps additive `visibleLocales`.
+- **"Add item" role shapes (Phase 6):** the "suitable for" gallery chip + menu-format card
+  `ITEM_ROLE_RULES` patterns are now optional (`/^(suitableFor\d*)?$/` etc.) so a manager-added
+  row gets the sibling shape (icon + EN/DA/UK title), not every generic field.
+- **Events filter reorder (Phase 12):** `EventsFiltersInput` renders option rows in stored order —
+  Move up/down now visibly applies. Frontend resolver unchanged.
+- **"Show on the site" toggle (Phase 8):** `community-membership/page.tsx` now honours
+  `ctaAction.enabled` for the WECODA link / support / apply CTAs.
+- **Studio delete (Phase 1):** `sanity/lib/studioDocumentActions.ts` (unit-tested) — `event` is
+  deletable, singletons / `page` / `legalPage` are not.
+- **Production writes:** 32 event `date`s redistributed to Sept–Oct 2026 (temporary test data);
+  `formMessages.guestsRangeMessage` → "1 and 12"; `page-community-membership` `benefits.text`
+  (icon attribution) + `donation.label` uk restored to "Пожертва". All backed up.
+- **Audit tool:** `sanity:audit-sections` now flags partial EN/DA/UK on page docs (Phase 13).
+
+---
+
 # 21. Shared Components
 
 Audited in §20.3. In-repo shared components and their CMS sources:

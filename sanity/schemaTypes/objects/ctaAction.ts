@@ -1,5 +1,6 @@
 import { defineField, defineType } from "sanity";
 import { requireAllLanguages } from "@/sanity/lib/i18nValidation";
+import { CateringAllLanguagesInput } from "@/sanity/components/CateringAllLanguagesInput";
 
 // The one button/link shape reused inside every page section's `actions[]`.
 export default defineType({
@@ -21,6 +22,13 @@ export default defineType({
       title: "Button text",
       type: "internationalizedArrayString",
       validation: requireAllLanguages(),
+      // Same input as every other localized pageSection/contentItem field:
+      // shows explicit EN/DA/UK rows for documents in ALWAYS_ALL_LANGUAGES_DOCS
+      // (Community Membership, Catering Menu Examples), and chains through to
+      // the plugin default for every other document — so a CM manager gets
+      // clean language inputs on the CTA buttons too, not the "+ Add language"
+      // hunt, while every other page's CTA editing is unchanged.
+      components: { input: CateringAllLanguagesInput },
     }),
     defineField({
       name: "linkType",

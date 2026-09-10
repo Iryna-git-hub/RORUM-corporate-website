@@ -150,7 +150,7 @@ export default defineType({
       name: "guestsRangeMessage",
       title: "Guest-count out-of-range validation message (booking form)",
       type: "internationalizedArrayString",
-      description: 'E.g. "Please enter a whole number between 1 and 30." / Напр. «Будь ласка, введіть ціле число від 1 до 30».',
+      description: 'E.g. "Please enter a whole number between 1 and 12." (RORUM holds up to 12 guests.) / Напр. «Будь ласка, введіть ціле число від 1 до 12».',
     }),
     // The fields above predate this project's Sanity Content-Lake attribute-
     // path cap and were "cheap" when added. Everything below was added later,

@@ -89,6 +89,8 @@ test.describe("Formspree delivery — every form, unconfigured state", () => {
     await page.fill('input[name="phone"]', "+45 12 34 56 78");
     await page.fill('input[name="email"]', "qa@example.com");
     await page.fill('textarea[name="message"]', "Automated delivery-wiring check.");
+    // Event date is required on the booking form (Phase 7); Package is optional.
+    await page.fill('input[name="eventDate"]', "2099-06-01");
     const pkg = page.locator('select[name="package"]');
     await pkg.selectOption({ index: 1 });
     // CMS-driven submit label (e.g. "Submit Hosting Request") — select by type.

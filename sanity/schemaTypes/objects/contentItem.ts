@@ -171,8 +171,16 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
   },
   { role: "Catering hero menu-examples button", sectionKeys: ["hero"], itemKeyPattern: /^menuExamplesCta$/, visible: ["title"] },
   { role: "Catering gallery chip-group aria label", sectionKeys: ["gallery"], itemKeyPattern: /^ariaLabel$/, visible: ["title"] },
-  { role: "Catering \"suitable for\" chip", sectionKeys: ["gallery"], itemKeyPattern: /^suitableFor\d+$/, visible: ["icon", "title"] },
-  { role: "Catering menu format card", sectionKeys: ["menuFormats"], itemKeyPattern: /^format[0-2]$/, visible: ["title", "text", "image"] },
+  // "Suitable for" / "Suitable decoration formats" chip — an icon + a
+  // localized name, shown under Catering's and Event Decoration's galleries.
+  // The `(...)?` makes the whole match optional so a manager-added chip
+  // (generic "Add item" → no itemKey yet) gets the SAME clean icon+title
+  // shape as the existing ones (Phase 6), not every generic contentItem
+  // field. `title` is required (all 3 locales).
+  { role: "Catering / Event Decoration \"suitable for\" chip", sectionKeys: ["gallery"], itemKeyPattern: /^(suitableFor\d*)?$/, visible: ["icon", "title"], requiredFields: ["title"], fieldLabels: { title: "Chip name" } },
+  // Menu format card — icon-grid card with a localized name + short
+  // description + image. `(...)?` so a manager-added card matches too.
+  { role: "Catering menu format card", sectionKeys: ["menuFormats"], itemKeyPattern: /^(format\d*)?$/, visible: ["title", "text", "image"], requiredFields: ["title"] },
   // Shared between Catering's "philosophy" section and Event Decoration's
   // "styling" section — both use the exact same closing note role (title +
   // text, e.g. "Tailored upon request") — one rule, not two near-duplicates.
@@ -393,6 +401,10 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
     sectionKeys: ["donation"],
     itemKeyPattern: /^(scanText|scanSubtext|orText|bankTransferText|bankDetailsTitle)$/,
     visible: ["title"],
+    // The row's own preview names which message this is (ITEM_KEY_PREVIEW_LABELS);
+    // this makes the field inside it read "Message text (English / Danish / Ukrainian)"
+    // instead of a bare "Title".
+    fieldLabels: { title: "Message text" },
   },
   {
     role: "Community Membership donation closing note",
@@ -400,6 +412,7 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
     sectionKeys: ["donation"],
     itemKeyPattern: /^supportText$/,
     visible: ["text"],
+    fieldLabels: { text: "Closing note" },
   },
   // Bank Details — one canonical role for all 9 rows (Beneficiary/CVR/Bank/
   // Account Type/Account No./Reg. No./IBAN/SWIFT-BIC/Currency). Title =

@@ -4,12 +4,9 @@ import type { SchemaTypeDefinition } from "sanity";
 import bodyPortableText from "./objects/bodyPortableText";
 import bulletParagraph from "./objects/bulletParagraph";
 import bulletText from "./objects/bulletText";
-import cateringMenuItem from "./objects/cateringMenuItem";
 import contentItem from "./objects/contentItem";
 import ctaAction from "./objects/ctaAction";
 import ctaLink from "./objects/ctaLink";
-import editorialFeature from "./objects/editorialFeature";
-import faqItem from "./objects/faqItem";
 import iconCard from "./objects/iconCard";
 import imageWithAlt from "./objects/imageWithAlt";
 import keyedString from "./objects/keyedString";
@@ -17,20 +14,15 @@ import mediaGalleryItem from "./objects/mediaGalleryItem";
 import mediaItem from "./objects/mediaItem";
 import navChild from "./objects/navChild";
 import navItem from "./objects/navItem";
-import nextStepSection from "./objects/nextStepSection";
 import packageTier from "./objects/packageTier";
 import pageSection from "./objects/pageSection";
 import practicalDetail from "./objects/practicalDetail";
 import seo from "./objects/seo";
-import serviceHero from "./objects/serviceHero";
 import socialLink from "./objects/socialLink";
 import titledText from "./objects/titledText";
 
 // Structured documents
-import cateringMenuCategory from "./documents/cateringMenuCategory";
 import event from "./documents/event";
-import faqGroup from "./documents/faqGroup";
-import galleryCollection from "./documents/galleryCollection";
 import page from "./documents/page";
 
 // Global singletons. (The old per-page singletons — homePage, aboutPage,
@@ -38,6 +30,13 @@ import page from "./documents/page";
 // document type; see MIGRATION_REPORT.md Parts 16–17 and the R8 cleanup in
 // SANITY_MIGRATION.md §20.8. Their production documents were already gone; this
 // pass removed the now-dead schema types, queries and fallback fetches too.)
+//
+// Part 34 (MIGRATION_REPORT.md) also removed the last superseded standalone
+// document/object types — `galleryCollection`, `faqGroup` (+`faqItem`),
+// `cateringMenuCategory` (+`cateringMenuItem`), `serviceHero`,
+// `editorialFeature`, `nextStepSection`: 0 live documents, 0 references, never
+// wired to any field. Galleries / FAQ categories / menu categories are all
+// `pageSection`s on the relevant `page` document now.
 import contactInfo from "./singletons/contactInfo";
 import eventMessages from "./singletons/eventMessages";
 import footer from "./singletons/footer";
@@ -52,12 +51,9 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   bodyPortableText,
   bulletParagraph,
   bulletText,
-  cateringMenuItem,
   contentItem,
   ctaAction,
   ctaLink,
-  editorialFeature,
-  faqItem,
   iconCard,
   imageWithAlt,
   keyedString,
@@ -65,19 +61,14 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   mediaItem,
   navChild,
   navItem,
-  nextStepSection,
   packageTier,
   pageSection,
   practicalDetail,
   seo,
-  serviceHero,
   socialLink,
   titledText,
   // Structured documents
-  cateringMenuCategory,
   event,
-  faqGroup,
-  galleryCollection,
   page,
   // Global singletons
   contactInfo,
