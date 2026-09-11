@@ -15,6 +15,7 @@ import { getSeoSiteDefaults } from "@/lib/siteSettings";
 import { isLocale, localeTags, type Locale } from "@/lib/i18n";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
 import { isEventVisibleInLocale } from "@/lib/eventVisibility";
+import { applyBillettoAvailabilityToEvent } from "@/lib/eventAvailability";
 import { formatDuration, type EventDuration } from "@/lib/eventDuration";
 import { getEventLanguageLabel } from "@/lib/eventLanguage";
 import { getUiText } from "@/lib/uiText";
@@ -150,8 +151,10 @@ async function getEvent(slug: string, locale: Locale, editable = false): Promise
     }
     const { data: doc } = await sanityFetch({ query: eventBySlugQuery, params: { slug } });
     if (!doc) return staticEvents.find((event) => event.slug === slug);
-    const event = sanityEventToRorumEvent(doc as SanityEventLike, locale, editable);
-    return isEventVisibleInLocale(event, locale) ? event : undefined;
+    const mapped = sanityEventToRorumEvent(doc as SanityEventLike, locale, editable);
+    if (!isEventVisibleInLocale(mapped, locale)) return undefined;
+    // Billetto-connected events: resolve live availability (Phase 9).
+    return applyBillettoAvailabilityToEvent(mapped);
 }
 
 // Danish and Ukrainian weekday/date strings come back lowercase from
@@ -509,10 +512,14 @@ export default async function EventDetailPage({
     const description = event.longDescription ?? event.fullDescription ?? event.description ?? fallbackDescription;
     const expectations = event.whatToExpect?.length ? event.whatToExpect : fallbackExpectations;
     const imageAlt = event.imageAlt ?? `${event.title} ${messages.eventImageAriaSuffix}`;
+    // `spotsLeft` is the resolved number (Billetto live value for a connected
+    // event, else the manual Sanity `ticketsLeft`); `null`/undefined ⇒ show
+    // no availability line (e.g. Billetto temporarily unreachable).
+    const resolvedSpots = typeof event.spotsLeft === "number" ? event.spotsLeft : event.ticketsLeft;
     const availability = event.isSoldOut
         ? <span className="inline-flex items-center w-fit min-h-6.5 px-2.5 py-1.25 rounded-pill text-sm leading-tight font-normal bg-[rgba(var(--rgb-red),0.1)] text-accent">{messages.soldOutLabel}</span>
-        : typeof event.ticketsLeft === "number"
-          ? `${event.ticketsLeft} ${event.ticketsLeft === 1 ? messages.spotsLeftOne : messages.spotsLeftOther}`
+        : typeof resolvedSpots === "number"
+          ? `${resolvedSpots} ${resolvedSpots === 1 ? messages.spotsLeftOne : messages.spotsLeftOther}`
           : null;
     const structuredDataImage = event.image ? (/^https?:\/\//.test(event.image) ? event.image : `${siteUrl}${event.image}`) : undefined;
 

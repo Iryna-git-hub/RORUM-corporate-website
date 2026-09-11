@@ -1382,6 +1382,29 @@ Full detail: **MIGRATION_REPORT.md Part 35.** Studio/CMS-relevant highlights:
 
 ---
 
+## 20.19 Part 36 — Billetto ticketing integration (2026-09-11)
+
+Full detail: **MIGRATION_REPORT.md Part 36** + **`BILLETTO_TICKETING.md`** (manager + dev guide).
+Studio/CMS-relevant:
+
+- **New `event` field `billettoEventUrl`** (string). Paste the Billetto event page URL — ticket
+  availability then updates automatically from the Billetto API; the numeric event id is derived
+  in code, never a manager field.
+- **`ticketUrl` / `ticketsLeft` / `isSoldOut` are hidden** on a Billetto-connected event (a valid
+  URL — a typo doesn't hide them). `BillettoTicketNotice` shows a green "managed automatically"
+  card. `ticketUrl` empty ⇒ the Billetto link is the "Buy ticket" destination.
+- **`ticketButtonLabel` now has an `initialValue`** — EN "Buy Ticket" / DA "Køb billet" / UK
+  "Купити квиток" (the wording already in `eventMessages.buyTicketLabel`). New events only;
+  existing custom labels untouched.
+- **Credentials** (`BILLETTO_API_KEY_ID` / `BILLETTO_ACCESS_KEY_SECRET`) are server-only env,
+  configured once in hosting, never per event, never `NEXT_PUBLIC`. Verified absent from the
+  client bundle + rendered HTML.
+- **Production write:** ONE event connected (`event-ddc618d18d7c` / `floral-mood-workshop` →
+  Billetto test event 1994849) via `sanity:connect-test-event-billetto` (backed up).
+- Audits: `sanity:audit-validation` 0 blocking, `sanity:audit-sections` clean.
+
+---
+
 # 21. Shared Components
 
 Audited in §20.3. In-repo shared components and their CMS sources:

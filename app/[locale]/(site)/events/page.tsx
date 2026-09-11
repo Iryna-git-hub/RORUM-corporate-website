@@ -14,6 +14,7 @@ import { getAction, getSection } from "@/lib/sanity-sections";
 import { defaultFormMessages, resolveFormMessages } from "@/lib/sanityForms";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
 import { isUpcomingEvent } from "@/lib/eventVisibility";
+import { applyBillettoAvailability } from "@/lib/eventAvailability";
 import { resolveEventFilterLabels, resolveEventsEmptyStateText, resolveOrderedEventLanguageOptions, resolveOrderedFilterOptions } from "@/lib/eventFilters";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
@@ -88,9 +89,11 @@ async function getData(locale: Locale, editable = false) {
   // rule so the SSR HTML, the empty state and the filter option lists are all
   // computed from the same "upcoming only" set the client also enforces live
   // (see EventsClientPage). `revalidate` (60s, above) keeps this fresh.
-  const events = (eventDocs ?? [])
-    .map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale, editable))
-    .filter((event) => isUpcomingEvent(event));
+  const events = await applyBillettoAvailability(
+    (eventDocs ?? [])
+      .map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale, editable))
+      .filter((event) => isUpcomingEvent(event)),
+  );
 
   const messages = resolveFormMessages(formMessagesDoc, locale);
 

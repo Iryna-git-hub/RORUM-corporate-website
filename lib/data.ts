@@ -211,6 +211,12 @@ export interface RorumEvent {
   // see components/EventShare.tsx.
   shareActions: ShareAction[];
   ticketUrl: string;
+  // The event's Billetto page URL, when the manager has connected it. When
+  // set, ticket availability is resolved live from the Billetto API
+  // (lib/eventAvailability.ts) instead of the manual `ticketsLeft` /
+  // `isSoldOut` fields, and this URL is also the Buy-ticket destination.
+  // Undefined for legacy / non-Billetto events.
+  billettoEventUrl?: string;
   calendarUrl: string;
   waitlistUrl: string;
   isSoldOut: boolean;

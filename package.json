@@ -154,6 +154,9 @@
     "sanity:backfill-cm-icon-attribution": "tsx --env-file=.env.local scripts/backfill-cm-icon-attribution.ts --apply",
     "sanity:redistribute-test-event-dates:dry-run": "tsx --env-file=.env.local scripts/redistribute-test-event-dates.ts",
     "sanity:redistribute-test-event-dates": "tsx --env-file=.env.local scripts/redistribute-test-event-dates.ts --apply",
+    "sanity:connect-test-event-billetto:dry-run": "tsx --env-file=.env.local scripts/connect-test-event-billetto.ts",
+    "sanity:connect-test-event-billetto": "tsx --env-file=.env.local scripts/connect-test-event-billetto.ts --apply",
+    "billetto:verify-live": "tsx --env-file=.env.local scripts/verify-billetto-live.ts",
     "sanity:repair-validation-integrity:dry-run": "tsx --env-file=.env.local scripts/repair-validation-integrity.ts",
     "sanity:repair-validation-integrity": "tsx --env-file=.env.local scripts/repair-validation-integrity.ts --apply"
   },

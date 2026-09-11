@@ -369,3 +369,85 @@ test.describe("Structural completeness — every published event document", () =
     }
   });
 });
+
+// ── Billetto ticketing integration (Part 36) ────────────────────────────────
+// The NUMBER is live from Billetto (not asserted to a fixed value — it
+// changes when the owner adjusts capacity); the CONTRACT is: no 500, the
+// buy-ticket destination is the Billetto link, and any availability shown is
+// localized (never English wording on /da /uk, never a bare misleading "0").
+const LOCALIZED_SPOTS = {
+  en: /^\d+ spots? left$/i,
+  da: /^\d+ (plads tilbage|pladser tilbage)$/,
+  uk: /^\d+ (місце залишилось|місць залишилось)$/,
+} as const;
+const LOCALIZED_SOLD_OUT = { en: /sold ?out/i, da: /udsolgt/i, uk: /розпродано/i } as const;
+
+test.describe("Billetto-connected events (Part 36)", () => {
+  test.skip(
+    !process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || !process.env.NEXT_PUBLIC_SANITY_DATASET,
+    "Sanity not configured in this environment",
+  );
+
+  let connected: { slug: string; billettoEventUrl: string; date: string } | null = null;
+
+  test.beforeAll(async () => {
+    connected = await sanity.fetch(
+      `*[_type == "event" && defined(billettoEventUrl) && "en" in visibleLocales] | order(date asc)[0]{
+        "slug": slug.current, billettoEventUrl, date
+      }`,
+    );
+  });
+
+  test("at least one event is connected to Billetto (the integration test event)", () => {
+    expect(connected?.slug, "expected a Billetto-connected event in the dataset").toBeTruthy();
+    expect(connected!.billettoEventUrl).toMatch(/billetto\.[a-z.]+\/e\/.*\d+/);
+  });
+
+  for (const locale of ["en", "da", "uk"] as const) {
+    test(`[${locale}] the connected event detail page renders (no 500 from Billetto) and its Buy-ticket button points at the Billetto link`, async ({ page }) => {
+      test.skip(!connected, "no connected event");
+      const response = await page.goto(localizedHref(`/events/${connected!.slug}`, locale));
+      expect(response?.status(), "connected event detail must never 500 because of Billetto").toBe(200);
+
+      // Buy-ticket CTA — either a real link to the Billetto page, or a
+      // disabled "sold out" / "coming soon" button. It must never link
+      // anywhere other than the connected Billetto URL.
+      const ticketLink = page.locator('a[target="_blank"]', { hasText: /ticket|billet|квиток/i }).first();
+      if (await ticketLink.count()) {
+        const href = await ticketLink.getAttribute("href");
+        expect(href).toContain("/e/");
+        expect(href).toContain("billetto.");
+      }
+
+      // Availability, if shown anywhere on the page, must be localized — no
+      // English "spots left" leaking onto a non-English page.
+      if (locale !== "en") {
+        const bodyText = (await page.locator("body").innerText()).toLowerCase();
+        expect(bodyText.match(/\d+ spots? left/), `no English "spots left" on /${locale}`).toBeNull();
+      }
+    });
+
+    test(`[${locale}] the connected event's listing card shows availability that is a number+localized unit OR the localized Sold out — never English, never a bare "0 …"`, async ({ page }) => {
+      test.skip(!connected, "no connected event");
+      test.skip(connected!.date < new Date().toISOString().slice(0, 10), "connected test event is in the past — not on the listing");
+      await page.goto(localizedHref("/events", locale));
+      const card = page.locator(`a[href$="/events/${connected!.slug}"]`).first();
+      await expect(card).toBeVisible();
+      const cardText = (await card.innerText()).trim();
+
+      // Extract the availability line if the card shows one.
+      const line = cardText.split("\n").map((l) => l.trim()).find(
+        (l) => LOCALIZED_SPOTS[locale].test(l) || LOCALIZED_SOLD_OUT[locale].test(l),
+      );
+      if (line) {
+        const okShape = LOCALIZED_SPOTS[locale].test(line) || LOCALIZED_SOLD_OUT[locale].test(line);
+        expect(okShape, `availability line "${line}" must be localized number+unit or the localized Sold out`).toBe(true);
+        expect(line, 'must not be a bare "0 …"').not.toMatch(/^0 /);
+      }
+      // and never English wording on a non-English locale
+      if (locale !== "en") {
+        expect(cardText).not.toMatch(/\d+ spots? left/i);
+      }
+    });
+  }
+});

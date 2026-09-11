@@ -20,6 +20,12 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),
+      // `server-only` is a build-time marker Next.js aliases to a no-op for
+      // Server Components (and a throwing stub for Client Components). Next
+      // handles it during `next build`; Vitest just needs it to resolve, so
+      // point it at the same no-op Next uses server-side. The real
+      // server/client boundary is still enforced by `next build`.
+      "server-only": path.resolve(__dirname, "node_modules/next/dist/compiled/server-only/empty.js"),
     },
   },
 });

@@ -273,6 +273,7 @@ export type Event = {
     _type: "shareAction";
     _key: string;
   }>;
+  billettoEventUrl?: string;
   ticketUrl?: string;
   ticketButtonLabel?: InternationalizedArrayString;
   calendarUrl?: string;
@@ -740,6 +741,7 @@ export type AllEventsQueryResult = Array<{
     _type: "shareAction";
     _key: string;
   }>;
+  billettoEventUrl?: string;
   ticketUrl?: string;
   ticketButtonLabel?: InternationalizedArrayString;
   calendarUrl?: string;
@@ -804,6 +806,7 @@ export type EventBySlugQueryResult = {
     _type: "shareAction";
     _key: string;
   }>;
+  billettoEventUrl?: string;
   ticketUrl?: string;
   ticketButtonLabel?: InternationalizedArrayString;
   calendarUrl?: string;

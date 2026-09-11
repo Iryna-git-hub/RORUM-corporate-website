@@ -44,6 +44,7 @@ export interface SanityEventLike {
   ticketProviderInfo?: { label?: Localized; value?: Localized } | null;
   shareSettings?: { type?: string | null; label?: Localized; enabled?: boolean | null }[] | null;
   ticketUrl?: string | null;
+  billettoEventUrl?: string | null;
   ticketButtonLabel?: Localized;
   calendarUrl?: string | null;
   waitlistUrl?: string | null;
@@ -143,7 +144,13 @@ export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale, ed
     arrival,
     ticketProviderInfo,
     shareActions,
-    ticketUrl: doc.ticketUrl ?? fallback?.ticketUrl ?? "",
+    // A Billetto-connected event's buy destination is its Billetto link
+    // (filled in by lib/eventAvailability.ts) — so DON'T let the static
+    // fallback's own `ticketUrl` (often the generic "https://billetto.dk/"
+    // placeholder) leak in and win over it. Non-connected events keep the
+    // existing fallback behaviour.
+    ticketUrl: doc.ticketUrl ?? (doc.billettoEventUrl?.trim() ? "" : fallback?.ticketUrl) ?? "",
+    billettoEventUrl: doc.billettoEventUrl?.trim() || undefined,
     ticketButtonLabel: pickLocalized(doc.ticketButtonLabel, locale) ?? fallback?.ticketButtonLabel,
     calendarUrl: doc.calendarUrl ?? fallback?.calendarUrl ?? "",
     waitlistUrl: doc.waitlistUrl ?? fallback?.waitlistUrl ?? "",

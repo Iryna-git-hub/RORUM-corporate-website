@@ -2676,3 +2676,114 @@ has no uploaded OG image asset (fails on a clean checkout too; owner content tas
   batch — Part 34-session residue, not touched here). It differs from published `page-work-with-us`
   in `sections[hero].items[hero0].text` and top-level `seo` — a real unpublished edit. Owner
   should publish or discard it.
+
+---
+
+## Part 36 — Billetto ticketing integration: automatic ticket availability (2026-09-11)
+
+Ticket availability (Home "Upcoming events", Events listing, event detail) is now read **live
+from the Billetto API** for events the manager connects by pasting a Billetto event URL. Manual
+`ticketsLeft` / `isSoldOut` become the fallback for non-connected events only. Full manager +
+developer guide: **`BILLETTO_TICKETING.md`**.
+
+### Architecture
+
+| Piece | File | Notes |
+|---|---|---|
+| URL → numeric id | `lib/billettoUrl.ts` | Pure (no `server-only`), so the Studio validation callback + tests share it. Accepts `…/e/<slug>-billetter-<id>` and the bare `…/e/<slug>-<id>` (`public_url`) form, UTM query, scheme-less / all-caps paste. `isBillettoHost` requires `billetto` to be the **registrable domain** (`billetto.dk`, `www.billetto.dk`, `billetto.co.uk`, `shop.billetto.com`) — rejects `billetto.evil.com`, `billetto.dk.attacker.io`, `notbilletto.dk` (review MEDIUM-1). |
+| Server-only API client | `lib/billetto.ts` | `import "server-only"`. Header `Api-Keypair: ${BILLETTO_API_KEY_ID}:${BILLETTO_ACCESS_KEY_SECRET}` built here, never logged/returned. `GET /api/v3/organiser/events/{id}`. Every failure → `{ ok: false, reason }` (`no-credentials`/`not-found`/`unauthorized`/`rate-limited`/`server-error`/`network`/`malformed`) — never throws. 5s timeout, **no retries**, `next: { revalidate: 90, tags: ["billetto-event-<id>"] }`. |
+| Availability resolver | `lib/eventAvailability.ts` | `applyBillettoAvailability(events)` — one Billetto call per **distinct event id** (deduped, `Promise.all`), even across different URL strings for the same event. Connected + healthy → live `spotsLeft`/`ticketsLeft`/`isSoldOut` (`available === 0`) + the Billetto link as `ticketUrl`. Connected + **failed** → `spotsLeft`/`ticketsLeft` cleared, `isSoldOut` false (never a false "0"/"Sold out"), CTA kept. Non-connected → unchanged. |
+| Studio field | `event.ts` `billettoEventUrl` (string) | Custom validation → "Enter a valid Billetto event URL." `ticketUrl` / `ticketsLeft` / `isSoldOut` gain `hidden: isBillettoConnected(document)` (only when the URL is *valid* — a typo doesn't silently drop the manual source). `components: { field: BillettoTicketNotice }` shows a green "managed automatically by Billetto" card. |
+| Studio notice | `sanity/components/BillettoTicketNotice.tsx` | |
+| New-event Buy Ticket default | `event.ts` `ticketButtonLabel` `initialValue` | EN "Buy Ticket" / DA "Køb billet" / UK "Купити квиток" — the exact wording already in `eventMessages.buyTicketLabel`. `initialValue` only, so existing custom labels are untouched; all 3 present ⇒ no `allOrNothingForSelectedEventLocales` blocker. |
+
+### Wiring
+
+`sanityEventToRorumEvent` carries `billettoEventUrl` through and stops the static-fallback
+`ticketUrl` from leaking in for a connected event. Home / Events-listing / Event-detail `getData`
+each `await applyBillettoAvailability(...)`. `EventCard` already read `spotsLeft` first; event
+detail's availability row now reads `spotsLeft ?? ticketsLeft`. GROQ unchanged (full-doc fetch).
+`sanity:typegen` regenerated (`billettoEventUrl` on `Event` + the 2 event query result types).
+
+### Caching / rate limiting
+
+Per-event endpoint, cached 90s (fetch cache) + deduped by id. Currently 1 connected event, so
+1 Billetto request per ~90s regardless of how many cards render it. Page `revalidate = 60` (events
+listing + Home, Part 35) + Billetto `revalidate = 90` ⇒ a capacity change is visible in
+≤ ~150s + Billetto's own ~2 min propagation. `429` → `rate-limited`, no retry.
+
+### Failure UX (documented decision — Phase 15)
+
+A connected event whose Billetto fetch fails (down / 429 / bad URL / no credentials / malformed):
+**no availability indicator**, Buy-ticket CTA kept (pointing at the Billetto link). Next's fetch
+cache already serves the last-good value for the revalidate window; a hard failure past that shows
+nothing rather than a false "0 spots left" / "Sold out". Server logs a name-only diagnostic.
+
+### Draft Mode / Presentation (Phase 14)
+
+`billettoEventUrl` is a plain string — editable + previewable in Studio / Draft Mode / Presentation
+like any field. A draft URL change → `sanityFetch` (draft-aware) → resolver fetches Billetto for
+the draft URL → preview shows draft availability. Credentials are server-only env, never a Sanity
+field, so nothing reaches Visual Editing / stega. Verified: `draft-mode` spec green.
+
+### Production data
+
+**Two field-scoped writes, one event** (`event-ddc618d18d7c` / `floral-mood-workshop`), both backed
+up + `ifRevisionId`-guarded, no other event touched:
+1. `sanity:connect-test-event-billetto` — the owner had already pasted the Billetto share URL into
+   `ticketUrl`; moved it to `billettoEventUrl`, unset `ticketUrl`. Backup
+   `scripts/backups/connect-test-event-billetto-*.json`.
+2. Cleared this event's pre-existing **malformed** custom `ticketButtonLabel` (da `"kob bilet"`,
+   uk `"купити"` — junk from earlier testing, not editorial intent) so its Buy-ticket button falls
+   back to the approved `eventMessages.buyTicketLabel` ("Køb billet" / "Купити квиток"). Backup
+   `scripts/backups/test-event-junk-label-*.json`. (Review LOW-7.)
+
+### Security (Phase 16 — verified)
+
+`grep` of the whole repo: `BILLETTO_API_KEY_ID` / `BILLETTO_ACCESS_KEY_SECRET` appear only in
+`lib/billetto.ts` (+ its test + the opt-in verify script). No `NEXT_PUBLIC_BILLETTO`. No client
+component imports `lib/billetto` / `lib/eventAvailability` (and `import "server-only"` would fail
+the build if one did). Built-output scan of `.next/static` + `.next/server`: **zero** occurrences
+of the credential values. `.env.local` git-ignored. `Api-Keypair` header built server-side, never
+logged.
+
+### Live verification (Phase 18)
+
+`npm run billetto:verify-live` on a running local server — Billetto API `available=6 status=high`;
+site rendered `/en` "6 spots left", `/da` "6 pladser tilbage", `/uk` "6 місць залишилось". The
+number from Billetto, the wording from `eventMessages`.
+
+### Green
+
+typecheck · ESLint 0 errors (9 pre-existing warnings) · Vitest **671** (46 Billetto-specific:
+`lib/billettoUrl` 10, `lib/billetto` 14, `lib/eventAvailability` 8, `components/EventCard` 11 +
+the schema/contract specs) · `next build` 144 pages exit 0 · `sanity:audit-validation` 0 blocking ·
+`sanity:audit-sections` clean · Playwright **634 passed** (`billetto-integration`, `cms-events-contract`
+incl. new Billetto block, `cms-home-contract`, `locale`, `draft-mode`, `interactions`,
+`sanity-schema-visibility`, `sanity`). Pre-existing unrelated: `cms-catering-contract` SEO-ogImage
+(3, not run this pass), visual drift on 5 untouched pages (Part 35).
+
+### `vitest.config.ts`
+
+Added a `server-only` → `next/dist/compiled/server-only/empty.js` alias (the no-op Next uses
+server-side) so Vitest can resolve `lib/billetto.ts`. The real server/client boundary is still
+enforced by `next build`.
+
+### Independent review — SHIP WITH NITS
+
+0 HIGH. Reviewer independently confirmed source-of-truth, dedup/no-N+1, no-retry, server-only
+credentials (grep + `.next` scan + rendered-HTML scan = 0 hits), the failure UX (forced a real
+credential-less rebuild → 200, no availability, no false "Sold out", CTA kept), legacy events
+untouched, EN/DA/UK live-verified (`available=6` → "6 spots left" / "6 pladser tilbage" / "6
+місць залишилось"), Draft Mode, and green audits/tests/build.
+
+| # | Finding | Resolution |
+|---|---|---|
+| MEDIUM-1 | `isBillettoHost` regex accepted `billetto.evil.com` (subdomain look-alike) — the pasted URL would become the public Buy-ticket href | **Fixed** — `isBillettoHost` now requires `billetto` to be the registrable domain; 6 look-alike cases added to `lib/billettoUrl.test.ts` |
+| LOW-2 | `no-credentials` warn said "fall back to manual availability" (actually shows nothing) | **Fixed** — message corrected |
+| LOW-3 | `/e/` path match was case-sensitive (all-caps paste rejected) | **Fixed** — path lower-cased; test added |
+| LOW-4 | `resolveSanityAvailability` + 2 types were dead exports | **Removed** (+ their test) |
+| LOW-5 | failure-loop test omitted `unauthorized` / `server-error` | **Added** |
+| LOW-6 | per-event `tag` set but nothing `revalidateTag`s it | Comment clarified — intentional, for a future Billetto webhook |
+| LOW-7 | test event's malformed live `ticketButtonLabel` | **Cleared** (backed up) — see Production data |
+| LOW-8 | cold-build can issue ~3 uncached Billetto calls before the fetch cache warms | Noted — negligible for rate limits |

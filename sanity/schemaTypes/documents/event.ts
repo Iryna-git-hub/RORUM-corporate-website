@@ -7,6 +7,13 @@ import {
 } from "@/sanity/lib/i18nValidation";
 import { EventLocalizedFieldNotice } from "@/sanity/components/EventLocalizedFieldNotice";
 import { EventLocaleAwareInput } from "@/sanity/components/EventLocaleAwareInput";
+import { BillettoTicketNotice } from "@/sanity/components/BillettoTicketNotice";
+import { isBillettoEventUrl } from "@/lib/billettoUrl";
+
+/** True once the document has a recognised Billetto event link — availability then comes from Billetto, not the manual fields. */
+function isBillettoConnected(document: unknown): boolean {
+  return isBillettoEventUrl((document as { billettoEventUrl?: string } | undefined)?.billettoEventUrl);
+}
 
 const WEBSITE_LOCALE_OPTIONS = [
   { title: "English", value: "en" },
@@ -422,18 +429,43 @@ export default defineType({
 
     // --- 12. Ticket link & button --------------------------------------------
     defineField({
+      name: "billettoEventUrl",
+      title: "Billetto event link",
+      type: "string",
+      fieldset: "ticketSection",
+      description:
+        "Paste the event's Billetto page URL (e.g. https://billetto.dk/e/my-event-billetter-1234567). " +
+        "Ticket availability then updates automatically from Billetto — you do not fill in \"Tickets left\" or " +
+        '"Sold out". This link is also used as the "Buy ticket" button. / Вставте посилання на сторінку події в ' +
+        "Billetto — наявність квитків оновлюватиметься автоматично.",
+      components: { field: BillettoTicketNotice },
+      validation: (rule) =>
+        rule.custom((value) => {
+          if (!value || !String(value).trim()) return true; // optional
+          return isBillettoEventUrl(String(value)) ? true : "Enter a valid Billetto event URL.";
+        }),
+    }),
+    defineField({
       name: "ticketUrl",
       title: "Ticket purchase URL",
       type: "url",
       fieldset: "ticketSection",
-      description: "Where guests buy tickets. / Куди веде посилання для купівлі квитків.",
+      description:
+        "Where guests buy tickets. Leave empty for a Billetto-connected event — the Billetto link above is used. / " +
+        "Куди веде посилання для купівлі квитків. Залиште порожнім для події, підключеної до Billetto.",
+      hidden: ({ document }) => isBillettoConnected(document),
     }),
     defineField({
       name: "ticketButtonLabel",
       title: "Ticket button text",
       type: "internationalizedArrayString",
       fieldset: "ticketSection",
-      description: 'Optional override for the ticket button\'s text — defaults to "Buy Ticket" when empty. If used, must be filled in for every selected website language. / Необов\'язковий текст кнопки квитків — за замовчуванням «Buy Ticket», якщо не заповнено. Якщо заповнено, має бути заповнено для кожної обраної мови сайту.',
+      description: 'Optional override for the ticket button\'s text — new events start with "Buy Ticket" / "Køb billet" / "Купити квиток". If used, must be filled in for every selected website language. / Необов\'язковий текст кнопки квитків. Якщо заповнено, має бути заповнено для кожної обраної мови сайту.',
+      initialValue: [
+        localizedStringValue("en", "Buy Ticket"),
+        localizedStringValue("da", "Køb billet"),
+        localizedStringValue("uk", "Купити квиток"),
+      ],
       components: { input: EventLocaleAwareInput },
       validation: allOrNothingForSelectedEventLocales(),
     }),
@@ -459,7 +491,10 @@ export default defineType({
       title: "Tickets left",
       type: "number",
       fieldset: "ticketSection",
-      description: "Number of tickets remaining, if shown. / Кількість квитків, що залишилися (якщо показується).",
+      description:
+        "Number of tickets remaining, if shown. Hidden for a Billetto-connected event — Billetto is the source. / " +
+        "Кількість квитків, що залишилися. Приховано для події, підключеної до Billetto.",
+      hidden: ({ document }) => isBillettoConnected(document),
       validation: (rule) => rule.min(0),
     }),
     defineField({
@@ -468,7 +503,10 @@ export default defineType({
       type: "boolean",
       fieldset: "ticketSection",
       initialValue: false,
-      description: "Mark the event as sold out. / Позначити подію як розпродану.",
+      description:
+        "Mark the event as sold out. Hidden for a Billetto-connected event — sold-out is derived from Billetto " +
+        "(available = 0). / Позначити подію як розпродану. Приховано для події, підключеної до Billetto.",
+      hidden: ({ document }) => isBillettoConnected(document),
     }),
 
     // --- 13. SEO ----------------------------------------------------------------

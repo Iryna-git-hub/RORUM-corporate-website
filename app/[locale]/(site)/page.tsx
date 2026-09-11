@@ -28,6 +28,7 @@ import { compact, pickLocalized } from "@/lib/sanity-i18n";
 import { getItem, getSection, resolveAction, type RawPageSection, type ResolvedAction } from "@/lib/sanity-sections";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
 import { isUpcomingEvent } from "@/lib/eventVisibility";
+import { applyBillettoAvailability } from "@/lib/eventAvailability";
 import { isSanityConfigured } from "@/sanity/env";
 import { sanitySectionItemAttr, sanitySectionMediaAttr } from "@/sanity/lib/dataAttr";
 import { urlForFile, urlForImage } from "@/sanity/lib/image";
@@ -190,9 +191,11 @@ async function getData(locale: Locale, editable = false) {
   // fresh without a rebuild.
   const eventsPromise = isSanityConfigured
     ? sanityFetch({ query: allEventsQuery, params: { locale } }).then(({ data }) =>
-        (data ?? [])
-          .map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale, editable))
-          .filter((event) => isUpcomingEvent(event)),
+        applyBillettoAvailability(
+          (data ?? [])
+            .map((doc) => sanityEventToRorumEvent(doc as SanityEventLike, locale, editable))
+            .filter((event) => isUpcomingEvent(event)),
+        ),
       )
     : Promise.resolve(staticEvents.filter((event) => isUpcomingEvent(event)));
 
