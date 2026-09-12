@@ -1412,18 +1412,57 @@ button.btn,
 }
 .gallery-lightbox-slide img {
   user-select: none;
-  pointer-events: none;
+  /* The dialog content box (dialogContentRef) is pointer-events:none so a
+     click/tap in its empty gutters/cells falls through to the real backdrop
+     div beneath and closes the Lightbox (see dialogContentRef's own comment
+     in HorizontalGallery.tsx). The visible image itself must opt back into
+     hit-testing so a click/tap directly ON the photo is swallowed here (no
+     onClick handler is attached) instead of also falling through and
+     closing — "click on image does nothing" stays true either way. */
+  pointer-events: auto;
 }
+/* The prev/next preview slides are visually de-emphasized (scaled down,
+   dimmed) rather than removed: at >=640px they stay a genuine visible
+   preview, so their own <img> inherits `pointer-events: auto` from the
+   base rule above like any other slide image — clicking that dimmed
+   preview is swallowed there (no onClick handler) rather than falling
+   through to the backdrop, same "content belonging to the Lightbox, not
+   backdrop" contract as the active image. Only at <=639px does their
+   CONTAINER go fully invisible (opacity:0; pointer-events:none) — and an
+   invisible neighbor <img>, sized by the mobile-only `max-width:
+   calc(100vw - 24px)` rule, can still render nearly full-viewport-width
+   and silently swallow taps meant for the real backdrop. That mobile-only
+   override (pointer-events: none on the neighbor slides' own <img>) lives
+   in the `@media (max-width: 639px)` block below, alongside the container
+   rule it pairs with — not here, since here it would also apply at
+   >=640px and make the visible preview click-through to the backdrop
+   instead of swallowing the tap. */
 /* Neutral letterboxing surface for a contained video — never an image. */
 .gallery-lightbox-slide video {
   background: rgb(var(--rgb-dark-brown));
 }
 /* Only the active slide's video is interactive (real controls); the
    previous/next preview slides render a silent, aria-hidden frame (see
-   NeighborVideoPreview) and must never intercept a click/swipe. */
+   NeighborVideoPreview) and must never intercept a click/swipe. At >=640px
+   the neighbor slide is a genuine visible preview (same as a neighbor
+   <img> — see that rule's own comment above), so its video must swallow a
+   click on itself (pointer-events: auto, no handler attached) rather than
+   falling through dialogContentRef's pointer-events:none cascade to the
+   real backdrop and closing the Lightbox. The <=639px case — where the
+   neighbor is fully invisible but can still render oversized (same
+   mobile-only `max-width: calc(100vw - 24px)` rule the neighbor <img>
+   is sized by, a few lines down) — is handled by the scoped override
+   inside the `@media (max-width: 639px)` block below, mirroring the
+   neighbor-image fix exactly. */
 .gallery-lightbox-slide-prev video,
 .gallery-lightbox-slide-next video {
-  pointer-events: none;
+  pointer-events: auto;
+}
+/* Native controls on the active video must stay interactive at every
+   breakpoint now that dialogContentRef (and everything it inherits into,
+   including this slide) is pointer-events:none by default. */
+.gallery-lightbox-slide-active video {
+  pointer-events: auto;
 }
 @media (min-width: 1024px) {
   .gallery-lightbox-slide-active {
@@ -1469,6 +1508,10 @@ button.btn,
   background: rgba(var(--rgb-cream), 0.12);
   color: var(--color-surface-light);
   cursor: pointer;
+  /* dialogContentRef is pointer-events:none (see .gallery-lightbox-slide
+     img's own comment) — the Close button must opt back in to stay
+     clickable/tappable. */
+  pointer-events: auto;
 }
 .gallery-lightbox-close {
   top: 22px;
@@ -1497,6 +1540,9 @@ button.btn,
   color: var(--color-cream);
   transform: translateY(-50%);
   cursor: pointer;
+  /* dialogContentRef is pointer-events:none (see .gallery-lightbox-slide
+     img's own comment) — Previous/Next must opt back in to stay clickable. */
+  pointer-events: auto;
 }
 .gallery-lightbox-nav-prev {
   left: 22px;
@@ -2514,6 +2560,24 @@ button.btn,
     pointer-events: none;
     transform: scale(0.9);
   }
+  /* At this width the neighbor slide is fully invisible (above), but the
+     base (unscoped) rules re-enabling pointer-events on every slide's own
+     <img>/<video> (see their own comments a few hundred lines up) still
+     reach the neighbor slides' media too — and that media is sized by the
+     mobile-only `max-width: calc(100vw - 24px)` rule a few lines down, so
+     an invisible neighbor photo/video can render at nearly full viewport
+     width and silently swallow taps meant for the real backdrop around the
+     visible active image. Scoped to this breakpoint only — at >=640px the
+     neighbor preview IS visible and must keep swallowing a tap on itself
+     (see the base rules' own comments), so this must NOT apply there.
+     Equal selector specificity to the base rules, but this wins when both
+     match (mobile) because it is later in the stylesheet. */
+  .gallery-lightbox-slide-prev img,
+  .gallery-lightbox-slide-next img,
+  .gallery-lightbox-slide-prev video,
+  .gallery-lightbox-slide-next video {
+    pointer-events: none;
+  }
   .gallery-lightbox-slide-active {
     width: 100%;
   }
@@ -2524,6 +2588,9 @@ button.btn,
   }
   .gallery-lightbox-nav {
     background: rgba(var(--rgb-dark-brown), 0.58);
+    /* Mobile relies on swipe (and tap-backdrop / tap-X) to navigate/close —
+       the Previous/Next buttons are a desktop/tablet-only control. */
+    display: none;
   }
   .gallery-lightbox-nav-prev {
     left: 8px;

@@ -200,17 +200,34 @@ test("Lightbox active slide — the video's pointer-events remain enabled (contr
   expect(pointerEvents).not.toBe("none");
 });
 
-test("Lightbox neighbor (prev/next) slide — the video's pointer-events are disabled (never interactive, never intercepts a swipe)", async ({ page }) => {
-  await page.setContent(
-    withGlobalsCss(`
+// At >=640px the neighbor slide is a genuine VISIBLE preview (scaled down,
+// dimmed — not backdrop), so its video must swallow a click on itself
+// (pointer-events: auto, it has no handler so this is still a no-op)
+// rather than falling through dialogContentRef's pointer-events:none
+// cascade to the real backdrop and closing the Lightbox — same "content
+// belonging to the Lightbox, not backdrop" contract as the neighbor <img>
+// (see that rule's own comment in app/globals.css). Only at <=639px, where
+// the neighbor is fully invisible but can still render oversized (the
+// mobile-only `max-width: calc(100vw - 24px)` rule), must it actually fall
+// through — handled by a scoped override in that breakpoint's media query.
+for (const width of [1440, 375] as const) {
+  test(`Lightbox neighbor (prev/next) slide @${width}px — the video's pointer-events are ${width >= 640 ? "enabled (swallows a click on the visible preview, never reaches the backdrop)" : "disabled (invisible at this width, must fall through to the real backdrop)"}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.setContent(
+      withGlobalsCss(`
   <div class="gallery-lightbox-slider">
     <div class="gallery-lightbox-slide gallery-lightbox-slide-next" id="next-slide">
       <video src="/clip.mp4" playsinline preload="metadata" tabindex="-1" aria-hidden="true" class="horizontal-gallery-video-preview"></video>
     </div>
   </div>`),
-  );
-  await page.addStyleTag({ content: globalsCss });
+    );
+    await page.addStyleTag({ content: globalsCss });
 
-  const pointerEvents = await page.locator("#next-slide video").evaluate((el) => getComputedStyle(el).pointerEvents);
-  expect(pointerEvents).toBe("none");
-});
+    const pointerEvents = await page
+      .locator("#next-slide video")
+      .evaluate((el) => getComputedStyle(el).pointerEvents);
+    expect(pointerEvents).toBe(width >= 640 ? "auto" : "none");
+  });
+}

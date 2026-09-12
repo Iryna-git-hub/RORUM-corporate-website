@@ -11,7 +11,7 @@
 // ever shows, loads, or requests a separate poster/thumbnail image at any
 // point, in any context.
 import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, createEvent, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { HorizontalGallery, type HorizontalGalleryItem } from "./HorizontalGallery";
@@ -353,26 +353,135 @@ describe("HorizontalGallery — playback lifecycle (explicit pause on every exit
   });
 });
 
-describe("HorizontalGallery — gesture guard (video controls never trigger a swipe/navigate)", () => {
-  it("a mousedown+mouseup drag gesture starting ON the active video does not navigate the Lightbox", async () => {
-    render(<HorizontalGallery items={[video1, photo1]} />);
-    await openVideoLightbox();
-    const dialog = screen.getByRole("dialog");
-    const activeVideo = dialog.querySelector(".gallery-lightbox-slide-active video")!;
-    const slider = dialog.querySelector(".gallery-lightbox-slider")!.parentElement!;
-    fireEvent.mouseDown(activeVideo, { clientX: 500 });
-    fireEvent.mouseUp(slider, { clientX: 300 });
-    expect(getLightboxCounterText()).toBe("1 / 2");
-  });
-
-  it("a mousedown+mouseup drag gesture starting OUTSIDE the video still navigates normally (regression)", async () => {
+describe("HorizontalGallery — gesture guard (mouse-drag and wheel navigation removed; touch swipe is the only gesture)", () => {
+  // Desktop/laptop contract: mouse drag must NEVER navigate the Lightbox
+  // any more (this used to be the "regression" test locking IN mouse-drag
+  // navigation — it now proves the opposite, current contract). The mouse
+  // handlers (onMouseDown/onMouseUp/onMouseLeave) were removed entirely, so
+  // this also implicitly proves no stray navigation occurs from a mouse
+  // gesture regardless of where it starts.
+  it("a mousedown+mouseup drag gesture on the Lightbox content does NOT navigate (mouse-drag removed)", async () => {
     render(<HorizontalGallery items={[photo1, photo2]} />);
     await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
     const dialog = screen.getByRole("dialog");
     const slider = dialog.querySelector(".gallery-lightbox-slider")!.parentElement!;
     fireEvent.mouseDown(slider, { clientX: 500 });
     fireEvent.mouseUp(slider, { clientX: 300 });
-    expect(screen.getByText("2 / 2")).toBeInTheDocument();
+    expect(getLightboxCounterText()).toBe("1 / 2");
+  });
+
+  // Trackpad/wheel horizontal-delta navigation was removed entirely
+  // (onWheel/handleWheel deleted) — a large horizontal wheel delta must be
+  // a no-op now, on both images and (implicitly, since the handler no
+  // longer exists at all) videos.
+  it("a wheel event with a large horizontal delta does NOT navigate the Lightbox", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    const dialog = screen.getByRole("dialog");
+    const slider = dialog.querySelector(".gallery-lightbox-slider")!.parentElement!;
+    fireEvent.wheel(slider, { deltaX: 120, deltaY: 0 });
+    expect(getLightboxCounterText()).toBe("1 / 2");
+  });
+
+  it("a touchstart+touchend swipe left (end clientX < start clientX) navigates to the next slide", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    const dialog = screen.getByRole("dialog");
+    const slider = dialog.querySelector(".gallery-lightbox-slider")!.parentElement!;
+    fireEvent.touchStart(slider, { touches: [{ clientX: 500 }] });
+    fireEvent.touchEnd(slider, { changedTouches: [{ clientX: 300 }] });
+    expect(getLightboxCounterText()).toBe("2 / 2");
+  });
+
+  it("a touchstart+touchend swipe right (end clientX > start clientX) navigates to the previous slide", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    await userEvent.click(screen.getByRole("button", { name: "Next media" }));
+    expect(getLightboxCounterText()).toBe("2 / 2");
+    const dialog = screen.getByRole("dialog");
+    const slider = dialog.querySelector(".gallery-lightbox-slider")!.parentElement!;
+    fireEvent.touchStart(slider, { touches: [{ clientX: 300 }] });
+    fireEvent.touchEnd(slider, { changedTouches: [{ clientX: 500 }] });
+    expect(getLightboxCounterText()).toBe("1 / 2");
+  });
+
+  it("a touch delta under the 42px threshold does NOT navigate", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    const dialog = screen.getByRole("dialog");
+    const slider = dialog.querySelector(".gallery-lightbox-slider")!.parentElement!;
+    fireEvent.touchStart(slider, { touches: [{ clientX: 500 }] });
+    fireEvent.touchEnd(slider, { changedTouches: [{ clientX: 470 }] }); // 30px, under the 42px threshold
+    expect(getLightboxCounterText()).toBe("1 / 2");
+  });
+
+  it("a touch swipe gesture starting ON the active video does not navigate the Lightbox", async () => {
+    render(<HorizontalGallery items={[video1, photo1]} />);
+    await openVideoLightbox();
+    const dialog = screen.getByRole("dialog");
+    const activeVideo = dialog.querySelector(".gallery-lightbox-slide-active video")!;
+    const slider = dialog.querySelector(".gallery-lightbox-slider")!.parentElement!;
+    fireEvent.touchStart(activeVideo, { touches: [{ clientX: 500 }] });
+    fireEvent.touchEnd(slider, { changedTouches: [{ clientX: 300 }] });
+    expect(getLightboxCounterText()).toBe("1 / 2");
+  });
+
+  // A gesture interrupted by the OS/browser (incoming call, system gesture,
+  // notification) fires a native touchcancel instead of touchend — without
+  // a listener resetting the drag-start ref, it would stay at the
+  // interrupted gesture's stale start position. A later touch that starts
+  // ON the active video is guarded in onTouchStart (handleDragStart never
+  // runs, so it never overwrites the stale ref), but onTouchEnd has no such
+  // guard — proving the reset actually happens on touchcancel, not just
+  // incidentally via a later touchstart.
+  it("a touchcancel resets the drag state so a later touch starting on the video does not navigate off a stale position", async () => {
+    render(<HorizontalGallery items={[video1, photo1]} />);
+    await openVideoLightbox();
+    const dialog = screen.getByRole("dialog");
+    const activeVideo = dialog.querySelector(".gallery-lightbox-slide-active video")!;
+    const slider = dialog.querySelector(".gallery-lightbox-slider")!.parentElement!;
+    fireEvent.touchStart(slider, { touches: [{ clientX: 500 }] });
+    fireEvent.touchCancel(slider, { changedTouches: [{ clientX: 500 }] });
+    fireEvent.touchStart(activeVideo, { touches: [{ clientX: 500 }] });
+    fireEvent.touchEnd(slider, { changedTouches: [{ clientX: 100 }] }); // 400px away from the stale 500 start
+    expect(getLightboxCounterText()).toBe("1 / 2");
+  });
+
+  // Mobile browsers synthesize a compatibility click at the touch's
+  // RELEASE coordinates when touchend goes unprevented — landing on the
+  // backdrop (behind the centered content box) it would close the Lightbox
+  // immediately after a swipe just navigated. preventDefault() must be
+  // called only on the branch where a real swipe clears the 42px threshold
+  // — never for a sub-threshold tap, which must keep producing its normal
+  // click (e.g. on Close/Prev/Next).
+  it("preventDefault is called on a threshold-clearing swipe but not on a sub-threshold tap", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    const dialog = screen.getByRole("dialog");
+    const slider = dialog.querySelector(".gallery-lightbox-slider")!.parentElement!;
+
+    fireEvent.touchStart(slider, { touches: [{ clientX: 500 }] });
+    const swipeEndEvent = createEvent.touchEnd(slider, { changedTouches: [{ clientX: 300 }] });
+    const swipePreventDefault = vi.spyOn(swipeEndEvent, "preventDefault");
+    fireEvent(slider, swipeEndEvent);
+    expect(swipePreventDefault).toHaveBeenCalled();
+    expect(getLightboxCounterText()).toBe("2 / 2");
+
+    fireEvent.touchStart(slider, { touches: [{ clientX: 500 }] });
+    const tapEndEvent = createEvent.touchEnd(slider, { changedTouches: [{ clientX: 480 }] }); // 20px, under the 42px threshold
+    const tapPreventDefault = vi.spyOn(tapEndEvent, "preventDefault");
+    fireEvent(slider, tapEndEvent);
+    expect(tapPreventDefault).not.toHaveBeenCalled();
+  });
+
+  it("clicking directly on the active image does not close the Lightbox and does not navigate", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    const dialog = screen.getByRole("dialog");
+    const activeImage = dialog.querySelector(".gallery-lightbox-slide-active img")!;
+    await userEvent.click(activeImage);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(getLightboxCounterText()).toBe("1 / 2");
   });
 });
 
@@ -527,6 +636,51 @@ describe("HorizontalGallery — duplicate Close control fix (backdrop is non-int
     const dialog = screen.getByRole("dialog");
     const activeSlide = dialog.querySelector(".gallery-lightbox-slide-active")!;
     await userEvent.click(activeSlide);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+});
+
+describe("HorizontalGallery — Lightbox backdrop click-through gutters (pointer-events architecture)", () => {
+  // jsdom does not perform real layout/hit-testing, so a true "click at a
+  // coordinate lands on element X" test belongs in Playwright
+  // (tests/interactions.spec.ts). At the unit-test layer it's enough to
+  // assert the pointer-events contract is wired onto the right elements:
+  // dialogContentRef itself is pointer-events-none (so its empty layout
+  // gutters fall through to the real backdrop underneath), and every
+  // genuinely interactive descendant opts back in.
+  it("the dialog content box carries pointer-events-none", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    const dialog = screen.getByRole("dialog");
+    const contentBox = dialog.querySelector(".gallery-lightbox-slider")!.parentElement!;
+    expect(contentBox.className).toMatch(/(?:^|\s)pointer-events-none(?:\s|$)/);
+  });
+
+  it("the counter badge carries pointer-events-auto (content belonging to the dialog, not the backdrop)", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    expect(getLightboxCounterText()).toBe("1 / 2");
+    const badge = screen.getByRole("dialog").querySelector('[aria-live="polite"]')!;
+    expect(badge.className).toMatch(/(?:^|\s)pointer-events-auto(?:\s|$)/);
+  });
+
+  it("Close and Previous/Next stay clickable despite the pointer-events-none ancestor (jsdom fireEvent bypasses real hit-testing, but the handlers must still be wired)", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    await userEvent.click(screen.getByRole("button", { name: "Next media" }));
+    expect(getLightboxCounterText()).toBe("2 / 2");
+    await userEvent.click(screen.getByRole("button", { name: "Previous media" }));
+    expect(getLightboxCounterText()).toBe("1 / 2");
+    await userEvent.click(getLightboxCloseButton());
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("clicking directly on the active image still does not close the Lightbox (image opts back into pointer-events, but has no click handler)", async () => {
+    render(<HorizontalGallery items={[photo1, photo2]} />);
+    await userEvent.click(screen.getByRole("button", { name: "Open gallery image 1" }));
+    const dialog = screen.getByRole("dialog");
+    const activeImage = dialog.querySelector(".gallery-lightbox-slide-active img")!;
+    await userEvent.click(activeImage);
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 });

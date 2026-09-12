@@ -1,6 +1,6 @@
 "use client";
 
-import type { MouseEvent, TouchEvent, WheelEvent } from "react";
+import type { TouchEvent } from "react";
 import { ChevronLeft, ChevronRight, Play, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Locale } from "@/lib/i18n";
@@ -202,7 +202,7 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
 
   // The single canonical ordered (photo + video) set — drives EVERYTHING:
   // main-track order/counter, Lightbox index/counter, Previous/Next,
-  // Arrow/swipe/wheel navigation, and the Lightbox's previous/active/next
+  // Arrow/swipe navigation, and the Lightbox's previous/active/next
   // previews. There is deliberately no second, photo-only array to keep in
   // sync with this one — `lightboxIndex` always refers to a position in
   // THIS array.
@@ -327,7 +327,7 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
   const moveLightbox = useCallback(
     (direction: number) => {
       // Stops playback on every exit path that funnels through here
-      // (Previous/Next buttons, swipe, wheel, ArrowLeft/ArrowRight) —
+      // (Previous/Next buttons, swipe, ArrowLeft/ArrowRight) —
       // called unconditionally (not just when the outgoing slide was a
       // video) since pausing a non-playing element is a harmless no-op.
       activeLightboxVideoRef.current?.pause();
@@ -347,23 +347,36 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
     dragStartRef.current = clientX;
   }
 
-  function handleDragEnd(clientX: number) {
+  // `event` is optional and only used to suppress the post-swipe ghost
+  // click (see the call site's own comment) — it must stay untouched for a
+  // sub-threshold tap so a tap's own synthetic click (e.g. on Close/Prev/
+  // Next) still fires normally.
+  function handleDragEnd(clientX: number, event?: TouchEvent<HTMLDivElement>) {
     if (dragStartRef.current === null) return;
     const deltaX = clientX - dragStartRef.current;
     dragStartRef.current = null;
     if (Math.abs(deltaX) < 42) return;
+    // A real swipe is about to navigate — without this, mobile browsers
+    // synthesize a compatibility click at the touch's RELEASE coordinates
+    // once this touchend goes unprevented. If the finger lifted past the
+    // edge of the content box (over the backdrop, e.g. on a tablet-width
+    // viewport or the mobile `py-3` gutter), that ghost click lands on the
+    // backdrop and closes the Lightbox immediately after the swipe
+    // navigated. Scoped to this branch only — a sub-threshold tap must
+    // still produce its normal click.
+    event?.preventDefault();
     moveLightbox(deltaX < 0 ? 1 : -1);
   }
 
-  function handleWheel(event: WheelEvent<HTMLDivElement>) {
-    if (isInteractiveMediaTarget(event.target)) return;
-    if (
-      Math.abs(event.deltaX) <= Math.abs(event.deltaY) ||
-      Math.abs(event.deltaX) < 32
-    )
-      return;
-    event.preventDefault();
-    moveLightbox(event.deltaX > 0 ? 1 : -1);
+  // A gesture interrupted by the OS/browser (incoming call, system gesture,
+  // notification — fires a native touchcancel) must not leave
+  // `dragStartRef` pointing at a stale start position: a later touch that
+  // starts on the active video (guarded in onTouchStart below, so
+  // handleDragStart never runs to overwrite it) still reaches the
+  // unguarded onTouchEnd on release, which would otherwise compute a delta
+  // against this stale coordinate.
+  function handleDragCancel() {
+    dragStartRef.current = null;
   }
 
   useEffect(() => {
@@ -386,9 +399,21 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
       if (event.key === "Tab") {
         const root = dialogContentRef.current;
         if (!root) return;
+        // Filter out elements the mobile stylesheet hides with `display:
+        // none` (e.g. .gallery-lightbox-nav at <=639px, see globals.css) —
+        // the selector above matches them by markup alone, but a real Tab
+        // press never focuses a display:none element (browsers skip it in
+        // native tab order), so an unfiltered `last`/`first` could point at
+        // an element focus can never actually land on, letting Tab escape
+        // the dialog. Checks the element's OWN computed `display` (not
+        // `offsetParent`, which is also null for position:fixed elements
+        // like .gallery-lightbox-close, and would wrongly exclude it) —
+        // sufficient for the current CSS, where `.gallery-lightbox-nav`
+        // is hidden directly rather than via a hidden ancestor; it would
+        // need to walk ancestors too if that ever changed.
         const focusable = Array.from(
           root.querySelectorAll<HTMLElement>('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'),
-        );
+        ).filter((el) => window.getComputedStyle(el).display !== "none");
         if (focusable.length === 0) return;
         const first = focusable[0]!;
         const last = focusable[focusable.length - 1]!;
@@ -574,21 +599,26 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
           <div className="absolute inset-0 bg-black/68" onClick={closeLightbox} aria-hidden="true" />
           <div
             ref={dialogContentRef}
-            className="relative z-1 grid h-[min(calc(100dvh-88px),720px)] w-[min(1320px,100%)] cursor-grab touch-pan-y place-items-center overflow-hidden active:cursor-grabbing max-sm:h-[min(calc(100dvh-112px),620px)] max-sm:w-screen max-sm:grid-cols-1 max-sm:overflow-visible"
+            // pointer-events-none: this box (and, via CSS inheritance, its
+            // layout-only descendants — .gallery-lightbox-slider and
+            // .gallery-lightbox-slide) spans the full backdrop on most
+            // viewport widths, so without this its empty gutters/cells would
+            // swallow clicks/taps that should fall through to the backdrop
+            // div and close the Lightbox. Every genuinely interactive
+            // descendant (Close, Prev/Next, the active <video>, the visible
+            // <img>, the counter badge) opts back in with pointer-events:
+            // auto (see app/globals.css and this pill's own className
+            // below) — see dialogContentRef's own onTouchStart/onTouchEnd
+            // comment for why this doesn't affect swipe.
+            className="pointer-events-none relative z-1 grid h-[min(calc(100dvh-88px),720px)] w-[min(1320px,100%)] touch-pan-y place-items-center overflow-hidden max-sm:h-[min(calc(100dvh-112px),620px)] max-sm:w-screen max-sm:grid-cols-1 max-sm:overflow-visible"
             onTouchStart={(event: TouchEvent<HTMLDivElement>) => {
               if (isInteractiveMediaTarget(event.target)) return;
               handleDragStart(event.touches[0]?.clientX ?? 0);
             }}
             onTouchEnd={(event: TouchEvent<HTMLDivElement>) =>
-              handleDragEnd(event.changedTouches[0]?.clientX ?? 0)
+              handleDragEnd(event.changedTouches[0]?.clientX ?? 0, event)
             }
-            onMouseDown={(event: MouseEvent<HTMLDivElement>) => {
-              if (isInteractiveMediaTarget(event.target)) return;
-              handleDragStart(event.clientX);
-            }}
-            onMouseUp={(event: MouseEvent<HTMLDivElement>) => handleDragEnd(event.clientX)}
-            onMouseLeave={(event: MouseEvent<HTMLDivElement>) => handleDragEnd(event.clientX)}
-            onWheel={handleWheel}
+            onTouchCancel={handleDragCancel}
           >
             <button
               ref={closeButtonRef}
@@ -600,7 +630,7 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
               <X aria-hidden="true" strokeWidth={2.1} className="h-5 w-5" />
             </button>
             <div
-              className="absolute left-1/2 top-5.5 z-4 -translate-x-1/2 rounded-pill bg-[rgba(var(--rgb-dark-brown),0.54)] px-3 py-2 text-[12px] font-black tracking-[0.04em] text-cream"
+              className="pointer-events-auto absolute left-1/2 top-5.5 z-4 -translate-x-1/2 rounded-pill bg-[rgba(var(--rgb-dark-brown),0.54)] px-3 py-2 text-[12px] font-black tracking-[0.04em] text-cream"
               aria-live="polite"
             >
               {safeLightboxIndex + 1} / {availableItems.length}
