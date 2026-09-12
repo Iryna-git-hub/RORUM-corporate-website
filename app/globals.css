@@ -521,7 +521,7 @@ button.btn,
   color: var(--color-red);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -911,7 +911,7 @@ button.btn,
   padding: 0;
   color: var(--color-gold);
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1.2;
   letter-spacing: 0.06em;
 }
@@ -921,7 +921,7 @@ button.btn,
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(16px, 1.2vw, 18px);
   line-height: 1.25;
-  font-weight: 900;
+  font-weight: 800;
 }
 .wecoda-application-steps p {
   margin: 0;
@@ -2184,7 +2184,7 @@ button.btn,
   color: var(--color-white);
   cursor: pointer;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1;
   text-transform: uppercase;
   transition:

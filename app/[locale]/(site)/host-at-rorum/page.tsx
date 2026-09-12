@@ -388,7 +388,7 @@ export default async function HostAtRorumPage({ params }: { params: Promise<{ lo
                 </div>
               </div>
               <div className="grid gap-3 mt-[clamp(6px,1.2vw,10px)] pt-[clamp(12px,1.6vw,18px)] border-t border-t-[rgba(var(--rgb-beige),0.68)]">
-                <h3 className="m-0 font-body text-light-green text-xs leading-[1.2] font-black tracking-[0.08em] uppercase">
+                <h3 className="m-0 font-body text-light-green text-xs leading-[1.2] font-extrabold tracking-[0.08em] uppercase">
                   {data.optionalLabel}
                 </h3>
                 <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-y-[clamp(10px,1.5vw,14px)] gap-x-[clamp(16px,2vw,24px)]">
@@ -471,7 +471,7 @@ export default async function HostAtRorumPage({ params }: { params: Promise<{ lo
             ctaLabel={data.selectPackageCta}
           />
           <div className="grid gap-2.5 max-w-230 mt-[clamp(26px,4vw,44px)] pt-0 border-t-0">
-            <p className="m-0 text-white text-[15px] leading-[1.7] font-black">
+            <p className="m-0 text-white text-[15px] leading-[1.7] font-extrabold">
               {data.cancellationTitle}
             </p>
             <ul className="grid gap-1.5 m-0 pl-4.5 list-disc text-white text-[15px] leading-[1.55]">
@@ -502,11 +502,11 @@ export default async function HostAtRorumPage({ params }: { params: Promise<{ lo
                     className="grid grid-cols-[42px_minmax(0,1fr)] gap-3.5 items-start py-4.5 bg-transparent border-t border-t-[rgba(var(--rgb-cream),0.34)] rounded-none last:border-b last:border-b-[rgba(var(--rgb-cream),0.34)]"
                     key={title}
                   >
-                    <span className="inline-block w-auto h-auto rounded-none bg-transparent p-0 text-gold text-[13px] font-black leading-tight tracking-[0.06em]">
+                    <span className="inline-block w-auto h-auto rounded-none bg-transparent p-0 text-gold text-[13px] font-extrabold leading-tight tracking-[0.06em]">
                       {number}
                     </span>
                     <div>
-                      <h3 className="mb-1 text-white font-body text-[clamp(16px,1.2vw,18px)] leading-tight font-black">
+                      <h3 className="mb-1 text-white font-body text-[clamp(16px,1.2vw,18px)] leading-tight font-extrabold">
                         {title}
                       </h3>
                       <p className="m-0 text-[rgba(var(--rgb-cream),0.88)] text-[15px] leading-[1.55]">

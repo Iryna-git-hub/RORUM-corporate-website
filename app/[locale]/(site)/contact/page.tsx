@@ -119,7 +119,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                   Contact us
                 </h1>
                 <div className="grid gap-2">
-                  <h2 className="m-0 text-text-primary font-body text-[clamp(17px,1.35vw,20px)] leading-[1.25] font-black">
+                  <h2 className="m-0 text-text-primary font-body text-[clamp(17px,1.35vw,20px)] leading-[1.25] font-extrabold">
                     {data.introTitle}
                   </h2>
                   <p className="m-0 max-w-[56ch] text-text-primary text-[1rem] leading-[1.65]">
@@ -184,7 +184,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                   })}
                 </div>
                 <div className="grid gap-2">
-                  <h2 className="m-0 text-text-primary font-body text-[clamp(17px,1.35vw,20px)] leading-[1.25] font-black">
+                  <h2 className="m-0 text-text-primary font-body text-[clamp(17px,1.35vw,20px)] leading-[1.25] font-extrabold">
                     {data.followUsTitle}
                   </h2>
                 </div>

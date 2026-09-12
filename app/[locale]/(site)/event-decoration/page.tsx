@@ -264,7 +264,7 @@ export default async function DecorationPage({ params }: { params: Promise<{ loc
         <Container>
           <HorizontalGallery items={data.galleryItems} locale={locale} />
           <div className="grid gap-2.5 mt-[clamp(18px,3vw,28px)]">
-            <p className="m-0 text-text-primary text-[15px] font-black">
+            <p className="m-0 text-text-primary text-[15px] font-extrabold">
               {data.suitableForLabel}
             </p>
             <div
@@ -344,7 +344,7 @@ export default async function DecorationPage({ params }: { params: Promise<{ loc
           </div>
           <div className="decoration-tailored-row">
             <div className="grid gap-[6px]">
-              <h3 className="m-0 text-red font-body text-[13px] font-black tracking-[0.06em] uppercase">
+              <h3 className="m-0 text-red font-body text-[13px] font-extrabold tracking-[0.06em] uppercase">
                 {data.tailoredTitle}
               </h3>
               <p className="m-0 text-text-primary text-[15px] leading-[1.6]">
@@ -380,7 +380,7 @@ export default async function DecorationPage({ params }: { params: Promise<{ loc
                     className="grid grid-cols-[42px_minmax(0,1fr)] gap-3.5 items-start py-[18px] border-t border-[rgba(var(--rgb-cream),0.34)] last:border-b last:border-[rgba(var(--rgb-cream),0.34)]"
                     key={title}
                   >
-                    <span className="inline-block text-gold text-[13px] font-black leading-[1.2] tracking-[0.06em]">
+                    <span className="inline-block text-gold text-[13px] font-extrabold leading-[1.2] tracking-[0.06em]">
                       {number}
                     </span>
                     <div>

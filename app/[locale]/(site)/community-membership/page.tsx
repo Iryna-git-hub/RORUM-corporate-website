@@ -605,7 +605,7 @@ export default async function CommunityMembershipPage({ params }: { params: Prom
                 {data.applicationSteps.map(({ number, title, text }) => (
                   <li key={title}>
                     <span
-                      className="wecoda-application-step-number inline-block text-gold text-[13px] font-black leading-[1.2] tracking-[0.06em]"
+                      className="wecoda-application-step-number inline-block text-gold text-[13px] font-extrabold leading-[1.2] tracking-[0.06em]"
                       aria-hidden="true"
                     >
                       {number}

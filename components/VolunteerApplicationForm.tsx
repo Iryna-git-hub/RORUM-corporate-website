@@ -143,7 +143,7 @@ function VolunteerApplicationDialog({
       <div className="grid gap-2 mb-1">
         <h2
           id="volunteer-modal-title"
-          className="m-0 text-text-primary font-body text-[clamp(17px,1.35vw,20px)] leading-tight font-black tracking-normal normal-case"
+          className="m-0 text-text-primary font-body text-[clamp(17px,1.35vw,20px)] leading-tight font-extrabold tracking-normal normal-case"
         >
           {content.modalTitle}
         </h2>

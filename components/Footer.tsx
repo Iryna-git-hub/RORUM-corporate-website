@@ -59,7 +59,7 @@ function FooterLinkColumn({
 }) {
   return (
     <nav className="grid content-start gap-2" aria-label={title}>
-      <span className="text-text-primary text-[11px] font-[950] tracking-[0.14em] uppercase mb-2.5">
+      <span className="text-text-primary text-[11px] font-extrabold tracking-[0.14em] uppercase mb-2.5">
         {title}
       </span>
       {links.map((link) => (
@@ -104,7 +104,7 @@ export function Footer({
       <Container>
         <div className="grid grid-cols-[minmax(240px,0.72fr)_minmax(0,1.55fr)] gap-[clamp(28px,4vw,54px)] items-stretch max-lg:grid-cols-1 max-lg:gap-7">
           <div className="grid content-start gap-2 text-text-primary max-sm:pl-[clamp(8px,6vw,18px)] max-sm:pr-[clamp(4px,5vw,12px)]">
-            <span className="text-text-primary text-[11px] font-[950] tracking-[0.14em] uppercase mb-2.5">
+            <span className="text-text-primary text-[11px] font-extrabold tracking-[0.14em] uppercase mb-2.5">
               {contactDetailsLabel}
             </span>
             <div className="grid gap-2.25 mt-1 mb-2.5 max-w-[34ch]">

@@ -46,7 +46,7 @@ const fallbackAtmosphereImages = [
 ];
 
 const INLINE_LINK_CLASS =
-  "inline-flex items-center gap-2 min-h-10 px-4 border border-white rounded-full bg-white text-dark-green text-[13px] font-black tracking-[0.03em] uppercase transition-[color,background-color,border-color,transform] duration-[180ms] ease-[ease] hover:text-red hover:border-[rgba(var(--rgb-red),0.44)] hover:-translate-y-px focus-visible:text-red focus-visible:border-[rgba(var(--rgb-red),0.44)] focus-visible:-translate-y-px";
+  "inline-flex items-center gap-2 min-h-10 px-4 border border-white rounded-full bg-white text-dark-green text-[13px] font-extrabold tracking-[0.03em] uppercase transition-[color,background-color,border-color,transform] duration-[180ms] ease-[ease] hover:text-red hover:border-[rgba(var(--rgb-red),0.44)] hover:-translate-y-px focus-visible:text-red focus-visible:border-[rgba(var(--rgb-red),0.44)] focus-visible:-translate-y-px";
 
 const VISUAL_IMG_CLASS =
   "w-full h-full object-cover block shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] max-lg:min-h-[220px] max-sm:min-h-[210px]";
@@ -271,7 +271,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 ))}
               </div>
               <div className="grid gap-2.5 mt-2.5 pt-[18px] border-t border-[rgba(var(--rgb-beige),0.72)]">
-                <h2 className="m-0 text-text-primary font-body text-[16px] leading-[1.25] font-black uppercase tracking-[0.06em]">
+                <h2 className="m-0 text-text-primary font-body text-[16px] leading-[1.25] font-extrabold uppercase tracking-[0.06em]">
                   {statementTitle}
                 </h2>
                 <p className="m-0 max-w-[68ch] text-text-primary font-medium text-[15px] leading-[1.65]">
@@ -294,7 +294,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 </div>
               </div>
               <div className="grid gap-2.5 mt-2.5 pt-[18px] border-t border-[rgba(var(--rgb-beige),0.72)]">
-                <h2 className="m-0 text-text-primary font-body text-[16px] leading-[1.25] font-black uppercase tracking-[0.06em]">
+                <h2 className="m-0 text-text-primary font-body text-[16px] leading-[1.25] font-extrabold uppercase tracking-[0.06em]">
                   {communityTitle}
                 </h2>
                 <p className="m-0 max-w-[68ch] text-text-primary font-medium text-[15px] leading-[1.65]">
@@ -357,7 +357,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                     {number}
                   </span>
                   <div>
-                    <h3 className="mb-[5px] text-text-primary font-body text-[clamp(16px,1.2vw,18px)] leading-[1.25] font-black">
+                    <h3 className="mb-[5px] text-text-primary font-body text-[clamp(16px,1.2vw,18px)] leading-[1.25] font-extrabold">
                       {title}
                     </h3>
                     <p className="text-text-primary text-[15px] leading-[1.55]">

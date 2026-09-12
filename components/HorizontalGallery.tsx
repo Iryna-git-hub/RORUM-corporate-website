@@ -630,7 +630,7 @@ export function HorizontalGallery({ items, locale = "en" }: { items: HorizontalG
               <X aria-hidden="true" strokeWidth={2.1} className="h-5 w-5" />
             </button>
             <div
-              className="pointer-events-auto absolute left-1/2 top-5.5 z-4 -translate-x-1/2 rounded-pill bg-[rgba(var(--rgb-dark-brown),0.54)] px-3 py-2 text-[12px] font-black tracking-[0.04em] text-cream"
+              className="pointer-events-auto absolute left-1/2 top-5.5 z-4 -translate-x-1/2 rounded-pill bg-[rgba(var(--rgb-dark-brown),0.54)] px-3 py-2 text-[12px] font-extrabold tracking-[0.04em] text-cream"
               aria-live="polite"
             >
               {safeLightboxIndex + 1} / {availableItems.length}

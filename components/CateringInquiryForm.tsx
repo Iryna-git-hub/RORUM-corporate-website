@@ -94,7 +94,7 @@ export function CateringInquiryForm({
       noValidate
     >
       <div className="grid gap-2 mb-1">
-        <h2 className="m-0 font-body text-[clamp(17px,1.35vw,20px)] leading-tight font-black tracking-normal normal-case text-text-primary">
+        <h2 className="m-0 font-body text-[clamp(17px,1.35vw,20px)] leading-tight font-extrabold tracking-normal normal-case text-text-primary">
           {title}
         </h2>
         {intro ? <p className="m-0 text-[15px] leading-[1.65] text-text-primary">{intro}</p> : null}

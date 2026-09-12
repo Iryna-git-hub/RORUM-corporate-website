@@ -445,7 +445,7 @@ export function Header({
           {navItems.map((item) => {
             const active = isActiveItem(item);
             const isOpen = openMobileDropdown === item.label;
-            const mobileNavItemClass = `flex items-center justify-between gap-3 py-[15px] w-full border-0 bg-transparent text-left text-dark-brown text-base tracking-[0.02em] uppercase ${active ? "font-black" : "font-bold"}`;
+            const mobileNavItemClass = `flex items-center justify-between gap-3 py-[15px] w-full border-0 bg-transparent text-left text-dark-brown text-base tracking-[0.02em] uppercase ${active ? "font-extrabold" : "font-bold"}`;
             return (
               <div className="grid border-b border-beige last:border-b-0" key={item.label}>
                 {item.children ? (
@@ -474,7 +474,7 @@ export function Header({
                       const childActive = path === child.href || path.startsWith(`${child.href}/`);
                       return (
                         <Link
-                          className={`block pt-[13px] pb-[13px] pl-4 text-dark-brown text-sm ${childActive ? "font-black" : "font-semibold"}`}
+                          className={`block pt-[13px] pb-[13px] pl-4 text-dark-brown text-sm ${childActive ? "font-extrabold" : "font-semibold"}`}
                           aria-current={childActive ? "page" : undefined}
                           key={child.href}
                           href={child.href}

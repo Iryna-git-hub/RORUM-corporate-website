@@ -126,7 +126,7 @@ export function ContactForm({
       <input type="hidden" name="_subject" value="[RoRUM] Contact request" />
       <input type="hidden" name="locale" value={locale} />
       <div className="grid gap-2 mb-1">
-        <h2 className="m-0 font-body text-[clamp(17px,1.35vw,20px)] leading-tight font-black tracking-normal normal-case text-text-primary">
+        <h2 className="m-0 font-body text-[clamp(17px,1.35vw,20px)] leading-tight font-extrabold tracking-normal normal-case text-text-primary">
           {formTitle}
         </h2>
       </div>

@@ -247,7 +247,7 @@ export function EventShare({
 
   return (
     <div className="grid gap-2 w-fit max-w-full mt-1 pt-2 border-0 bg-transparent">
-      <p className="m-0 text-dark-green text-xs font-[850] tracking-[0.08em] leading-[1.2] uppercase">
+      <p className="m-0 text-dark-green text-xs font-extrabold tracking-[0.08em] leading-[1.2] uppercase">
         {heading}
       </p>
       {/*

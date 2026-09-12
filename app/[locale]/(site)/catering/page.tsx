@@ -443,7 +443,7 @@ export default async function CateringPage({
         <Container>
           <HorizontalGallery items={data.galleryItems} locale={locale} />
           <div className="grid gap-2.5 mt-[clamp(18px,3vw,28px)]">
-            <p className="m-0 text-text-primary text-[15px] font-black">
+            <p className="m-0 text-text-primary text-[15px] font-extrabold">
               {data.suitableForLabel}
             </p>
             <div
@@ -592,7 +592,7 @@ export default async function CateringPage({
                     className="grid grid-cols-[42px_minmax(0,1fr)] gap-3.5 items-start py-4.5 bg-transparent border-t border-t-[rgba(var(--rgb-cream),0.34)] rounded-none last:border-b last:border-b-[rgba(var(--rgb-cream),0.34)]"
                     key={title}
                   >
-                    <span className="inline-block w-auto h-auto rounded-none bg-transparent p-0 text-gold text-[13px] font-black leading-tight tracking-[0.06em]">
+                    <span className="inline-block w-auto h-auto rounded-none bg-transparent p-0 text-gold text-[13px] font-extrabold leading-tight tracking-[0.06em]">
                       {number}
                     </span>
                     <div>

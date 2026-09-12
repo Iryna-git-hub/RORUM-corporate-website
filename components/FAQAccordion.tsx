@@ -22,7 +22,7 @@ export function FAQAccordion({ groups = staticGroups }: { groups?: FaqGroupData[
     <div className="grid gap-17.5 max-lg:gap-10.5">
       {groups.map(({ title, items }) => (
         <section className="grid gap-0" key={title}>
-          <h2 className="mb-3 text-red font-body text-[clamp(15px,1.4vw,18px)] leading-tight font-black tracking-[0.03em]">
+          <h2 className="mb-3 text-red font-body text-[clamp(15px,1.4vw,18px)] leading-tight font-extrabold tracking-[0.03em]">
             {title}
           </h2>
           {items.map(({ question, answer, link }) => {
@@ -40,7 +40,7 @@ export function FAQAccordion({ groups = staticGroups }: { groups?: FaqGroupData[
                 key={id}
               >
                 <button
-                  className="faq-question relative grid grid-cols-[minmax(0,1fr)_34px] gap-4.5 items-center w-full cursor-pointer py-3.75 px-0 border-0 bg-transparent text-text-primary font-black text-left max-lg:grid-cols-[minmax(0,1fr)_30px] max-lg:gap-3.5 max-lg:py-3.5"
+                  className="faq-question relative grid grid-cols-[minmax(0,1fr)_34px] gap-4.5 items-center w-full cursor-pointer py-3.75 px-0 border-0 bg-transparent text-text-primary font-extrabold text-left max-lg:grid-cols-[minmax(0,1fr)_30px] max-lg:gap-3.5 max-lg:py-3.5"
                   type="button"
                   aria-expanded={isOpen}
                   onClick={() => setOpenItem(isOpen ? null : id)}

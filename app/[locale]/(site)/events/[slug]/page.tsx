@@ -301,7 +301,7 @@ function DetailRow({ label, value }: { label: string; value?: ReactNode }) {
     if (!value) return null;
     return (
       <div className="grid grid-cols-[minmax(116px,0.42fr)_minmax(0,1fr)] gap-4.5 items-start py-3.75 border-b border-[rgba(var(--rgb-beige),0.34)] first:pt-0 last:border-b-0 max-sm:grid-cols-1 max-sm:gap-1.25">
-        <dt className="text-light-green text-[11px] leading-[1.35] font-[850] tracking-[0.08em] uppercase">{label}</dt>
+        <dt className="text-light-green text-[11px] leading-[1.35] font-extrabold tracking-[0.08em] uppercase">{label}</dt>
         <dd className="m-0 text-text-primary text-sm font-medium leading-[1.5]">{value}</dd>
       </div>
     );

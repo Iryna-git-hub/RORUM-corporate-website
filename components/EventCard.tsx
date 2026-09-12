@@ -137,7 +137,7 @@ export function EventCard({
           className="absolute top-[14px] left-[14px] max-lg:top-[12px] max-lg:left-[12px] z-[1] grid place-items-center content-center gap-px w-[52px] min-h-[52px] px-[7px] py-[6px] bg-light-green text-[var(--color-text-heading)] text-center font-body"
           dateTime={event.date}
         >
-          <span className="text-secondary font-body text-[22px] leading-[0.9] font-black">
+          <span className="text-secondary font-body text-[22px] leading-[0.9] font-extrabold">
             {badgeDate.day}
           </span>
           <span className="text-gold font-body text-[11px] leading-[0.95] font-extrabold tracking-[0.04em]">

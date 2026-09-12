@@ -558,7 +558,7 @@ function CateringMenuOverlay({
                       <a
                         key={category.id}
                         href={`#catering-menu-${category.id}`}
-                        className={`inline-flex items-center justify-center gap-1.75 min-h-9 p-0 border-0 border-b-2 rounded-none bg-transparent text-[15px] font-[850] tracking-normal normal-case text-center whitespace-nowrap leading-[1.2] transition-[border-color,color] duration-180 ease-[ease] hover:text-[rgba(var(--rgb-red),0.72)] focus-visible:text-[rgba(var(--rgb-red),0.72)] focus-visible:outline-none max-sm:min-h-8.5 max-sm:px-0 ${
+                        className={`inline-flex items-center justify-center gap-1.75 min-h-9 p-0 border-0 border-b-2 rounded-none bg-transparent text-[15px] font-extrabold tracking-normal normal-case text-center whitespace-nowrap leading-[1.2] transition-[border-color,color] duration-180 ease-[ease] hover:text-[rgba(var(--rgb-red),0.72)] focus-visible:text-[rgba(var(--rgb-red),0.72)] focus-visible:outline-none max-sm:min-h-8.5 max-sm:px-0 ${
                           isActive
                             ? "border-b-red text-red hover:border-b-[rgba(var(--rgb-red),0.72)] focus-visible:border-b-[rgba(var(--rgb-red),0.72)]"
                             : "border-b-transparent text-text-primary"
@@ -595,7 +595,7 @@ function CateringMenuOverlay({
                     onClick={() => toggleCategory(category.id)}
                   >
                     <span className="grid gap-2 min-w-0">
-                      <span className="text-[12px] font-[850] uppercase tracking-[0.08em] text-red">
+                      <span className="text-[12px] font-extrabold uppercase tracking-[0.08em] text-red">
                         {category.navLabel}
                       </span>
                       <span className="heading text-[2.5rem] max-sm:text-[clamp(1.55rem,7vw,2.2rem)]">
@@ -625,7 +625,7 @@ function CateringMenuOverlay({
 
                       {category.featuredItems?.length ? (
                         <div className="grid gap-4">
-                          <h3 className="m-0 font-body text-[13px] font-black leading-[1.2] tracking-widest uppercase text-red">
+                          <h3 className="m-0 font-body text-[13px] font-extrabold leading-[1.2] tracking-widest uppercase text-red">
                             {text.featuredDishesLabel}
                           </h3>
                           <div className="grid grid-cols-[repeat(auto-fit,minmax(156px,210px))] justify-start gap-3.5 max-lg:grid-cols-[repeat(auto-fit,minmax(126px,168px))] max-sm:grid-cols-2 max-sm:gap-2">
