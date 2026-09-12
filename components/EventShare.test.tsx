@@ -1,5 +1,5 @@
-import { describe, expect, it, afterEach } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { describe, expect, it, afterEach, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { EventShare } from "./EventShare";
 import type { ShareAction } from "@/lib/data";
@@ -40,5 +40,84 @@ describe("EventShare — LinkedIn remains available here, independent of the soc
     expect(screen.getByRole("link", { name: "Share on LinkedIn" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Share on Facebook" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Share on WhatsApp" })).toBeInTheDocument();
+  });
+});
+
+describe("EventShare — supported browser behavior", () => {
+  const canonicalUrl = "https://ro-rum.dk/da/events/community-reset-night";
+
+  it("copies the canonical production URL, never the current localhost URL", async () => {
+    const writeText = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    render(
+      <EventShare
+        title="Fællesskabsaften"
+        text="Kom med."
+        url={canonicalUrl}
+        actions={[{ type: "copyLink", label: "Kopiér link", enabled: true }]}
+        heading="Del"
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Kopiér link" }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(canonicalUrl));
+  });
+
+  it("passes localized title, text and canonical URL to native sharing without an image file", async () => {
+    const share = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, "share", { configurable: true, value: share });
+    render(
+      <EventShare
+        title="Вечір спільноти"
+        text="Приєднуйтеся до події."
+        url="https://ro-rum.dk/uk/events/community-reset-night"
+        actions={[{ type: "share", label: "Поділитися", enabled: true }]}
+        heading="Поділитися"
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Поділитися" }));
+    await waitFor(() =>
+      expect(share).toHaveBeenCalledWith({
+        title: "Вечір спільноти",
+        text: "Приєднуйтеся до події.",
+        url: "https://ro-rum.dk/uk/events/community-reset-night",
+      }),
+    );
+  });
+
+  it("truthfully copies the link for Instagram instead of launching an unsupported prefilled post", async () => {
+    const writeText = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    render(
+      <EventShare
+        title="Community Reset Night"
+        url={canonicalUrl}
+        actions={[{ type: "instagram", label: "Instagram", enabled: true }]}
+        heading="Share"
+        instagramCopyMessage="Link copied. You can paste it into Instagram."
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Instagram" }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(canonicalUrl));
+    expect(await screen.findByText("Link copied. You can paste it into Instagram.")).toBeVisible();
+  });
+
+  it("does not announce success when the legacy clipboard fallback reports failure", async () => {
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: undefined });
+    const execCommand = vi.fn(() => false);
+    Object.defineProperty(document, "execCommand", { configurable: true, value: execCommand });
+    render(
+      <EventShare
+        title="Community Reset Night"
+        url={canonicalUrl}
+        actions={[{ type: "instagram", label: "Instagram", enabled: true }]}
+        heading="Share"
+        instagramCopyMessage="Link copied. You can paste it into Instagram."
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Instagram" }));
+    await waitFor(() => expect(execCommand).toHaveBeenCalledWith("copy"));
+    expect(screen.getByText("Link copied")).toHaveClass("opacity-0");
+    expect(screen.queryByText("Link copied. You can paste it into Instagram.")).not.toBeInTheDocument();
   });
 });

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Link2, Mail, Share2 } from "lucide-react";
 import { SocialIcon } from "@/components/SocialIcon";
 import type { ShareAction } from "@/lib/data";
+import { buildEventShareLinks, buildNativeSharePayload, type EventShareLinks } from "@/lib/eventSharing";
 
 const DEFAULT_LINK_COPIED_MESSAGE = "Link copied";
 const DEFAULT_INSTAGRAM_COPY_MESSAGE =
@@ -22,13 +23,6 @@ const BRAND_COLORS: Record<"whatsapp" | "linkedin" | "facebook" | "instagram", s
   instagram: "#E1306C",
 };
 
-interface ShareLinks {
-  whatsapp: string;
-  email: string;
-  linkedin: string;
-  facebook: string;
-}
-
 // One button/link per configurable action type (Share, Copy link, WhatsApp,
 // Email, LinkedIn, Facebook, Instagram) — the exact markup, CSS classes and
 // click behavior each already had before this became Sanity-configurable,
@@ -42,7 +36,7 @@ function ShareActionButton({
   onShareInstagram,
 }: {
   action: ShareAction;
-  links: ShareLinks;
+  links: EventShareLinks;
   onShare: () => void;
   onCopyLink: () => void;
   onShareInstagram: () => void;
@@ -144,20 +138,7 @@ export function EventShare({
   const [feedback, setFeedback] = useState("");
   const shareText = text || "Join this event at RORUM";
 
-  function getShareUrl(): string {
-    return typeof window === "undefined" ? url : window.location.href;
-  }
-
-  const links = useMemo<ShareLinks>(() => {
-    const encodedUrl = encodeURIComponent(url);
-    const encodedTitle = encodeURIComponent(title);
-    return {
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${title} — ${url}`)}`,
-      email: `mailto:?subject=${encodedTitle}&body=${encodeURIComponent(`I thought you might like this event at RORUM: ${url}`)}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-    };
-  }, [title, url]);
+  const links = useMemo(() => buildEventShareLinks({ title, text: shareText, url }), [shareText, title, url]);
 
   function showFeedback(message: string) {
     setFeedback(message);
@@ -176,29 +157,27 @@ export function EventShare({
       textarea.style.position = "fixed";
       textarea.style.opacity = "0";
       document.body.appendChild(textarea);
-      textarea.focus();
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-      return true;
+      try {
+        textarea.focus();
+        textarea.select();
+        return document.execCommand("copy");
+      } finally {
+        textarea.remove();
+      }
     } catch {
       return false;
     }
   }
 
   async function copyLink() {
-    const currentUrl = getShareUrl();
-    if (!currentUrl) return;
-    const didCopy = await copyToClipboard(currentUrl).catch(() => false);
+    const didCopy = await copyToClipboard(url).catch(() => false);
     if (didCopy) showFeedback(linkCopiedMessage);
   }
 
   async function shareEvent() {
-    const currentUrl = getShareUrl();
-    if (!currentUrl) return;
     if (navigator.share) {
       try {
-        await navigator.share({ title, text: shareText, url: currentUrl });
+        await navigator.share(buildNativeSharePayload({ title, text: shareText, url }));
       } catch {
         return;
       }
@@ -208,39 +187,11 @@ export function EventShare({
     await copyLink();
   }
 
-  function isMobileDevice(): boolean {
-    return (
-      typeof navigator !== "undefined" &&
-      /android|iphone|ipad|ipod/i.test(navigator.userAgent)
-    );
-  }
-
   async function shareInstagram() {
-    const currentUrl = getShareUrl();
-    if (!currentUrl) return;
-
-    async function copyForInstagram() {
-      const didCopy = await copyToClipboard(currentUrl).catch(() => false);
-      if (didCopy) showFeedback(instagramCopyMessage);
-    }
-
-    if (!isMobileDevice()) {
-      await copyForInstagram();
-      return;
-    }
-
-    // Instagram has no web share URL, so try handing off to the app first
-    // and fall back to copying the link if the app never takes focus.
-    let appOpened = false;
-    const onVisibilityChange = () => {
-      if (document.hidden) appOpened = true;
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    window.setTimeout(async () => {
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      if (!appOpened) await copyForInstagram();
-    }, 1200);
-    window.location.href = "instagram://app";
+    // Instagram exposes no reliable web endpoint for a prefilled post or
+    // link card. Copy the canonical link and describe that result honestly.
+    const didCopy = await copyToClipboard(url).catch(() => false);
+    if (didCopy) showFeedback(instagramCopyMessage);
   }
 
   const enabledActions = actions.filter((action) => action.enabled);

@@ -13,6 +13,8 @@ vi.mock("@/lib/siteSettings", () => ({
 }));
 
 import { localizedPageMetadata } from "./seo";
+import { resolveEventShareData } from "./eventSharing";
+import type { RorumEvent } from "./data";
 
 beforeEach(() => {
   mockSiteDefaults = { siteUrl: "https://ro-rum.dk" };
@@ -145,5 +147,88 @@ describe("localizedPageMetadata — image alt precedence", () => {
   it("no caller alt, no siteSettings default: derives a concise alt from the title (strips the '| RORUM' suffix)", async () => {
     const result = await localizedPageMetadata({ path: "/x", locale: "en", title: "Contact RORUM | Get in Touch", description: "D" });
     expect((result.openGraph?.images as { alt: string }[])[0]!.alt).toBe("Contact RORUM");
+  });
+});
+
+describe("Event detail metadata — canonical share-data integration", () => {
+  it.each([
+    ["en", "Community Reset Night", "A calm community evening.", "https://ro-rum.dk/events/community-reset-night"],
+    ["da", "Fællesskabsaften", "En rolig fællesskabsaften.", "https://ro-rum.dk/da/events/community-reset-night"],
+    ["uk", "Вечір спільноти", "Спокійний вечір спільноти.", "https://ro-rum.dk/uk/events/community-reset-night"],
+  ] as const)("renders complete %s OG metadata from the shared resolver", async (locale, title, description, url) => {
+    const event = {
+      slug: "community-reset-night",
+      title,
+      longDescription: description,
+      image: "https://cdn.sanity.io/banner.jpg",
+      socialImageUrl: "https://cdn.sanity.io/banner-1200x630.jpg",
+      seo: { ogImageUrl: "https://cdn.sanity.io/explicit-social-1200x630.jpg" },
+    } as RorumEvent;
+    const share = resolveEventShareData(event, locale);
+    const metadata = await localizedPageMetadata({
+      path: `/events/${event.slug}`,
+      locale,
+      title: share.metadataTitle,
+      description: share.description,
+      image: share.image,
+      alternateLocales: ["en", "da", "uk"],
+    });
+
+    expect(metadata.openGraph).toMatchObject({
+      title: `${title} | RORUM`,
+      description,
+      url,
+      type: "website",
+      images: [{ url: "https://cdn.sanity.io/explicit-social-1200x630.jpg", width: 1200, height: 630 }],
+    });
+    expect(metadata.twitter).toMatchObject({
+      card: "summary_large_image",
+      title: `${title} | RORUM`,
+      description,
+      images: [{ url: "https://cdn.sanity.io/explicit-social-1200x630.jpg" }],
+    });
+    expect(metadata.alternates?.canonical).toBe(url);
+  });
+
+  it("uses the event banner when no explicit social image exists", async () => {
+    const event = {
+      slug: "without-social-image",
+      title: "Fallback event",
+      longDescription: "Fallback description",
+      image: "https://cdn.sanity.io/banner.jpg",
+      socialImageUrl: "https://cdn.sanity.io/banner-1200x630.jpg",
+    } as RorumEvent;
+    const share = resolveEventShareData(event, "en");
+    const metadata = await localizedPageMetadata({
+      path: `/events/${event.slug}`,
+      locale: "en",
+      title: share.metadataTitle,
+      description: share.description,
+      image: share.image,
+    });
+    expect(metadata.openGraph?.images).toMatchObject([
+      { url: "https://cdn.sanity.io/banner-1200x630.jpg", width: 1200, height: 630 },
+    ]);
+  });
+
+  it("uses the site-wide social image when an event has neither an explicit social image nor a real banner", async () => {
+    mockSiteDefaults = { siteUrl: "https://ro-rum.dk", image: "https://cdn.sanity.io/site-social-1200x630.jpg" };
+    const event = {
+      slug: "without-images",
+      title: "Fallback event",
+      longDescription: "Fallback description",
+      image: "/images/hero.jpg",
+    } as RorumEvent;
+    const share = resolveEventShareData(event, "en");
+    const metadata = await localizedPageMetadata({
+      path: `/events/${event.slug}`,
+      locale: "en",
+      title: share.metadataTitle,
+      description: share.description,
+      image: share.image,
+    });
+    expect(metadata.openGraph?.images).toMatchObject([
+      { url: "https://cdn.sanity.io/site-social-1200x630.jpg", width: 1200, height: 630 },
+    ]);
   });
 });

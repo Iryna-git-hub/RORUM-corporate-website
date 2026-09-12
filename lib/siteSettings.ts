@@ -45,7 +45,11 @@ export async function getSeoSiteDefaults(): Promise<SeoSiteDefaults> {
     siteUrl: PRODUCTION_ORIGIN,
     title: data.defaultSeo?.title,
     description: data.defaultSeo?.description,
-    image: urlForImage(data.defaultSeo?.ogImage as unknown as Parameters<typeof urlForImage>[0])?.width(1200).url(),
+    image: urlForImage(data.defaultSeo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
+      ?.width(1200)
+      .height(630)
+      .fit("crop")
+      .url(),
     imageAlt: data.defaultSeo?.ogImage?.alt,
   };
 }

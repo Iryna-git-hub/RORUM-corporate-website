@@ -221,6 +221,9 @@ export interface RorumEvent {
   waitlistUrl: string;
   isSoldOut: boolean;
   image: string;
+  // A crawler-ready 1200x630 derivative of the Sanity banner. Metadata uses
+  // this after an explicit SEO image and before the site-wide fallback.
+  socialImageUrl?: string;
   // Real Sanity alt text for `image`, when available. Optional because the
   // hardcoded static events below have no Sanity asset to read alt text
   // from — consumers fall back to a generated string when this is unset.

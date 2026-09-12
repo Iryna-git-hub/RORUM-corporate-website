@@ -79,7 +79,9 @@ export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale, ed
   // The uploaded Sanity image always wins when present; only an event with
   // no image asset of its own falls back to a matching static event's
   // `/public` path, and only then to the generic placeholder.
-  const sanityImageUrl = urlForImage(doc.image)?.width(1200).url();
+  const sanityImageBuilder = urlForImage(doc.image);
+  const sanityImageUrl = sanityImageBuilder?.width(1200).url();
+  const sanitySocialImageUrl = sanityImageBuilder?.width(1200).height(630).fit("crop").url();
   const image = sanityImageUrl ?? fallback?.image ?? DEFAULT_EVENT_IMAGE;
   const imageAlt = pickLocalized(doc.image?.alt, locale) ?? fallback?.imageAlt ?? undefined;
 
@@ -156,6 +158,7 @@ export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale, ed
     waitlistUrl: doc.waitlistUrl ?? fallback?.waitlistUrl ?? "",
     isSoldOut: doc.isSoldOut ?? fallback?.isSoldOut ?? false,
     image,
+    socialImageUrl: sanitySocialImageUrl,
     imageAlt,
     // Only real when this event has its own uploaded Sanity image AND we're
     // rendering in Draft Mode — a `data-sanity` on a static/fallback image
@@ -165,7 +168,7 @@ export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale, ed
     seo: {
       title: pickLocalized(doc.seo?.title, locale) ?? undefined,
       description: pickLocalized(doc.seo?.description, locale) ?? undefined,
-      ogImageUrl: urlForImage(doc.seo?.ogImage)?.width(1200).url() ?? undefined,
+      ogImageUrl: urlForImage(doc.seo?.ogImage)?.width(1200).height(630).fit("crop").url() ?? undefined,
       ogImageAlt: pickLocalized(doc.seo?.ogImage?.alt, locale) ?? undefined,
     },
     visibleLocales: doc.visibleLocales ?? undefined,

@@ -19,6 +19,7 @@ import { applyBillettoAvailabilityToEvent } from "@/lib/eventAvailability";
 import { formatDuration, type EventDuration } from "@/lib/eventDuration";
 import { getEventLanguageLabel } from "@/lib/eventLanguage";
 import { getUiText } from "@/lib/uiText";
+import { resolveEventShareData } from "@/lib/eventSharing";
 import { compact, pickLabel, pickLabelExact } from "@/lib/sanity-i18n";
 import { isSanityConfigured } from "@/sanity/env";
 import { sanityFetch, sanityFetchStatic } from "@/sanity/lib/live";
@@ -465,7 +466,7 @@ export async function generateMetadata({
     const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
     const event = await getEvent(slug, locale);
     if (!event) return {};
-    const title = event.seo?.title || `${event.title} | RORUM`;
+    const shareData = resolveEventShareData(event, locale);
     // Deliberately NOT falling back to the page-level `fallbackDescription`
     // constant here (that stays reserved for the page BODY's own separate
     // description variable below) — an empty result here correctly falls
@@ -473,9 +474,6 @@ export async function generateMetadata({
     // tiers instead, matching the documented 4-tier Event SEO precedence
     // (documentOverride -> documentContent -> siteDefault -> emergencyDefault)
     // with no extra page-level tier in between.
-    const description = event.seo?.description || event.longDescription || "";
-    const image = event.seo?.ogImageUrl || event.image || "/images/hero.jpg";
-    const imageAlt = event.seo?.ogImageAlt || event.imageAlt || undefined;
     // Only advertise hreflang alternates for locales this event is actually
     // shown on — an alternate pointing at a locale that itself 404s for
     // this event would mislead search engines about which URLs exist.
@@ -483,10 +481,10 @@ export async function generateMetadata({
     return localizedPageMetadata({
         path: `/events/${event.slug}`,
         locale,
-        title,
-        description,
-        image,
-        ...(imageAlt ? { imageAlt } : {}),
+        title: shareData.metadataTitle,
+        description: shareData.description,
+        image: shareData.image,
+        ...(shareData.imageAlt ? { imageAlt: shareData.imageAlt } : {}),
         ...(alternateLocales.length ? { alternateLocales } : {}),
     });
 }
@@ -503,6 +501,7 @@ export default async function EventDetailPage({
     if (!event) notFound();
     const messages = await getEventMessages(locale);
     const { siteUrl } = await getSeoSiteDefaults();
+    const shareData = resolveEventShareData(event, locale, messages.shareDefaultText);
 
     const fullDate = formatFullDate(event.date, locale);
     const time = formatTime(event.time, messages.timeToBeAnnouncedLabel);
@@ -655,9 +654,9 @@ export default async function EventDetailPage({
                   <h2 className="m-0 text-[clamp(26px,3vw,38px)] leading-[1.08] font-light">{messages.eventOverviewHeading}</h2>
                   <p className="max-w-[68ch] m-0 text-text-primary text-[17px] leading-[1.75]">{description}</p>
                   <EventShare
-                    title={event.title}
-                    text={event.longDescription || messages.shareDefaultText}
-                    url={`${siteUrl}/events/${event.slug}`}
+                    title={shareData.title}
+                    text={shareData.text}
+                    url={shareData.url}
                     actions={event.shareActions}
                     heading={messages.shareWithFriendsHeading}
                     linkCopiedMessage={messages.linkCopiedMessage}
