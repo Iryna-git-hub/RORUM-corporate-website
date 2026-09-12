@@ -112,8 +112,8 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
       <section className="bg-cream p-[65px_0_clamp(42px,7vw,88px)] max-sm:p-[38px_0_42px]">
         <Container>
           <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(360px,1fr)] gap-[clamp(26px,5vw,64px)] items-start max-lg:grid-cols-1">
-            <div className="grid items-start min-h-full">
-              <div className="grid gap-5 content-start max-w-[650px] max-lg:max-w-[760px]">
+            <div className="contact-content-column grid items-start min-h-full">
+              <div className="grid gap-8 content-start max-w-[650px] max-lg:max-w-[760px]">
                 <SectionLabel>{data.heroLabel}</SectionLabel>
                 <h1 className="heading sr-only m-0 max-w-[12ch] text-[3rem] leading-[0.98] font-medium max-sm:text-[clamp(2rem,10vw,3.2rem)] max-lg:max-w-[14ch]">
                   Contact us
@@ -126,6 +126,9 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                     {data.introText}
                   </p>
                 </div>
+                {data.faqPrompt.shown ? (
+                  <FAQInlinePrompt question={data.faqPrompt.question} label={data.faqPrompt.label} href={data.faqPrompt.href} />
+                ) : null}
                 <div className="grid gap-3">
                   {data.contactDetailOrder.map((detail) => {
                     if (detail === "address") {
@@ -209,7 +212,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
               </div>
             </div>
             <div
-              className="grid items-start min-h-full"
+              className="contact-form-column grid items-start min-h-full"
               aria-label="RORUM location map"
             >
               <div className="w-full mb-4">
@@ -221,9 +224,6 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                   privacyConsent={data.privacyConsent}
                 />
               </div>
-              {data.faqPrompt.shown ? (
-                <FAQInlinePrompt question={data.faqPrompt.question} label={data.faqPrompt.label} href={data.faqPrompt.href} />
-              ) : null}
             </div>
           </div>
         </Container>
