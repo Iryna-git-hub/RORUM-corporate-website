@@ -8,7 +8,7 @@ import {
 } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
 import { useFormspreeSubmit } from "@/lib/useFormspreeSubmit";
-import type { RorumFormKey } from "@/lib/formspree";
+import { resolveMultiOptionLabels, resolveOptionLabel, type RorumFormKey } from "@/lib/formspree";
 
 // Fallback only — used when the caller doesn't supply `packageOptions`
 // (Sanity unavailable/not yet migrated). The canonical, Sanity-backed
@@ -185,6 +185,15 @@ export function InquiryForm({
     event.preventDefault();
     const form = event.currentTarget;
     const formData = new FormData(form);
+    if (isBooking) {
+      // Payload quality: submit the visible label shown to the visitor
+      // (e.g. "Morning session") instead of the internal, non-localized
+      // `value` (e.g. "package0") the native <select>/checkboxes carry —
+      // resolved against the SAME options arrays rendered below, so the
+      // result is automatically correct for the page's current locale.
+      resolveOptionLabel(formData, "package", resolvedPackageOptions);
+      resolveMultiOptionLabels(formData, "additionalServices", resolvedServiceOptions);
+    }
     const requiredFields: [string, string][] = isBooking
       ? [
           // Phase 7: "Package" is optional on the Host at RORUM form — a

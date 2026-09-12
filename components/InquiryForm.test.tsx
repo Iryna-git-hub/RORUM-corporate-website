@@ -185,7 +185,10 @@ describe("InquiryForm — unified Formspree delivery", () => {
     expect(fd.get("subject")).toBe("[RoRUM] Host at RORUM inquiry — Jane Doe");
     expect(fd.get("_subject")).toBe("[RoRUM] Host at RORUM inquiry — Jane Doe");
     expect(fd.get("locale")).toBe("uk");
-    expect(fd.get("package")).toBe("package0");
+    // Payload quality: the submitted value is the visible LABEL shown in the
+    // <option>, never the internal "package0" id — see lib/formspree.ts's
+    // resolveOptionLabel().
+    expect(fd.get("package")).toBe("Morning session");
     expect(fd.get("name")).toBe("Jane Doe");
   });
 
@@ -277,5 +280,107 @@ describe("InquiryForm — unified Formspree delivery", () => {
     resolve();
     expect(await screen.findByText("ok")).toBeInTheDocument();
     expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+// --- Payload quality: submitted package/service values are LABELS, never
+// internal ids (the bug this task fixes) -----------------------------------
+
+async function fillBookingRequired() {
+  await userEvent.type(screen.getByLabelText(/Full Name/), "Jane Doe");
+  await userEvent.type(screen.getByLabelText(/Phone number/), "+45 12 34 56 78");
+  await userEvent.type(screen.getByLabelText(/^Email/), "jane@example.com");
+  await userEvent.type(screen.getByLabelText(/Event date/), "2099-01-01");
+  await userEvent.type(screen.getByLabelText(/Comment/), "A quiet morning meeting");
+}
+
+describe.each([
+  {
+    localeLabel: "EN-like",
+    packageOptions: [
+      { value: "package0", label: "Morning session" },
+      { value: "package1", label: "Afternoon session" },
+    ],
+    serviceOptions: [
+      { value: "service0", label: "Breakfast" },
+      { value: "service1", label: "Snacks" },
+      { value: "service2", label: "Lunch" },
+    ],
+    chosenPackageLabel: "Afternoon session",
+    checkedServiceLabels: ["Breakfast", "Lunch"],
+    expectedServicesJoined: "Breakfast, Lunch",
+  },
+  {
+    localeLabel: "DA/UK-like",
+    packageOptions: [
+      { value: "package0", label: "Morgensession" },
+      { value: "package1", label: "Eftermiddagssession" },
+    ],
+    serviceOptions: [
+      { value: "service0", label: "Morgenmad" },
+      { value: "service1", label: "Snacks" },
+      { value: "service2", label: "Frokost" },
+    ],
+    chosenPackageLabel: "Eftermiddagssession",
+    checkedServiceLabels: ["Morgenmad", "Frokost"],
+    expectedServicesJoined: "Morgenmad, Frokost",
+  },
+])(
+  "InquiryForm (booking) — payload quality ($localeLabel labels)",
+  ({ packageOptions, serviceOptions, chosenPackageLabel, checkedServiceLabels, expectedServicesJoined }) => {
+    it("sends the visible package LABEL and comma-joined service LABELS, never raw ids", async () => {
+      submitToFormspreeMock.mockResolvedValue(undefined);
+      render(
+        <InquiryForm
+          type="booking"
+          title="Apply to Host"
+          successMessage="ok"
+          packageOptions={packageOptions}
+          serviceOptions={serviceOptions}
+        />,
+      );
+      await fillBookingRequired();
+      await userEvent.selectOptions(screen.getByLabelText(/Package/), chosenPackageLabel);
+      for (const label of checkedServiceLabels) {
+        await userEvent.click(screen.getByRole("checkbox", { name: label }));
+      }
+      await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+      await screen.findByText("ok");
+
+      const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
+      expect(fd.get("package")).toBe(chosenPackageLabel);
+      expect(fd.get("additionalServices")).toBe(expectedServicesJoined);
+      // Raw internal option ids must never leak into the payload.
+      for (const option of [...packageOptions, ...serviceOptions]) {
+        expect(fd.get("package")).not.toBe(option.value);
+        expect(String(fd.get("additionalServices"))).not.toContain(option.value);
+      }
+      // Unaffected metadata still present and correct.
+      expect(fd.get("form_name")).toBe("Host at RORUM inquiry");
+      expect(fd.get("locale")).toBe("uk");
+      expect(typeof fd.get("page_url")).toBe("string");
+    });
+  },
+);
+
+describe("InquiryForm (booking) — payload quality: optional fields omitted when empty", () => {
+  it("an unselected package and zero checked services produce NO package/additionalServices entries at all", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(
+      <InquiryForm
+        type="booking"
+        title="Apply to Host"
+        successMessage="ok"
+        packageOptions={[{ value: "package0", label: "Morning session" }]}
+        serviceOptions={[{ value: "service0", label: "Breakfast" }]}
+      />,
+    );
+    await fillBookingRequired();
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+    await screen.findByText("ok");
+
+    const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
+    expect(fd.has("package")).toBe(false);
+    expect(fd.has("additionalServices")).toBe(false);
   });
 });

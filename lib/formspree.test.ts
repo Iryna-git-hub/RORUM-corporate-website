@@ -3,8 +3,11 @@ import {
   applyFormspreeMetadata,
   formspreeConfig,
   isFormspreeConfigured,
+  resolveMultiOptionLabels,
+  resolveOptionLabel,
   RORUM_FORMS,
   submitToFormspree,
+  type LabeledOption,
 } from "./formspree";
 
 // This project ships WITHOUT a real Formspree endpoint (`.env.example`'s
@@ -122,5 +125,105 @@ describe("applyFormspreeMetadata — standardized metadata for every form", () =
     expect(fd.has("_replyto")).toBe(false);
     expect(fd.has("_to")).toBe(false);
     expect(fd.has("recipient")).toBe(false);
+  });
+});
+
+describe("resolveOptionLabel — single-value <select>/radio-style field", () => {
+  const OPTIONS: LabeledOption[] = [
+    { value: "package0", label: "Morning session" },
+    { value: "package1", label: "Afternoon session" },
+  ];
+
+  it("resolves a matching value to its visible label", () => {
+    const fd = new FormData();
+    fd.set("package", "package1");
+    resolveOptionLabel(fd, "package", OPTIONS);
+    expect(fd.get("package")).toBe("Afternoon session");
+  });
+
+  it("leaves a non-empty, unrecognized value untouched (never silently drops a real value)", () => {
+    const fd = new FormData();
+    fd.set("package", "package-stale-999");
+    resolveOptionLabel(fd, "package", OPTIONS);
+    expect(fd.get("package")).toBe("package-stale-999");
+  });
+
+  it("removes the field when its value is empty and unmatched (no blank line in the email)", () => {
+    const fd = new FormData();
+    fd.set("package", "");
+    resolveOptionLabel(fd, "package", OPTIONS);
+    expect(fd.has("package")).toBe(false);
+  });
+
+  it("is a no-op when the field is not present in the FormData at all", () => {
+    const fd = new FormData();
+    fd.set("name", "Jane");
+    resolveOptionLabel(fd, "package", OPTIONS);
+    expect(fd.has("package")).toBe(false);
+    expect(fd.get("name")).toBe("Jane");
+  });
+});
+
+describe("resolveMultiOptionLabels — multi-value checkbox-group field", () => {
+  const OPTIONS: LabeledOption[] = [
+    { value: "service0", label: "Breakfast" },
+    { value: "service1", label: "Snacks" },
+    { value: "service2", label: "Lunch" },
+  ];
+
+  it("resolves every checked value to its visible label, joined with the default separator", () => {
+    const fd = new FormData();
+    fd.append("additionalServices", "service0");
+    fd.append("additionalServices", "service2");
+    resolveMultiOptionLabels(fd, "additionalServices", OPTIONS);
+    expect(fd.get("additionalServices")).toBe("Breakfast, Lunch");
+  });
+
+  it("joins labels in the OPTIONS' defined order, not raw selection/insertion order", () => {
+    const fd = new FormData();
+    // Checked in reverse order relative to OPTIONS.
+    fd.append("additionalServices", "service2");
+    fd.append("additionalServices", "service0");
+    resolveMultiOptionLabels(fd, "additionalServices", OPTIONS);
+    expect(fd.get("additionalServices")).toBe("Breakfast, Lunch");
+  });
+
+  it("supports a custom separator", () => {
+    const fd = new FormData();
+    fd.append("additionalServices", "service0");
+    fd.append("additionalServices", "service1");
+    resolveMultiOptionLabels(fd, "additionalServices", OPTIONS, " | ");
+    expect(fd.get("additionalServices")).toBe("Breakfast | Snacks");
+  });
+
+  it("keeps an unrecognized checked value as its raw string, appended after resolved labels", () => {
+    const fd = new FormData();
+    fd.append("additionalServices", "service0");
+    fd.append("additionalServices", "service-stale-999");
+    resolveMultiOptionLabels(fd, "additionalServices", OPTIONS);
+    expect(fd.get("additionalServices")).toBe("Breakfast, service-stale-999");
+  });
+
+  it("removes the field entirely when nothing was selected (not present at all, as real checkboxes behave)", () => {
+    const fd = new FormData();
+    fd.set("name", "Jane");
+    resolveMultiOptionLabels(fd, "additionalServices", OPTIONS);
+    expect(fd.has("additionalServices")).toBe(false);
+  });
+
+  it("is a no-op when the field is not present in the FormData at all", () => {
+    const fd = new FormData();
+    fd.set("name", "Jane");
+    resolveMultiOptionLabels(fd, "additionalServices", OPTIONS);
+    expect(fd.has("additionalServices")).toBe(false);
+    expect(fd.get("name")).toBe("Jane");
+  });
+
+  it("there is exactly one FormData entry for the field after resolution, not one per checked box", () => {
+    const fd = new FormData();
+    fd.append("additionalServices", "service0");
+    fd.append("additionalServices", "service1");
+    resolveMultiOptionLabels(fd, "additionalServices", OPTIONS);
+    expect(fd.getAll("additionalServices")).toHaveLength(1);
   });
 });

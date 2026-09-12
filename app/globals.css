@@ -839,10 +839,9 @@ button.btn,
   gap: 20px;
   min-width: 0;
 }
-@media (min-width: 640px) {
-  .wecoda-membership-content .wecoda-hero-external-link,
-  .wecoda-membership-content .faq-inline-prompt {
-    justify-self: start;
+@media (min-width: 1024px) {
+  .wecoda-membership-content {
+    justify-items: start;
   }
 }
 .wecoda-membership-cta {

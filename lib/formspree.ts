@@ -117,3 +117,80 @@ export function applyFormspreeMetadata(
     formData.set("page_url", window.location.href);
   }
 }
+
+// --- Payload-quality helpers for value/label option fields ------------------
+//
+// Some forms render native `<select>`/checkbox-group fields from a
+// value/label options array (e.g. InquiryForm's booking `package` select and
+// `additionalServices` checkboxes, both driven by Sanity-backed,
+// locale-resolved arrays — see app/[locale]/(site)/host-at-rorum/page.tsx).
+// The native DOM controls submit the stable, internal `value` (e.g.
+// "package0"), never the visible label text the administrator edits in
+// Sanity. These two helpers resolve a field's raw submitted value(s) against
+// the SAME options array the UI rendered, in place on the FormData, so the
+// email payload shows the human-readable label instead of an internal id.
+
+export interface LabeledOption {
+  value: string;
+  label: string;
+}
+
+/**
+ * Replaces a single-value field's submitted value with the visible label of
+ * the matching option from the SAME array the UI rendered as <option>s —
+ * e.g. "package0" -> "Morning session". If the submitted value doesn't
+ * match any option (not selected, or a stale/unexpected value), the field
+ * is removed when empty (avoids a blank line in the email) and left
+ * untouched otherwise (never silently drops a real value it doesn't
+ * recognize). A field absent from the FormData entirely is a no-op.
+ */
+export function resolveOptionLabel(formData: FormData, fieldName: string, options: LabeledOption[]): void {
+  const raw = formData.get(fieldName);
+  if (raw === null) return;
+
+  const value = String(raw);
+  const match = options.find((option) => option.value === value);
+  if (match) {
+    formData.set(fieldName, match.label);
+    return;
+  }
+  if (!value.trim()) {
+    formData.delete(fieldName);
+  }
+  // else: non-empty but unrecognized — leave the raw value untouched rather
+  // than silently dropping something real.
+}
+
+/**
+ * Replaces every entry of a multi-value (checkbox-group) field with ONE
+ * combined, human-readable string of the matching options' visible labels
+ * — e.g. "Brunch, Lunch, Snacks" — in the OPTIONS' defined order (not raw
+ * selection order, so the result reads the same regardless of click
+ * order). Any checked value that doesn't match an option is kept as its raw
+ * value, appended after the resolved labels (never silently dropped).
+ * Removes the field entirely from the payload when nothing was selected (no
+ * blank "Additional services:" line in the email) — which, since unchecked
+ * checkboxes submit nothing, is also what happens when the field is absent.
+ */
+export function resolveMultiOptionLabels(
+  formData: FormData,
+  fieldName: string,
+  options: LabeledOption[],
+  separator = ", ",
+): void {
+  const rawValues = formData.getAll(fieldName).map((value) => String(value));
+  if (!rawValues.length) return;
+
+  const rawValueSet = new Set(rawValues);
+  const knownValues = new Set(options.map((option) => option.value));
+  const matchedLabels = options
+    .filter((option) => rawValueSet.has(option.value))
+    .map((option) => option.label);
+  const unmatchedRawValues = [...new Set(rawValues.filter((value) => !knownValues.has(value)))];
+
+  formData.delete(fieldName);
+  const combined = [...matchedLabels, ...unmatchedRawValues];
+  if (combined.length) {
+    formData.set(fieldName, combined.join(separator));
+  }
+}
