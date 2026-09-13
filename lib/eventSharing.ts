@@ -21,6 +21,31 @@ export interface EventShareLinks {
   facebook: string;
 }
 
+/**
+ * Absolutizes an event image candidate against the production origin.
+ *
+ * `sanityEventToRorumEvent()` (lib/sanityEvents.ts) can resolve `event.image`
+ * to a **relative** path — either the generic `/images/hero.jpg` UI
+ * placeholder, or a static-seed event banner such as
+ * `/images/events/banners/community-reset-night.png` (lib/data.ts) — for any
+ * event that has no image asset of its own in Sanity. `seo.ogImageUrl` /
+ * `socialImageUrl` are already-absolute Sanity CDN URLs in practice, but are
+ * routed through the same guard for a single, consistent absolutization
+ * point rather than trusting each source's shape individually.
+ *
+ * Every consumer of `EventShareData.image` (JSON-LD, Open Graph, Twitter
+ * Card, native share) needs an absolute URL — JSON-LD in particular has no
+ * base URL to resolve a relative path against, so an un-absolutized value
+ * would silently emit an invalid `Event.image`. Resolving this once here
+ * (rather than duplicating the guard at each call site, as `lib/seo.ts`
+ * currently must for its own separate image inputs) is the same
+ * one-central-resolver pattern this module already uses for `shareData.url`.
+ */
+function toAbsoluteEventImage(candidate: string | undefined): string | undefined {
+  if (!candidate) return undefined;
+  return /^https?:\/\//.test(candidate) ? candidate : buildUrl(PRODUCTION_ORIGIN, candidate);
+}
+
 /** One localized, canonical data source for event metadata and share actions. */
 export function resolveEventShareData(
   event: RorumEvent,
@@ -39,10 +64,14 @@ export function resolveEventShareData(
     // placeholder, not an event-specific banner. Leave that case empty so
     // localizedPageMetadata can prefer the manager's site-wide social image
     // before falling back to the same static hero as its final safety net.
-    image:
+    // The surviving candidate is always absolutized (see
+    // toAbsoluteEventImage) so `shareData.image` is guaranteed absolute for
+    // every consumer, including JSON-LD.
+    image: toAbsoluteEventImage(
       event.seo?.ogImageUrl ||
-      event.socialImageUrl ||
-      (event.image && event.image !== "/images/hero.jpg" ? event.image : undefined),
+        event.socialImageUrl ||
+        (event.image && event.image !== "/images/hero.jpg" ? event.image : undefined),
+    ),
     imageAlt: event.seo?.ogImageAlt || event.imageAlt || undefined,
   };
 }

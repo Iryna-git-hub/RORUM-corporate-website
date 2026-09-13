@@ -6,6 +6,7 @@ import { isSanityConfigured } from "@/sanity/env";
 import { sanityFetchStatic } from "@/sanity/lib/live";
 import { allEventsForSitemapQuery } from "@/sanity/queries/events";
 import { pagesUpdatedAtQuery } from "@/sanity/queries/page";
+import { buildUrl } from "@/shared/siteIdentity";
 
 // `pages`' own `href` (lib/data.ts) -> the `pageKey`/legalPage `pageKey`
 // pagesUpdatedAtQuery reports — same map sanity/components/SeoObjectInput.tsx
@@ -41,8 +42,8 @@ export const revalidate = 60;
 function languageAlternates(siteUrl: string, path: string, forLocales: readonly Locale[] = locales) {
   const defaultLocale = forLocales.includes("en") ? "en" : (locales.find((l) => forLocales.includes(l)) ?? forLocales[0]);
   return {
-    ...Object.fromEntries(forLocales.map((l) => [localeTags[l], `${siteUrl}${localizedHref(path, l)}`])),
-    ...(defaultLocale ? { "x-default": `${siteUrl}${localizedHref(path, defaultLocale)}` } : {}),
+    ...Object.fromEntries(forLocales.map((l) => [localeTags[l], buildUrl(siteUrl, localizedHref(path, l))])),
+    ...(defaultLocale ? { "x-default": buildUrl(siteUrl, localizedHref(path, defaultLocale)) } : {}),
   };
 }
 
@@ -72,7 +73,7 @@ async function getEventSitemapEntries(siteUrl: string): Promise<MetadataRoute.Si
     return events.flatMap((event) => {
       const path = `/events/${event.slug}`;
       return locales.map((locale) => ({
-        url: `${siteUrl}${localizedHref(path, locale)}`,
+        url: buildUrl(siteUrl, localizedHref(path, locale)),
         lastModified: BUILD_FALLBACK_DATE,
         changeFrequency: "monthly" as const,
         priority: 0.6,
@@ -89,7 +90,7 @@ async function getEventSitemapEntries(siteUrl: string): Promise<MetadataRoute.Si
     if (!eventLocales.length) return []; // unpublished-for-every-locale / not yet migrated — no sitemap entry
     const lastModified = event._updatedAt ? new Date(event._updatedAt) : BUILD_FALLBACK_DATE;
     return eventLocales.map((locale) => ({
-      url: `${siteUrl}${localizedHref(path, locale)}`,
+      url: buildUrl(siteUrl, localizedHref(path, locale)),
       lastModified,
       changeFrequency: "monthly" as const,
       priority: 0.6,
@@ -125,7 +126,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const updatedAt = pageKey ? updatedAtByPageKey.get(pageKey) : undefined;
     const lastModified = updatedAt ? new Date(updatedAt) : BUILD_FALLBACK_DATE;
     return locales.map((locale) => ({
-      url: `${siteUrl}${localizedHref(page.href, locale)}`,
+      url: buildUrl(siteUrl, localizedHref(page.href, locale)),
       lastModified,
       changeFrequency: (page.href === "/" ? "weekly" : "monthly") as "weekly" | "monthly",
       priority: page.href === "/" ? 1 : 0.7,

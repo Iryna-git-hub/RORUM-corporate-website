@@ -83,3 +83,17 @@ export function resolveSeo(input: {
  */
 export const EMERGENCY_SEO_TITLE = "RORUM";
 export const EMERGENCY_SEO_DESCRIPTION = "RORUM — events, community and creative space in Copenhagen.";
+
+/**
+ * The last-resort, hardcoded social-image PATH used only when neither a
+ * document's own `seo.ogImage` NOR (for events) the event's own photo NOR
+ * `siteSettings.defaultSeo.ogImage` has a value — `lib/seo.ts`'s
+ * `localizedPageMetadata()` and the Studio SEO preview
+ * (sanity/components/SeoObjectInput.tsx) both resolve their final image tier
+ * from this exact same constant so the two can never quietly show a
+ * different "nothing is set" picture. It's a site-relative path (served from
+ * the Next.js app's own `/public` folder) rather than an absolute URL — a
+ * caller that needs a full URL joins it with an origin via `buildUrl`
+ * (shared/siteIdentity.ts), same as every other path in this codebase.
+ */
+export const EMERGENCY_SEO_IMAGE_PATH = "/images/hero.jpg";

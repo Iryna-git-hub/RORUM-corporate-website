@@ -520,19 +520,36 @@ export default async function EventDetailPage({
         : typeof resolvedSpots === "number"
           ? `${resolvedSpots} ${resolvedSpots === 1 ? messages.spotsLeftOne : messages.spotsLeftOther}`
           : null;
-    const structuredDataImage = event.image ? (/^https?:\/\//.test(event.image) ? event.image : `${siteUrl}${event.image}`) : undefined;
 
     return (
       <>
+        {/*
+          name/description/image/url all come from `shareData` — the same
+          canonical `resolveEventShareData()` result the page's own OG/
+          Twitter metadata (generateMetadata above) and the EventShare
+          buttons below are built from. This JSON-LD block used to
+          independently re-derive description (`event.longDescription`,
+          skipping `event.seo?.description`), image (a local
+          `structuredDataImage` with no `seo.ogImageUrl`/`socialImageUrl`
+          priority and no exclusion of the generic `/images/hero.jpg`
+          placeholder), and url (a bare, un-localized `/events/<slug>` path)
+          — that divergence let a real event's JSON-LD show a different
+          image/description/url than its own OG tags and share actions, and
+          for DA/UK specifically meant JSON-LD's `url` never carried the
+          `/da/` or `/uk/` locale prefix that `og:url`/canonical already
+          had. `shareData.url` is passed straight through — it already
+          applies `localizedHref`, so this is the one place that builds an
+          event's canonical URL.
+        */}
         <JsonLd
           data={eventJsonLd({
             siteUrl,
-            path: `/events/${event.slug}`,
-            name: event.title,
-            description: event.longDescription || undefined,
+            url: shareData.url,
+            name: shareData.title,
+            description: shareData.description || undefined,
             date: event.date,
             time: event.time,
-            image: structuredDataImage,
+            image: shareData.image,
             address: location,
             isSoldOut: event.isSoldOut,
             ticketUrl: event.ticketUrl || undefined,

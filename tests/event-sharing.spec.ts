@@ -69,6 +69,26 @@ test.describe("Community Reset Night share metadata", () => {
       await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", eventCase.title);
       await expect(page.locator('meta[name="twitter:description"]')).toHaveAttribute("content", eventCase.description);
       await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", imageUrl!);
+
+      // The event detail page's JSON-LD <script type="application/ld+json">
+      // (@type "Event") used to independently re-derive `description` and
+      // `image` instead of reusing the same `resolveEventShareData()` result
+      // OG/Twitter above are built from — which let it show a DIFFERENT
+      // image/description than the rest of the page's social metadata for
+      // the same event. This asserts the fix actually reaches rendered
+      // HTML: JSON-LD's description/image now match OG's exactly, and its
+      // `url` carries this locale's own prefix and this event's slug.
+      const jsonLdBlocks = await page.locator('script[type="application/ld+json"]').allTextContents();
+      const eventJsonLd = jsonLdBlocks.map((block) => JSON.parse(block)).find((doc) => doc["@type"] === "Event");
+      expect(eventJsonLd).toBeTruthy();
+      expect(eventJsonLd.description).toBe(eventCase.description);
+      expect(eventJsonLd.image).toBe(imageUrl);
+      expect(eventJsonLd.name).toBe(eventCase.title.replace(/ \| RORUM$/, ""));
+      // JSON-LD's `url` now reuses the same resolved `shareData.url` as
+      // `og:url`/canonical (lib/structuredData.ts's `eventJsonLd` call
+      // site), so it must carry this locale's own prefix (e.g. `/da/`,
+      // `/uk/`) and match `og:url` exactly — not just contain the slug.
+      expect(eventJsonLd.url).toBe(canonicalUrl);
     });
   }
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EMERGENCY_SEO_DESCRIPTION, EMERGENCY_SEO_TITLE, resolveSeo, resolveSeoField, type SeoFieldTier } from "./seoResolution";
+import { EMERGENCY_SEO_DESCRIPTION, EMERGENCY_SEO_IMAGE_PATH, EMERGENCY_SEO_TITLE, resolveSeo, resolveSeoField, type SeoFieldTier } from "./seoResolution";
 import { PRODUCTION_ORIGIN } from "./siteIdentity";
 
 describe("resolveSeoField — first non-empty tier wins, in the order given", () => {
@@ -93,5 +93,13 @@ describe("EMERGENCY_SEO_TITLE / EMERGENCY_SEO_DESCRIPTION — the shared floor t
   it("both are non-empty — the true last resort must never itself be blank", () => {
     expect(EMERGENCY_SEO_TITLE.trim().length).toBeGreaterThan(0);
     expect(EMERGENCY_SEO_DESCRIPTION.trim().length).toBeGreaterThan(0);
+  });
+});
+
+describe("EMERGENCY_SEO_IMAGE_PATH — the shared floor image, same one lib/seo.ts and the Studio preview fall back to", () => {
+  it("is a non-empty, site-relative path (joined with an origin via buildUrl by callers, not already absolute)", () => {
+    expect(EMERGENCY_SEO_IMAGE_PATH.trim().length).toBeGreaterThan(0);
+    expect(EMERGENCY_SEO_IMAGE_PATH.startsWith("/")).toBe(true);
+    expect(EMERGENCY_SEO_IMAGE_PATH).not.toMatch(/^https?:\/\//);
   });
 });

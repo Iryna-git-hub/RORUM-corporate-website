@@ -12,7 +12,7 @@ import { ThemeProvider, studioTheme } from "@sanity/ui";
 import { SeoObjectInput } from "./SeoObjectInput";
 
 const mockUseFormValue = vi.fn();
-let mockSiteSettingsDoc: { defaultSeo?: { title?: unknown; description?: unknown } } | null = null;
+let mockSiteSettingsDoc: { defaultSeo?: { title?: unknown; description?: unknown; ogImage?: unknown } } | null = null;
 
 vi.mock("sanity", async (importOriginal) => {
   const actual = await importOriginal<typeof import("sanity")>();
@@ -24,6 +24,24 @@ vi.mock("sanity", async (importOriginal) => {
     }),
   };
 });
+
+// Deterministic stand-in for the real `@sanity/image-url`-backed builder
+// (sanity/lib/image.ts) — real env vars (NEXT_PUBLIC_SANITY_PROJECT_ID/
+// DATASET) aren't loaded under Vitest, so the real `urlForImage` would
+// always return `undefined` regardless of input, making the image-priority
+// chain untestable. This mock instead derives a predictable URL from the
+// asset ref so each tier can be told apart in assertions.
+vi.mock("@/sanity/lib/image", () => ({
+  urlForImage: (source: { asset?: { _ref?: string } } | undefined | null) => {
+    const ref = source?.asset?._ref;
+    if (!ref) return undefined;
+    return { width: (w: number) => ({ url: () => `https://cdn.test/${ref}-w${w}.jpg` }) };
+  },
+}));
+
+function sanityImage(ref: string) {
+  return { asset: { _ref: ref } };
+}
 
 function i18n(en?: string, da?: string, uk?: string) {
   const entries: { language: string; value: string }[] = [];
@@ -41,7 +59,7 @@ function renderInput(props: ObjectInputProps) {
   );
 }
 
-function fakeProps(value: { title?: unknown; description?: unknown } | undefined) {
+function fakeProps(value: { title?: unknown; description?: unknown; ogImage?: unknown } | undefined) {
   const renderDefault = vi.fn(() => <div data-testid="rendered-default" />);
   const props = {
     value,
@@ -59,6 +77,7 @@ function mockFormValue(fields: {
   visibleLocales?: string[];
   eventTitle?: unknown;
   eventLongDescription?: unknown;
+  eventImage?: unknown;
 }) {
   mockUseFormValue.mockImplementation((path: unknown[]) => {
     if (path.length === 1 && path[0] === "_type") return fields.documentType;
@@ -67,6 +86,7 @@ function mockFormValue(fields: {
     if (path.length === 1 && path[0] === "visibleLocales") return fields.visibleLocales;
     if (path.length === 1 && path[0] === "title") return fields.eventTitle;
     if (path.length === 1 && path[0] === "longDescription") return fields.eventLongDescription;
+    if (path.length === 1 && path[0] === "image") return fields.eventImage;
     return undefined;
   });
 }
@@ -200,6 +220,79 @@ describe("SeoObjectInput — empty-field honesty: distinguishes 'this field is e
     const { props } = fakeProps({ title: i18n("Real title"), description: i18n("Real description") });
     renderInput(props);
     expect(screen.queryByText(/still valid and is exactly what will be emitted/i)).not.toBeInTheDocument();
+  });
+});
+
+// Regression coverage for the fixed defect: this preview used to show only
+// title/description/canonical, never the resolved social IMAGE — so a
+// manager had no way to see, from Studio, which picture a shared link would
+// actually carry (the real bug behind the reported broken Facebook preview:
+// a leftover QA image would only surface once already published/shared).
+// Mirrors the exact same documentOverride -> documentContent (events only)
+// -> siteDefault -> emergencyDefault chain as title/description, run
+// through the identical shared `resolveSeoField` (shared/seoResolution.ts).
+describe("SeoObjectInput — resolved social image preview (documentOverride -> documentContent -> siteDefault -> emergencyDefault)", () => {
+  it("shows this document's own seo.ogImage when set, labeled page-specific", () => {
+    mockFormValue({ documentType: "page", pageKey: "about" });
+    const { props } = fakeProps({ title: i18n("About"), ogImage: sanityImage("image-about-own") });
+    renderInput(props);
+
+    const img = screen.getByRole("img") as HTMLImageElement;
+    expect(img.src).toContain("image-about-own");
+    expect(screen.getByText(/Page-specific social image/)).toBeInTheDocument();
+  });
+
+  it("an Event with no seo.ogImage falls back to the event's own photo, labeled generated from the event", () => {
+    mockFormValue({
+      documentType: "event",
+      slug: "makers-dinner",
+      visibleLocales: ["en"],
+      eventTitle: i18n("Makers Dinner"),
+      eventImage: sanityImage("image-event-photo"),
+    });
+    const { props } = fakeProps({ title: undefined, description: undefined, ogImage: undefined });
+    renderInput(props);
+
+    const img = screen.getByRole("img") as HTMLImageElement;
+    expect(img.src).toContain("image-event-photo");
+    expect(screen.getByText(/Generated from the event's own photo/)).toBeInTheDocument();
+  });
+
+  it("falls back to the sitewide default image when neither the document nor (for events) its own photo has one", async () => {
+    mockFormValue({ documentType: "page", pageKey: "about" });
+    mockSiteSettingsDoc = { defaultSeo: { ogImage: sanityImage("image-site-default") } };
+    const { props } = fakeProps({ title: i18n("About"), ogImage: undefined });
+    renderInput(props);
+
+    // The sitewide `siteSettings.defaultSeo` fetch (this component's own
+    // `useEffect` + `useClient().fetch`) resolves asynchronously — before it
+    // does, this tier is simply absent and the image already shows the
+    // emergency placeholder on the very first render. `findByText` retries
+    // until the fetched siteDefault lands and the preview re-renders.
+    await screen.findByText(/Site default image/);
+    const img = screen.getByRole("img") as HTMLImageElement;
+    expect(img.src).toContain("image-site-default");
+  });
+
+  it("falls back to the same emergency placeholder lib/seo.ts uses when absolutely nothing else is set", () => {
+    mockFormValue({ documentType: "page", pageKey: "about" });
+    mockSiteSettingsDoc = { defaultSeo: {} };
+    const { props } = fakeProps({ title: i18n("About"), ogImage: undefined });
+    renderInput(props);
+
+    const img = screen.getByRole("img") as HTMLImageElement;
+    expect(img.src).toBe("https://ro-rum.dk/images/hero.jpg");
+    expect(screen.getByText(/Emergency fallback image/)).toBeInTheDocument();
+  });
+
+  it("editing siteSettings itself never shows a circular 'site default' image tier", () => {
+    mockFormValue({ documentType: "siteSettings" });
+    const { props } = fakeProps({ title: i18n("Site"), ogImage: sanityImage("image-site-own") });
+    renderInput(props);
+
+    const img = screen.getByRole("img") as HTMLImageElement;
+    expect(img.src).toContain("image-site-own");
+    expect(screen.getByText(/Site default social image/)).toBeInTheDocument();
   });
 });
 

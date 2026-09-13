@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useClient, useFormValue, type ObjectInputProps } from "sanity";
-import { Badge, Box, Card, Select, Stack, Text } from "@sanity/ui";
-import { resolveSeoField, EMERGENCY_SEO_DESCRIPTION, EMERGENCY_SEO_TITLE, type SeoFieldTier, type SeoValueSource } from "@/shared/seoResolution";
+import { useClient, useFormValue, type Image, type ObjectInputProps } from "sanity";
+import { Badge, Box, Card, Flex, Select, Stack, Text } from "@sanity/ui";
+import { resolveSeoField, EMERGENCY_SEO_DESCRIPTION, EMERGENCY_SEO_IMAGE_PATH, EMERGENCY_SEO_TITLE, type SeoFieldTier, type SeoValueSource } from "@/shared/seoResolution";
 import { PRODUCTION_ORIGIN, buildUrl } from "@/shared/siteIdentity";
 import { PAGE_SEO_DEFAULTS } from "@/shared/pageSeoDefaults";
+import { urlForImage } from "@/sanity/lib/image";
 
 const LOCALE_OPTIONS = [
   { value: "en", title: "English" },
@@ -61,7 +62,23 @@ function valueFor(entries: I18nEntry[] | undefined, locale: PreviewLocale): stri
 }
 
 /** Manager-friendly bilingual label for a resolved field's source tier — never the old "your override"/raw-technical wording. */
-function sourceLabel(source: SeoValueSource, field: "title" | "description", documentType: string | undefined): string {
+function sourceLabel(source: SeoValueSource, field: "title" | "description" | "image", documentType: string | undefined): string {
+  if (field === "image") {
+    switch (source) {
+      case "documentOverride":
+        return documentType === "siteSettings"
+          ? "Site default social image / Загальне зображення сайту для соцмереж"
+          : "Page-specific social image / Зображення для соцмереж, властиве цій сторінці";
+      case "documentContent":
+        return "Generated from the event's own photo / Сформовано з фото події";
+      case "pageDefault":
+        return "This page's approved default image / Затверджене зображення за замовчуванням для сторінки";
+      case "siteDefault":
+        return "Site default image / Загальне зображення сайту";
+      case "emergencyDefault":
+        return "Emergency fallback image / Резервне системне зображення";
+    }
+  }
   switch (source) {
     case "documentOverride":
       return documentType === "siteSettings"
@@ -106,6 +123,7 @@ export function SeoObjectInput(props: ObjectInputProps) {
   const visibleLocalesRaw = useFormValue(["visibleLocales"]) as unknown;
   const eventTitle = useFormValue(["title"]) as I18nEntry[] | undefined;
   const eventLongDescription = useFormValue(["longDescription"]) as I18nEntry[] | undefined;
+  const eventImage = useFormValue(["image"]) as Image | undefined;
 
   const isEvent = documentType === "event";
   const activeLocales: readonly PreviewLocale[] = isEvent
@@ -123,12 +141,16 @@ export function SeoObjectInput(props: ObjectInputProps) {
   const locale: PreviewLocale = manualLocale && activeLocales.includes(manualLocale) ? manualLocale : (activeLocales[0] ?? "en");
 
   const client = useClient({ apiVersion: "2025-02-19" });
-  const [siteDefault, setSiteDefault] = useState<{ title?: I18nEntry[]; description?: I18nEntry[] } | undefined>(undefined);
+  const [siteDefault, setSiteDefault] = useState<
+    { title?: I18nEntry[]; description?: I18nEntry[]; ogImage?: Image } | undefined
+  >(undefined);
   useEffect(() => {
     if (documentType === "siteSettings") return; // editing the site default itself — nothing beneath it but the emergency fallback
     let cancelled = false;
     client
-      .fetch<{ defaultSeo?: { title?: I18nEntry[]; description?: I18nEntry[] } } | null>(`*[_type == "siteSettings"][0]{defaultSeo}`)
+      .fetch<{ defaultSeo?: { title?: I18nEntry[]; description?: I18nEntry[]; ogImage?: Image } } | null>(
+        `*[_type == "siteSettings"][0]{defaultSeo}`,
+      )
       .then((doc) => {
         if (!cancelled) setSiteDefault(doc?.defaultSeo ?? {});
       })
@@ -140,7 +162,7 @@ export function SeoObjectInput(props: ObjectInputProps) {
     };
   }, [client, documentType]);
 
-  const value = props.value as { title?: I18nEntry[]; description?: I18nEntry[] } | undefined;
+  const value = props.value as { title?: I18nEntry[]; description?: I18nEntry[]; ogImage?: Image } | undefined;
   const route = routeForDocument(documentType, pageKey, slugCurrent);
   const canonicalUrl = route ? buildUrl(PRODUCTION_ORIGIN, localizedHref(route, locale)) : undefined;
 
@@ -149,11 +171,24 @@ export function SeoObjectInput(props: ObjectInputProps) {
 
   const titleTiers: SeoFieldTier[] = [{ source: "documentOverride", value: documentOverrideTitle }];
   const descriptionTiers: SeoFieldTier[] = [{ source: "documentOverride", value: documentOverrideDescription }];
+  // Same documentOverride -> documentContent (events only) -> siteDefault ->
+  // emergencyDefault chain as title/description, run through the exact same
+  // `resolveSeoField` (shared/seoResolution.ts) — the priority this project
+  // actually implements for social images (`seo.ogImageUrl` -> the event's
+  // own photo -> the sitewide default -> the static emergency placeholder),
+  // matching `resolveEventShareData()` (lib/eventSharing.ts) for events and
+  // `localizedPageMetadata()` (lib/seo.ts) for every other page. Preview-only
+  // thumbnails (`.width(160)`) — never the full-resolution asset — to keep
+  // Studio load bandwidth-safe.
+  const imageTiers: SeoFieldTier[] = [
+    { source: "documentOverride", value: urlForImage(value?.ogImage)?.width(160).url() },
+  ];
 
   if (isEvent) {
     const localizedEventTitle = valueFor(eventTitle, locale);
     titleTiers.push({ source: "documentContent", value: localizedEventTitle ? `${localizedEventTitle} | RORUM` : undefined });
     descriptionTiers.push({ source: "documentContent", value: valueFor(eventLongDescription, locale) });
+    imageTiers.push({ source: "documentContent", value: urlForImage(eventImage)?.width(160).url() });
   } else if (pageKey && PAGE_SEO_DEFAULTS[pageKey]) {
     // Static pages' own approved fallback (see shared/pageSeoDefaults.ts's
     // own doc comment) — currently a single English string per page,
@@ -166,13 +201,27 @@ export function SeoObjectInput(props: ObjectInputProps) {
   if (documentType !== "siteSettings") {
     titleTiers.push({ source: "siteDefault", value: valueFor(siteDefault?.title, locale) });
     descriptionTiers.push({ source: "siteDefault", value: valueFor(siteDefault?.description, locale) });
+    imageTiers.push({ source: "siteDefault", value: urlForImage(siteDefault?.ogImage)?.width(160).url() });
   }
 
   titleTiers.push({ source: "emergencyDefault", value: EMERGENCY_SEO_TITLE });
   descriptionTiers.push({ source: "emergencyDefault", value: EMERGENCY_SEO_DESCRIPTION });
+  // The exact same static placeholder `localizedPageMetadata()` (lib/seo.ts)
+  // falls back to when nothing else is set — joined with the production
+  // origin here purely for previewing (Studio has no other reachable origin
+  // for a `/public` asset), never a second, independently-chosen fallback.
+  imageTiers.push({ source: "emergencyDefault", value: buildUrl(PRODUCTION_ORIGIN, EMERGENCY_SEO_IMAGE_PATH) });
 
   const resolvedTitle = resolveSeoField(titleTiers);
   const resolvedDescription = resolveSeoField(descriptionTiers);
+  const resolvedImage = resolveSeoField(imageTiers);
+  // Deliberately title/description only, unchanged from before this image
+  // preview was added — most documents legitimately have no image
+  // override at all and rely on the sitewide default photo, so folding the
+  // image tier into this note would make it fire on nearly every document
+  // and defeat its purpose. The image's own fallback tier is still visible
+  // via its badge just below, same as title/description.
+  const anyFieldFellThrough = resolvedTitle.source !== "documentOverride" || resolvedDescription.source !== "documentOverride";
 
   return (
     <Stack space={4}>
@@ -189,15 +238,29 @@ export function SeoObjectInput(props: ObjectInputProps) {
           </Box>
           <Stack space={2}>
             <Text size={1} muted>
-              This is the exact text that will be published — not a placeholder. / Це точний текст, який буде опубліковано, а не заповнювач.
+              This is the exact text and image that will be published — not a placeholder. / Це точний текст і зображення, які будуть опубліковані, а не заповнювач.
             </Text>
-            <Text size={1} weight="semibold" style={{ color: "#1a0dab" }}>
-              {resolvedTitle.value}
-            </Text>
-            <Text size={1} muted>
-              {canonicalUrl ?? "(no public URL for this document)"}
-            </Text>
-            <Text size={1}>{resolvedDescription.value}</Text>
+            <Flex gap={3} align="flex-start">
+              {resolvedImage.value ? (
+                // eslint-disable-next-line @next/next/no-img-element -- Studio plugin code, not a Next.js page; a small preview thumbnail, not the full asset.
+                <img
+                  src={resolvedImage.value}
+                  alt="Resolved social sharing image preview"
+                  width={96}
+                  height={50}
+                  style={{ objectFit: "cover", borderRadius: 4, border: "1px solid var(--card-border-color)", flexShrink: 0 }}
+                />
+              ) : null}
+              <Stack space={2} flex={1}>
+                <Text size={1} weight="semibold" style={{ color: "#1a0dab" }}>
+                  {resolvedTitle.value}
+                </Text>
+                <Text size={1} muted>
+                  {canonicalUrl ?? "(no public URL for this document)"}
+                </Text>
+                <Text size={1}>{resolvedDescription.value}</Text>
+              </Stack>
+            </Flex>
             <Box>
               <Badge tone={resolvedTitle.source === "documentOverride" ? "positive" : "primary"}>
                 Title: {sourceLabel(resolvedTitle.source, "title", documentType)}
@@ -206,8 +269,12 @@ export function SeoObjectInput(props: ObjectInputProps) {
               <Badge tone={resolvedDescription.source === "documentOverride" ? "positive" : "primary"}>
                 Description: {sourceLabel(resolvedDescription.source, "description", documentType)}
               </Badge>
+              {" "}
+              <Badge tone={resolvedImage.source === "documentOverride" ? "positive" : "primary"}>
+                Image: {sourceLabel(resolvedImage.source, "image", documentType)}
+              </Badge>
             </Box>
-            {resolvedTitle.source !== "documentOverride" || resolvedDescription.source !== "documentOverride" ? (
+            {anyFieldFellThrough ? (
               <Text size={1} muted>
                 This document&rsquo;s own SEO field is empty for this language — the metadata above is still valid and is exactly what will be emitted. /
                 Власне поле SEO цього документа порожнє для цієї мови — метадані вище дійсні та є точним значенням, яке буде опубліковано.

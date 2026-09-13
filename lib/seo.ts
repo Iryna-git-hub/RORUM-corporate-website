@@ -3,11 +3,12 @@ import { stegaClean } from "next-sanity";
 import { locales, localeTags, localizedHref, type Locale } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/sanity-i18n";
 import { getSeoSiteDefaults } from "@/lib/siteSettings";
-import { resolveSeoField, EMERGENCY_SEO_DESCRIPTION, EMERGENCY_SEO_TITLE } from "@/shared/seoResolution";
+import { resolveSeoField, EMERGENCY_SEO_DESCRIPTION, EMERGENCY_SEO_TITLE, EMERGENCY_SEO_IMAGE_PATH } from "@/shared/seoResolution";
+import { buildUrl } from "@/shared/siteIdentity";
 
 const ogLocaleTags: Record<Locale, string> = { en: "en_US", da: "da_DK", uk: "uk_UA" };
 
-const STATIC_FALLBACK_IMAGE = "/images/hero.jpg";
+const STATIC_FALLBACK_IMAGE = EMERGENCY_SEO_IMAGE_PATH;
 
 /** Strips a trailing " | RORUM" (or any " | <suffix>") brand separator — used only to derive a concise image-alt fallback from an already-suffixed title, never to build the title itself. */
 function deriveConciseAlt(title: string): string {
@@ -107,20 +108,30 @@ export async function localizedPageMetadata({
     : (locales.find((l) => alternateLocales.includes(l)) ?? locale);
   const otherAlternateLocales = alternateLocales.filter((l) => l !== locale).map((l) => ogLocaleTags[l]);
 
+  // `buildUrl` (shared/siteIdentity.ts) — the same join helper
+  // `resolveEventShareData()` uses for `shareData.url` — replaces what used
+  // to be this function's own inline `${siteUrl}${...}` string
+  // concatenation (canonical, each hreflang alternate, openGraph.url). Pure
+  // internal swap: `buildUrl` normalizes exactly the same way (strips a
+  // trailing slash from the origin, ensures the path starts with `/`), so
+  // output is unchanged for every real caller; this function's own
+  // signature/behavior is untouched.
+  const canonicalUrl = buildUrl(siteUrl, localizedHref(path, locale));
+
   return {
     title: resolvedTitle,
     description: resolvedDescription,
     alternates: {
-      canonical: `${siteUrl}${localizedHref(path, locale)}`,
+      canonical: canonicalUrl,
       languages: {
-        ...Object.fromEntries(alternateLocales.map((l) => [localeTags[l], `${siteUrl}${localizedHref(path, l)}`])),
-        "x-default": `${siteUrl}${localizedHref(path, defaultLocale)}`,
+        ...Object.fromEntries(alternateLocales.map((l) => [localeTags[l], buildUrl(siteUrl, localizedHref(path, l))])),
+        "x-default": buildUrl(siteUrl, localizedHref(path, defaultLocale)),
       },
     },
     openGraph: {
       title: resolvedTitle,
       description: resolvedDescription,
-      url: `${siteUrl}${localizedHref(path, locale)}`,
+      url: canonicalUrl,
       siteName: "RORUM",
       images: [{ url: imageUrl, width: 1200, height: 630, alt: resolvedAlt }],
       locale: ogLocaleTags[locale],

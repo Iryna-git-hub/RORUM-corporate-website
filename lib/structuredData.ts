@@ -43,7 +43,17 @@ function parseTimeRange(time: string): { start?: string; end?: string } {
 
 export interface EventJsonLdInput {
   siteUrl: string;
-  path: string;
+  /**
+   * The event's own final, locale-prefixed canonical URL — e.g.
+   * `resolveEventShareData()`'s `shareData.url`, which already applies
+   * `localizedHref` (so `/da/events/x`, `/uk/events/x`, etc. resolve
+   * correctly). This is passed in fully-built rather than assembled here
+   * from a bare path so there remains exactly one place in the codebase
+   * that builds an event's canonical URL — `resolveEventShareData()` in
+   * lib/eventSharing.ts — and `url` here always matches `og:url`/canonical
+   * for the same event/locale.
+   */
+  url: string;
   name: string;
   description?: string;
   date: string;
@@ -84,7 +94,11 @@ export function eventJsonLd(input: EventJsonLdInput) {
     // for the actual sold-out signal).
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    url: `${input.siteUrl}${input.path}`,
+    // Passed in already resolved (see `EventJsonLdInput.url` above) rather
+    // than assembled from `siteUrl` + a bare path — a bare `/events/<slug>`
+    // path has no locale prefix, which used to make this `url` silently
+    // diverge from the locale-correct `og:url`/canonical for DA/UK.
+    url: input.url,
     ...(input.image ? { image: input.image } : {}),
     location: {
       "@type": "Place",

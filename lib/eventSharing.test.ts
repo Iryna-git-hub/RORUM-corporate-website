@@ -59,10 +59,62 @@ describe("resolveEventShareData", () => {
       .toBeUndefined();
   });
 
+  // Regression: sanityEventToRorumEvent() (lib/sanityEvents.ts) falls back to
+  // the static seed data's `image` (lib/data.ts) for any event with no
+  // Sanity image asset of its own — and that seed data stores RELATIVE paths
+  // like "/images/events/banners/community-reset-night.png", not full URLs.
+  // JSON-LD's `Event.image` (lib/structuredData.ts, fed from
+  // `shareData.image`) has no base URL to resolve a relative path against,
+  // so this must always come out absolute.
+  it("absolutizes a relative fallback event image (e.g. the static-seed banner path)", () => {
+    expect(
+      resolveEventShareData(
+        event({ image: "/images/events/banners/community-reset-night.png", socialImageUrl: undefined }),
+        "en",
+      ).image,
+    ).toBe("https://ro-rum.dk/images/events/banners/community-reset-night.png");
+  });
+
+  it("leaves an already-absolute Sanity CDN image untouched", () => {
+    expect(resolveEventShareData(event({ socialImageUrl: "https://cdn.sanity.io/banner-1200x630.jpg" }), "en").image)
+      .toBe("https://cdn.sanity.io/banner-1200x630.jpg");
+  });
+
   it("uses localized fallback share text only when the event has no description", () => {
     expect(resolveEventShareData(event({ longDescription: "", seo: undefined }), "uk", "Локалізований текст").text)
       .toBe("Локалізований текст");
   });
+});
+
+// Guards against the resolved URL ever silently degrading to a bare,
+// event-less homepage link — e.g. if `event.slug` were ever empty/missing,
+// the URL must still be recognizably an /events/ URL (never
+// "https://ro-rum.dk/" or its localized equivalent) so a caller/crawler
+// never mistakes it for the homepage.
+describe("resolveEventShareData — canonical URL invariant", () => {
+  it.each(["en", "da", "uk"] as const)(
+    "%s: the resolved URL always contains this event's own slug",
+    (locale) => {
+      const url = resolveEventShareData(event(), locale).url;
+      expect(url).toContain("community-reset-night");
+    },
+  );
+
+  it.each([
+    ["en", "https://ro-rum.dk/events/"],
+    ["da", "https://ro-rum.dk/da/events/"],
+    ["uk", "https://ro-rum.dk/uk/events/"],
+  ] as const)(
+    "%s: an event with an empty slug still resolves an /events/ URL, never the bare homepage",
+    (locale, expectedUrl) => {
+      const url = resolveEventShareData(event({ slug: "" }), locale).url;
+      expect(url).toBe(expectedUrl);
+      expect(url).not.toBe("https://ro-rum.dk/");
+      expect(url).not.toBe("https://ro-rum.dk/da/");
+      expect(url).not.toBe("https://ro-rum.dk/uk/");
+      expect(url).toContain("/events/");
+    },
+  );
 });
 
 describe("event share payload builders", () => {
