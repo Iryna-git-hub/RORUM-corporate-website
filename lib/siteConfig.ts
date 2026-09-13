@@ -1,4 +1,4 @@
-import { PRODUCTION_ORIGIN } from "@/shared/siteIdentity";
+import { SITE_ORIGIN } from "@/shared/siteIdentity";
 
 export interface CompanyDetails {
   name: string;
@@ -11,7 +11,7 @@ export const companyDetails: CompanyDetails = {
   name: "RORUM",
   cvr: "46033213",
   website: "ro-rum.dk",
-  siteUrl: PRODUCTION_ORIGIN,
+  siteUrl: SITE_ORIGIN,
 };
 
 export interface ContactDetails {

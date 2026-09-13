@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EMERGENCY_SEO_DESCRIPTION, EMERGENCY_SEO_IMAGE_PATH, EMERGENCY_SEO_TITLE, resolveSeo, resolveSeoField, type SeoFieldTier } from "./seoResolution";
-import { PRODUCTION_ORIGIN } from "./siteIdentity";
+import { SITE_ORIGIN } from "./siteIdentity";
 
 describe("resolveSeoField — first non-empty tier wins, in the order given", () => {
   it("documentOverride wins when present, even with lower tiers also populated", () => {
@@ -66,7 +66,7 @@ describe("resolveSeoField — first non-empty tier wins, in the order given", ()
 describe("resolveSeo — full {title, description, canonicalUrl} contract", () => {
   it("resolves title/description independently and builds the canonical URL from origin+path", () => {
     const result = resolveSeo({
-      origin: PRODUCTION_ORIGIN,
+      origin: SITE_ORIGIN,
       path: "/about",
       titleTiers: [{ source: "documentOverride", value: "About RORUM" }],
       descriptionTiers: [{ source: "siteDefault", value: "Sitewide description" }],
@@ -80,7 +80,7 @@ describe("resolveSeo — full {title, description, canonicalUrl} contract", () =
 
   it("home path '/' produces a canonical URL with no double slash", () => {
     const result = resolveSeo({
-      origin: PRODUCTION_ORIGIN,
+      origin: SITE_ORIGIN,
       path: "/",
       titleTiers: [{ source: "emergencyDefault", value: EMERGENCY_SEO_TITLE }],
       descriptionTiers: [{ source: "emergencyDefault", value: EMERGENCY_SEO_DESCRIPTION }],

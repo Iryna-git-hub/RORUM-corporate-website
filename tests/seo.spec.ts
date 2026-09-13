@@ -4,6 +4,16 @@ import { STATIC_ROUTES, SAMPLE_EVENT_ROUTE } from "./routes";
 
 const LOCALES = ["en", "da", "uk"] as const;
 
+// The webServer (see playwright.config.ts) is a real `next build && next
+// start`, which loads .env.local itself — so every canonical/hreflang/OG/
+// sitemap/robots URL this running server actually emits is built from THAT
+// run's NEXT_PUBLIC_SITE_URL, not a hardcoded domain. playwright.config.ts
+// also loads .env.local into this test-runner process, so the same value is
+// available here to build expected strings (same pattern as
+// tests/event-sharing.spec.ts's EVENT_SHARING_TEST_ORIGIN/
+// configuredSiteOrigin).
+const SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
+
 // Read-only, `perspective: "published"`, no write token — same philosophy
 // as tests/cms-events-contract.spec.ts's own client.
 const sanity = createClient({
@@ -36,7 +46,7 @@ test.describe("robots.txt / sitemap.xml (SEO task Section 13/14)", () => {
     expect(body).not.toContain("/studio");
     expect(body).not.toContain("menu-examples");
     for (const route of STATIC_ROUTES) {
-      expect(body).toContain(`<loc>https://ro-rum.dk${route}</loc>`);
+      expect(body).toContain(`<loc>${SITE_ORIGIN}${route}</loc>`);
     }
   });
 
@@ -77,7 +87,7 @@ test.describe("Every static route has non-empty localized title/description, cor
         // Next.js's own metadata resolver strips the trailing "/" from the
         // bare root URL specifically (confirmed against the real generated
         // HTML) — every other route keeps its full path unchanged.
-        const expectedCanonical = route === "/" && locale === "en" ? "https://ro-rum.dk" : `https://ro-rum.dk${withLocale(route, locale)}`;
+        const expectedCanonical = route === "/" && locale === "en" ? SITE_ORIGIN : `${SITE_ORIGIN}${withLocale(route, locale)}`;
         expect(canonical).toBe(expectedCanonical);
 
         const hreflangs = await page.locator('link[rel="alternate"][hrefLang]').all();
@@ -126,7 +136,7 @@ test.describe("Event Detail structured data and SEO (SEO task Section 8/18)", ()
     const title = await page.title();
     expect(title.trim().length).toBeGreaterThan(0);
     const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
-    expect(canonical).toBe(`https://ro-rum.dk${SAMPLE_EVENT_ROUTE}`);
+    expect(canonical).toBe(`${SITE_ORIGIN}${SAMPLE_EVENT_ROUTE}`);
   });
 
   test(`${SAMPLE_EVENT_ROUTE} relies on the GENERATED fallback (no seo.title override live for this event) — proves the '<event title> | RORUM' precedence tier for real, not just at the unit level`, async ({ page }) => {
@@ -163,23 +173,41 @@ test.describe("Event Detail structured data and SEO (SEO task Section 8/18)", ()
   // seo.title/description override" case.
 });
 
+// This deployment's own configured origin — proxy.ts's legacy rorum.dk
+// alias / insecure-ro-rum.dk-request redirect only ever fires when SITE_ORIGIN
+// is actually the real ro-rum.dk production origin (see proxy.ts's own
+// comment); on every other deployment (this repo's own .env.local points at
+// a Netlify origin) it must stay completely inert regardless of what Host
+// header a request happens to carry. Both branches below are exercised
+// explicitly so this suite proves the gate itself, not just one hardcoded
+// outcome.
+const isRorumProductionOrigin = SITE_ORIGIN === "https://ro-rum.dk";
+
 test.describe("middleware.ts — old-domain / insecure-request redirects (application-level safety net; see MIGRATION_REPORT.md for the authoritative Netlify-level fix)", () => {
-  test("a request with Host: rorum.dk redirects (308) to https://ro-rum.dk, preserving path and query string", async ({ request }) => {
+  test("a request with Host: rorum.dk redirects (308) to https://ro-rum.dk only when this deployment's own origin IS ro-rum.dk — otherwise it's inert", async ({ request }) => {
     const response = await request.get("/about?ref=test", {
       headers: { host: "rorum.dk" },
       maxRedirects: 0,
     });
-    expect(response.status()).toBe(308);
-    expect(response.headers()["location"]).toBe("https://ro-rum.dk/about?ref=test");
+    if (isRorumProductionOrigin) {
+      expect(response.status()).toBe(308);
+      expect(response.headers()["location"]).toBe("https://ro-rum.dk/about?ref=test");
+    } else {
+      expect(response.status()).toBe(200);
+    }
   });
 
-  test("a request with Host: ro-rum.dk and x-forwarded-proto: http redirects (308) to the https version of the same URL", async ({ request }) => {
+  test("a request with Host: ro-rum.dk and x-forwarded-proto: http redirects (308) to https only when this deployment's own origin IS ro-rum.dk — otherwise it's inert", async ({ request }) => {
     const response = await request.get("/faq", {
       headers: { host: "ro-rum.dk", "x-forwarded-proto": "http" },
       maxRedirects: 0,
     });
-    expect(response.status()).toBe(308);
-    expect(response.headers()["location"]).toBe("https://ro-rum.dk/faq");
+    if (isRorumProductionOrigin) {
+      expect(response.status()).toBe(308);
+      expect(response.headers()["location"]).toBe("https://ro-rum.dk/faq");
+    } else {
+      expect(response.status()).toBe(200);
+    }
   });
 
   test("a normal request (no old-domain Host, no insecure x-forwarded-proto) is unaffected — locale routing still works as before", async ({ request }) => {
@@ -188,23 +216,23 @@ test.describe("middleware.ts — old-domain / insecure-request redirects (applic
   });
 });
 
-test.describe("Domain-authority gate — no public metadata anywhere uses the wrong no-hyphen domain", () => {
-  test("sitemap.xml and robots.txt contain no https://rorum.dk", async ({ request }) => {
+test.describe("Domain-authority gate — no public metadata anywhere uses the wrong no-hyphen domain, and this deployment's configured origin is used consistently", () => {
+  test("sitemap.xml and robots.txt contain no https://rorum.dk, and do contain this deployment's own SITE_ORIGIN", async ({ request }) => {
     const [sitemapRes, robotsRes] = await Promise.all([request.get("/sitemap.xml"), request.get("/robots.txt")]);
     const [sitemapBody, robotsBody] = await Promise.all([sitemapRes.text(), robotsRes.text()]);
     expect(sitemapBody).not.toContain("https://rorum.dk");
     expect(robotsBody).not.toContain("https://rorum.dk");
-    expect(sitemapBody).toContain("https://ro-rum.dk");
-    expect(robotsBody).toContain("https://ro-rum.dk");
+    expect(sitemapBody).toContain(SITE_ORIGIN);
+    expect(robotsBody).toContain(SITE_ORIGIN);
   });
 
   for (const route of [...STATIC_ROUTES, SAMPLE_EVENT_ROUTE]) {
-    test(`${route}: full rendered HTML (canonical/hreflang/OG/Twitter/JSON-LD) contains no https://rorum.dk`, async ({ page }) => {
+    test(`${route}: full rendered HTML (canonical/hreflang/OG/Twitter/JSON-LD) contains no https://rorum.dk, and does contain this deployment's own SITE_ORIGIN`, async ({ page }) => {
       await page.goto(route);
       const html = await page.content();
       expect(html).not.toContain("https://rorum.dk");
-      // Real proof this isn't a vacuous check — the correct domain genuinely appears.
-      expect(html).toContain("https://ro-rum.dk");
+      // Real proof this isn't a vacuous check — the correct configured origin genuinely appears.
+      expect(html).toContain(SITE_ORIGIN);
     });
   }
 });

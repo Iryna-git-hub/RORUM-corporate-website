@@ -16,6 +16,10 @@ export default defineConfig({
     environment: "jsdom",
     include: ["sanity/components/**/*.test.tsx", "sanity/**/*.unit.test.ts", "lib/**/*.test.ts", "components/**/*.test.tsx", "shared/**/*.test.ts"],
     globals: false,
+    // Sets NEXT_PUBLIC_SITE_URL before any test file's imports resolve —
+    // Vitest loads no .env file itself, so shared/siteIdentity.ts's
+    // module-scope SITE_ORIGIN resolution would otherwise throw on import.
+    setupFiles: ["./vitest.setup.ts"],
   },
   resolve: {
     alias: {

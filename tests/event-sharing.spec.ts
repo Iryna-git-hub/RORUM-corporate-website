@@ -6,6 +6,13 @@ const SOCIAL_IMAGE_URL =
   `https://cdn.sanity.io/images/939cqwfo/production/${SOCIAL_IMAGE_ASSET}-1448x1086.png` +
   "?rect=0,163,1448,760&w=1200&h=630&fit=crop&auto=format";
 const testOrigin = process.env.EVENT_SHARING_TEST_ORIGIN?.replace(/\/$/, "") ?? "";
+// The webServer (see playwright.config.ts) is a real `next build && next
+// start`, which loads .env.local itself — so the canonical/OG `url` this
+// server actually emits is built from THAT run's NEXT_PUBLIC_SITE_URL, not
+// a hardcoded domain. playwright.config.ts also loads .env.local into this
+// test-runner process, so the same value is available here to build the
+// expected string.
+const configuredSiteOrigin = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
 
 const cases = [
   {
@@ -52,7 +59,7 @@ test.describe("Community Reset Night share metadata", () => {
       const response = await page.goto(`${testOrigin}${eventCase.route}`);
       expect(response?.status()).toBe(200);
 
-      const canonicalUrl = `https://ro-rum.dk${eventCase.route}`;
+      const canonicalUrl = `${configuredSiteOrigin}${eventCase.route}`;
       await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", eventCase.title);
       await expect(page.locator('meta[property="og:description"]')).toHaveAttribute("content", eventCase.description);
       await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", canonicalUrl);

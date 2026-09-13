@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { merriweather, quicksand } from "@/app/fonts";
-import { PRODUCTION_ORIGIN } from "@/shared/siteIdentity";
+import { SITE_ORIGIN } from "@/shared/siteIdentity";
 import "@/app/globals.css";
 
 // Studio is an internal authoring tool, never a public search result — see
@@ -11,7 +11,9 @@ import "@/app/globals.css";
 // link. `noarchive`/`noimageindex` further ensure no cached copy or image
 // from Studio's own UI ever surfaces in search results.
 export const metadata: Metadata = {
-  metadataBase: new URL(PRODUCTION_ORIGIN),
+  // Throws at module-load time (next build) if NEXT_PUBLIC_SITE_URL is
+  // missing/invalid — see shared/siteIdentity.ts.
+  metadataBase: new URL(SITE_ORIGIN),
   title: { default: "RORUM | Events, Community & Creative Space", template: "%s" },
   description: "Discover RORUM — a place for events, community, hosting, catering and creative collaboration where people and ideas come together.",
   robots: { index: false, follow: false, noarchive: true, noimageindex: true },

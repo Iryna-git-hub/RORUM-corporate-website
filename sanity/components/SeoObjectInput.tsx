@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useClient, useFormValue, type Image, type ObjectInputProps } from "sanity";
 import { Badge, Box, Card, Flex, Select, Stack, Text } from "@sanity/ui";
 import { resolveSeoField, EMERGENCY_SEO_DESCRIPTION, EMERGENCY_SEO_IMAGE_PATH, EMERGENCY_SEO_TITLE, type SeoFieldTier, type SeoValueSource } from "@/shared/seoResolution";
-import { PRODUCTION_ORIGIN, buildUrl } from "@/shared/siteIdentity";
+import { SITE_ORIGIN, buildUrl } from "@/shared/siteIdentity";
 import { PAGE_SEO_DEFAULTS } from "@/shared/pageSeoDefaults";
 import { urlForImage } from "@/sanity/lib/image";
 
@@ -164,7 +164,7 @@ export function SeoObjectInput(props: ObjectInputProps) {
 
   const value = props.value as { title?: I18nEntry[]; description?: I18nEntry[]; ogImage?: Image } | undefined;
   const route = routeForDocument(documentType, pageKey, slugCurrent);
-  const canonicalUrl = route ? buildUrl(PRODUCTION_ORIGIN, localizedHref(route, locale)) : undefined;
+  const canonicalUrl = route ? buildUrl(SITE_ORIGIN, localizedHref(route, locale)) : undefined;
 
   const documentOverrideTitle = valueFor(value?.title, locale);
   const documentOverrideDescription = valueFor(value?.description, locale);
@@ -207,10 +207,10 @@ export function SeoObjectInput(props: ObjectInputProps) {
   titleTiers.push({ source: "emergencyDefault", value: EMERGENCY_SEO_TITLE });
   descriptionTiers.push({ source: "emergencyDefault", value: EMERGENCY_SEO_DESCRIPTION });
   // The exact same static placeholder `localizedPageMetadata()` (lib/seo.ts)
-  // falls back to when nothing else is set — joined with the production
+  // falls back to when nothing else is set — joined with the deployed site
   // origin here purely for previewing (Studio has no other reachable origin
   // for a `/public` asset), never a second, independently-chosen fallback.
-  imageTiers.push({ source: "emergencyDefault", value: buildUrl(PRODUCTION_ORIGIN, EMERGENCY_SEO_IMAGE_PATH) });
+  imageTiers.push({ source: "emergencyDefault", value: buildUrl(SITE_ORIGIN, EMERGENCY_SEO_IMAGE_PATH) });
 
   const resolvedTitle = resolveSeoField(titleTiers);
   const resolvedDescription = resolveSeoField(descriptionTiers);

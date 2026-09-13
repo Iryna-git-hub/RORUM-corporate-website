@@ -6,13 +6,16 @@
  *   siteUrl: "https://rorum.dk"   <- wrong, no-hyphen domain
  *   website: "ro-rum.dk"          <- already correct, left untouched
  *
- * `siteUrl` is corrected to "https://ro-rum.dk" (matching
- * shared/siteIdentity.ts's PRODUCTION_ORIGIN exactly) purely for data
- * consistency/reference — the runtime no longer reads this field as an
- * authority at all (see lib/siteSettings.ts's getSeoSiteDefaults(), which
- * always uses PRODUCTION_ORIGIN directly) and the schema field is now
- * read-only in Studio, so this script is a one-time data correction, not a
- * behavior change.
+ * `siteUrl` is corrected to "https://ro-rum.dk" (this script's own
+ * `PRODUCTION_ORIGIN` constant below — intentionally NOT
+ * shared/siteIdentity.ts's env-driven `SITE_ORIGIN`, since this repair's
+ * whole purpose is fixing this field to the real production domain
+ * specifically, regardless of whatever origin the environment running this
+ * script happens to be configured for) purely for data consistency/
+ * reference — the runtime no longer reads this field as an authority at all
+ * (see lib/siteSettings.ts's getSeoSiteDefaults(), which always uses
+ * SITE_ORIGIN directly) and the schema field is now read-only in Studio, so
+ * this script is a one-time data correction, not a behavior change.
  *
  * Explicitly does NOT touch: companyName, cvr, website, defaultSeo (title/
  * description/ogImage/alt, any language), announcementEnabled/Text/Link, or
@@ -27,7 +30,12 @@
  *   npm run sanity:repair-site-settings-domain -- --apply
  */
 import { createClient } from "@sanity/client";
-import { PRODUCTION_ORIGIN } from "../shared/siteIdentity";
+// This one-off historical script always corrects `siteUrl` to the real
+// ro-rum.dk production domain specifically (that was its whole purpose — see
+// this file's own header) regardless of which origin the CURRENT environment
+// happens to be configured for, so it intentionally does not use
+// shared/siteIdentity.ts's env-driven SITE_ORIGIN here.
+const PRODUCTION_ORIGIN = "https://ro-rum.dk";
 
 const APPLY = process.argv.includes("--apply") && Boolean(process.env.SANITY_API_WRITE_TOKEN);
 const DOC_IDS = ["siteSettings", "drafts.siteSettings"] as const;

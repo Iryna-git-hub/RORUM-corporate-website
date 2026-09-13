@@ -1,13 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { PRODUCTION_ORIGIN, buildUrl, isProductionOrigin, normalizeOrigin, resolveProductionOrigin } from "./siteIdentity";
+import { SITE_ORIGIN, buildUrl, normalizeOrigin, resolveSiteOrigin } from "./siteIdentity";
 
-describe("PRODUCTION_ORIGIN — the one canonical production origin", () => {
-  it("is exactly https://ro-rum.dk, not the wrong no-hyphen domain", () => {
-    expect(PRODUCTION_ORIGIN).toBe("https://ro-rum.dk");
-  });
-
-  it("has no trailing slash", () => {
-    expect(PRODUCTION_ORIGIN.endsWith("/")).toBe(false);
+describe("SITE_ORIGIN — resolved once from NEXT_PUBLIC_SITE_URL (fixed to https://ro-rum.dk for this test run by vitest.setup.ts)", () => {
+  it("is a normalized HTTPS origin with no trailing slash", () => {
+    expect(SITE_ORIGIN).toBe("https://ro-rum.dk");
+    expect(SITE_ORIGIN.endsWith("/")).toBe(false);
   });
 });
 
@@ -30,12 +27,12 @@ describe("normalizeOrigin — trailing-slash normalization can never produce a d
 });
 
 describe("buildUrl — origin + path joins with exactly one slash", () => {
-  it("home path '/' produces exactly https://ro-rum.dk/ — no double slash", () => {
-    expect(buildUrl(PRODUCTION_ORIGIN, "/")).toBe("https://ro-rum.dk/");
+  it("home path '/' produces exactly the origin plus '/' — no double slash", () => {
+    expect(buildUrl(SITE_ORIGIN, "/")).toBe("https://ro-rum.dk/");
   });
 
   it("a normal path joins cleanly", () => {
-    expect(buildUrl(PRODUCTION_ORIGIN, "/about")).toBe("https://ro-rum.dk/about");
+    expect(buildUrl(SITE_ORIGIN, "/about")).toBe("https://ro-rum.dk/about");
   });
 
   it("an origin with a trailing slash still joins without doubling", () => {
@@ -43,57 +40,92 @@ describe("buildUrl — origin + path joins with exactly one slash", () => {
   });
 
   it("a path missing its leading slash is still joined correctly", () => {
-    expect(buildUrl(PRODUCTION_ORIGIN, "about")).toBe("https://ro-rum.dk/about");
+    expect(buildUrl(SITE_ORIGIN, "about")).toBe("https://ro-rum.dk/about");
   });
 });
 
-describe("isProductionOrigin", () => {
-  it("true for the exact canonical origin", () => {
-    expect(isProductionOrigin("https://ro-rum.dk")).toBe(true);
+describe("resolveSiteOrigin — accepts any public HTTPS origin, purely env-driven (no hardcoded domain anywhere in this function)", () => {
+  it("accepts the real ro-rum.dk production origin", () => {
+    expect(resolveSiteOrigin("https://ro-rum.dk")).toBe("https://ro-rum.dk");
   });
 
-  it("true for a trailing-slash variant (normalized before comparing)", () => {
-    expect(isProductionOrigin("https://ro-rum.dk/")).toBe(true);
+  it("accepts a Netlify-shaped preview/staging origin — never rejected the way the old resolveProductionOrigin used to", () => {
+    expect(resolveSiteOrigin("https://rorum.netlify.app")).toBe("https://rorum.netlify.app");
   });
 
-  it("false for the wrong no-hyphen domain", () => {
-    expect(isProductionOrigin("https://rorum.dk")).toBe(false);
+  it("accepts a *.netlify.live origin", () => {
+    expect(resolveSiteOrigin("https://deploy-preview-12--rorum.netlify.live")).toBe(
+      "https://deploy-preview-12--rorum.netlify.live",
+    );
   });
 
-  it("false for a non-secure origin", () => {
-    expect(isProductionOrigin("http://ro-rum.dk")).toBe(false);
-  });
-});
-
-describe("resolveProductionOrigin — the one resolver, defensive against bad input", () => {
-  it("no override at all: falls back to the canonical origin", () => {
-    expect(resolveProductionOrigin(undefined)).toBe(PRODUCTION_ORIGIN);
-    expect(resolveProductionOrigin(null)).toBe(PRODUCTION_ORIGIN);
-    expect(resolveProductionOrigin("")).toBe(PRODUCTION_ORIGIN);
-    expect(resolveProductionOrigin("   ")).toBe(PRODUCTION_ORIGIN);
+  it("accepts an arbitrary future custom domain never seen by this codebase before", () => {
+    expect(resolveSiteOrigin("https://future-example-domain.com")).toBe("https://future-example-domain.com");
   });
 
-  it("a valid https override is honored and normalized", () => {
-    expect(resolveProductionOrigin("https://staging.example.com/")).toBe("https://staging.example.com");
+  it("normalizes a trailing slash", () => {
+    expect(resolveSiteOrigin("https://ro-rum.dk/")).toBe("https://ro-rum.dk");
   });
 
-  it("rejects a localhost override — falls back to canonical, never trusts it", () => {
-    expect(resolveProductionOrigin("http://localhost:3000")).toBe(PRODUCTION_ORIGIN);
+  it("trims surrounding whitespace", () => {
+    expect(resolveSiteOrigin("  https://ro-rum.dk  ")).toBe("https://ro-rum.dk");
   });
 
-  it("rejects a Netlify preview override — falls back to canonical", () => {
-    expect(resolveProductionOrigin("https://deploy-preview-12--rorum.netlify.app")).toBe(PRODUCTION_ORIGIN);
+  it("rejects localhost — throws, never silently falls back", () => {
+    expect(() => resolveSiteOrigin("http://localhost:3000")).toThrow(/NEXT_PUBLIC_SITE_URL/);
   });
 
-  it("rejects a non-HTTPS override — falls back to canonical", () => {
-    expect(resolveProductionOrigin("http://ro-rum.dk")).toBe(PRODUCTION_ORIGIN);
+  it("rejects 127.0.0.1", () => {
+    expect(() => resolveSiteOrigin("https://127.0.0.1")).toThrow(/NEXT_PUBLIC_SITE_URL/);
   });
 
-  it("rejects a garbage/malformed override — falls back to canonical rather than emitting broken URLs", () => {
-    expect(resolveProductionOrigin("not a url")).toBe(PRODUCTION_ORIGIN);
+  it("rejects the IPv6 loopback [::1]", () => {
+    expect(() => resolveSiteOrigin("https://[::1]:3000")).toThrow(/NEXT_PUBLIC_SITE_URL/);
   });
 
-  it("nothing in this codebase currently passes an override in — every real call site resolves the bare canonical origin", () => {
-    expect(resolveProductionOrigin()).toBe(PRODUCTION_ORIGIN);
+  it("rejects a non-HTTPS (http://) origin", () => {
+    expect(() => resolveSiteOrigin("http://ro-rum.dk")).toThrow(/https/i);
+  });
+
+  it("rejects a missing/undefined value with a clear error naming the env var", () => {
+    expect(() => resolveSiteOrigin(undefined)).toThrow(/NEXT_PUBLIC_SITE_URL/);
+  });
+
+  it("rejects an empty/whitespace-only value", () => {
+    expect(() => resolveSiteOrigin("")).toThrow(/NEXT_PUBLIC_SITE_URL/);
+    expect(() => resolveSiteOrigin("   ")).toThrow(/NEXT_PUBLIC_SITE_URL/);
+  });
+
+  it("rejects null the same as missing", () => {
+    expect(() => resolveSiteOrigin(null)).toThrow(/NEXT_PUBLIC_SITE_URL/);
+  });
+
+  it("rejects a malformed URL string with a clear error", () => {
+    expect(() => resolveSiteOrigin("not a url")).toThrow(/valid/i);
+  });
+
+  it("rejects a value carrying a path — must be a bare origin", () => {
+    expect(() => resolveSiteOrigin("https://ro-rum.dk/some/path")).toThrow(/bare origin/i);
+  });
+
+  it("rejects a value carrying a query string", () => {
+    expect(() => resolveSiteOrigin("https://ro-rum.dk/?x=1")).toThrow(/bare origin/i);
+  });
+
+  // The strongest proof this resolver is purely env-driven, not the old
+  // hardcoded-with-Netlify-rejected model: every one of these distinct,
+  // legitimate public HTTPS origins round-trips through unchanged — nothing
+  // here special-cases or rewrites any particular domain (production
+  // included) to some other value.
+  it("is purely env-driven: distinct valid origins each resolve to themselves, none rewritten to a hardcoded domain", () => {
+    const candidates = [
+      "https://ro-rum.dk",
+      "https://rorum.netlify.app",
+      "https://staging.example.com",
+      "https://future-example-domain.com",
+    ];
+    for (const candidate of candidates) {
+      expect(resolveSiteOrigin(candidate)).toBe(candidate);
+    }
   });
 });

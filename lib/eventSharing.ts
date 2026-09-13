@@ -1,7 +1,7 @@
 import type { Locale } from "@/lib/i18n";
 import { localizedHref } from "@/lib/i18n";
 import type { RorumEvent } from "@/lib/data";
-import { buildUrl, PRODUCTION_ORIGIN } from "@/shared/siteIdentity";
+import { buildUrl, SITE_ORIGIN } from "@/shared/siteIdentity";
 
 export interface EventShareData {
   locale: Locale;
@@ -22,7 +22,7 @@ export interface EventShareLinks {
 }
 
 /**
- * Absolutizes an event image candidate against the production origin.
+ * Absolutizes an event image candidate against the deployed site origin.
  *
  * `sanityEventToRorumEvent()` (lib/sanityEvents.ts) can resolve `event.image`
  * to a **relative** path — either the generic `/images/hero.jpg` UI
@@ -43,7 +43,7 @@ export interface EventShareLinks {
  */
 function toAbsoluteEventImage(candidate: string | undefined): string | undefined {
   if (!candidate) return undefined;
-  return /^https?:\/\//.test(candidate) ? candidate : buildUrl(PRODUCTION_ORIGIN, candidate);
+  return /^https?:\/\//.test(candidate) ? candidate : buildUrl(SITE_ORIGIN, candidate);
 }
 
 /** One localized, canonical data source for event metadata and share actions. */
@@ -59,7 +59,7 @@ export function resolveEventShareData(
     metadataTitle: event.seo?.title || `${event.title} | RORUM`,
     description,
     text: description || fallbackShareText,
-    url: buildUrl(PRODUCTION_ORIGIN, localizedHref(`/events/${event.slug}`, locale)),
+    url: buildUrl(SITE_ORIGIN, localizedHref(`/events/${event.slug}`, locale)),
     // The mapper's generic /images/hero.jpg is only an emergency UI
     // placeholder, not an event-specific banner. Leave that case empty so
     // localizedPageMetadata can prefer the manager's site-wide social image

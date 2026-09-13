@@ -11,7 +11,7 @@ import { organizationJsonLd, websiteJsonLd } from "@/lib/structuredData";
 import { getSeoSiteDefaults } from "@/lib/siteSettings";
 import { isSanityConfigured } from "@/sanity/env";
 import { SanityLive } from "@/sanity/lib/live";
-import { PRODUCTION_ORIGIN } from "@/shared/siteIdentity";
+import { SITE_ORIGIN } from "@/shared/siteIdentity";
 import "@/app/globals.css";
 
 // The site's real root layout. Split out of the old single app/layout.tsx
@@ -41,7 +41,10 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL(PRODUCTION_ORIGIN),
+  // Throws at module-load time (next build) if NEXT_PUBLIC_SITE_URL is
+  // missing/invalid — see shared/siteIdentity.ts. Intentional: a build must
+  // fail loudly rather than silently ship metadata for the wrong domain.
+  metadataBase: new URL(SITE_ORIGIN),
   title: { default: "RORUM | Events, Community & Creative Space", template: "%s" },
   description: "Discover RORUM — a place for events, community, hosting, catering and creative collaboration where people and ideas come together.",
   robots: { index: true, follow: true },

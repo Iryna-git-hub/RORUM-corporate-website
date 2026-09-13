@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { defaultLocale, isLocale, localizedHref } from "@/lib/i18n";
-import { PRODUCTION_ORIGIN } from "@/shared/siteIdentity";
+import { SITE_ORIGIN } from "@/shared/siteIdentity";
 
 // The 3 permanent redirects that used to live in next.config.js's
 // redirects() — moved into this proxy (the file convention formerly called
@@ -13,6 +13,15 @@ const LEGACY_REDIRECTS: Record<string, string> = {
   "/host-an-event": "/host-at-rorum",
   "/space-decoration-event-styling": "/event-decoration",
 };
+
+// The real, hyphenated production domain — the ONLY origin the legacy
+// host-alias / HTTP->HTTPS safety net below applies to. This is deliberately
+// NOT a fallback for SITE_ORIGIN (shared/siteIdentity.ts never hardcodes a
+// domain) — it exists purely so this ro-rum.dk-specific historical redirect
+// stays completely inert on every OTHER deployment (a Netlify preview/
+// staging build, a future custom domain, etc.), rather than firing with the
+// wrong target origin whenever this file happens to run somewhere else.
+const RORUM_PRODUCTION_ORIGIN = "https://ro-rum.dk";
 
 // The old, no-hyphen domain — never the canonical origin (see
 // shared/siteIdentity.ts's own doc comment for the full domain-authority
@@ -44,10 +53,17 @@ export function proxy(request: NextRequest) {
   // http://rorum.dk/*, https://rorum.dk/*, and http://ro-rum.dk/* all
   // resolve to https://ro-rum.dk/* — path and query string preserved,
   // never the domain-neutral locale rewrite below (which would otherwise
-  // still run for the correct host but never for the wrong one).
-  if (host === OLD_DOMAIN_HOST || (host === "ro-rum.dk" && isInsecureRequest(request))) {
-    const target = new URL(request.nextUrl.pathname + request.nextUrl.search, PRODUCTION_ORIGIN);
-    return NextResponse.redirect(target, 308);
+  // still run for the correct host but never for the wrong one). Gated on
+  // this DEPLOYMENT's own configured origin actually being the real
+  // production domain: on any other deployment (Netlify preview/staging, a
+  // future custom domain) this stays completely inert, since redirecting an
+  // unrelated Host header to https://ro-rum.dk would send that visitor to a
+  // different site entirely.
+  if (SITE_ORIGIN === RORUM_PRODUCTION_ORIGIN) {
+    if (host === OLD_DOMAIN_HOST || (host === "ro-rum.dk" && isInsecureRequest(request))) {
+      const target = new URL(request.nextUrl.pathname + request.nextUrl.search, RORUM_PRODUCTION_ORIGIN);
+      return NextResponse.redirect(target, 308);
+    }
   }
 
   const { pathname } = request.nextUrl;

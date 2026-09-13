@@ -3,10 +3,10 @@ import { sanityFetchStatic } from "@/sanity/lib/live";
 import { siteSettingsQuery } from "@/sanity/queries/globals";
 import { urlForImage } from "@/sanity/lib/image";
 import type { I18nEntry } from "@/lib/sanity-i18n";
-import { PRODUCTION_ORIGIN } from "@/shared/siteIdentity";
+import { SITE_ORIGIN } from "@/shared/siteIdentity";
 
 export interface SeoSiteDefaults {
-  /** The canonical production origin — infrastructure, not editorial content. Always `shared/siteIdentity.ts`'s `PRODUCTION_ORIGIN`; `siteSettings.siteUrl` is display-only in Studio (read-only) and is never read as a runtime authority here, so an accidentally stale/edited Sanity field can never change canonical/hreflang/sitemap URLs. */
+  /** The deployed site's canonical origin — infrastructure, not editorial content. Always `shared/siteIdentity.ts`'s `SITE_ORIGIN` (resolved from `NEXT_PUBLIC_SITE_URL`); `siteSettings.siteUrl` is display-only in Studio (read-only) and is never read as a runtime authority here, so an accidentally stale/edited Sanity field can never change canonical/hreflang/sitemap URLs. */
   siteUrl: string;
   title?: I18nEntry<string>[] | null;
   description?: I18nEntry<string>[] | null;
@@ -26,23 +26,24 @@ export interface SeoSiteDefaults {
  * `sanityFetch` would call `draftMode()` and throw. Next fetch-memoization
  * still de-dupes repeat calls within one request.
  *
- * `siteUrl` is always `PRODUCTION_ORIGIN` — deliberately NOT read from
- * `data.siteUrl` (see MIGRATION_REPORT.md's domain-authority correction):
- * canonical/hreflang/sitemap URLs are infrastructure, not ordinary
- * editorial content, and must never change just because a manager-editable
- * Sanity field went stale or got mistyped. `siteSettings.defaultSeo` (the
- * genuinely editorial sitewide SEO fallback) is unaffected by this and
- * still reads live from Sanity as before.
+ * `siteUrl` is always `SITE_ORIGIN` (the env-driven value resolved in
+ * shared/siteIdentity.ts) — deliberately NOT read from `data.siteUrl` (see
+ * MIGRATION_REPORT.md's domain-authority correction): canonical/hreflang/
+ * sitemap URLs are infrastructure, not ordinary editorial content, and must
+ * never change just because a manager-editable Sanity field went stale or
+ * got mistyped. `siteSettings.defaultSeo` (the genuinely editorial sitewide
+ * SEO fallback) is unaffected by this and still reads live from Sanity as
+ * before.
  */
 export async function getSeoSiteDefaults(): Promise<SeoSiteDefaults> {
-  const fallback: SeoSiteDefaults = { siteUrl: PRODUCTION_ORIGIN };
+  const fallback: SeoSiteDefaults = { siteUrl: SITE_ORIGIN };
   if (!isSanityConfigured) return fallback;
 
   const { data } = await sanityFetchStatic({ query: siteSettingsQuery });
   if (!data) return fallback;
 
   return {
-    siteUrl: PRODUCTION_ORIGIN,
+    siteUrl: SITE_ORIGIN,
     title: data.defaultSeo?.title,
     description: data.defaultSeo?.description,
     image: urlForImage(data.defaultSeo?.ogImage as unknown as Parameters<typeof urlForImage>[0])

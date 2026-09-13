@@ -1,6 +1,6 @@
 import { contactDetails } from "@/lib/siteConfig";
 import { computeDurationFromTimeRange, type EventDuration } from "@/lib/eventDuration";
-import { PRODUCTION_ORIGIN } from "@/shared/siteIdentity";
+import { SITE_ORIGIN } from "@/shared/siteIdentity";
 
 export interface NavChild {
   href: string;
@@ -906,4 +906,9 @@ export const serviceCards: ServiceCard[] = [
   },
 ];
 
-export const siteUrl = PRODUCTION_ORIGIN;
+// Only consumed by scripts/import-content.ts (a historical, one-off content
+// seed script) to set the non-authoritative `siteSettings.siteUrl` Sanity
+// field at import time — the runtime app never reads this export (see
+// lib/siteSettings.ts's getSeoSiteDefaults(), which always uses SITE_ORIGIN
+// directly).
+export const siteUrl = SITE_ORIGIN;

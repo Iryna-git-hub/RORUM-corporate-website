@@ -18,7 +18,7 @@ vi.mock("@/sanity/lib/live", () => ({
 }));
 
 import { getSeoSiteDefaults } from "./siteSettings";
-import { PRODUCTION_ORIGIN } from "@/shared/siteIdentity";
+import { SITE_ORIGIN } from "@/shared/siteIdentity";
 
 function i18n(en: string) {
   return [{ _key: "en", language: "en", value: en }];
@@ -33,13 +33,13 @@ describe("getSeoSiteDefaults — Sanity unavailable / siteSettings missing", () 
   it("Sanity not configured: falls back to the canonical production origin, no defaults", async () => {
     mockIsSanityConfigured = false;
     const result = await getSeoSiteDefaults();
-    expect(result).toEqual({ siteUrl: PRODUCTION_ORIGIN });
+    expect(result).toEqual({ siteUrl: SITE_ORIGIN });
   });
 
   it("Sanity configured but siteSettings doc doesn't exist yet: same canonical fallback", async () => {
     mockSanityFetchResult = null;
     const result = await getSeoSiteDefaults();
-    expect(result).toEqual({ siteUrl: PRODUCTION_ORIGIN });
+    expect(result).toEqual({ siteUrl: SITE_ORIGIN });
   });
 });
 
@@ -47,19 +47,19 @@ describe("getSeoSiteDefaults — siteUrl is infrastructure, not manager-editable
   it("a stored siteSettings.siteUrl value is completely ignored — the canonical production origin always wins", async () => {
     mockSanityFetchResult = { siteUrl: "https://example.com" };
     const result = await getSeoSiteDefaults();
-    expect(result.siteUrl).toBe(PRODUCTION_ORIGIN);
+    expect(result.siteUrl).toBe(SITE_ORIGIN);
   });
 
   it("even a stale/wrong stored siteUrl (e.g. the old no-hyphen domain) can never leak into canonical/hreflang/sitemap URLs", async () => {
     mockSanityFetchResult = { siteUrl: "https://rorum.dk" };
     const result = await getSeoSiteDefaults();
-    expect(result.siteUrl).toBe(PRODUCTION_ORIGIN);
+    expect(result.siteUrl).toBe(SITE_ORIGIN);
   });
 
   it("a blank/whitespace-only siteUrl also resolves to the canonical origin, same as any other stored value", async () => {
     mockSanityFetchResult = { siteUrl: "   " };
     const result = await getSeoSiteDefaults();
-    expect(result.siteUrl).toBe(PRODUCTION_ORIGIN);
+    expect(result.siteUrl).toBe(SITE_ORIGIN);
   });
 });
 
