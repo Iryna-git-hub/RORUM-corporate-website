@@ -87,6 +87,26 @@ export default defineType({
   title: "Event",
   type: "document",
   description: "One event shown on the Attend Events page. / Одна подія, що показується на сторінці «Відвідати події».",
+  // Restricts the Studio Events list's Sort menu to exactly 3 options.
+  // Without an explicit `orderings` array, Sanity's schema compiler
+  // (`@sanity/schema`'s `guessOrderingConfig`, run by `ObjectType.extend`)
+  // auto-generates one ordering per top-level primitive field on the type —
+  // which is what produced the original long list (Time, Price, Address,
+  // Language, Billetto event url, etc.). Declaring `orderings` here
+  // short-circuits that auto-guessing, so only "Date" comes from schema
+  // code; Sanity's structure-tool then appends its own fixed "Last edited"/
+  // "Created" options on top (see getOrderingMenuItemsForSchemaType in
+  // Sanity's structure-tool source, which concatenates `orderings` onto
+  // DEFAULT_ORDERING_OPTIONS, never replaces them), for exactly 3 total.
+  // Ascending, to match the public frontend's own `order(date asc)`
+  // convention already established in sanity/queries/events.ts.
+  orderings: [
+    {
+      name: "date",
+      title: "Date",
+      by: [{ field: "date", direction: "asc" }],
+    },
+  ],
   fieldsets: [
     { name: "basicSection", title: "Basic event information", options: { collapsible: true, collapsed: false } },
     { name: "factsSection", title: "Date, time, price & address", options: { collapsible: true, collapsed: false } },
