@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { EventList, defaultEventCardMessages, type EventCardMessages } from "@/components/EventCard";
 import type { RorumEvent } from "@/lib/data";
-import type { Locale } from "@/lib/i18n";
+import { localizedHref, type Locale } from "@/lib/i18n";
 
 const ROWS_PER_PAGE = 7;
 
@@ -84,7 +84,8 @@ export function EventsPaginatedList({
       params.set("page", String(page));
     }
     const qs = params.toString();
-    return qs ? `/events?${qs}` : "/events";
+    const basePath = localizedHref("/events", locale);
+    return qs ? `${basePath}?${qs}` : basePath;
   }
 
   if (events.length === 0) {

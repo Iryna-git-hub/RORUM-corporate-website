@@ -1,5 +1,6 @@
 import { deflateSync } from "node:zlib";
 import { devices, expect, test, type BrowserContext } from "@playwright/test";
+import { localizedHref } from "@/lib/i18n";
 import { STATIC_ROUTES } from "./routes";
 import { gotoAndStabilize } from "./support";
 
@@ -161,6 +162,74 @@ test.describe("events listing", () => {
       await next.click();
       await expect(page).toHaveURL(/page=2/);
     }
+  });
+
+  // Regression: pagination's getPageHref used to hardcode "/events" instead
+  // of using the current locale, so clicking page 2 from /da/events or
+  // /uk/events silently bounced the visitor to English (see
+  // components/EventsPaginatedList.tsx's getPageHref + lib/i18n.ts's
+  // localizedHref — the same helper EventFilters.tsx already used correctly
+  // for its own URL updates). These full-page <a href> navigations are
+  // exercised per-locale to prove the fix and guard against a repeat.
+  //
+  // Live-data counts (checked at authoring time): ~30 upcoming events per
+  // locale, well above a single page (21 at desktop/3-col, 7 at
+  // mobile/1-col) — pagination is expected to exist; if it doesn't (e.g. the
+  // dataset shrinks drastically), each test skips itself rather than
+  // reporting a false pass.
+  for (const locale of ["da", "uk"] as const) {
+    test(`pagination preserves the ${locale} locale prefix across next/previous`, async ({ page }) => {
+      await gotoAndStabilize(page, localizedHref("/events", locale));
+
+      const next = page.getByRole("link", { name: "Next page" });
+      test.skip((await next.count()) === 0, `no second page of events for locale ${locale}`);
+
+      await next.click();
+      await expect(page).toHaveURL(new RegExp(`/${locale}/events\\?page=2$`));
+      // Exact pathname check: never a bare English fallback (no locale
+      // prefix at all) and never a duplicated locale segment.
+      let url = new URL(page.url());
+      expect(url.pathname, "locale prefix must be preserved, not dropped to English").toBe(`/${locale}/events`);
+      expect(url.searchParams.get("page")).toBe("2");
+
+      // Previous navigation (page 2 -> page 1) must keep the same locale
+      // prefix rather than reverting to English.
+      const previous = page.getByRole("link", { name: "Previous page" });
+      await previous.click();
+      await expect(page).toHaveURL(new RegExp(`/${locale}/events$`));
+      url = new URL(page.url());
+      expect(url.pathname, "locale prefix must survive previous-page navigation too").toBe(`/${locale}/events`);
+    });
+  }
+
+  test("EN pagination stays unprefixed (page 1 -> page 2 -> page 1)", async ({ page }) => {
+    await gotoAndStabilize(page, "/events");
+    const next = page.getByRole("link", { name: "Next page" });
+    test.skip((await next.count()) === 0, "no second page of events for locale en");
+
+    await next.click();
+    await expect(page).toHaveURL(/^http:\/\/localhost:\d+\/events\?page=2$/);
+
+    const previous = page.getByRole("link", { name: "Previous page" });
+    await previous.click();
+    await expect(page).toHaveURL(/^http:\/\/localhost:\d+\/events$/);
+  });
+
+  test("pagination preserves an active filter param alongside the locale prefix (da)", async ({ page }) => {
+    // "available" leaves ~28 events for da — comfortably more than a single
+    // page even at desktop's 21/page, so a second page should exist without
+    // needing to force a narrower viewport.
+    await gotoAndStabilize(page, `${localizedHref("/events", "da")}?availability=available`);
+
+    const next = page.getByRole("link", { name: "Next page" });
+    test.skip((await next.count()) === 0, "no second page of available events for locale da");
+
+    await next.click();
+    await expect(page).toHaveURL(/\/da\/events\?/);
+    const url = new URL(page.url());
+    expect(url.pathname, "locale prefix must be preserved").toBe("/da/events");
+    expect(url.searchParams.get("availability"), "active filter must be preserved").toBe("available");
+    expect(url.searchParams.get("page"), "page must advance").toBe("2");
   });
 });
 
