@@ -499,7 +499,6 @@ export default async function EventDetailPage({
     const language = getEventLanguageLabel(event.language, locale) ?? event.language;
     const description = event.longDescription ?? event.fullDescription ?? event.description ?? fallbackDescription;
     const expectations = event.whatToExpect?.length ? event.whatToExpect : fallbackExpectations;
-    const imageAlt = event.imageAlt ?? `${event.title} ${messages.eventImageAriaSuffix}`;
     // `spotsLeft` is the resolved number (Billetto live value for a connected
     // event, else the manual Sanity `ticketsLeft`); `null`/undefined ⇒ show
     // no availability line (e.g. Billetto temporarily unreachable).
@@ -548,16 +547,28 @@ export default async function EventDetailPage({
         <section
           className="event-detail-hero"
           aria-label={`${event.title} ${messages.eventImageAriaSuffix}`}
-          data-sanity={event.imageEditAttr}
+          data-sanity={event.detailHeroImageEditAttr}
         >
+          {/*
+            Decorative only — independent from `event.image` (the banner
+            used by the card, homepage and OG/Twitter/JSON-LD sharing; see
+            lib/data.ts's "TWO INDEPENDENT IMAGE CONCERNS" comment).
+            `event.detailHeroImage` already falls back onto the banner URL
+            in lib/sanityEvents.ts when this event has no background image
+            of its own, so already-published events render unchanged. No
+            alt text: the section's own aria-label above already gives this
+            region an accessible name, and this image conveys no additional
+            information a screen reader needs to announce.
+          */}
           <Image
             className={
               event.isSoldOut
                 ? "object-cover grayscale-[70%] saturate-[60%] brightness-[0.85]"
                 : "object-cover"
             }
-            src={event.image ?? "/images/hero.jpg"}
-            alt={imageAlt}
+            src={event.detailHeroImage ?? "/images/hero.jpg"}
+            alt=""
+            aria-hidden="true"
             fill
             sizes="100vw"
             priority

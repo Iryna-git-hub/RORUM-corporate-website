@@ -4,7 +4,7 @@
   "private": true,
   "description": "Portfolio-quality MVP website for RORUM.",
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",

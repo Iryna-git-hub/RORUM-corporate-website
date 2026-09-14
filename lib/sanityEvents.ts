@@ -10,7 +10,7 @@ import {
 import { pickExactLocalized, pickLocalized, type I18nEntry } from "@/lib/sanity-i18n";
 import type { Locale } from "@/lib/i18n";
 import { computeDurationFromTimeRange, parseDurationText, type EventDuration } from "@/lib/eventDuration";
-import { sanityEventImageAttr } from "@/sanity/lib/dataAttr";
+import { sanityEventImageAttr, sanityEventDetailHeroImageAttr } from "@/sanity/lib/dataAttr";
 import { urlForImage } from "@/sanity/lib/image";
 
 // Used only when a Sanity event has no uploaded image asset of its own —
@@ -31,6 +31,11 @@ export interface SanityEventLike {
   slug?: { current?: string | null } | null;
   title?: Localized;
   image?: (Image & { alt?: Localized }) | null;
+  // Decorative Event Detail hero background — deliberately independent from
+  // `image` above (see lib/data.ts's "TWO INDEPENDENT IMAGE CONCERNS"
+  // comment). Plain image, no `alt` subfield: it's rendered alt="" /
+  // aria-hidden="true", never a real accessible name.
+  detailHeroImage?: Image | null;
   date?: string | null;
   time?: string | null;
   price?: string | null;
@@ -85,6 +90,22 @@ export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale, ed
   const sanitySocialImageUrl = sanityImageBuilder?.width(1200).height(630).fit("crop").url();
   const image = sanityImageUrl ?? fallback?.image ?? DEFAULT_EVENT_IMAGE;
   const imageAlt = pickLocalized(doc.image?.alt, locale) ?? fallback?.imageAlt ?? undefined;
+  const imageEditAttr = sanityImageUrl ? sanityEventImageAttr(editable, doc._id) : undefined;
+
+  // Decorative Event Detail hero background — independent field, independent
+  // fallback. Falls back onto the already-computed `image` (banner) URL
+  // above, NOT onto DEFAULT_EVENT_IMAGE directly and NOT onto `doc.image` a
+  // second time, so an already-published event with no `detailHeroImage`
+  // asset of its own renders pixel-identical to before this field existed —
+  // no content migration required. The `data-sanity` overlay only targets
+  // `detailHeroImage` itself when this event has its own asset there;
+  // otherwise it points at the banner `image` field, since that's what's
+  // actually rendering while `detailHeroImage` is unset.
+  const detailHeroImageBuilder = urlForImage(doc.detailHeroImage);
+  const detailHeroImageUrl = detailHeroImageBuilder?.width(1200).url() ?? image;
+  const detailHeroImageEditAttr = detailHeroImageBuilder
+    ? sanityEventDetailHeroImageAttr(editable, doc._id)
+    : imageEditAttr;
 
   const address = doc.address ?? getLegacyDetail(doc, "Address") ?? fallback?.address ?? "";
 
@@ -165,7 +186,9 @@ export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale, ed
     // Only real when this event has its own uploaded Sanity image AND we're
     // rendering in Draft Mode — a `data-sanity` on a static/fallback image
     // would point Studio at a field the visible picture doesn't come from.
-    imageEditAttr: sanityImageUrl ? sanityEventImageAttr(editable, doc._id) : undefined,
+    imageEditAttr,
+    detailHeroImage: detailHeroImageUrl,
+    detailHeroImageEditAttr,
     ticketsLeft: doc.ticketsLeft ?? fallback?.ticketsLeft,
     seo: {
       title: pickLocalized(doc.seo?.title, locale) ?? undefined,

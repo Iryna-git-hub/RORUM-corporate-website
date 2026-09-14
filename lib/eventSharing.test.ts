@@ -80,6 +80,36 @@ describe("resolveEventShareData", () => {
       .toBe("https://cdn.sanity.io/banner-1200x630.jpg");
   });
 
+  // Regression: `detailHeroImage` (the decorative Event Detail background,
+  // lib/data.ts's "TWO INDEPENDENT IMAGE CONCERNS") must have zero effect on
+  // OG/Twitter/JSON-LD sharing — that chain stays exclusively
+  // seo.ogImageUrl -> socialImageUrl -> image, never reading
+  // `detailHeroImage` at all. Setting it to a completely different URL than
+  // every existing image field must not change the resolved share image.
+  it("is completely unaffected by detailHeroImage — sharing stays driven only by seo.ogImageUrl/socialImageUrl/image", () => {
+    const distinctDetailHeroImage = "https://cdn.sanity.io/detail-hero-only-for-the-page-background.jpg";
+
+    expect(resolveEventShareData(event({ detailHeroImage: distinctDetailHeroImage }), "en").image)
+      .toBe("https://cdn.sanity.io/event-banner.jpg");
+
+    expect(
+      resolveEventShareData(
+        event({ detailHeroImage: distinctDetailHeroImage, socialImageUrl: "https://cdn.sanity.io/banner-1200x630.jpg" }),
+        "en",
+      ).image,
+    ).toBe("https://cdn.sanity.io/banner-1200x630.jpg");
+
+    expect(
+      resolveEventShareData(
+        event({
+          detailHeroImage: distinctDetailHeroImage,
+          seo: { ogImageUrl: "https://cdn.sanity.io/social-1200x630.jpg" },
+        }),
+        "en",
+      ).image,
+    ).toBe("https://cdn.sanity.io/social-1200x630.jpg");
+  });
+
   it("uses localized fallback share text only when the event has no description", () => {
     expect(resolveEventShareData(event({ longDescription: "", seo: undefined }), "uk", "Локалізований текст").text)
       .toBe("Локалізований текст");

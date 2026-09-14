@@ -180,12 +180,30 @@ export const DEFAULT_SHARE_ACTIONS: ShareAction[] = [
   { type: "instagram", label: "Instagram", enabled: true },
 ];
 
-// SINGLE IMAGE SOURCE OF TRUTH
-// Every event has exactly one `image` field. This field is used by:
-//   - EventCard (Events listing page, homepage scroll, related events)
-//   - EventDetailPage hero <Image> and Open Graph metadata
+// TWO INDEPENDENT IMAGE CONCERNS (owner-mandated, decided 2026-09)
 //
-// Do NOT add heroImage, detailImage, coverImage or any secondary image field.
+// An event now has two separate image fields, on purpose:
+//   - `image` — the banner. Used by EventCard (listing page, homepage scroll,
+//     related events), the SEO/Open Graph/Twitter/JSON-LD sharing chain (see
+//     lib/eventSharing.ts's resolveEventShareData — falls back to this when
+//     no explicit `seo.ogImage`/`socialImageUrl` is set), and, as a display
+//     fallback only, the Event Detail hero background below.
+//   - `detailHeroImage` — a decorative background shown only at the top of
+//     this event's own detail page. Editing it must never change the card,
+//     the homepage, or what gets shared on social networks, and vice versa.
+//
+// This split exists so a manager can change the Detail page's background
+// photo without silently altering what search engines/social previews show,
+// and can update the sharing/card photo without silently redecorating the
+// Detail page hero. Previously both concerns shared the single `image`
+// field below — see MIGRATION_REPORT.md for that history.
+//
+// `detailHeroImage` is resolved with a display-only fallback onto the
+// already-computed banner URL (lib/sanityEvents.ts), NOT onto the generic
+// "/images/hero.jpg" placeholder — so an already-published event that
+// predates this field renders pixel-identical to before until an editor
+// explicitly sets it. No content migration is required.
+//
 // When images change, run `next build` to regenerate the static detail pages.
 export interface RorumEvent {
   slug: string;
@@ -235,6 +253,19 @@ export interface RorumEvent {
   // only for Sanity-backed events viewed in Draft Mode (see
   // lib/sanityEvents.ts); always undefined for the hardcoded static events.
   imageEditAttr?: string;
+  // Decorative Event Detail page background — see the "TWO INDEPENDENT IMAGE
+  // CONCERNS" comment above this interface. Resolved URL, falling back to
+  // the already-resolved `image` (banner) above when the event has no
+  // `detailHeroImage` asset of its own — never falls back directly to the
+  // generic "/images/hero.jpg" placeholder. Purely decorative: rendered with
+  // alt="" and aria-hidden="true", never a meaningful accessible name.
+  detailHeroImage?: string;
+  // `data-sanity` for `detailHeroImage` specifically, so Presentation can
+  // draw a click-to-edit overlay on the Detail hero pointing at the correct
+  // field: `detailHeroImage` itself when this event has its own asset there,
+  // otherwise the banner `image` field (since that's what's actually
+  // rendering while `detailHeroImage` is unset) — see lib/sanityEvents.ts.
+  detailHeroImageEditAttr?: string;
   // Optional override for the ticket button's label — defaults to "Buy
   // Ticket" in the UI when unset.
   ticketButtonLabel?: string;

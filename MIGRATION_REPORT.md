@@ -2882,3 +2882,76 @@ happened to land while a manifest was mid-rebuild could silently fail to
 navigate, looking like a broken switcher when the actual fault was the dev
 server's route compilation, not `Header.tsx`. No code change made to the
 switcher — there is nothing to fix.
+
+### Correction (2026-09-14, same day): `--webpack` switch reverted
+
+An independent Reviewer re-tested the `next dev --webpack` decision above in
+an isolated git worktree (clean `.next`, no interference from other work) and
+disproved its core claim. Two separate clean-`.next` concurrent-load trials
+against `next dev --webpack` each reproduced a real 500 on the same route
+template that the original ENOENT bug affected:
+
+```
+SyntaxError: Unexpected end of JSON input
+```
+
+Trial 1: 5/60 requests failed, including `/events/freelance-morning-salon`,
+`/events/creative-business-roundtable`, `/da/events/slow-art-evening`,
+`/da/events/summer-table-lab`, `/da/events/tiny-talks-evening`. Trial 2: 2/60
+requests failed, including `/events/independent-work-morning`,
+`/da/events/danish-for-ukrainians-intro`. In every case the failure was the
+same "flaky once then fine" symptom class as the original Turbopack
+ENOENT/manifest bug — self-healing on immediate retry — just a different
+error message and file format (a JSON parse failure instead of a missing
+manifest file).
+
+**Conclusion: switching to `--webpack` does not eliminate the underlying
+issue — it only changes which error message appears.** The true root cause is
+almost certainly a general Next.js dev-server characteristic present under
+*both* bundlers: concurrent first-hit compilation of an on-demand dynamic
+route (`app/[locale]/(site)/events/[slug]`) can race under high concurrent
+load (rapid `<Link>` prefetching, bursts of navigation/fetches), independent
+of whether Turbopack or webpack is doing the compiling.
+
+The same Reviewer also found a serious, previously-undisclosed cost of the
+`--webpack` dev switch that the original test above did not measure: Sanity
+Studio (`/studio`) cold-compiles in **~79 seconds** under `next dev --webpack`,
+versus its normal fast Turbopack dev experience. For a project whose entire
+content-management workflow depends on iterating quickly in Sanity Studio
+(CLAUDE.md's stated priority), this is a much worse day-to-day trade-off than
+the rare, self-healing dev-only race it was meant to avoid.
+
+**Final decision: reverted `dev` back to Turbopack.**
+
+```diff
+-    "dev": "next dev --webpack",
++    "dev": "next dev",
+```
+
+`"build": "next build --webpack"` is unchanged — production builds compile
+every route ahead of time, so this on-demand-compilation race cannot occur
+there regardless of bundler; the longstanding webpack build choice remains a
+separate, unrelated decision with no evidence against it.
+
+**What this leaves the team with**: a known, rare, self-healing Next.js
+dev-server artifact affecting on-demand compilation of dynamic
+`[locale]/.../[slug]` routes under concurrent/rapid navigation or prefetch
+load. It reproduces under both Turbopack (ENOENT/manifest) and webpack
+(JSON-parse) dev modes with the same "flaky once, fine on retry" signature,
+so it reads as a general Next.js dev-mode characteristic for this route shape
+rather than something either bundler flag fixes. Practical guidance: if it
+occurs, it is a transient dev-only artifact — retrying the same
+navigation/request immediately resolves it. If it persists, `Remove-Item
+-Recurse -Force .next` and restart `npm run dev` is the reset procedure. It
+does not occur in production builds and has no impact on end users. The
+upstream Turbopack issue references above (`vercel/next.js#97035`, `#76766`)
+remain useful context for the Turbopack-specific symptom, but should not be
+read as the sole explanation now that an equivalent race was reproduced under
+webpack too.
+
+No application code was changed as part of this correction — there is no
+evidence anywhere in this investigation (by any prior tester, the original
+Reviewer, or this correction pass) of an application-code defect; production
+builds have repeatedly compiled cleanly. Per this project's scope-control
+principle, a dev-tooling-only race is not a reason to add retry logic,
+disable prefetching, or otherwise engineer around Next.js internals.

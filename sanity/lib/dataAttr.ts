@@ -89,3 +89,15 @@ export function sanityEventImageAttr(
 ): string | undefined {
   return sanityFieldAttr(editable, eventId, "event", ["image"]);
 }
+
+/**
+ * `data-sanity` for an `event` document's decorative
+ * `detailHeroImage` — independent from `sanityEventImageAttr` above (the
+ * banner). See lib/data.ts's "TWO INDEPENDENT IMAGE CONCERNS" comment.
+ */
+export function sanityEventDetailHeroImageAttr(
+  editable: boolean,
+  eventId: string | undefined | null,
+): string | undefined {
+  return sanityFieldAttr(editable, eventId, "event", ["detailHeroImage"]);
+}

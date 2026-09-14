@@ -197,6 +197,30 @@ export default defineType({
       validation: (rule) => rule.required(),
     }),
 
+    // --- 3b. Event detail page background image ------------------------------
+    // Deliberately independent from `image` above (see lib/data.ts's
+    // "TWO INDEPENDENT IMAGE CONCERNS" comment for the full reasoning). Plain
+    // `type: "image"` with no `alt` subfield — same modeling choice already
+    // used for seo.ogImage — because this photo is purely decorative (the
+    // frontend renders it with alt="" aria-hidden="true"); requiring alt text
+    // for an image no screen reader ever announces would only create
+    // busywork. Optional: an event with nothing set here keeps showing the
+    // Banner image at the top of its detail page exactly as before.
+    defineField({
+      name: "detailHeroImage",
+      title: "Event detail background image",
+      type: "image",
+      options: { hotspot: true },
+      description:
+        "Optional decorative background shown only at the top of THIS event's own detail page. Not used for the " +
+        "listing card, Open Graph/social sharing, or search results — those all use the Banner image above. No " +
+        "alt text needed, this image is decorative. Leave empty to keep showing the Banner image here. / " +
+        "Необов'язкове декоративне фонове зображення лише у верхній частині сторінки САМЕ ЦІЄЇ події. Не " +
+        "використовується для картки в списку, поширення в соцмережах чи результатів пошуку — для цього " +
+        "використовується зображення «Banner image» вище. Альтернативний текст не потрібен, це декоративне " +
+        "зображення. Залиште порожнім, щоб тут і надалі показувалося зображення «Banner image».",
+    }),
+
     // --- 4-7. Date, time, price, address --------------------------------
     defineField({
       name: "date",

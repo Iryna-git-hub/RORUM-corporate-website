@@ -82,4 +82,24 @@ describe("EventCard — resolved availability, localized (Phases 4/10/11)", () =
     expect(screen.getByText("3 pladser tilbage")).toBeInTheDocument();
     expect(screen.queryByText(/99/)).not.toBeInTheDocument();
   });
+
+  // Regression: the card must always render the banner (`event.image`) —
+  // never the decorative, Event-Detail-only `detailHeroImage` field (see
+  // lib/data.ts's "TWO INDEPENDENT IMAGE CONCERNS" comment). Setting the two
+  // to different URLs proves the card's background-image is driven solely
+  // by `image`, unaffected by whatever `detailHeroImage` holds.
+  it("always uses the banner image, never detailHeroImage, for its background", () => {
+    cleanup();
+    const { container } = render(
+      <EventCard
+        event={ev({ image: "https://cdn.test/banner.jpg", detailHeroImage: "https://cdn.test/detail-hero-only.jpg" })}
+        variant="grid"
+        locale="da"
+        messages={DA}
+      />,
+    );
+    const media = container.querySelector(".event-media > span[aria-hidden='true']") as HTMLElement | null;
+    expect(media?.style.backgroundImage).toContain("https://cdn.test/banner.jpg");
+    expect(media?.style.backgroundImage).not.toContain("detail-hero-only");
+  });
 });

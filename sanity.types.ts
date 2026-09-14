@@ -238,6 +238,13 @@ export type Event = {
   title?: InternationalizedArrayString;
   slug?: Slug;
   image?: ImageWithAlt;
+  detailHeroImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
   date?: string;
   time?: string;
   price?: string;
@@ -291,6 +298,22 @@ export type Event = {
   ticketProvider?: string;
 };
 
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x?: number;
+  y?: number;
+  height?: number;
+  width?: number;
+};
+
 export type ImageWithAlt = {
   _type: "imageWithAlt";
   asset?: SanityImageAssetReference;
@@ -318,22 +341,6 @@ export type SocialLink = {
   href?: string;
   label?: InternationalizedArrayString;
   brandColor?: string;
-};
-
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top?: number;
-  bottom?: number;
-  left?: number;
-  right?: number;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x?: number;
-  y?: number;
-  height?: number;
-  width?: number;
 };
 
 export type PracticalDetail = {
@@ -661,12 +668,12 @@ export type AllSanitySchemaTypes =
   | ContactInfo
   | Page
   | Event
+  | SanityImageCrop
+  | SanityImageHotspot
   | ImageWithAlt
   | Slug
   | TitledText
   | SocialLink
-  | SanityImageCrop
-  | SanityImageHotspot
   | PracticalDetail
   | PageSection
   | PackageTier
@@ -707,6 +714,13 @@ export type AllEventsQueryResult = Array<{
   title?: InternationalizedArrayString;
   slug?: Slug;
   image?: ImageWithAlt;
+  detailHeroImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
   date?: string;
   time?: string;
   price?: string;
@@ -773,6 +787,13 @@ export type EventBySlugQueryResult = {
   title?: InternationalizedArrayString;
   slug?: Slug;
   image?: ImageWithAlt;
+  detailHeroImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
   date?: string;
   time?: string;
   price?: string;
