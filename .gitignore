@@ -34,6 +34,10 @@ _debug*.spec.ts
 # Sanity TypeGen output IS committed (types depend on it at build time);
 # do not add sanity.types.ts here.
 
+# Historical development/migration diary — kept locally for reference but
+# not part of the client-facing handoff repo (see HANDOFF.md instead).
+/MIGRATION_REPORT.md
+
 # Local JSON backups written by one-off migration/cleanup scripts before a
 # destructive operation (e.g. scripts/delete-orphaned-legacy-docs.ts) — not
 # meant to be committed, just a local safety net for that run.
