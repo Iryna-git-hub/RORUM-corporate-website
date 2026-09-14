@@ -249,6 +249,16 @@ export default defineType({
       components: { input: EventLocaleAwareInput },
       validation: requireSelectedEventLocales(),
     }),
+    defineField({
+      name: "formattedDescription",
+      title: "Formatted Event Overview (optional)",
+      type: "internationalizedArrayBodyPortableText",
+      fieldset: "basicSection",
+      description:
+        "Optional formatted version shown instead of the plain Event Overview on the event page. Supports paragraphs, headings, bold, italic, bullet and numbered lists, and links. Keep Event Overview above as the plain-text search/share summary and compatibility fallback. / " +
+        "Необов'язкова форматована версія, яка відображається замість звичайного опису на сторінці події. Підтримує абзаци, заголовки, жирний і курсивний текст, марковані й нумеровані списки та посилання. Збережіть поле Event Overview вище як звичайний текст для пошуку/поширення та сумісності.",
+      validation: allOrNothingForSelectedEventLocales(),
+    }),
 
     // --- 9. What to Expect --------------------------------------------------
     defineField({

@@ -2787,3 +2787,98 @@ untouched, EN/DA/UK live-verified (`available=6` → "6 spots left" / "6 pladser
 | LOW-6 | per-event `tag` set but nothing `revalidateTag`s it | Comment clarified — intentional, for a future Billetto webhook |
 | LOW-7 | test event's malformed live `ticketButtonLabel` | **Cleared** (backed up) — see Production data |
 | LOW-8 | cold-build can issue ~3 uncached Billetto calls before the fetch cache warms | Noted — negligible for rate limits |
+
+## Part 37 — Dev-server Turbopack ENOENT (`next dev --webpack` switch) + locale-switcher claim retraction (2026-09-14)
+
+### Background
+
+Owner-reported: opening an Event detail page in local dev sometimes threw
+`ENOENT ... .next\dev\server\app\[locale]\(site)\events\[slug]\page\build-manifest.json`.
+Two prior testers couldn't reliably reproduce it ("rare self-healing Turbopack
+race"); a Reviewer pushed back, reproducing it within minutes under realistic
+load (Events list page's default `<Link>` prefetching of ~20 visible cards),
+and matched it to upstream Turbopack dev-mode manifest bugs specific to
+`[locale]`-templated dynamic route trees: `vercel/next.js#97035` (+ duplicates
+#97020/#97033, merged ~Aug 2026) and `#76766` (open). The Reviewer also noted
+`package.json`'s `"build": "next build --webpack"` already opts out of
+Turbopack for production builds, while `"dev": "next dev"` defaulted to
+Turbopack (Next 16, unflagged) — and flagged that the investigation never
+evaluated extending the same webpack choice to `dev`.
+
+### Investigation — why `build` was pinned to `--webpack`
+
+Searched `MIGRATION_REPORT.md`, `ARCHITECTURE.md`, `SANITY_MIGRATION.md`, and
+full git history of `package.json`. **No documented reasoning exists anywhere**
+for the `--webpack` build flag — `git log -p -- package.json` shows it present
+verbatim in the very first commit (`47159a9 feat: base structure`, project
+scaffold), before any Sanity/CMS work existed. The only other repo mention is
+a routine verification-log line (§4, `npm run build --webpack`: succeeds).
+Conclusion: this was not a deliberate, build-specific architectural decision
+recorded anywhere — it's simply been the project's standing choice since
+inception, with no reason on record that would make it inapplicable to `dev`.
+
+### `next dev --webpack` test
+
+Stopped the running dev server, `Remove-Item -Recurse -Force .next` equivalent
+(`rm -rf .next`), started `next dev --webpack` (Next.js 16.2.4; the flag is
+natively supported — confirmed via `next dev --help`, no `next.config.js`
+change needed). Started cleanly in <1s.
+
+**Stress test** (mirroring the Reviewer's repro conditions): 63 concurrent
+direct fetches (21 event slugs × EN/DA/UK, all never-before-compiled) fired at
+once via curl, immediately followed by a real-browser session that loaded
+`/events` (confirmed Next's default `<Link>` prefetch discovers all 21 visible
+cards), then rapidly navigated 15 more event-detail routes across EN/DA/UK,
+plus 4 live locale-switch clicks (see below) — **~85 total navigations/requests,
+zero ENOENT, zero manifest errors, zero 500s** in the dev-server log. One
+consistently-reproducible 404 (`uk/creative-business-roundtable`) is legitimate
+content behavior (event has no UK translation), not an infra failure —
+confirmed by retrying it twice more, same clean 404 both times.
+
+First-compile requests took 8–12s under webpack dev vs. Turbopack's typical
+sub-second-to-low-seconds; cached/already-compiled requests were fast
+(400–1100ms). **This is a real, expected trade-off**: webpack dev is
+noticeably slower on first hit of each route, especially with 3 locales ×
+many dynamic slugs all compiling independently. Owner should expect slower
+initial dev-server warm-up in exchange for eliminating this Turbopack bug
+class.
+
+### Decision: switched `dev` to `--webpack`
+
+```diff
+-    "dev": "next dev",
++    "dev": "next dev --webpack",
+```
+
+Rationale: no stability or startup problems found under load equivalent to
+the original repro; the project already made this same trade-off for `build`
+(no evidence it was ever build-specific); and it removes exposure to an
+actively-tracked, still-partially-open upstream Turbopack bug class for
+exactly this app's route shape (`app/[locale]/(site)/events/[slug]`), rather
+than living with a documented-but-unfixed known issue. If the extra
+first-compile latency proves annoying in daily use, the immediate fallback
+(unchanged from before this change) if a manifest ENOENT is ever seen again
+under Turbopack is: stop the dev server, `Remove-Item -Recurse -Force .next`,
+restart.
+
+### Locale-switcher claim: retracted
+
+An earlier agent recorded "the locale switcher doesn't navigate when clicked
+on the Event detail page" as a confirmed pre-existing defect. A Tester and a
+Reviewer each independently failed to reproduce it. Final deliberate re-test
+(this pass): loaded DA/UK/EN event-detail pages via **fresh direct navigation**
+(not client-side routing from elsewhere) 4 times across different starting
+locales and events, clicking the header's `EN`/`DA`/`UK` switcher
+(`components/Header.tsx`'s `changeLanguage`, which is generic —
+`useLocale()` derives locale from `usePathname()` and `localizedHref(path,
+nextLocale)` builds the target href with no route-specific special-casing).
+**All 4/4 attempts navigated correctly** (URL and rendered content both
+changed, e.g. `/da/events/copenhagen-makers-dinner` → EN click →
+`/events/copenhagen-makers-dinner`, title updated accordingly).
+
+**Retracted.** This was very likely a misdiagnosed side effect of the
+Turbopack manifest-race window documented above: a locale-switch click that
+happened to land while a manifest was mid-rebuild could silently fail to
+navigate, looking like a broken switcher when the actual fault was the dev
+server's route compilation, not `Header.tsx`. No code change made to the
+switcher — there is nothing to fix.

@@ -243,6 +243,7 @@ export type Event = {
   price?: string;
   address?: string;
   longDescription?: InternationalizedArrayText;
+  formattedDescription?: InternationalizedArrayBodyPortableText;
   whatToExpect?: InternationalizedArrayText;
   included?: Array<
     {
@@ -517,7 +518,7 @@ export type BodyPortableText = Array<{
     _key: string;
   }>;
   style?: "normal" | "h2";
-  listItem?: "bullet";
+  listItem?: "bullet" | "number";
   markDefs?: Array<{
     href?: string;
     _type: "link";
@@ -711,6 +712,7 @@ export type AllEventsQueryResult = Array<{
   price?: string;
   address?: string;
   longDescription?: InternationalizedArrayText;
+  formattedDescription?: InternationalizedArrayBodyPortableText;
   whatToExpect?: InternationalizedArrayText;
   included?: Array<
     {
@@ -776,6 +778,7 @@ export type EventBySlugQueryResult = {
   price?: string;
   address?: string;
   longDescription?: InternationalizedArrayText;
+  formattedDescription?: InternationalizedArrayBodyPortableText;
   whatToExpect?: InternationalizedArrayText;
   included?: Array<
     {

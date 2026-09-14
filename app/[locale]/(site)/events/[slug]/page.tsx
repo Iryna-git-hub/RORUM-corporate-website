@@ -6,6 +6,7 @@ import { draftMode } from "next/headers";
 import Image from "next/image";
 import { Container } from "@/components/ui";
 import { EventShare } from "@/components/EventShare";
+import { EventDescription } from "@/components/EventDescription";
 import { JsonLd } from "@/components/JsonLd";
 import { events as staticEvents, type RorumEvent } from "@/lib/data";
 import { contactDetails } from "@/lib/siteConfig";
@@ -349,28 +350,16 @@ function formatAddressParts(address: string): { street: string; floor: string | 
     };
 }
 
-// Two independent `nowrap` rules, not one:
-//  - The OUTER line (street + floor/apartment) is `nowrap` from `sm:` up
-//    (this file's desktop-first convention: unprefixed = wide default,
-//    `max-sm:` carves out the mobile exception) — every non-mobile tier
-//    (the wide single-row layout above `xl`, and the narrower desktop/
-//    tablet 2-column layout between `sm` and `xl`) gives the address its
-//    own full-width row/column with comfortably more room than the
-//    address text needs, so nowrap holds everywhere except true mobile
-//    (<640px), where it's allowed to wrap so a long street name can't
-//    force horizontal overflow on a narrow phone.
-//  - The `floor` segment alone (e.g. "1 th") additionally gets its own,
-//    UNCONDITIONAL `nowrap` span — floor/apartment notation must never
-//    split internally at *any* width, including where the outer line above
-//    is already wrapping on mobile. It's short enough (a word or two) that
-//    forcing it never to break carries no realistic overflow risk on its
-//    own, unlike the full street line.
+// The street/floor line may wrap at every viewport width, while the short
+// floor/apartment segment itself stays intact. This preserves the existing
+// city-on-a-new-line presentation without allowing a long venue name or
+// street to escape its grid track and overlap Price or the ticket CTA.
 function EventAddressDisplay({ address }: { address: string }) {
     const { street, floor, city } = formatAddressParts(address);
     if (!city) return <>{address}</>;
     return (
       <span className="grid leading-tight">
-        <span className="whitespace-nowrap max-sm:whitespace-normal">
+        <span className="min-w-0 break-words">
           {street}
           {floor ? (
             <>
@@ -388,7 +377,7 @@ function EventAddressDisplay({ address }: { address: string }) {
 // in both its wide single-row and narrower 2-column arrangements) defaults
 // to `min-width: auto`, which for a grid item resolves to its content's
 // intrinsic minimum — and several of its descendants are deliberately
-// `whitespace-nowrap` (day+month, time range, price, address street line),
+// `whitespace-nowrap` (day+month, time range and price),
 // so that intrinsic minimum is their full unwrapped width. That would let
 // content force its outer grid track wider than the `minmax()` floor
 // specifies (or spill into a neighboring column) instead of the column
@@ -416,7 +405,7 @@ function InfoGridItem({
         <span className="inline-flex items-center justify-center w-12 h-12 rounded-none bg-[rgba(var(--rgb-light-green),0.12)] text-light-green max-sm:w-11 max-sm:h-11">
           <Icon aria-hidden="true" strokeWidth={1.85} className="w-6.5 h-6.5 text-current max-sm:w-5.75 max-sm:h-5.75" />
         </span>
-        <div>
+        <div className="min-w-0">
           <dt className="sr-only">{label}</dt>
           <dd
             className={
@@ -646,17 +635,17 @@ export default async function EventDetailPage({
               CTA cell deliberately has no `min-w-0` — `auto` columns are
               supposed to size to their (also nowrap) content, unshrunk.
             */}
-            <div className="grid grid-cols-[minmax(215px,1.1fr)_minmax(205px,1fr)_minmax(310px,1.5fr)_minmax(200px,1fr)_auto] items-stretch gap-0 m-0 border-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] max-xl:grid-cols-2 max-sm:grid-cols-1 max-sm:p-3.25 max-sm:border-x-0 max-sm:shadow-[0_8px_20px_rgba(var(--rgb-brown),0.06)]">
+            <div className="event-facts-grid grid grid-cols-[minmax(215px,1.1fr)_minmax(205px,1fr)_minmax(310px,1.5fr)_minmax(200px,1fr)_auto] items-stretch gap-0 m-0 border-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] max-xl:grid-cols-2 max-sm:grid-cols-1 max-sm:p-3.25 max-sm:border-x-0 max-sm:shadow-[0_8px_20px_rgba(var(--rgb-brown),0.06)]">
               <InfoGridItem icon={CalendarDays} label={messages.dateLabel} value={<EventDateDisplay dateValue={event.date} locale={locale} />} />
               <InfoGridItem icon={Clock} label={messages.timeLabel} value={<span className="whitespace-nowrap">{time}</span>} />
               <InfoGridItem
                 icon={MapPin}
                 label={messages.locationLabel}
                 value={<EventAddressDisplay address={location} />}
-                className="max-xl:col-span-2 max-sm:col-span-1"
+                className="event-address-item max-xl:col-span-2 max-sm:col-span-1"
               />
-              <InfoGridItem icon={Ticket} label={messages.priceLabel} value={<span className="whitespace-nowrap">{event.price}</span>} prominent />
-              <div className="flex items-center justify-end min-h-23 px-5 py-4.5 border-r-0 min-w-47 max-xl:min-h-0 max-xl:border-b-0 max-sm:p-3.25">
+              <InfoGridItem icon={Ticket} label={messages.priceLabel} value={<span className="whitespace-nowrap">{event.price}</span>} prominent className="event-price-item" />
+              <div className="event-ticket-item flex items-center justify-end min-h-23 px-5 py-4.5 border-r-0 min-w-47 max-xl:min-h-0 max-xl:border-b-0 max-sm:p-3.25">
                 <TicketButton event={event} messages={messages} />
               </div>
             </div>
@@ -669,7 +658,7 @@ export default async function EventDetailPage({
               <article className="grid gap-[clamp(30px,4vw,46px)] min-w-0">
                 <section className="grid gap-4 pb-[clamp(28px,4vw,38px)] border-b border-[rgba(var(--rgb-beige),0.48)] last:border-b-0 last:pb-0">
                   <h2 className="m-0 text-[clamp(26px,3vw,38px)] leading-[1.08] font-light">{messages.eventOverviewHeading}</h2>
-                  <p className="max-w-[68ch] m-0 text-text-primary text-[17px] leading-[1.75]">{description}</p>
+                  <EventDescription formatted={event.formattedDescription} plain={description} />
                   <EventShare
                     title={shareData.title}
                     text={shareData.text}

@@ -37,6 +37,7 @@ export interface SanityEventLike {
   address?: string | null;
   language?: string | null;
   longDescription?: Localized;
+  formattedDescription?: I18nEntry<unknown[]>[] | null;
   whatToExpect?: Localized;
   included?: { text?: Localized }[] | null;
   duration?: { value?: number | null; unit?: "minutes" | "hours" | null } | null;
@@ -131,6 +132,7 @@ export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale, ed
     address,
     language: doc.language ?? fallback?.language ?? "English",
     longDescription: pickLocalized(doc.longDescription, locale) ?? fallback?.longDescription ?? "",
+    formattedDescription: pickLocalized(doc.formattedDescription, locale),
     included:
       doc.included?.map((b) => pickLocalized(b.text, locale) ?? "").filter(Boolean) ??
       fallback?.included ??

@@ -200,6 +200,8 @@ export interface RorumEvent {
   address: string;
   language: string;
   longDescription: string;
+  /** Optional localized Portable Text used for the formatted Event Overview body. */
+  formattedDescription?: unknown[];
   included: string[];
   // Derived by splitting the Sanity `whatToExpect` field's per-language text
   // on line breaks (lib/sanityEvents.ts) — one non-empty line per bullet.
