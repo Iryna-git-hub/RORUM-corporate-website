@@ -21,7 +21,7 @@
  *     trimmed value — i.e. the field holds zero real content in any
  *     language. If even one entry has real text, the field is left
  *     completely alone (this is what protects genuine translation gaps,
- *     e.g. image.alt/longDescription/title having only an English value,
+ *     e.g. image.alt/formattedDescription/title having only an English value,
  *     from ever being touched — those fields are not in this list at all).
  *   - ticketProviderInfo.label: per-entry, not whole-field — removes only
  *     the individual stray/valueless array items (matched by `_key`),
@@ -30,7 +30,7 @@
  *     alongside 3 real, valid en/da/uk entries — unsetting the whole array
  *     would have destroyed real data.
  *
- * Never touches `title`, `longDescription`, or `image.alt` — real content-
+ * Never touches `title`, `formattedDescription`, or `image.alt` — real content-
  * completeness gaps found there by the audit (missing da/uk translations)
  * are reported, not guessed at or invented (Task 8's explicit "no guessing"
  * rule) and are NOT in either target list above.

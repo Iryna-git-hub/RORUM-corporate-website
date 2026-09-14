@@ -10,6 +10,7 @@ import "@testing-library/jest-dom/vitest";
 import type { ObjectInputProps } from "sanity";
 import { ThemeProvider, studioTheme } from "@sanity/ui";
 import { SeoObjectInput } from "./SeoObjectInput";
+import { plainTextToPortableText } from "@/lib/portableText";
 
 const mockUseFormValue = vi.fn();
 let mockSiteSettingsDoc: { defaultSeo?: { title?: unknown; description?: unknown; ogImage?: unknown } } | null = null;
@@ -51,6 +52,10 @@ function i18n(en?: string, da?: string, uk?: string) {
   return entries;
 }
 
+function bodyI18n(en?: string, da?: string, uk?: string) {
+  return i18n(en, da, uk).map((entry) => ({ ...entry, value: plainTextToPortableText(entry.value) }));
+}
+
 function renderInput(props: ObjectInputProps) {
   return render(
     <ThemeProvider theme={studioTheme}>
@@ -76,7 +81,7 @@ function mockFormValue(fields: {
   slug?: string;
   visibleLocales?: string[];
   eventTitle?: unknown;
-  eventLongDescription?: unknown;
+  eventFormattedDescription?: unknown;
   eventImage?: unknown;
 }) {
   mockUseFormValue.mockImplementation((path: unknown[]) => {
@@ -85,7 +90,7 @@ function mockFormValue(fields: {
     if (path.length === 2 && path[0] === "slug" && path[1] === "current") return fields.slug;
     if (path.length === 1 && path[0] === "visibleLocales") return fields.visibleLocales;
     if (path.length === 1 && path[0] === "title") return fields.eventTitle;
-    if (path.length === 1 && path[0] === "longDescription") return fields.eventLongDescription;
+    if (path.length === 1 && path[0] === "formattedDescription") return fields.eventFormattedDescription;
     if (path.length === 1 && path[0] === "image") return fields.eventImage;
     return undefined;
   });
@@ -125,13 +130,13 @@ describe("SeoObjectInput — Home shows its actual populated page-specific value
 });
 
 describe("SeoObjectInput — an Event with empty SEO fields shows the ACTUAL generated Event title/description, not a vague fallback notice", () => {
-  it("empty event.seo: title becomes '<event title> | RORUM', description becomes the event's own longDescription", () => {
+  it("empty event.seo: title becomes '<event title> | RORUM', description derives from formattedDescription", () => {
     mockFormValue({
       documentType: "event",
       slug: "makers-dinner",
       visibleLocales: ["en", "da", "uk"],
       eventTitle: i18n("Makers Dinner", "Håndværkermiddag", "Вечеря майстрів"),
-      eventLongDescription: i18n("A cozy dinner for makers.", "En hyggelig middag.", "Затишна вечеря."),
+      eventFormattedDescription: bodyI18n("A cozy dinner for makers.", "En hyggelig middag.", "Затишна вечеря."),
     });
     const { props } = fakeProps({ title: undefined, description: undefined });
     renderInput(props);
@@ -148,7 +153,7 @@ describe("SeoObjectInput — an Event with empty SEO fields shows the ACTUAL gen
       slug: "makers-dinner",
       visibleLocales: ["en"],
       eventTitle: i18n("Makers Dinner"),
-      eventLongDescription: i18n("A cozy dinner for makers."),
+      eventFormattedDescription: bodyI18n("A cozy dinner for makers."),
     });
     const { props } = fakeProps({
       title: i18n("Custom Event SEO Title"),

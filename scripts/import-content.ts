@@ -23,7 +23,7 @@ import { createClient } from "@sanity/client";
 import { events, faqs, packages, siteUrl } from "../lib/data";
 import { menuCategories } from "../lib/cateringMenu";
 import { companyDetails, contactDetails, socialLinks as socialLinksData } from "../lib/siteConfig";
-import { bullet, deterministicId, en, enText, slugify } from "./lib/sanityImportUtils";
+import { block, bullet, deterministicId, en, enText, localizedBody, slugify } from "./lib/sanityImportUtils";
 
 const DRY_RUN = process.argv.includes("--dry-run") || !process.env.SANITY_API_WRITE_TOKEN;
 
@@ -81,9 +81,9 @@ function buildDocuments(): Doc[] {
       time: event.time,
       price: event.price,
       address: event.address,
-      language: event.language,
+      language: [...event.language],
       isSoldOut: event.isSoldOut,
-      longDescription: enText(event.longDescription),
+      formattedDescription: localizedBody("en", event.formattedDescription as ReturnType<typeof block>[]),
       included: event.included.map((text, i) => bullet(`i${i}`, text)),
       whatToExpect: enText(event.whatToExpect.join("\n")),
       duration: event.duration,

@@ -37,6 +37,10 @@ interface I18nEntry {
   language?: string;
   value?: string;
 }
+interface I18nBodyEntry {
+  language?: string;
+  value?: unknown[];
+}
 interface RawEvent {
   slug?: string;
   title?: I18nEntry[];
@@ -46,8 +50,11 @@ interface RawEvent {
   isSoldOut?: boolean;
   ticketUrl?: string;
   ticketsLeft?: number;
-  imageAlt?: I18nEntry[];
+  imageUrl?: string;
+  detailHeroImageUrl?: string;
   whatToExpect?: I18nEntry[];
+  formattedDescription?: I18nBodyEntry[];
+  visibleLocales?: string[];
 }
 interface RawPage {
   seo?: { title?: I18nEntry[]; description?: I18nEntry[] };
@@ -77,8 +84,29 @@ const REPRESENTATIVE_SLUGS = [AVAILABLE_SLUG, SOLD_OUT_SLUG, BASELINE_SLUG];
 
 const eventQuery = `*[_type == "event" && slug.current == $slug][0]{
   "slug": slug.current, title, date, time, price, isSoldOut, ticketUrl, ticketsLeft,
-  "imageAlt": image.alt, whatToExpect
+  "imageUrl": image.asset->url,
+  "detailHeroImageUrl": detailHeroImage.asset->url,
+  whatToExpect, formattedDescription, visibleLocales
 }`;
+
+function bodyPlainText(entries: I18nBodyEntry[] | undefined, lang: string): string {
+  const value = entries?.find((entry) => entry.language === lang)?.value;
+  if (!Array.isArray(value)) return "";
+  return value
+    .flatMap((block) => {
+      if (!block || typeof block !== "object") return [];
+      const children = (block as { children?: unknown }).children;
+      if (!Array.isArray(children)) return [];
+      return children.flatMap((child) => {
+        if (!child || typeof child !== "object") return [];
+        const text = (child as { text?: unknown }).text;
+        return typeof text === "string" ? [text] : [];
+      });
+    })
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 test.describe("Events listing content contract", () => {
   test.skip(
@@ -265,6 +293,10 @@ test.describe("Event detail content contract (data-driven)", () => {
         await page.goto(localizedHref(`/events/${slug}`, locale));
         await expect(page.getByRole("heading", { level: 1 })).toHaveText(title!);
 
+        const storedDescription = bodyPlainText(event!.formattedDescription, locale);
+        expect(storedDescription, `${slug}.formattedDescription must be published for locale ${locale}`).toBeTruthy();
+        await expect(page.locator(".event-description")).toContainText(storedDescription);
+
         // Locale-agnostic: the sold-out/buy-ticket LABEL text is itself
         // localized (eventMessages/defaults), so this asserts the underlying
         // *state* (a disabled control, no active purchase link) rather than
@@ -278,10 +310,18 @@ test.describe("Event detail content contract (data-driven)", () => {
           await expect(page.locator(`a[href="${event!.ticketUrl}"]`).first()).toBeVisible();
         }
 
-        const imageAlt = pick(event!.imageAlt, locale);
-        if (imageAlt) {
-          await expect(page.locator(`img[alt="${imageAlt}"]`)).toBeVisible();
-        }
+        // The Event detail hero is intentionally decorative (`alt=""`). Prove
+        // its image source remains connected to the dedicated detail asset,
+        // or to the documented banner-image fallback when that asset is empty.
+        const expectedHeroUrl = event!.detailHeroImageUrl ?? event!.imageUrl;
+        expect(expectedHeroUrl, `${slug}: detail or banner image asset must exist`).toBeTruthy();
+        const renderedImageSources = await page.locator("img").evaluateAll((images) =>
+          images.map((image) => decodeURIComponent(image.getAttribute("src") ?? "")),
+        );
+        expect(
+          renderedImageSources.some((source) => source.includes(expectedHeroUrl!)),
+          `${slug}: rendered detail hero must use its Sanity image asset without rewiring`,
+        ).toBe(true);
       });
     }
   }
@@ -352,10 +392,19 @@ test.describe("Structural completeness — every published event document", () =
     "Sanity not configured in this environment",
   );
 
-  test("every published event has required fields (English title, slug, date, time, image) populated", async () => {
-    const events = await sanity.fetch<{ slug?: string; title?: I18nEntry[]; date?: string; time?: string; hasImage?: boolean }[]>(
+  test("every published event has required fields and rich descriptions for every visible locale", async () => {
+    const events = await sanity.fetch<{
+      slug?: string;
+      title?: I18nEntry[];
+      date?: string;
+      time?: string;
+      hasImage?: boolean;
+      visibleLocales?: string[];
+      formattedDescription?: I18nBodyEntry[];
+    }[]>(
       `*[_type == "event" && defined(slug.current)]{
-        "slug": slug.current, title, date, time, "hasImage": defined(image.asset)
+        "slug": slug.current, title, date, time, "hasImage": defined(image.asset),
+        visibleLocales, formattedDescription
       }`,
     );
     expect(events.length, "at least one published event should exist").toBeGreaterThan(0);
@@ -366,6 +415,12 @@ test.describe("Structural completeness — every published event document", () =
       expect(e.date, `${e.slug}: date is required`).toBeTruthy();
       expect(e.time, `${e.slug}: time is required`).toBeTruthy();
       expect(e.hasImage, `${e.slug}: banner image is required`).toBeTruthy();
+      for (const locale of e.visibleLocales ?? []) {
+        expect(
+          bodyPlainText(e.formattedDescription, locale),
+          `${e.slug}: formattedDescription[${locale}] is required for every visible locale`,
+        ).toBeTruthy();
+      }
     }
   });
 });

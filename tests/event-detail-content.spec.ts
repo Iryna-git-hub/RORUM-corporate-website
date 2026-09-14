@@ -79,7 +79,7 @@ test.describe("Event detail address layout", () => {
 
 test.describe("Event detail description integration", () => {
   for (const locale of LOCALES) {
-    test(`${locale} renders the localized legacy description through EventDescription`, async ({ page, context }) => {
+    test(`${locale} renders the localized rich description through EventDescription`, async ({ page, context }) => {
       await blockHeavyMedia(context);
       await page.setViewportSize({ width: 1024, height: 900 });
       await gotoAndStabilize(page, localizedHref("/events/copenhagen-makers-dinner", locale));

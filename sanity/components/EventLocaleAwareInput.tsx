@@ -1,6 +1,14 @@
 "use client";
 
-import { insert, set, useFormValue, type ArrayOfObjectsInputProps } from "sanity";
+import {
+  ArrayOfObjectsItem,
+  insert,
+  PatchEvent,
+  set,
+  setIfMissing,
+  useFormValue,
+  type ArrayOfObjectsInputProps,
+} from "sanity";
 import { Box, Button, Card, Flex, Stack, Text, TextArea, TextInput } from "@sanity/ui";
 
 // Fixed display order for the 3 supported website locales — independent of
@@ -14,12 +22,13 @@ interface I18nEntry {
   _key: string;
   _type: string;
   language?: string;
-  value?: string;
+  value?: unknown;
 }
 
 /**
  * Event-specific replacement input for every `internationalizedArrayString`/
- * `internationalizedArrayText` field reachable from an `event` document
+ * `internationalizedArrayText`/`internationalizedArrayBodyPortableText`
+ * field reachable from an `event` document
  * (directly, or nested inside `imageWithAlt`/`seo`/`shareSettings[]`/
  * `ticketProviderInfo`). Scoped to `event` documents only via a live
  * `_type` check — every other document type (Home/About/page/eventMessages/
@@ -55,6 +64,9 @@ interface I18nEntry {
  *     what's rendered; it is never read, patched, unset, or otherwise
  *     touched by this component, so it reappears untouched the moment its
  *     locale is reselected;
+ *   - renders Portable Text entries through Sanity's resolved object-item
+ *     member so their nested `bodyPortableText` field keeps the native rich
+ *     editor; string/text fields retain their compact primitive controls;
  *   - uses no CSS to hide anything — inactive rows and locked-out "add"
  *     options are absent from the render tree entirely, not hidden via a
  *     stylesheet.
@@ -72,6 +84,7 @@ export function EventLocaleAwareInput(props: ArrayOfObjectsInputProps) {
     (entry): entry is I18nEntry => Boolean(entry?.language),
   );
   const isMultiline = props.schemaType.name === "internationalizedArrayText";
+  const isPortableText = props.schemaType.name === "internationalizedArrayBodyPortableText";
   const valueTypeName = `${props.schemaType.name}Value`;
   const readOnly = Boolean(props.readOnly);
 
@@ -84,8 +97,13 @@ export function EventLocaleAwareInput(props: ArrayOfObjectsInputProps) {
   }
 
   function handleAdd(locale: string) {
-    const newEntry: I18nEntry = { _key: locale, _type: valueTypeName, language: locale, value: "" };
-    props.onChange(insert([newEntry], "after", [-1]));
+    const newEntry: I18nEntry = {
+      _key: locale,
+      _type: valueTypeName,
+      language: locale,
+      value: isPortableText ? [] : "",
+    };
+    props.onChange(PatchEvent.from([setIfMissing([]), insert([newEntry], "after", [-1])]));
   }
 
   const orderedLocales = LOCALE_ORDER.filter((locale) => activeLocales.includes(locale));
@@ -109,6 +127,16 @@ export function EventLocaleAwareInput(props: ArrayOfObjectsInputProps) {
           );
         }
 
+        if (isPortableText) {
+          const member = props.members.find((candidate) => candidate.kind === "item" && candidate.key === entry._key);
+          if (!member || member.kind !== "item") return null;
+
+          // The plugin has already resolved this locale's `value` field as
+          // `bodyPortableText`. Sanity's native item renderer therefore keeps
+          // the block array structured and supplies the Portable Text editor.
+          return <ArrayOfObjectsItem {...props} key={member.key} member={member} />;
+        }
+
         return (
           <Card key={entry._key} padding={3} radius={2} border>
             <Stack space={2}>
@@ -121,13 +149,13 @@ export function EventLocaleAwareInput(props: ArrayOfObjectsInputProps) {
                 {isMultiline ? (
                   <TextArea
                     rows={4}
-                    value={entry.value ?? ""}
+                    value={typeof entry.value === "string" ? entry.value : ""}
                     readOnly={readOnly}
                     onChange={(event) => handleValueChange(entry, event.currentTarget.value)}
                   />
                 ) : (
                   <TextInput
-                    value={entry.value ?? ""}
+                    value={typeof entry.value === "string" ? entry.value : ""}
                     readOnly={readOnly}
                     onChange={(event) => handleValueChange(entry, event.currentTarget.value)}
                   />

@@ -1405,6 +1405,76 @@ Studio/CMS-relevant:
 
 ---
 
+## 20.20 Part 37 — Event description rich-text migration (2026-09-14)
+
+Full detail: **MIGRATION_REPORT.md Part 37.** Current contract:
+
+- `event.formattedDescription` is the only active Event detail description
+  field. It is fixed EN/DA/UK Portable Text with the existing selected-locale
+  validation behavior.
+- Studio starts with Website languages, Event title, Slug, Event image, Event
+  Detail image, Formatted description. Localized formatted descriptions use
+  Sanity's native Portable Text member editor (not the primitive-only Event
+  string/text control), so stored blocks remain structured and editable with
+  the configured heading, emphasis, list and link tools. The legacy basic-info
+  fieldset no longer hides these fields.
+- The Event page, Studio SEO preview, metadata, sharing and JSON-LD all derive
+  from the same formatted content. Existing images and image fields were not
+  changed by this migration.
+- Production: 38/38 raw documents have meaningful EN/DA/UK formatted content;
+  108 locale rows were migrated with backups and exact readback. The old field
+  was removed from 36 documents where equivalence was proven. Two documents
+  retain dormant raw legacy values because five locale rows genuinely differ;
+  they are outside the active schema/runtime and were preserved to avoid data
+  loss.
+
+---
+
+## 20.21 Part 38 — Event spoken-language multi-select (2026-09-14) — MIGRATED
+
+- `event.language` keeps its existing field name and human-readable values, and is now an optional
+  array-of-string checklist (checkbox grid) supporting English, Danish, and Ukrainian together.
+  Duplicate and out-of-list values are rejected by both the schema's own validation and the
+  frontend's `normalizeEventLanguages()`. This remains completely independent from `visibleLocales`
+  (confirmed live: the production document `test-5-event` has `language: ["English","Danish",
+  "Ukrainian"]` but `visibleLocales: ["en","uk"]` — Danish excluded from site visibility despite
+  being one of the event's spoken languages).
+- **Production migration applied and independently re-verified twice** (`sanity:migrate-event-languages`):
+  36/39 documents migrated scalar → singleton array, 0 failures, each write read back individually
+  by the script. A second, independent raw-perspective read confirmed the final state: 0 scalar
+  values remain; 37 documents have array values (36 migrated singletons + the one pre-existing
+  3-language document, `test-5-event`, untouched); 2 documents (draft + published of the
+  `rorum-sold-out-test` fixture) have no `language` at all — a legitimate, pre-existing gap, not a
+  migration failure. Re-running the dry-run afterward reported 0 pending (idempotent, complete).
+  A third read (this session, `perspective: "raw"`) reproduced the identical 39/0/37/2 counts.
+- **Runtime simplified now that rollout is complete**: `normalizeEventLanguages()` in
+  `lib/eventLanguage.ts` no longer accepts a scalar string — it is now `(value: readonly string[] |
+  undefined | null) => string[]`. This was verified safe by auditing every remaining producer of
+  `event.language`: `lib/data.ts`'s static fallback data (all `string[]`), `scripts/import-content.ts`
+  (spreads an already-`string[]` source), and `lib/sanityEvents.ts`'s own default fallback (changed
+  from the bare string `"English"` to `["English"]`) — no other code path fed this function a
+  scalar. The function still filters out unrecognized/duplicate array items, so a future
+  out-of-band write that somehow reintroduced a scalar would now be dropped as invalid input rather
+  than silently wrapped.
+- Event Detail joins localized language names with commas (`getEventLanguagesLabel`) — verified for
+  1/2/3 languages both by unit tests and live against a real migrated production event (see below).
+  Listing options flatten all event arrays (`flattenAvailableEventLanguages`); filtering uses
+  membership semantics (`eventMatchesLanguage`, `.includes()`), verified live: selecting the
+  "Ukrainian" filter on `/events` correctly narrows to exactly the events whose `language` array
+  contains `"Ukrainian"` (multi-language events would match every one of their selected languages).
+  JSON-LD's `inLanguage` (`getEventLanguageCodes`) is derived from the same resolved array — verified
+  live for a real migrated event (`1st-ukrainian-business-forum-in-denmark-2026`, `language:
+  ["Ukrainian"]`): rendered `inLanguage: "uk"`.
+- Studio: the `language` field renders as a checkbox grid (`options.list` + `layout: "grid"`, no
+  `layout` override needed beyond that for the native multi-select), titled "Event languages"
+  (plural), with a description explicitly stating "Select all languages spoken at this event" and
+  cross-referencing `visibleLocales` to prevent confusion between the two. Live Studio verification
+  was attempted and blocked by Sanity's own OAuth login wall (GitHub/Google/email — no credentials
+  available in this environment); confirmed via schema source instead.
+- No production dataset mutation was performed by this pass — only read-only verification queries.
+
+---
+
 # 21. Shared Components
 
 Audited in §20.3. In-repo shared components and their CMS sources:

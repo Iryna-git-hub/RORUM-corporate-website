@@ -7,6 +7,7 @@ import { resolveSeoField, EMERGENCY_SEO_DESCRIPTION, EMERGENCY_SEO_IMAGE_PATH, E
 import { SITE_ORIGIN, buildUrl } from "@/shared/siteIdentity";
 import { PAGE_SEO_DEFAULTS } from "@/shared/pageSeoDefaults";
 import { urlForImage } from "@/sanity/lib/image";
+import { portableTextToPlainText } from "@/lib/portableText";
 
 const LOCALE_OPTIONS = [
   { value: "en", title: "English" },
@@ -57,8 +58,17 @@ interface I18nEntry {
   value?: string;
 }
 
+interface I18nBodyEntry {
+  language?: string;
+  value?: unknown[];
+}
+
 function valueFor(entries: I18nEntry[] | undefined, locale: PreviewLocale): string | undefined {
   return entries?.find((e) => e.language === locale)?.value?.trim() || undefined;
+}
+
+function bodyValueFor(entries: I18nBodyEntry[] | undefined, locale: PreviewLocale): string | undefined {
+  return portableTextToPlainText(entries?.find((entry) => entry.language === locale)?.value) || undefined;
 }
 
 /** Manager-friendly bilingual label for a resolved field's source tier — never the old "your override"/raw-technical wording. */
@@ -122,7 +132,7 @@ export function SeoObjectInput(props: ObjectInputProps) {
   const slugCurrent = useFormValue(["slug", "current"]) as string | undefined;
   const visibleLocalesRaw = useFormValue(["visibleLocales"]) as unknown;
   const eventTitle = useFormValue(["title"]) as I18nEntry[] | undefined;
-  const eventLongDescription = useFormValue(["longDescription"]) as I18nEntry[] | undefined;
+  const eventFormattedDescription = useFormValue(["formattedDescription"]) as I18nBodyEntry[] | undefined;
   const eventImage = useFormValue(["image"]) as Image | undefined;
 
   const isEvent = documentType === "event";
@@ -187,7 +197,7 @@ export function SeoObjectInput(props: ObjectInputProps) {
   if (isEvent) {
     const localizedEventTitle = valueFor(eventTitle, locale);
     titleTiers.push({ source: "documentContent", value: localizedEventTitle ? `${localizedEventTitle} | RORUM` : undefined });
-    descriptionTiers.push({ source: "documentContent", value: valueFor(eventLongDescription, locale) });
+    descriptionTiers.push({ source: "documentContent", value: bodyValueFor(eventFormattedDescription, locale) });
     imageTiers.push({ source: "documentContent", value: urlForImage(eventImage)?.width(160).url() });
   } else if (pageKey && PAGE_SEO_DEFAULTS[pageKey]) {
     // Static pages' own approved fallback (see shared/pageSeoDefaults.ts's

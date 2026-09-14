@@ -180,7 +180,10 @@ export function getEventVisibleLocales(document: unknown): string[] | undefined 
  * `skip`: same purpose as the other two validators' — lets one specific,
  * narrowly-identified hidden-field context opt out entirely.
  */
-export function requireSelectedEventLocales(options?: { skip?: (context: ValidationContext) => boolean }) {
+export function requireSelectedEventLocales(options?: {
+  skip?: (context: ValidationContext) => boolean;
+  isValueEmpty?: (value: unknown) => boolean;
+}) {
   return (rule: Rule) =>
     rule.custom((value: I18nEntry[] | undefined, context: ValidationContext) => {
       if (options?.skip?.(context)) return true;
@@ -193,7 +196,7 @@ export function requireSelectedEventLocales(options?: { skip?: (context: Validat
       for (const entry of list) {
         if (!entry?.language || !selected.includes(entry.language)) continue; // unselected locales are never validated
         seen.set(entry.language, (seen.get(entry.language) ?? 0) + 1);
-        if (isEmptyValue(entry.value)) emptyLanguages.push(entry.language);
+        if ((options?.isValueEmpty ?? isEmptyValue)(entry.value)) emptyLanguages.push(entry.language);
       }
       const missing = selected.filter((lang) => !seen.has(lang));
       const duplicates = [...seen.entries()].filter(([, count]) => count > 1).map(([lang]) => lang);

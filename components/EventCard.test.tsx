@@ -27,7 +27,7 @@ function ev(overrides: Partial<RorumEvent>): RorumEvent {
   return {
     // slug "" → EventCard renders the bare card (no <Link>/usePathname).
     slug: "", title: "Botanical evening", date: "2026-10-15", time: "18:00-20:00", price: "295 kr.",
-    address: "", language: "English", longDescription: "", included: [], whatToExpect: [],
+    address: "", language: ["English"], formattedDescription: [], included: [], whatToExpect: [],
     arrival: "", ticketProviderInfo: { label: "", value: "" }, shareActions: [],
     ticketUrl: "", calendarUrl: "", waitlistUrl: "", isSoldOut: false, image: "/x.jpg",
     ...overrides,

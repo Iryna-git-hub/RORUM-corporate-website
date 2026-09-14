@@ -2955,3 +2955,145 @@ Reviewer, or this correction pass) of an application-code defect; production
 builds have repeatedly compiled cleanly. Per this project's scope-control
 principle, a dev-tooling-only race is not a reason to add retry logic,
 disable prefetching, or otherwise engineer around Next.js internals.
+
+---
+
+## Part 37 — Event description Portable Text migration (2026-09-14)
+
+The Event detail description has one active source of truth:
+`event.formattedDescription` (`internationalizedArrayBodyPortableText`). The
+legacy `longDescription` schema field and all application, Studio preview,
+SEO/share, structured-data, import and audit plumbing were removed. Plain text
+needed by metadata is now derived from Portable Text; manager-authored marks
+and links remain available to the page renderer without creating a second
+editable copy.
+
+The Event Studio's first manager-facing fields are now exactly **Event title →
+Event image → Event Detail image → Formatted description**. The rich-text field
+uses the event's fixed EN/DA/UK locale input and the existing selected-locale
+validation convention.
+
+### Production migration evidence
+
+- Raw audit scope: 38 event documents (33 published, 5 drafts; 33 canonical
+  identities), including all EN/DA/UK rows whether currently visible or not.
+- Before: 36 documents had legacy-only descriptions and 2 had both fields;
+  108 locale rows required migration (36 each for EN, DA and UK). One UK source
+  row was dormant behind `visibleLocales`, confirming that visible locales were
+  not a safe migration boundary.
+- Writes: 36 documents / 108 locale rows were converted into deterministic,
+  normal-style Portable Text blocks. Existing non-empty formatted locale rows
+  were never overwritten. Every patch used `_rev` preconditions and an
+  immediate exact deep readback.
+- Backups: `events-pre-formatted-description-migration-1789365753258.json`,
+  `event-formatted-description-pre-apply-1789365776467.json`, and retry backup
+  `event-formatted-description-pre-apply-1789366482142.json` in
+  `scripts/backups/`.
+- Post-migration audit: 38/38 raw event documents have meaningful formatted
+  content for EN/DA/UK; zero locale rows remain pending or source-less.
+
+### Safe legacy cleanup
+
+Exact plain-text equivalence was proven before unsetting the old field. The
+cleanup removed `longDescription` from 36/38 documents, with revision guards,
+per-document backup, and post-write source-vs-formatted readback. Backup:
+`event-long-description-pre-removal-1789368118002.json`.
+
+Two pre-existing documents contain five locale rows where manager-authored
+formatted text differs from legacy text, so deleting either version would
+lose content: `640d254e-13c8-4df6-b70f-91886f1b0816` (EN/DA/UK) and
+`fb824896-2fc5-4e99-b2de-5c8538766c0a` (EN/DA). Their `longDescription` values
+remain as dormant raw dataset residue only: the field is absent from the
+schema, generated types, queries and runtime. This is an intentional
+content-preservation exception, not a second active source of truth.
+
+Reusable, dry-run-by-default scripts remain at
+`scripts/migrate-event-formatted-description.ts` and
+`scripts/remove-event-long-description.ts` for auditable recovery/rechecks.
+
+---
+
+## Part 38 — Event spoken-language scalar→array migration, applied to production (2026-09-14)
+
+`event.language` changed from a single scalar string (`options.list` dropdown-style single-select)
+to an optional array-of-string checklist (`options: { list: [...], layout: "grid" }`), so an event
+can now report more than one spoken language (e.g. an event conducted in both English and
+Ukrainian). Field name, human-readable values ("English"/"Danish"/"Ukrainian"), and independence
+from `visibleLocales` are all unchanged.
+
+### Production migration evidence
+
+- Script: `scripts/migrate-event-languages.ts` (`npm run sanity:migrate-event-languages:dry-run` /
+  `:apply`). Pure decision logic isolated in `lib/eventLanguageMigration.ts`
+  (`planEventLanguageMigration`), unit-tested independently of the Sanity client.
+- Backups before apply: `scripts/backups/events-event-languages-pre-migration-1789398001419.json`
+  and `events-event-language-migration-prep-1789399853002.json`.
+- **Result: 36/39 raw documents (drafts + published) migrated, 0 failures.** Every migrated
+  document's write used an `.ifRevisionId()` guard and was individually read back by the script to
+  confirm the exact resulting array before moving on.
+- Re-running the dry-run afterward reported 0 pending migrations (idempotent, complete).
+- **Independent re-verification** (a second, separate raw-perspective query, run twice — once by
+  the original verification pass and once more by this session): 39 total raw event documents; 0
+  scalar `language` values anywhere; 37 documents with array values (the 36 just migrated, each a
+  singleton array, plus 1 pre-existing multi-value array `["English","Danish","Ukrainian"]` on
+  `test-5-event`, a draft-only QA fixture — confirmed untouched/unaffected by the migration, since
+  `planEventLanguageMigration` treats any already-valid array as `skip-array`); 2 documents with no
+  `language` at all — both the draft and published copies of `ee32ccef-2136-4d61-87ba-4abe8bf6be6d`
+  ("RORUM Sold Out Test"), a pre-existing, legitimate gap unrelated to this migration, not a
+  failure.
+
+### Runtime simplification (same session, after production verification)
+
+With the rollout complete and verified, `lib/eventLanguage.ts`'s `normalizeEventLanguages()` was
+simplified from accepting `string | readonly string[] | undefined | null` (a legacy-scalar
+compatibility shim, explicitly commented "during rollout") down to `readonly string[] | undefined |
+null` only — the scalar branch was removed entirely, not just deprecated. This was verified safe by
+auditing every code path that could still hand it a scalar:
+
+- `lib/data.ts`'s static fallback `events`/`expandedEvents` data — already 100% `string[]`
+  (`RorumEvent.language: string[]`, `EventAddition.language?: string[]`).
+- `scripts/import-content.ts` — spreads an already-`string[]` source (`language: [...event.language]`).
+- `lib/sanityEvents.ts`'s own default fallback — the only actual scalar producer found, a bare
+  `"English"` literal in `normalizeEventLanguages(doc.language ?? fallback?.language ?? "English")`;
+  changed to `["English"]`.
+- The live Sanity query (`sanity/queries/events.ts`'s `*[_type == "event" ...]`, no explicit
+  `language` projection) passes through whatever shape is actually stored — covered by the
+  production verification above, not by static typing alone.
+
+`normalizeEventLanguages()` still filters out anything not one of the 3 known language names and
+de-dupes, so a malformed/unrecognized array item (or, hypothetically, a scalar written by some
+future out-of-band script bypassing Studio's own publish-time validation) is now simply dropped as
+invalid input, rather than silently accepted and wrapped into an array. `SanityEventLike.language`'s
+type was narrowed from `string | string[] | null` to `string[] | null` to match.
+
+### Additional verification this session
+
+- **Studio UX**: confirmed via schema source (live Studio verification was attempted and blocked by
+  Sanity's own OAuth login wall — no credentials available) — `array` of `string`, checkbox-grid
+  `options.list`, title "Event languages" (plural), description "Select all languages spoken at
+  this event..." with an explicit cross-reference distinguishing it from `visibleLocales`, matching
+  every other field's EN/UK-only description convention in this schema file.
+- **Live, production-data frontend checks** (dev server against the real dataset): Event Detail's
+  "Event language" row rendered "Ukrainian" for the real migrated event
+  `1st-ukrainian-business-forum-in-denmark-2026` (`language: ["Ukrainian"]`); its JSON-LD
+  `<script type="application/ld+json">` rendered `"inLanguage":"uk"`, correctly derived from that
+  same array. The `/events` Language filter menu offers English/Danish/Ukrainian; selecting
+  Ukrainian correctly narrowed the listing to exactly the events whose `language` array contains
+  `"Ukrainian"`. No production event is currently published with 2+ languages (the only multi-value
+  example, `test-5-event`, is draft-only), so the 2-and-3-language display/label cases are covered
+  by unit tests instead: `lib/eventLanguage.test.ts` and a new full-pipeline test added to
+  `lib/sanityEvents.test.ts` (raw doc shape → `RorumEvent.language` → `getEventLanguagesLabel`) using
+  `test-5-event`'s own real `["English","Danish","Ukrainian"]` shape as the 3-language fixture.
+- `visibleLocales`/`language` independence re-confirmed both in code (no shared code path) and live
+  in production data: `test-5-event` has `language: ["English","Danish","Ukrainian"]` but
+  `visibleLocales: ["en","uk"]` — Danish is one of the event's spoken languages yet the event is not
+  shown on the Danish site.
+- `npx tsc --noEmit`, `npx eslint .` (0 errors, pre-existing unrelated `<img>` warnings only),
+  `npx vitest run` (801/801 passed across 62 files), `npx playwright test
+  tests/event-detail-content.spec.ts tests/cms-events-contract.spec.ts
+  tests/sanity-schema-visibility.spec.ts` (476/476 passed), and `npm run build` (production build
+  succeeded, statically generating every locale route — including ~99 event detail pages — against
+  the now-migrated live dataset) all green.
+
+No dataset mutation was performed by this session's own work — only read-only verification queries
+against the already-migrated production dataset.

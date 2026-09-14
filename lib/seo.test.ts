@@ -15,6 +15,7 @@ vi.mock("@/lib/siteSettings", () => ({
 import { localizedPageMetadata } from "./seo";
 import { resolveEventShareData } from "./eventSharing";
 import type { RorumEvent } from "./data";
+import { plainTextToPortableText } from "./portableText";
 
 beforeEach(() => {
   mockSiteDefaults = { siteUrl: "https://ro-rum.dk" };
@@ -159,7 +160,7 @@ describe("Event detail metadata — canonical share-data integration", () => {
     const event = {
       slug: "community-reset-night",
       title,
-      longDescription: description,
+      formattedDescription: plainTextToPortableText(description),
       image: "https://cdn.sanity.io/banner.jpg",
       socialImageUrl: "https://cdn.sanity.io/banner-1200x630.jpg",
       seo: { ogImageUrl: "https://cdn.sanity.io/explicit-social-1200x630.jpg" },
@@ -194,7 +195,7 @@ describe("Event detail metadata — canonical share-data integration", () => {
     const event = {
       slug: "without-social-image",
       title: "Fallback event",
-      longDescription: "Fallback description",
+      formattedDescription: plainTextToPortableText("Fallback description"),
       image: "https://cdn.sanity.io/banner.jpg",
       socialImageUrl: "https://cdn.sanity.io/banner-1200x630.jpg",
     } as RorumEvent;
@@ -216,7 +217,7 @@ describe("Event detail metadata — canonical share-data integration", () => {
     const event = {
       slug: "without-images",
       title: "Fallback event",
-      longDescription: "Fallback description",
+      formattedDescription: plainTextToPortableText("Fallback description"),
       image: "/images/hero.jpg",
     } as RorumEvent;
     const share = resolveEventShareData(event, "en");

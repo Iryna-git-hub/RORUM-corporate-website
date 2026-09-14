@@ -16,6 +16,7 @@ import type { EventCardMessages } from "@/components/EventCard";
 import type { RorumEvent } from "@/lib/data";
 import { isUpcomingEvent } from "@/lib/eventVisibility";
 import { useLocale } from "@/lib/useLocale";
+import { eventMatchesLanguage, flattenAvailableEventLanguages } from "@/lib/eventLanguage";
 
 // ---------------------------------------------------------------------------
 // Pure helpers (same logic as before, now runs client-side)
@@ -134,7 +135,7 @@ export function EventsClientPage({
   // can never quietly resurrect the exact bug this replaced.
   const languageOptions =
     languageOptionOrder?.map((o) => o.value) ??
-    Array.from(new Set(events.map((event) => event.language).filter(Boolean)));
+    flattenAvailableEventLanguages(events);
 
   const rawLanguage = searchParams.get("language");
   const selectedLanguage =
@@ -163,7 +164,7 @@ export function EventsClientPage({
       if (!eventDate) return false;
       if (dateStart && eventDate < dateStart) return false;
       if (dateEnd && eventDate > dateEnd) return false;
-      if (selectedLanguage !== "all" && event.language !== selectedLanguage)
+      if (!eventMatchesLanguage(event.language, selectedLanguage))
         return false;
       const soldOut = Boolean(event.isSoldOut);
       if (selectedAvailability === "sold-out") return soldOut;

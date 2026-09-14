@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { RorumEvent } from "@/lib/data";
 import { buildEventShareLinks, buildNativeSharePayload, resolveEventShareData } from "./eventSharing";
+import { plainTextToPortableText } from "./portableText";
 
 function event(overrides: Partial<RorumEvent> = {}): RorumEvent {
   return {
     slug: "community-reset-night",
     title: "Community Reset Night",
-    longDescription: "A calm evening for the community.",
+    formattedDescription: plainTextToPortableText("A calm evening for the community."),
     image: "https://cdn.sanity.io/event-banner.jpg",
     imageAlt: "People gathering at RORUM",
     ...overrides,
@@ -26,7 +27,7 @@ describe("resolveEventShareData", () => {
     const resolved = resolveEventShareData(
       event({
         title: "Fællesskabsaften",
-        longDescription: "Lang beskrivelse.",
+        formattedDescription: plainTextToPortableText("Lang beskrivelse."),
         seo: {
           title: "Fællesskabsaften | RORUM",
           description: "Kort dansk beskrivelse.",
@@ -111,7 +112,7 @@ describe("resolveEventShareData", () => {
   });
 
   it("uses localized fallback share text only when the event has no description", () => {
-    expect(resolveEventShareData(event({ longDescription: "", seo: undefined }), "uk", "Локалізований текст").text)
+    expect(resolveEventShareData(event({ formattedDescription: [], seo: undefined }), "uk", "Локалізований текст").text)
       .toBe("Локалізований текст");
   });
 });

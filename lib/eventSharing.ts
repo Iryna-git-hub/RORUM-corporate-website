@@ -2,6 +2,7 @@ import type { Locale } from "@/lib/i18n";
 import { localizedHref } from "@/lib/i18n";
 import type { RorumEvent } from "@/lib/data";
 import { buildUrl, SITE_ORIGIN } from "@/shared/siteIdentity";
+import { portableTextToPlainText } from "@/lib/portableText";
 
 export interface EventShareData {
   locale: Locale;
@@ -52,7 +53,7 @@ export function resolveEventShareData(
   locale: Locale,
   fallbackShareText = "",
 ): EventShareData {
-  const description = event.seo?.description || event.longDescription || "";
+  const description = event.seo?.description || portableTextToPlainText(event.formattedDescription);
   return {
     locale,
     title: event.title,

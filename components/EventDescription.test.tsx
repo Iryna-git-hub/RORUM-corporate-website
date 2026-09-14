@@ -24,19 +24,7 @@ const block = (
 });
 
 describe("EventDescription", () => {
-  it("keeps legacy plain-text paragraphs separate and preserves intentional line breaks", () => {
-    const { container } = render(
-      <EventDescription plain={"First paragraph.\nIntentional line break.\n\nSecond paragraph."} />,
-    );
-
-    const paragraphs = container.querySelectorAll(".event-description > p");
-    expect(paragraphs).toHaveLength(2);
-    expect(paragraphs[0]?.textContent).toBe("First paragraph.\nIntentional line break.");
-    expect(paragraphs[0]?.classList.contains("whitespace-pre-line")).toBe(true);
-    expect(paragraphs[1]?.textContent).toBe("Second paragraph.");
-  });
-
-  it("prefers formatted content and renders paragraphs, line breaks, lists, emphasis, and links semantically", () => {
+  it("renders formatted paragraphs, line breaks, lists, emphasis, and links semantically", () => {
     const formatted = [
       block("p1", "First paragraph."),
       block("p2", "Line one\nLine two"),
@@ -51,10 +39,9 @@ describe("EventDescription", () => {
     ];
 
     const { container } = render(
-      <EventDescription formatted={formatted} plain="Legacy content must not render." />,
+      <EventDescription formatted={formatted} />,
     );
 
-    expect(screen.queryByText("Legacy content must not render.")).toBeNull();
     expect(container.querySelectorAll(".event-description > p").length).toBeGreaterThanOrEqual(4);
     expect(container.querySelector("br")).not.toBeNull();
     expect(container.querySelector("ul li")?.textContent).toBe("Bullet item");
@@ -76,7 +63,6 @@ describe("EventDescription", () => {
       {
         slug: { current: "formatted-event" },
         title: [{ _key: locale, language: locale, value: "Event" }],
-        longDescription: [{ _key: locale, language: locale, value: "Plain fallback" }],
         formattedDescription: (Object.keys(values) as (keyof typeof values)[]).map((language) => ({
           _key: language,
           language,
@@ -87,6 +73,5 @@ describe("EventDescription", () => {
     );
 
     expect(event.formattedDescription).toEqual(values[locale]);
-    expect(event.longDescription).toBe("Plain fallback");
   });
 });

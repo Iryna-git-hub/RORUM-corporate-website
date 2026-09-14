@@ -13,21 +13,29 @@
 // that actually matter here:
 //   1. an inactive locale's stored entry is never rendered as a row NOR
 //      offered as an "add" button, and is never read/patched/removed;
-//   2. every mutation this component performs (edit, add) is a single,
-//      minimally-scoped patch — `set([...key...], "value")` or
-//      `insert([oneNewEntry], "after", [-1])` — never a full-array rewrite.
+//   2. every mutation is minimally scoped: an edit sets one keyed `value`,
+//      while add initializes an absent array and inserts one entry without
+//      rewriting any existing items.
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
-import { set, insert } from "sanity";
+import { insert, PatchEvent, set, setIfMissing } from "sanity";
 import { ThemeProvider, studioTheme } from "@sanity/ui";
 import { EventLocaleAwareInput } from "./EventLocaleAwareInput";
 
 const mockUseFormValue = vi.fn();
+const mockNativeArrayItem = vi.fn();
 vi.mock("sanity", async (importOriginal) => {
   const actual = await importOriginal<typeof import("sanity")>();
-  return { ...actual, useFormValue: (path: string[]) => mockUseFormValue(path) };
+  return {
+    ...actual,
+    useFormValue: (path: string[]) => mockUseFormValue(path),
+    ArrayOfObjectsItem: (props: unknown) => {
+      mockNativeArrayItem(props);
+      return <div data-testid="native-array-item" />;
+    },
+  };
 });
 
 // @sanity/ui's primitives (Stack/Card/Button/TextInput/TextArea) read their
@@ -44,10 +52,16 @@ interface FakeEntry {
   _key: string;
   _type: string;
   language?: string;
-  value?: string;
+  value?: unknown;
 }
 
-function fakeProps(members: FakeEntry[], schemaTypeName: "internationalizedArrayString" | "internationalizedArrayText" = "internationalizedArrayString") {
+function fakeProps(
+  members: FakeEntry[],
+  schemaTypeName:
+    | "internationalizedArrayString"
+    | "internationalizedArrayText"
+    | "internationalizedArrayBodyPortableText" = "internationalizedArrayString",
+) {
   const value = members.map((m) => m) as unknown as import("sanity").ArrayOfObjectsInputProps["value"];
   const onChange = vi.fn();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- the param type drives `.mock.calls[n][0]`'s inferred type, not its usage in the body.
@@ -77,6 +91,7 @@ const UK: FakeEntry = { _key: "uk", _type: "internationalizedArrayStringValue", 
 
 beforeEach(() => {
   mockUseFormValue.mockReset();
+  mockNativeArrayItem.mockReset();
 });
 
 afterEach(() => {
@@ -196,7 +211,7 @@ describe("EventLocaleAwareInput — event documents: mutations are minimally-sco
     expect(JSON.stringify(onChange.mock.calls[0]![0])).not.toContain('"uk"');
   });
 
-  it("clicking Add for a missing active locale inserts exactly one new entry — insert([newEntry], 'after', [-1]) — and touches nothing else", async () => {
+  it("clicking Add initializes the array if needed and inserts exactly one missing active locale", async () => {
     setFormValues({ documentType: "event", visibleLocales: ["en", "uk"] });
     const { props, onChange } = fakeProps([EN]); // uk missing
     renderInput(props);
@@ -204,7 +219,10 @@ describe("EventLocaleAwareInput — event documents: mutations are minimally-sco
     await userEvent.click(screen.getByRole("button", { name: /Add Ukrainian/i }));
 
     expect(onChange).toHaveBeenCalledWith(
-      insert([{ _key: "uk", _type: "internationalizedArrayStringValue", language: "uk", value: "" }], "after", [-1]),
+      PatchEvent.from([
+        setIfMissing([]),
+        insert([{ _key: "uk", _type: "internationalizedArrayStringValue", language: "uk", value: "" }], "after", [-1]),
+      ]),
     );
   });
 
@@ -232,6 +250,111 @@ describe("EventLocaleAwareInput — field kind (single-line vs multiline)", () =
     renderInput(props);
     const input = screen.getByDisplayValue("English value");
     expect(input.tagName).toBe("TEXTAREA");
+  });
+});
+
+describe("EventLocaleAwareInput — localized Portable Text", () => {
+  const englishBlocks = [
+    {
+      _key: "block-en",
+      _type: "block",
+      style: "normal",
+      children: [{ _key: "span-en", _type: "span", text: "Real migrated English text", marks: [] }],
+      markDefs: [],
+    },
+  ];
+  const danishBlocks = [
+    {
+      _key: "block-da",
+      _type: "block",
+      style: "h2",
+      children: [{ _key: "span-da", _type: "span", text: "Dansk tekst", marks: ["strong"] }],
+      markDefs: [],
+    },
+  ];
+  const ukrainianBlocks = [
+    {
+      _key: "block-uk",
+      _type: "block",
+      style: "normal",
+      listItem: "bullet",
+      level: 1,
+      children: [{ _key: "span-uk", _type: "span", text: "Український текст", marks: ["em"] }],
+      markDefs: [],
+    },
+  ];
+  const entries: FakeEntry[] = [
+    { _key: "en", _type: "internationalizedArrayBodyPortableTextValue", language: "en", value: englishBlocks },
+    { _key: "da", _type: "internationalizedArrayBodyPortableTextValue", language: "da", value: danishBlocks },
+    { _key: "uk", _type: "internationalizedArrayBodyPortableTextValue", language: "uk", value: ukrainianBlocks },
+  ];
+
+  it("renders each active EN/DA/UK member through Sanity's native object-item renderer without stringifying blocks", () => {
+    setFormValues({ documentType: "event", visibleLocales: ["uk", "en", "da"] });
+    const { props, onChange, renderDefault } = fakeProps(entries, "internationalizedArrayBodyPortableText");
+    renderInput(props);
+
+    expect(screen.getAllByTestId("native-array-item")).toHaveLength(3);
+    expect(mockNativeArrayItem.mock.calls.map(([call]) => (call as { member: { key: string } }).member.key)).toEqual(["en", "da", "uk"]);
+    expect((mockNativeArrayItem.mock.calls[0]![0] as { member: { item: { value: FakeEntry } } }).member.item.value.value).toBe(
+      englishBlocks,
+    );
+    expect((mockNativeArrayItem.mock.calls[1]![0] as { member: { item: { value: FakeEntry } } }).member.item.value.value).toBe(
+      danishBlocks,
+    );
+    expect((mockNativeArrayItem.mock.calls[2]![0] as { member: { item: { value: FakeEntry } } }).member.item.value.value).toBe(
+      ukrainianBlocks,
+    );
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent("[object Object]");
+    expect(onChange).not.toHaveBeenCalled();
+    expect(renderDefault).not.toHaveBeenCalled();
+  });
+
+  it("does not render or mutate an inactive stored Portable Text locale", () => {
+    setFormValues({ documentType: "event", visibleLocales: ["en", "uk"] });
+    const { props, onChange } = fakeProps(entries, "internationalizedArrayBodyPortableText");
+    renderInput(props);
+
+    expect(mockNativeArrayItem.mock.calls.map(([call]) => (call as { member: { key: string } }).member.key)).toEqual(["en", "uk"]);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("adds a missing active locale as an empty Portable Text array, never a string", async () => {
+    setFormValues({ documentType: "event", visibleLocales: ["en", "da"] });
+    const { props, onChange } = fakeProps([entries[0]!], "internationalizedArrayBodyPortableText");
+    renderInput(props);
+
+    await userEvent.click(screen.getByRole("button", { name: /Add Danish/i }));
+    expect(onChange).toHaveBeenCalledWith(
+      PatchEvent.from([
+        setIfMissing([]),
+        insert(
+          [{ _key: "da", _type: "internationalizedArrayBodyPortableTextValue", language: "da", value: [] }],
+          "after",
+          [-1],
+        ),
+      ]),
+    );
+  });
+
+  it("creates an entirely undefined localized array before inserting its first Portable Text locale", async () => {
+    setFormValues({ documentType: "event", visibleLocales: ["en"] });
+    const { props, onChange } = fakeProps([], "internationalizedArrayBodyPortableText");
+    props.value = undefined;
+    renderInput(props);
+
+    await userEvent.click(screen.getByRole("button", { name: /Add English/i }));
+    expect(onChange).toHaveBeenCalledWith(
+      PatchEvent.from([
+        setIfMissing([]),
+        insert(
+          [{ _key: "en", _type: "internationalizedArrayBodyPortableTextValue", language: "en", value: [] }],
+          "after",
+          [-1],
+        ),
+      ]),
+    );
   });
 });
 

@@ -12,6 +12,7 @@ import type { Locale } from "@/lib/i18n";
 import { computeDurationFromTimeRange, parseDurationText, type EventDuration } from "@/lib/eventDuration";
 import { sanityEventImageAttr, sanityEventDetailHeroImageAttr } from "@/sanity/lib/dataAttr";
 import { urlForImage } from "@/sanity/lib/image";
+import { normalizeEventLanguages } from "@/lib/eventLanguage";
 
 // Used only when a Sanity event has no uploaded image asset of its own —
 // looked up by slug so an editor who hasn't uploaded a banner yet still
@@ -40,8 +41,7 @@ export interface SanityEventLike {
   time?: string | null;
   price?: string | null;
   address?: string | null;
-  language?: string | null;
-  longDescription?: Localized;
+  language?: string[] | null;
   formattedDescription?: I18nEntry<unknown[]>[] | null;
   whatToExpect?: Localized;
   included?: { text?: Localized }[] | null;
@@ -151,9 +151,8 @@ export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale, ed
     time: doc.time ?? fallback?.time ?? "",
     price: doc.price ?? fallback?.price ?? "",
     address,
-    language: doc.language ?? fallback?.language ?? "English",
-    longDescription: pickLocalized(doc.longDescription, locale) ?? fallback?.longDescription ?? "",
-    formattedDescription: pickLocalized(doc.formattedDescription, locale),
+    language: normalizeEventLanguages(doc.language ?? fallback?.language ?? ["English"]),
+    formattedDescription: pickLocalized(doc.formattedDescription, locale) ?? fallback?.formattedDescription,
     included:
       doc.included?.map((b) => pickLocalized(b.text, locale) ?? "").filter(Boolean) ??
       fallback?.included ??

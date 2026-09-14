@@ -18,7 +18,7 @@ import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvent
 import { isEventVisibleInLocale } from "@/lib/eventVisibility";
 import { applyBillettoAvailabilityToEvent } from "@/lib/eventAvailability";
 import { formatDuration, type EventDuration } from "@/lib/eventDuration";
-import { getEventLanguageLabel } from "@/lib/eventLanguage";
+import { getEventLanguagesLabel } from "@/lib/eventLanguage";
 import { getUiText } from "@/lib/uiText";
 import { resolveEventShareData } from "@/lib/eventSharing";
 import { compact, pickLabel, pickLabelExact } from "@/lib/sanity-i18n";
@@ -28,7 +28,6 @@ import { allEventSlugsQuery, eventBySlugQuery } from "@/sanity/queries/events";
 import { eventMessagesQuery } from "@/sanity/queries/globals";
 import { ArrowRight, CalendarDays, CircleCheckBig, Clock, MapPin, Ticket } from "lucide-react";
 
-const fallbackDescription = "Join us for an intimate gathering at RORUM, designed for people who enjoy thoughtful details, warm atmosphere and meaningful conversation.";
 const fallbackExpectations = [
     "A small and welcoming group format",
     "A calm, thoughtfully prepared room",
@@ -456,11 +455,9 @@ export async function generateMetadata({
     const event = await getEvent(slug, locale);
     if (!event) return {};
     const shareData = resolveEventShareData(event, locale);
-    // Deliberately NOT falling back to the page-level `fallbackDescription`
-    // constant here (that stays reserved for the page BODY's own separate
-    // description variable below) — an empty result here correctly falls
-    // through to `localizedPageMetadata`'s own siteDefault/emergencyDefault
-    // tiers instead, matching the documented 4-tier Event SEO precedence
+    // An empty result here correctly falls through to
+    // `localizedPageMetadata`'s own siteDefault/emergencyDefault tiers,
+    // matching the documented 4-tier Event SEO precedence
     // (documentOverride -> documentContent -> siteDefault -> emergencyDefault)
     // with no extra page-level tier in between.
     // Only advertise hreflang alternates for locales this event is actually
@@ -496,8 +493,7 @@ export default async function EventDetailPage({
     const time = formatTime(event.time, messages.timeToBeAnnouncedLabel);
     const location = event.address || contactDetails.shortAddress;
     const duration = formatDuration(event.duration, locale) ?? formatDuration(DEFAULT_DURATION, locale);
-    const language = getEventLanguageLabel(event.language, locale) ?? event.language;
-    const description = event.longDescription ?? event.fullDescription ?? event.description ?? fallbackDescription;
+    const language = getEventLanguagesLabel(event.language, locale);
     const expectations = event.whatToExpect?.length ? event.whatToExpect : fallbackExpectations;
     // `spotsLeft` is the resolved number (Billetto live value for a connected
     // event, else the manual Sanity `ticketsLeft`); `null`/undefined ⇒ show
@@ -516,7 +512,7 @@ export default async function EventDetailPage({
           canonical `resolveEventShareData()` result the page's own OG/
           Twitter metadata (generateMetadata above) and the EventShare
           buttons below are built from. This JSON-LD block used to
-          independently re-derive description (`event.longDescription`,
+          independently re-derive description from the Event body,
           skipping `event.seo?.description`), image (a local
           `structuredDataImage` with no `seo.ogImageUrl`/`socialImageUrl`
           priority and no exclusion of the generic `/images/hero.jpg`
@@ -542,6 +538,7 @@ export default async function EventDetailPage({
             isSoldOut: event.isSoldOut,
             ticketUrl: event.ticketUrl || undefined,
             organizerName: "RORUM",
+            languages: event.language,
           })}
         />
         <section
@@ -669,7 +666,7 @@ export default async function EventDetailPage({
               <article className="grid gap-[clamp(30px,4vw,46px)] min-w-0">
                 <section className="grid gap-4 pb-[clamp(28px,4vw,38px)] border-b border-[rgba(var(--rgb-beige),0.48)] last:border-b-0 last:pb-0">
                   <h2 className="m-0 text-[clamp(26px,3vw,38px)] leading-[1.08] font-light">{messages.eventOverviewHeading}</h2>
-                  <EventDescription formatted={event.formattedDescription} plain={description} />
+                  <EventDescription formatted={event.formattedDescription} />
                   <EventShare
                     title={shareData.title}
                     text={shareData.text}

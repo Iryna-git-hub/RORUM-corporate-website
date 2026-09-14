@@ -44,7 +44,11 @@ const client = createClient({
 
 interface I18nEntry {
   language?: string;
-  value?: string;
+  value?: string | unknown[];
+}
+
+function isEmptyValue(value: I18nEntry["value"]): boolean {
+  return typeof value === "string" ? value.trim().length === 0 : !Array.isArray(value) || value.length === 0;
 }
 
 /** Same rule as audit-home-about-i18n.ts's checkI18nField: fully unset = fine, partially populated = a real problem. */
@@ -56,7 +60,7 @@ function checkI18nField(entries: I18nEntry[] | undefined | null, pathLabel: stri
   for (const e of list) seen.set(e.language!, (seen.get(e.language!) ?? 0) + 1);
   const duplicates = [...seen.entries()].filter(([, count]) => count > 1).map(([lang]) => lang);
   const missing = REQUIRED_LANGUAGES.filter((l) => !seen.has(l));
-  const empty = list.filter((e) => REQUIRED_LANGUAGES.includes(e.language!) && !e.value?.trim()).map((e) => e.language!);
+  const empty = list.filter((e) => REQUIRED_LANGUAGES.includes(e.language!) && isEmptyValue(e.value)).map((e) => e.language!);
 
   if (duplicates.length) out.push(`${pathLabel} -> duplicate: ${duplicates.join(", ")}`);
   if (missing.length) out.push(`${pathLabel} -> missing: ${missing.join(", ")}`);
@@ -73,7 +77,7 @@ interface RawEvent {
   _id: string;
   title?: I18nEntry[];
   image?: { alt?: I18nEntry[]; asset?: { _ref?: string } };
-  longDescription?: I18nEntry[];
+  formattedDescription?: I18nEntry[];
   whatToExpect?: I18nEntry[];
   arrival?: I18nEntry[];
   ticketProviderInfo?: { label?: I18nEntry[]; value?: I18nEntry[] };
@@ -86,13 +90,13 @@ function auditEvent(doc: RawEvent): string[] {
   const out: string[] = [];
 
   checkI18nField(doc.title, "title", out);
-  const enTitle = doc.title?.find((t) => t.language === "en" && t.value?.trim());
+  const enTitle = doc.title?.find((t) => t.language === "en" && typeof t.value === "string" && t.value.trim());
   if (!enTitle) out.push("title -> missing: en (required — event has no English title)");
 
   if (doc.image) checkI18nField(doc.image.alt, "image.alt", out);
   if (doc.image && !doc.image.asset?._ref) out.push("image -> missing asset reference");
 
-  checkI18nField(doc.longDescription, "longDescription", out);
+  checkI18nField(doc.formattedDescription, "formattedDescription", out);
   checkI18nField(doc.whatToExpect, "whatToExpect", out);
   checkI18nField(doc.arrival, "arrival", out);
   checkI18nField(doc.ticketProviderInfo?.label, "ticketProviderInfo.label", out);
@@ -248,7 +252,7 @@ async function main() {
 
   const events = await client.fetch<RawEvent[]>(
     `*[_type == "event"] | order(_id asc){
-      _id, title, "image": image{alt, asset}, longDescription, whatToExpect, arrival,
+      _id, title, "image": image{alt, asset}, formattedDescription, whatToExpect, arrival,
       ticketProviderInfo, ticketButtonLabel, shareSettings[]{_key, type, label},
       "seo": seo{title, description, "ogImage": ogImage{alt}}
     }`,

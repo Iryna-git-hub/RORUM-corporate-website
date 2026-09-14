@@ -6,7 +6,7 @@
  * schema itself already says are redundant with a newer field:
  *
  *   - `event.shortDescription`/`practicalDetails`/`ticketProvider` — the
- *     schema's own comment says these are "superseded by longDescription/
+ *     schema's own comment says these are "superseded by formattedDescription/
  *     duration/arrival/ticketProviderInfo" and kept only as a fallback for
  *     documents not yet migrated. Cleared only on events that already have
  *     all 4 replacement fields populated (verified per-event, not blanket).
@@ -53,7 +53,7 @@ async function clearEventLegacyFields() {
   >(
     `*[_type == "event"
       && (defined(shortDescription) || defined(practicalDetails) || defined(ticketProvider))
-      && defined(longDescription) && defined(duration) && defined(arrival) && defined(ticketProviderInfo)
+      && defined(formattedDescription) && defined(duration) && defined(arrival) && defined(ticketProviderInfo)
     ]{_id, shortDescription, practicalDetails, ticketProvider}`,
   );
 

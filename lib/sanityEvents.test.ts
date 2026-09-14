@@ -25,6 +25,7 @@ vi.mock("@/sanity/lib/image", () => ({
 }));
 
 import { sanityEventToRorumEvent, type SanityEventLike } from "./sanityEvents";
+import { getEventLanguagesLabel } from "./eventLanguage";
 
 function baseDoc(overrides: Partial<SanityEventLike> = {}): SanityEventLike {
   return {
@@ -73,5 +74,39 @@ describe("sanityEventToRorumEvent — detailHeroImage (Event Detail background)"
     // Both should degrade together to the same final safety net.
     expect(result.detailHeroImage).toBe(result.image);
     expect(result.detailHeroImage).toBe("/images/hero.jpg");
+  });
+});
+
+// Full pipeline (raw Sanity doc shape → RorumEvent.language array →
+// Event Detail's rendered label string) for 1, 2 and 3 selected languages —
+// the shapes now actually present in production after the scalar→array
+// migration (see lib/eventLanguageMigration.ts and MIGRATION_REPORT.md): 36
+// migrated single-language events, plus one pre-existing 3-language document
+// (`test-5-event`, unaffected/untouched by the migration) used verbatim as
+// the 3-language fixture below.
+describe("sanityEventToRorumEvent — language (raw doc array → RorumEvent.language → Event Detail label)", () => {
+  it("one language", () => {
+    const result = sanityEventToRorumEvent(baseDoc({ language: ["Ukrainian"] }), "en");
+    expect(result.language).toEqual(["Ukrainian"]);
+    expect(getEventLanguagesLabel(result.language, "en")).toBe("Ukrainian");
+  });
+
+  it("two languages", () => {
+    const result = sanityEventToRorumEvent(baseDoc({ language: ["English", "Ukrainian"] }), "en");
+    expect(result.language).toEqual(["English", "Ukrainian"]);
+    expect(getEventLanguagesLabel(result.language, "en")).toBe("English, Ukrainian");
+  });
+
+  it("three languages (production's own test-5-event shape: [\"English\",\"Danish\",\"Ukrainian\"])", () => {
+    const result = sanityEventToRorumEvent(baseDoc({ language: ["English", "Danish", "Ukrainian"] }), "en");
+    expect(result.language).toEqual(["English", "Danish", "Ukrainian"]);
+    expect(getEventLanguagesLabel(result.language, "en")).toBe("English, Danish, Ukrainian");
+    expect(getEventLanguagesLabel(result.language, "da")).toBe("Engelsk, Dansk, Ukrainsk");
+    expect(getEventLanguagesLabel(result.language, "uk")).toBe("Англійська, Данська, Українська");
+  });
+
+  it("falls back to [\"English\"] only when the doc has no language and no static-seed fallback has one either", () => {
+    const result = sanityEventToRorumEvent(baseDoc({ language: undefined }), "en");
+    expect(result.language).toEqual(["English"]);
   });
 });

@@ -1269,7 +1269,7 @@ test.describe("event.ts — currently-unused fields hidden (included/calendarUrl
 // plus every localized Event field's conditional validation
 // (requireSelectedEventLocales / allOrNothingForSelectedEventLocales),
 // exercised against the schema's own wired fields (event.title,
-// event.longDescription, event.whatToExpect, event.arrival,
+// event.formattedDescription, event.whatToExpect, event.arrival,
 // event.ticketButtonLabel, event.ticketProviderInfo.label/.value,
 // imageWithAlt.alt via event.image, seo.title/.description/.ogImage.alt via
 // event.seo) — never a re-implementation of the validators themselves.
@@ -1277,6 +1277,13 @@ test.describe("event.ts — currently-unused fields hidden (included/calendarUrl
 test.describe("Events — visibleLocales field + conditional locale validation", () => {
   function eventEntries(langs: readonly string[], prefix = "value"): { _key: string; language: string; value: string }[] {
     return langs.map((l) => ({ _key: l, language: l, value: `${prefix} ${l}` }));
+  }
+  function eventBodyEntries(langs: readonly string[]) {
+    return langs.map((language) => ({
+      _key: language,
+      language,
+      value: [{ _type: "block", _key: `${language}-block`, style: "normal", markDefs: [], children: [{ _type: "span", _key: `${language}-span`, text: `${language} description`, marks: [] }] }],
+    }));
   }
   function eventDoc(visibleLocales?: readonly string[]) {
     return visibleLocales ? { _type: "event", visibleLocales: [...visibleLocales] } : { _type: "event" };
@@ -1378,14 +1385,49 @@ test.describe("Events — visibleLocales field + conditional locale validation",
     expect(validate([{ _key: "en", language: "en", value: "   " }], { document })).not.toBe(true);
   });
 
-  test("longDescription/whatToExpect/arrival all follow the same selected-locale rule as title", () => {
-    for (const fieldName of ["longDescription", "whatToExpect", "arrival"] as const) {
+  test("whatToExpect/arrival follow the same selected-locale rule as title", () => {
+    for (const fieldName of ["whatToExpect", "arrival"] as const) {
       const validate = captureCustomValidator(field(eventType as unknown as { fields: FieldDef[] }, fieldName));
       const document = eventDoc(["da"]);
       expect(validate(eventEntries(["da"]), { document }), `${fieldName} populated for the only selected locale`).toBe(true);
       expect(validate(eventEntries(["en"]), { document }), `${fieldName} populated only for an unselected locale`).not.toBe(true);
       expect(validate([], { document }), `${fieldName} empty entirely`).not.toBe(true);
     }
+  });
+
+  test("formattedDescription is required for exactly the selected website locales", () => {
+    const validate = captureCustomValidator(field(eventType as unknown as { fields: FieldDef[] }, "formattedDescription"));
+    const document = eventDoc(["en", "uk"]);
+    expect(validate(eventBodyEntries(["en", "uk"]), { document })).toBe(true);
+    expect(validate(eventBodyEntries(["en"]), { document })).not.toBe(true);
+    expect(validate([], { document })).not.toBe(true);
+    expect(validate(eventBodyEntries(["en", "da", "uk"]), { document })).toBe(true);
+  });
+
+  test("formattedDescription rejects non-empty block arrays that contain no meaningful text", () => {
+    const validate = captureCustomValidator(field(eventType as unknown as { fields: FieldDef[] }, "formattedDescription"));
+    const document = eventDoc(["en"]);
+    expect(validate([{ _key: "en", language: "en", value: [{ _type: "block", _key: "empty", children: [] }] }], { document })).not.toBe(true);
+    expect(
+      validate(
+        [{ _key: "en", language: "en", value: [{ _type: "block", _key: "blank", children: [{ _type: "span", _key: "span", text: "   " }] }] }],
+        { document },
+      ),
+    ).not.toBe(true);
+  });
+
+  test("Event Studio has one description field and the exact manager-facing top field order", () => {
+    const fields = (eventType.fields as unknown as FieldDef[]);
+    expect(fields.slice(0, 6).map((item) => item.name)).toEqual([
+      "visibleLocales",
+      "title",
+      "slug",
+      "image",
+      "detailHeroImage",
+      "formattedDescription",
+    ]);
+    expect(fields.some((item) => item.name === "longDescription")).toBe(false);
+    expect(fields.filter((item) => item.name === "formattedDescription")).toHaveLength(1);
   });
 
   test("ticketButtonLabel / ticketProviderInfo.label / .value: optional overall, but complete-for-selected-locales if started", () => {
@@ -1525,8 +1567,28 @@ test.describe("Events — shareSettings[].label (Share With Friends)", () => {
 test.describe("Events — regression: deselecting da after content exists never flags da as invalid, anywhere", () => {
   const STORED_ALL_THREE = { _key: "da", language: "da", value: "Del" };
 
+  function storedValuesFor(label: string) {
+    const languages = ["en", "da", "uk"] as const;
+    if (label !== "event.formattedDescription") {
+      return languages.map((language) => ({ _key: language, language, value: `Value ${language}` }));
+    }
+    return languages.map((language) => ({
+      _key: language,
+      language,
+      value: [
+        {
+          _type: "block",
+          _key: `${language}-block`,
+          style: "normal",
+          markDefs: [],
+          children: [{ _type: "span", _key: `${language}-span`, text: `Value ${language}`, marks: [] }],
+        },
+      ],
+    }));
+  }
+
   function fieldsToCheck(): { label: string; validate: (value: unknown, context: unknown) => unknown }[] {
-    const direct = ["title", "longDescription", "whatToExpect", "arrival", "ticketButtonLabel"].map((name) => ({
+    const direct = ["title", "formattedDescription", "whatToExpect", "arrival", "ticketButtonLabel"].map((name) => ({
       label: `event.${name}`,
       validate: captureCustomValidator(field(eventType as unknown as { fields: FieldDef[] }, name)),
     }));
@@ -1557,11 +1619,9 @@ test.describe("Events — regression: deselecting da after content exists never 
     const parentEnabled = { document, parent: { enabled: true } };
     for (const { label, validate } of fieldsToCheck()) {
       const isShareLabel = label === "event.shareSettings[].label";
-      const stored = [
-        { _key: "en", language: "en", value: "English" },
-        STORED_ALL_THREE,
-        { _key: "uk", language: "uk", value: "Ukrainian" },
-      ];
+      const stored = label === "event.formattedDescription"
+        ? storedValuesFor(label)
+        : [{ _key: "en", language: "en", value: "English" }, STORED_ALL_THREE, { _key: "uk", language: "uk", value: "Ukrainian" }];
       const result = validate(stored, isShareLabel ? parentEnabled : { document });
       expect(result, `${label}: da preserved-but-deselected must not be flagged invalid`).toBe(true);
     }
@@ -1574,7 +1634,7 @@ test.describe("Events — regression: deselecting da after content exists never 
       const parentEnabled = { document, parent: { enabled: true } };
       for (const { label, validate } of fieldsToCheck()) {
         const isShareLabel = label === "event.shareSettings[].label";
-        const stored = (["en", "da", "uk"] as const).map((l) => ({ _key: l, language: l, value: `Value ${l}` }));
+        const stored = storedValuesFor(label);
         expect(validate(stored, isShareLabel ? parentEnabled : { document }), `${label}: deselecting ${deselected}`).toBe(true);
       }
     });
@@ -1584,9 +1644,9 @@ test.describe("Events — regression: deselecting da after content exists never 
     test(`visibleLocales=${JSON.stringify(combo)}: full en/da/uk stored content never fails any field's validator`, () => {
       const document = { _type: "event", visibleLocales: [...combo] };
       const parentEnabled = { document, parent: { enabled: true } };
-      const stored = (["en", "da", "uk"] as const).map((l) => ({ _key: l, language: l, value: `Value ${l}` }));
       for (const { label, validate } of fieldsToCheck()) {
         const isShareLabel = label === "event.shareSettings[].label";
+        const stored = storedValuesFor(label);
         expect(validate(stored, isShareLabel ? parentEnabled : { document }), `${label}: ${JSON.stringify(combo)}`).toBe(true);
       }
     });

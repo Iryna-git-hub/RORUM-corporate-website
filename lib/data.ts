@@ -1,5 +1,6 @@
 import { contactDetails } from "@/lib/siteConfig";
 import { computeDurationFromTimeRange, type EventDuration } from "@/lib/eventDuration";
+import { plainTextToPortableText } from "@/lib/portableText";
 import { SITE_ORIGIN } from "@/shared/siteIdentity";
 
 export interface NavChild {
@@ -216,9 +217,8 @@ export interface RorumEvent {
   // `address` field), overridable per event. Not localized (a street
   // address is the same fact regardless of display language).
   address: string;
-  language: string;
-  longDescription: string;
-  /** Optional localized Portable Text used for the formatted Event Overview body. */
+  language: string[];
+  /** Localized Portable Text used as the Event Overview source of truth. */
   formattedDescription?: unknown[];
   included: string[];
   // Derived by splitting the Sanity `whatToExpect` field's per-language text
@@ -282,7 +282,7 @@ export interface RorumEvent {
   description?: string;
   // Per-event Search Result Title/Description/Social Sharing Image — only
   // set when the Sanity `seo` block has a value; consumers fall back to
-  // title/longDescription/image (above) when a piece is unset. Never
+  // title/formattedDescription/image (above) when a piece is unset. Never
   // populated by the static fallback data below.
   seo?: { title?: string; description?: string; ogImageUrl?: string; ogImageAlt?: string };
   // Which localized website versions this event is shown on ("Show on
@@ -301,10 +301,11 @@ const featuredEvents: RorumEvent[] = [
     date: "2026-05-02",
     time: "18:30-21:30",
     price: "295 kr.",
-    language: "English",
+    language: ["English"],
     address: contactDetails.shortAddress,
-    longDescription:
+    formattedDescription: plainTextToPortableText(
       "An intimate dinner for Copenhagen makers, hosts and independent creatives who want to meet in a setting that feels calm, useful and generous. Expect a seasonal shared table, gentle prompts and enough space for real conversation.",
+    ),
     included: [
       "Seasonal shared dinner",
       "Welcome drink",
@@ -335,10 +336,11 @@ const featuredEvents: RorumEvent[] = [
     date: "2026-05-03",
     time: "17:00-19:30",
     price: "425 kr.",
-    language: "English",
+    language: ["English"],
     address: contactDetails.shortAddress,
-    longDescription:
+    formattedDescription: plainTextToPortableText(
       "A hands-on workshop for hosts, facilitators and visual thinkers who want to create welcoming tables without overcomplicating the room. We work with seasonal materials, scale, repetition and practical setup choices.",
+    ),
     included: [
       "Materials for table styling exercises",
       "Coffee, tea and a sweet pause",
@@ -369,10 +371,11 @@ const featuredEvents: RorumEvent[] = [
     date: "2026-05-04",
     time: "09:00-11:00",
     price: "125 kr.",
-    language: "English",
+    language: ["English"],
     address: contactDetails.shortAddress,
-    longDescription:
+    formattedDescription: plainTextToPortableText(
       "A focused morning for freelancers and small creative businesses who want a calmer way to begin the day. Bring a current question, a practical task or a project that needs quiet momentum.",
+    ),
     included: [
       "Coffee and tea",
       "Guided check-in",
@@ -404,7 +407,7 @@ interface EventAddition {
   date: string;
   time: string;
   price: string;
-  language?: string;
+  language?: string[];
   ticketsLeft?: number;
   isSoldOut?: boolean;
   image: string;
@@ -507,7 +510,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-06-08",
     time: "08:30-10:30",
     price: "185 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 12,
     image: "/images/events/banners/business-breakfast-copenhagen.png",
   },
@@ -517,7 +520,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-06-10",
     time: "18:00-20:30",
     price: "145 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 12,
     image: "/images/events/banners/networking-for-international-founders.png",
   },
@@ -527,7 +530,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-06-12",
     time: "17:30-19:00",
     price: "Free",
-    language: "Ukrainian",
+    language: ["Ukrainian"],
     ticketsLeft: 12,
     image: "/images/events/banners/danish-for-ukrainians-intro.png",
   },
@@ -537,7 +540,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-06-14",
     time: "18:00-19:15",
     price: "125 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 10,
     image: "/images/events/banners/yoga-after-work-reset.png",
   },
@@ -547,7 +550,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-06-16",
     time: "18:00-20:00",
     price: "225 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 12,
     image: "/images/events/banners/present-yourself-with-confidence.png",
   },
@@ -557,7 +560,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-06-18",
     time: "18:30-20:30",
     price: "165 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 9,
     image: "/images/events/banners/slow-art-evening.png",
   },
@@ -567,7 +570,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-06-20",
     time: "10:00-12:00",
     price: "75 kr.",
-    language: "Danish",
+    language: ["Danish"],
     ticketsLeft: 12,
     image: "/images/events/banners/danish-conversation-cafe.png",
   },
@@ -577,7 +580,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-06-23",
     time: "17:30-20:00",
     price: "195 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 11,
     image: "/images/events/banners/creative-business-roundtable.png",
   },
@@ -587,7 +590,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-06-25",
     time: "08:00-09:15",
     price: "110 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 8,
     image: "/images/events/banners/mindful-morning-yoga.png",
   },
@@ -597,7 +600,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-06-27",
     time: "10:00-12:30",
     price: "245 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 12,
     image: "/images/events/banners/linkedin-profile-lab.png",
   },
@@ -607,7 +610,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-06-30",
     time: "18:00-20:30",
     price: "95 kr.",
-    language: "Ukrainian",
+    language: ["Ukrainian"],
     ticketsLeft: 12,
     image: "/images/events/banners/ukrainian-danish-community-night.png",
   },
@@ -617,7 +620,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-07-02",
     time: "19:00-21:00",
     price: "195 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 7,
     image: "/images/events/banners/watercolor-and-wine.png",
   },
@@ -627,7 +630,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-07-04",
     time: "09:00-11:00",
     price: "175 kr.",
-    language: "Danish",
+    language: ["Danish"],
     ticketsLeft: 12,
     image: "/images/events/banners/danish-work-culture-breakfast.png",
   },
@@ -637,7 +640,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-07-07",
     time: "18:00-20:00",
     price: "135 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 12,
     image: "/images/events/banners/calm-networking-for-newcomers.png",
   },
@@ -647,7 +650,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-07-09",
     time: "18:30-20:00",
     price: "115 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 10,
     image: "/images/events/banners/breathwork-and-tea.png",
   },
@@ -657,7 +660,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-07-11",
     time: "17:30-20:00",
     price: "215 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 9,
     image: "/images/events/banners/pitch-practice-evening.png",
   },
@@ -667,7 +670,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-07-14",
     time: "18:00-20:30",
     price: "285 kr.",
-    language: "English",
+    language: ["English"],
     isSoldOut: true,
     image: "/images/events/banners/clay-and-calm-hands.png",
   },
@@ -677,7 +680,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-07-16",
     time: "17:30-19:00",
     price: "Free",
-    language: "Ukrainian",
+    language: ["Ukrainian"],
     ticketsLeft: 12,
     image: "/images/events/banners/danish-for-ukrainians-workplace.png",
   },
@@ -687,7 +690,7 @@ const eventAdditions: EventAddition[] = [
     date: "2026-07-18",
     time: "18:30-21:30",
     price: "325 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 12,
     image: "/images/events/banners/international-supper-salon.png",
   },
@@ -695,9 +698,11 @@ const eventAdditions: EventAddition[] = [
 
 const expandedEvents: RorumEvent[] = eventAdditions.map((event) => ({
   ...event,
-  language: event.language ?? "English",
+  language: event.language ?? ["English"],
   address: contactDetails.shortAddress,
-  longDescription: `${event.title} brings people together around a simple hosted format with thoughtful pacing, a calm room setup and space for useful conversation.`,
+  formattedDescription: plainTextToPortableText(
+    `${event.title} brings people together around a simple hosted format with thoughtful pacing, a calm room setup and space for useful conversation.`,
+  ),
   included: [
     "Hosted arrival",
     "Coffee, tea or seasonal drink",

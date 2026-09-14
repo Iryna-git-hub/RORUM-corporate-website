@@ -6,6 +6,8 @@
 // "18:30-21:30" time range doesn't always parse cleanly), it's simply
 // omitted rather than guessed.
 
+import { getEventLanguageCodes } from "./eventLanguage";
+
 export interface OrganizationJsonLdInput {
   siteUrl: string;
   name: string;
@@ -63,6 +65,15 @@ export interface EventJsonLdInput {
   isSoldOut: boolean;
   ticketUrl?: string;
   organizerName: string;
+  /**
+   * The event's own already-resolved `language` array (e.g.
+   * `["English", "Ukrainian"]`) — the same normalized array
+   * `getEventLanguagesLabel()` renders on the Practical Information row, not
+   * a separately-fetched value. Mapped here to BCP-47 codes for `inLanguage`
+   * via `getEventLanguageCodes()`. Optional/empty (the field itself is
+   * optional in Sanity) simply omits `inLanguage` — never a guessed value.
+   */
+  languages?: readonly string[];
 }
 
 /**
@@ -72,14 +83,17 @@ export interface EventJsonLdInput {
  * `eventAttendanceMode` (always "OfflineEventAttendanceMode" — every RORUM
  * event is held at the physical venue, never announced as online), `image`,
  * `location` (the event's own real, already-displayed address — not a
- * fabricated one), `organizer`, and `offers.url` (the real ticket link,
- * when set — never a fabricated price or availability count, which Section
- * 15 explicitly forbids inventing).
+ * fabricated one), `organizer`, `offers.url` (the real ticket link, when
+ * set — never a fabricated price or availability count, which Section 15
+ * explicitly forbids inventing), and `inLanguage` (BCP-47 codes derived from
+ * the event's own already-resolved `language` array — omitted entirely when
+ * that array is empty, never a guessed default).
  */
 export function eventJsonLd(input: EventJsonLdInput) {
   const { start, end } = parseTimeRange(input.time);
   const startDate = start ? `${input.date}T${start}:00` : input.date;
   const endDate = end ? `${input.date}T${end}:00` : undefined;
+  const languageCodes = getEventLanguageCodes(input.languages ?? []);
 
   return {
     "@context": "https://schema.org",
@@ -111,5 +125,6 @@ export function eventJsonLd(input: EventJsonLdInput) {
       url: input.siteUrl,
     },
     ...(input.ticketUrl ? { offers: { "@type": "Offer", url: input.ticketUrl, availability: input.isSoldOut ? "https://schema.org/SoldOut" : "https://schema.org/InStock" } } : {}),
+    ...(languageCodes.length ? { inLanguage: languageCodes.length === 1 ? languageCodes[0] : languageCodes } : {}),
   };
 }

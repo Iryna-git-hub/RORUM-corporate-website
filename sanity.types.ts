@@ -245,19 +245,18 @@ export type Event = {
     crop?: SanityImageCrop;
     _type: "image";
   };
+  formattedDescription?: InternationalizedArrayBodyPortableText;
   date?: string;
   time?: string;
   price?: string;
   address?: string;
-  longDescription?: InternationalizedArrayText;
-  formattedDescription?: InternationalizedArrayBodyPortableText;
   whatToExpect?: InternationalizedArrayText;
   included?: Array<
     {
       _key: string;
     } & BulletText
   >;
-  language?: "English" | "Danish" | "Ukrainian";
+  language?: Array<string>;
   duration?: {
     value?: number;
     unit?: "minutes" | "hours";
@@ -721,19 +720,18 @@ export type AllEventsQueryResult = Array<{
     crop?: SanityImageCrop;
     _type: "image";
   };
+  formattedDescription?: InternationalizedArrayBodyPortableText;
   date?: string;
   time?: string;
   price?: string;
   address?: string;
-  longDescription?: InternationalizedArrayText;
-  formattedDescription?: InternationalizedArrayBodyPortableText;
   whatToExpect?: InternationalizedArrayText;
   included?: Array<
     {
       _key: string;
     } & BulletText
   >;
-  language?: "Danish" | "English" | "Ukrainian";
+  language?: Array<string>;
   duration?: {
     value?: number;
     unit?: "hours" | "minutes";
@@ -794,19 +792,18 @@ export type EventBySlugQueryResult = {
     crop?: SanityImageCrop;
     _type: "image";
   };
+  formattedDescription?: InternationalizedArrayBodyPortableText;
   date?: string;
   time?: string;
   price?: string;
   address?: string;
-  longDescription?: InternationalizedArrayText;
-  formattedDescription?: InternationalizedArrayBodyPortableText;
   whatToExpect?: InternationalizedArrayText;
   included?: Array<
     {
       _key: string;
     } & BulletText
   >;
-  language?: "Danish" | "English" | "Ukrainian";
+  language?: Array<string>;
   duration?: {
     value?: number;
     unit?: "hours" | "minutes";

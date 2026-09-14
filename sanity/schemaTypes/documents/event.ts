@@ -9,6 +9,7 @@ import { EventLocalizedFieldNotice } from "@/sanity/components/EventLocalizedFie
 import { EventLocaleAwareInput } from "@/sanity/components/EventLocaleAwareInput";
 import { BillettoTicketNotice } from "@/sanity/components/BillettoTicketNotice";
 import { isBillettoEventUrl } from "@/lib/billettoUrl";
+import { hasMeaningfulPortableText } from "@/lib/portableText";
 
 /** True once the document has a recognised Billetto event link — availability then comes from Billetto, not the manual fields. */
 function isBillettoConnected(document: unknown): boolean {
@@ -20,6 +21,8 @@ const WEBSITE_LOCALE_OPTIONS = [
   { title: "Danish", value: "da" },
   { title: "Ukrainian", value: "uk" },
 ] as const;
+
+const TOP_EVENT_FIELD_ORDER = ["visibleLocales", "title", "slug", "image", "detailHeroImage", "formattedDescription"];
 
 // Field names deliberately mirror `RorumEvent` in `lib/data.ts` so the
 // import script's mapping is a near 1:1 transcription, not a redesign.
@@ -108,7 +111,6 @@ export default defineType({
     },
   ],
   fieldsets: [
-    { name: "basicSection", title: "Basic event information", options: { collapsible: true, collapsed: false } },
     { name: "factsSection", title: "Date, time, price & address", options: { collapsible: true, collapsed: false } },
     { name: "practicalSection", title: "Practical details", options: { collapsible: true, collapsed: false } },
     { name: "ticketSection", title: "Ticket link & button", options: { collapsible: true, collapsed: false } },
@@ -152,7 +154,6 @@ export default defineType({
       name: "title",
       title: "Title",
       type: "internationalizedArrayString",
-      fieldset: "basicSection",
       description:
         "Event name. Required for every language selected in \"Show on website languages\" above. / " +
         "Назва події. Обов'язково для кожної мови, обраної вище в полі «Show on website languages».",
@@ -164,7 +165,6 @@ export default defineType({
       name: "slug",
       title: "Slug",
       type: "slug",
-      fieldset: "basicSection",
       description:
         "The event's public URL segment. Click \"Generate\" to build it from the English title, or preserve an existing slug exactly if this event already has one. / Частина публічної URL-адреси події. Натисніть «Generate», щоб створити її з англійської назви, або збережіть наявний слаг без змін, якщо подія вже має URL.",
       options: {
@@ -261,27 +261,15 @@ export default defineType({
       },
     }),
 
-    // --- 8. Event Overview ------------------------------------------------
-    defineField({
-      name: "longDescription",
-      title: "Event Overview",
-      type: "internationalizedArrayText",
-      description:
-        "The full description shown on the event detail page. Required for every language selected in \"Show on " +
-        "website languages\" above. / Повний опис на сторінці конкретної події. Обов'язково для кожної мови, " +
-        "обраної вище в полі «Show on website languages».",
-      components: { input: EventLocaleAwareInput },
-      validation: requireSelectedEventLocales(),
-    }),
     defineField({
       name: "formattedDescription",
-      title: "Formatted Event Overview (optional)",
+      title: "Formatted description",
       type: "internationalizedArrayBodyPortableText",
-      fieldset: "basicSection",
       description:
-        "Optional formatted version shown instead of the plain Event Overview on the event page. Supports paragraphs, headings, bold, italic, bullet and numbered lists, and links. Keep Event Overview above as the plain-text search/share summary and compatibility fallback. / " +
-        "Необов'язкова форматована версія, яка відображається замість звичайного опису на сторінці події. Підтримує абзаци, заголовки, жирний і курсивний текст, марковані й нумеровані списки та посилання. Збережіть поле Event Overview вище як звичайний текст для пошуку/поширення та сумісності.",
-      validation: allOrNothingForSelectedEventLocales(),
+        "The event description shown on the detail page and used to derive search/share copy. Supports paragraphs, headings, bold, italic, bullet and numbered lists, and links. Required for every selected website language. / " +
+        "Опис події, що відображається на сторінці події та використовується для створення тексту для пошуку й поширення. Підтримує абзаци, заголовки, жирний і курсивний текст, марковані й нумеровані списки та посилання. Обов'язково для кожної вибраної мови сайту.",
+      components: { input: EventLocaleAwareInput },
+      validation: requireSelectedEventLocales({ isValueEmpty: (value) => !hasMeaningfulPortableText(value) }),
     }),
 
     // --- 9. What to Expect --------------------------------------------------
@@ -311,16 +299,26 @@ export default defineType({
     // --- 10. Practical Details (Language, Duration, Arrival, Ticket provider) ---
     defineField({
       name: "language",
-      title: "Event language",
-      type: "string",
+      title: "Event languages",
+      type: "array",
+      of: [defineArrayMember({ type: "string" })],
       fieldset: "practicalSection",
       description:
-        'The language the event is CONDUCTED in (e.g. a workshop run in Danish). This is NOT the same as "Show on ' +
+        'Select all languages spoken at this event. This is NOT the same as "Show on ' +
         'website languages" above, which controls which website versions display this event — an event conducted ' +
         "in English can still be shown only on the Ukrainian website, for example. / Мова, якою ПРОВОДИТЬСЯ сама " +
         'подія (напр. воркшоп данською). Це НЕ те саме, що «Show on website languages» вище — те поле визначає, ' +
         "якими мовами сайту показується подія; подія англійською мовою може показуватися лише на українській версії сайту.",
-      options: { list: ["English", "Danish", "Ukrainian"] },
+      options: { list: ["English", "Danish", "Ukrainian"], layout: "grid" },
+      validation: (rule) =>
+        rule.unique().custom((value) => {
+          if (value === undefined) return true;
+          if (!Array.isArray(value)) return "Event languages must be selected from the checklist.";
+          const allowed = new Set(["English", "Danish", "Ukrainian"]);
+          return value.every((item) => typeof item === "string" && allowed.has(item))
+            ? true
+            : "Select only English, Danish, or Ukrainian.";
+        }),
     }),
     defineField({
       name: "duration",
@@ -593,7 +591,14 @@ export default defineType({
       hidden: () => true,
       description: "Superseded by the localized Ticket provider field above. Hidden from Studio. / Замінено локалізованим полем «Постачальник квитків» вище. Приховано в Studio.",
     }),
-  ],
+  ].sort((a, b) => {
+      const aIndex = TOP_EVENT_FIELD_ORDER.indexOf(a.name);
+      const bIndex = TOP_EVENT_FIELD_ORDER.indexOf(b.name);
+      if (aIndex === -1 && bIndex === -1) return 0;
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      return aIndex - bIndex;
+    }),
   preview: {
     select: { title: "title", date: "date", media: "image" },
     prepare({ title, date, media }) {

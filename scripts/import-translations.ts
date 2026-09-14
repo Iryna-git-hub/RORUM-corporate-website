@@ -22,6 +22,7 @@ import { createClient } from "@sanity/client";
 import { events, faqs } from "../lib/data";
 import { menuCategories } from "../lib/cateringMenu";
 import { socialLinks as socialLinksData } from "../lib/siteConfig";
+import { portableTextToPlainText } from "../lib/portableText";
 import {
   block,
   bulletBlock,
@@ -2504,10 +2505,10 @@ function expandedEventDescriptions(
       `${titleDa} er en intim RORUM-sammenkomst formet til et varmt lokale i København.`,
       `${titleUk} — це камерна зустріч RORUM, створена для теплої атмосфери в Копенгагені.`,
     ),
-    longDescription: triText(
-      `${titleEn} brings people together around a simple hosted format with thoughtful pacing, a calm room setup and space for useful conversation.`,
-      `${titleDa} samler mennesker om et enkelt værtsformat med gennemtænkt tempo, en rolig rumindretning og plads til nyttig samtale.`,
-      `${titleUk} об'єднує людей у простому організованому форматі з продуманим темпом, спокійним облаштуванням простору та місцем для змістовних розмов.`,
+    formattedDescription: triBody(
+      [block(`${titleEn} brings people together around a simple hosted format with thoughtful pacing, a calm room setup and space for useful conversation.`)],
+      [block(`${titleDa} samler mennesker om et enkelt værtsformat med gennemtænkt tempo, en rolig rumindretning og plads til nyttig samtale.`)],
+      [block(`${titleUk} об'єднує людей у простому організованому форматі з продуманим темпом, спокійним облаштуванням простору та місцем для змістовних розмов.`)],
     ),
   };
 }
@@ -3312,10 +3313,10 @@ async function main() {
         id: deterministicId("event", event.slug),
         fields: {
           title: tri(event.title, titleDa, titleUk),
-          longDescription: triText(
-            event.longDescription,
-            featured.long[0],
-            featured.long[1],
+          formattedDescription: triBody(
+            [block(portableTextToPlainText(event.formattedDescription))],
+            [block(featured.long[0])],
+            [block(featured.long[1])],
           ),
           included: event.included.map((text, i) =>
             triBullet(
@@ -3337,7 +3338,7 @@ async function main() {
         },
       });
     } else {
-      const { longDescription } = expandedEventDescriptions(
+      const { formattedDescription } = expandedEventDescriptions(
         event.title,
         titleDa,
         titleUk,
@@ -3346,7 +3347,7 @@ async function main() {
         id: deterministicId("event", event.slug),
         fields: {
           title: tri(event.title, titleDa, titleUk),
-          longDescription,
+          formattedDescription,
           included: expandedIncluded,
           whatToExpect: triText(
             expandedWhatToExpectEn.join("\n"),

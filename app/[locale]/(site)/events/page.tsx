@@ -15,6 +15,7 @@ import { defaultFormMessages, resolveFormMessages } from "@/lib/sanityForms";
 import { sanityEventToRorumEvent, type SanityEventLike } from "@/lib/sanityEvents";
 import { isUpcomingEvent } from "@/lib/eventVisibility";
 import { applyBillettoAvailability } from "@/lib/eventAvailability";
+import { flattenAvailableEventLanguages } from "@/lib/eventLanguage";
 import { resolveEventFilterLabels, resolveEventsEmptyStateText, resolveOrderedEventLanguageOptions, resolveOrderedFilterOptions } from "@/lib/eventFilters";
 import { isSanityConfigured } from "@/sanity/env";
 import { urlForImage } from "@/sanity/lib/image";
@@ -51,8 +52,8 @@ const fallback = {
 };
 
 /** Distinct, non-empty `event.language` values among the given events, in first-seen order — the raw "what's actually available" set `resolveOrderedEventLanguageOptions` filters its stored/canonical order down to. No sorting here: order is entirely that function's job now. */
-function availableEventLanguagesOf(events: { language: string }[]): string[] {
-  return Array.from(new Set(events.map((event) => event.language).filter(Boolean)));
+function availableEventLanguagesOf(events: { language: string[] }[]): string[] {
+  return flattenAvailableEventLanguages(events);
 }
 
 async function getData(locale: Locale, editable = false) {

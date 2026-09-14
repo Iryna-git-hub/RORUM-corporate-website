@@ -242,7 +242,7 @@ export const eventsContract: PageContentContract = {
       mutationStrategy: "not-mutation-tested",
       editorVisibility: "visible",
       classification: "connected",
-      notes: "duration.value has validation greaterThan(0); date/time/address are required, language is optional (options list only, no validation).",
+      notes: "duration.value has validation greaterThan(0); date/time/address are required, language is optional but validated: array of strings restricted to the [\"English\",\"Danish\",\"Ukrainian\"] whitelist with .unique() (no duplicate entries) — see sanity/schemaTypes/documents/event.ts's own field-level validation.",
     },
 
     // ---- event: ticket information ------------------------------------------
@@ -363,16 +363,16 @@ export const eventsContract: PageContentContract = {
     {
       pageKey: "events",
       sectionKey: "event",
-      sanityPath: "longDescription",
+      sanityPath: "formattedDescription",
       fieldPurpose: "Full event overview shown on the detail page",
-      fieldType: "i18nText",
-      required: false,
+      fieldType: "richText",
+      required: true,
       languages: ALL,
       querySource: EVENT_QUERY,
       mapper: MAPPER,
-      component: "events/[slug]/page.tsx Event Overview <p>",
-      frontendSelector: 'heading "Event Overview" ~ p',
-      expectedBehavior: "Overview paragraph matches the edited value, falling back to a hardcoded default when empty.",
+      component: "components/EventDescription.tsx via events/[slug]/page.tsx",
+      frontendSelector: ".event-description",
+      expectedBehavior: "Rich Event Overview preserves paragraphs, headings, lists, emphasis and links.",
       mutationStrategy: "localized-canary",
       editorVisibility: "visible",
       classification: "connected",
@@ -450,13 +450,13 @@ export const eventsContract: PageContentContract = {
       mapper: "events/[slug]/page.tsx generateMetadata()",
       component: "events/[slug]/page.tsx generateMetadata()",
       frontendSelector: 'head > title, head meta[name="description"], head meta[property="og:image"]',
-      expectedBehavior: "Meta title/description/og:image prefer this event's own seo fields, falling back to event.title/.longDescription/.image when empty.",
+      expectedBehavior: "Meta title/description/og:image prefer this event's own seo fields, deriving fallback copy from event.title/.formattedDescription and using event.image.",
       mutationStrategy: "not-mutation-tested",
       editorVisibility: "visible",
       classification: "connected",
       notes:
         "Fixed this pass: generateMetadata() previously built title/description/image exclusively from " +
-        "event.title/.longDescription/.image and never read event.seo at all — an editor filling in an event's SEO " +
+        "event.title/.formattedDescription/.image and never read event.seo at all — an editor filling in an event's SEO " +
         "block had zero effect on that event's actual search-result/share-preview appearance.",
     },
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { eventJsonLd, organizationJsonLd, websiteJsonLd } from "./structuredData";
 import { resolveEventShareData } from "./eventSharing";
 import type { RorumEvent } from "./data";
+import { plainTextToPortableText, portableTextToPlainText } from "./portableText";
 
 describe("organizationJsonLd / websiteJsonLd — no fabricated fields", () => {
   it("Organization has exactly name/url/logo, nothing invented", () => {
@@ -163,9 +164,46 @@ describe("eventJsonLd — only proven fields, nothing invented (Section 15)", ()
   });
 });
 
+describe("eventJsonLd — inLanguage (BCP-47, derived from the event's own resolved language array)", () => {
+  function baseInput(languages?: string[]) {
+    return {
+      siteUrl: "https://ro-rum.dk",
+      url: "https://ro-rum.dk/events/x",
+      name: "Workshop",
+      date: "2026-09-10",
+      time: "18:00",
+      address: "Some Street 1",
+      isSoldOut: false,
+      organizerName: "RORUM",
+      ...(languages ? { languages } : {}),
+    };
+  }
+
+  it("a single language produces a plain string code, not a 1-item array", () => {
+    expect(eventJsonLd(baseInput(["English"])).inLanguage).toBe("en");
+    expect(eventJsonLd(baseInput(["Danish"])).inLanguage).toBe("da");
+    expect(eventJsonLd(baseInput(["Ukrainian"])).inLanguage).toBe("uk");
+  });
+
+  it("two or more languages produce an array of codes", () => {
+    expect(eventJsonLd(baseInput(["English", "Ukrainian"])).inLanguage).toEqual(["en", "uk"]);
+    expect(eventJsonLd(baseInput(["English", "Danish", "Ukrainian"])).inLanguage).toEqual(["en", "da", "uk"]);
+  });
+
+  it("no languages (field omitted): inLanguage is absent entirely, never an empty array or guessed value", () => {
+    const result = eventJsonLd(baseInput());
+    expect(result).not.toHaveProperty("inLanguage");
+  });
+
+  it("languages explicitly an empty array (optional field, cleared): inLanguage is still absent entirely", () => {
+    const result = eventJsonLd(baseInput([]));
+    expect(result).not.toHaveProperty("inLanguage");
+  });
+});
+
 // Regression coverage for the fixed divergence: the event detail page's
 // JSON-LD call site used to independently re-derive `description` (from
-// `event.longDescription`, skipping `event.seo?.description`) and `image`
+// the Event body, skipping `event.seo?.description`) and `image`
 // (a locally-computed value with no `seo.ogImageUrl`/`socialImageUrl`
 // priority and no exclusion of the generic `/images/hero.jpg` placeholder)
 // instead of reusing the same `resolveEventShareData()` result the page's
@@ -179,13 +217,13 @@ describe("eventJsonLd — consumes resolveEventShareData(), not independently-de
     return {
       slug: "community-reset-night",
       title: "Community Reset Night",
-      longDescription: "The long internal description, not meant for search results.",
+      formattedDescription: plainTextToPortableText("The full internal description, not meant for search results."),
       image: "https://cdn.sanity.io/images/event-banner-full-res.jpg",
       ...overrides,
     } as RorumEvent;
   }
 
-  it("prefers event.seo.description over event.longDescription in the rendered JSON-LD description", () => {
+  it("prefers event.seo.description over formattedDescription-derived plain text in JSON-LD", () => {
     const event = rorumEvent({
       seo: { description: "The concise SEO description." },
     });
@@ -205,7 +243,7 @@ describe("eventJsonLd — consumes resolveEventShareData(), not independently-de
       organizerName: "RORUM",
     });
     expect(result.description).toBe("The concise SEO description.");
-    expect(result.description).not.toBe(event.longDescription);
+    expect(result.description).not.toBe(portableTextToPlainText(event.formattedDescription));
   });
 
   it("prefers event.seo.ogImageUrl over the raw event.image in the rendered JSON-LD image", () => {
