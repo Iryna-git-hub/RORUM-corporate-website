@@ -6,7 +6,6 @@ import { PrivacyConsent, validatePrivacyConsent } from "@/components/PrivacyCons
 import { useFormContent } from "@/components/FormContentProvider";
 import { FormSuccessModal } from "@/components/FormSuccessModal";
 import { useLocale } from "@/lib/useLocale";
-import { formspreeConfig, isFormspreeConfigured } from "@/lib/formspree";
 import { useFormspreeSubmit } from "@/lib/useFormspreeSubmit";
 import { resolveContactFormFields, type ContactFormFieldType } from "@/lib/sanityContact";
 import type { RawPageSection } from "@/lib/sanity-sections";
@@ -53,9 +52,10 @@ const HTML_INPUT_TYPE: Record<ContactFormFieldType, string> = {
  *
  * DELIVERY: like every RORUM form, this submits through the shared
  * `useFormspreeSubmit("contact")` hook → one Formspree endpoint, one form,
- * one recipient (configured on Formspree, never in code). The submission
- * carries `form_name: "Contact request"` and `subject: "[RoRUM] Contact
- * request — {name}"`. No endpoint is configured in this project yet
+ * one recipient (configured on Formspree, never in code). Email subject:
+ * `[RoRUM] Contact request — {name}`; the hook also relabels every field to
+ * a human-readable key and appends a "Submission details" group — see
+ * lib/formspree.ts. No endpoint is configured in this project yet
  * (`NEXT_PUBLIC_FORMSPREE_ENDPOINT` is the placeholder), so a valid submit
  * shows `formNotConfiguredMessage`, keeps the user's text, and never shows a
  * success state until a real endpoint is set and the POST succeeds.
@@ -73,6 +73,10 @@ export function ContactForm({
   formSection?: RawPageSection;
   privacyConsent?: ResolvedPrivacyConsentSettings;
 }) {
+  // Accepted only so app/[locale]/(site)/contact/page.tsx doesn't need
+  // touching — see the comment on showPrivacyConsent/requirePrivacyConsent
+  // below for why this is intentionally never read.
+  void privacyConsent;
   const { messages } = useFormContent();
   const { locale } = useLocale();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -85,8 +89,15 @@ export function ContactForm({
   }
 
   const fields = resolveContactFormFields(formSection, messages, locale);
-  const showPrivacyConsent = privacyConsent?.shown ?? true;
-  const requirePrivacyConsent = privacyConsent?.required ?? true;
+  // Privacy consent is mandatory on every RORUM form, no exceptions — the
+  // Sanity `privacyConsent.shown`/`.required` toggle can no longer waive or
+  // hide it: a manager setting either to false used to let a real submission
+  // through with no consent recorded at all, and `shown: false` hid the
+  // ONLY way to grant it — honoring that value here was itself a bypass, not
+  // a legitimate configuration. `useFormspreeSubmit.submit()` also refuses
+  // delivery without consent, as a second, independent safety net.
+  const showPrivacyConsent = true;
+  const requirePrivacyConsent = true;
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -116,23 +127,20 @@ export function ContactForm({
     <>
     <form
       className="grid gap-4 border-0 rounded-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] text-text-primary overflow-hidden p-[clamp(20px,3vw,4rem)]"
-      // Native `action` only once a real endpoint exists — otherwise a no-JS
-      // submit would POST to the placeholder URL and 404. The JS path
-      // (`onSubmit` → `submitToFormspree`) handles the configured case and
-      // shows the "not set up" notice when it isn't.
-      action={isFormspreeConfigured() ? formspreeConfig.endpoint : undefined}
-      method="post"
+      // No `action`/`method` — delivery is JS-only, same as every other
+      // RORUM form (Volunteer/Work With Us/Catering/Event Decoration/Host at
+      // RORUM never had a native fallback either). This form USED to also
+      // set a native `action` as a no-JS fallback, but with `noValidate`
+      // also set (needed so the JS path's own localized validation, not the
+      // browser's native tooltips, runs), that fallback had no client-side
+      // validation of ANY kind — required fields, privacy consent included
+      // — a real gap confirmed with JavaScript disabled. Closing it by
+      // removing the native fallback entirely was simpler and safer than
+      // trying to make `required` selectively survive `noValidate`.
       onSubmit={onSubmit}
       noValidate
       aria-busy={isSubmitting}
     >
-      {/* No-JS fallback metadata (a real endpoint + native submit). The JS
-          path re-sets these via applyFormspreeMetadata() and also appends
-          " — {name}" + locale + page_url. */}
-      <input type="hidden" name="form_name" value="Contact request" />
-      <input type="hidden" name="subject" value="[RoRUM] Contact request" />
-      <input type="hidden" name="_subject" value="[RoRUM] Contact request" />
-      <input type="hidden" name="locale" value={locale} />
       <div className="grid gap-2 mb-1">
         <h2 className="m-0 font-body text-[clamp(17px,1.35vw,20px)] leading-tight font-extrabold tracking-normal normal-case text-text-primary">
           {formTitle}

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   applyFormspreeMetadata,
   formspreeConfig,
+  humanizeFormFields,
   isFormspreeConfigured,
   resolveMultiOptionLabels,
   resolveOptionLabel,
@@ -67,21 +68,28 @@ describe("formspree helper — configured endpoint", () => {
 });
 
 describe("applyFormspreeMetadata — standardized metadata for every form", () => {
-  it("stamps the human-readable form_name and the English [RoRUM] subject for each form key", () => {
+  it("stamps exactly ONE subject field: Formspree's own documented `subject` (never the legacy `_subject`)", () => {
     for (const [key, meta] of Object.entries(RORUM_FORMS)) {
       const fd = new FormData();
       applyFormspreeMetadata(fd, key as keyof typeof RORUM_FORMS);
-      expect(fd.get("form_name")).toBe(meta.formName);
       expect(fd.get("subject")).toBe(meta.subject);
-      expect(fd.get("_subject")).toBe(meta.subject);
+      expect(fd.has("_subject")).toBe(false);
       expect(String(fd.get("subject"))).toMatch(/^\[RoRUM] /);
     }
   });
 
-  it("the six required forms are all present with the exact approved strings", () => {
+  it("never sends form_name — the subject line already identifies the form type", () => {
+    for (const key of Object.keys(RORUM_FORMS)) {
+      const fd = new FormData();
+      applyFormspreeMetadata(fd, key as keyof typeof RORUM_FORMS);
+      expect(fd.has("form_name")).toBe(false);
+    }
+  });
+
+  it("the six required forms are all present with the exact approved subjects", () => {
     expect(RORUM_FORMS.contact).toMatchObject({ formName: "Contact request", subject: "[RoRUM] Contact request" });
     expect(RORUM_FORMS.volunteer).toMatchObject({ formName: "Volunteer application", subject: "[RoRUM] Volunteer application" });
-    expect(RORUM_FORMS.workWithUs).toMatchObject({ formName: "Work With Us application", subject: "[RoRUM] Work With Us application" });
+    expect(RORUM_FORMS.workWithUs).toMatchObject({ formName: "Work With Us application", subject: "[RoRUM] Work With Us" });
     expect(RORUM_FORMS.catering).toMatchObject({ formName: "Catering inquiry", subject: "[RoRUM] Catering inquiry" });
     expect(RORUM_FORMS.eventDecoration).toMatchObject({ formName: "Event Decoration inquiry", subject: "[RoRUM] Event Decoration inquiry" });
     expect(RORUM_FORMS.hostAtRorum).toMatchObject({ formName: "Host at RORUM inquiry", subject: "[RoRUM] Host at RORUM inquiry" });
@@ -92,7 +100,6 @@ describe("applyFormspreeMetadata — standardized metadata for every form", () =
     fd.set("name", "Jane Doe");
     applyFormspreeMetadata(fd, "catering");
     expect(fd.get("subject")).toBe("[RoRUM] Catering inquiry — Jane Doe");
-    expect(fd.get("_subject")).toBe("[RoRUM] Catering inquiry — Jane Doe");
     // the form type must always be visible first
     expect(String(fd.get("subject")).indexOf("Catering inquiry")).toBeLessThan(
       String(fd.get("subject")).indexOf("Jane Doe"),
@@ -109,13 +116,13 @@ describe("applyFormspreeMetadata — standardized metadata for every form", () =
     expect(fd2.get("subject")).toBe("[RoRUM] Volunteer application");
   });
 
-  it("records the visitor locale when provided", () => {
+  it("options.name overrides formData's own `name` field for the subject suffix (for callers that relabel `name` away first)", () => {
     const fd = new FormData();
-    applyFormspreeMetadata(fd, "contact", { locale: "da" });
-    expect(fd.get("locale")).toBe("da");
+    applyFormspreeMetadata(fd, "workWithUs", { name: "Iryna Lopatina" });
+    expect(fd.get("subject")).toBe("[RoRUM] Work With Us — Iryna Lopatina");
   });
 
-  it("never adds a recipient email (that lives on the Formspree form, not the payload)", () => {
+  it("never adds a recipient email, or the legacy _replyto/_to/recipient fields (that lives on the Formspree form, not the payload — Reply-To comes from a literal `email` field, never renamed)", () => {
     const fd = new FormData();
     fd.set("name", "Jane");
     fd.set("email", "visitor@example.com");
@@ -125,6 +132,173 @@ describe("applyFormspreeMetadata — standardized metadata for every form", () =
     expect(fd.has("_replyto")).toBe(false);
     expect(fd.has("_to")).toBe(false);
     expect(fd.has("recipient")).toBe(false);
+    expect(fd.get("email")).toBe("visitor@example.com");
+  });
+});
+
+describe("applyFormspreeMetadata — Submission details block (every form, uniformly)", () => {
+  it("omits form_name/locale/page_url and instead appends a human-readable Submission details block", () => {
+    const fd = new FormData();
+    fd.set("privacyConsent", "on");
+    applyFormspreeMetadata(fd, "workWithUs", { locale: "uk", name: "Iryna Lopatina" });
+
+    expect(fd.has("form_name")).toBe(false);
+    expect(fd.has("locale")).toBe(false);
+    expect(fd.has("page_url")).toBe(false);
+    expect(fd.has("privacyConsent")).toBe(false);
+
+    expect(fd.get("Language")).toBe("Ukrainian");
+    expect(fd.get("Consent")).toBe("Yes");
+    expect(typeof fd.get("Submitted")).toBe("string");
+    expect(String(fd.get("Submitted")).length).toBeGreaterThan(0);
+  });
+
+  it("applies identically to a non-Work-With-Us form (e.g. contact)", () => {
+    const fd = new FormData();
+    applyFormspreeMetadata(fd, "contact", { locale: "da" });
+    expect(fd.get("Language")).toBe("Danish");
+    expect(fd.get("Consent")).toBe("No");
+    expect(typeof fd.get("Submitted")).toBe("string");
+    expect(fd.has("locale")).toBe(false);
+  });
+
+  it("maps all three locales to their English names", () => {
+    for (const [locale, label] of [["en", "English"], ["da", "Danish"], ["uk", "Ukrainian"]] as const) {
+      const fd = new FormData();
+      applyFormspreeMetadata(fd, "workWithUs", { locale });
+      expect(fd.get("Language")).toBe(label);
+    }
+  });
+
+  it('maps missing/unchecked consent to "No"', () => {
+    const fd = new FormData();
+    applyFormspreeMetadata(fd, "workWithUs", { locale: "en" });
+    expect(fd.get("Consent")).toBe("No");
+  });
+
+  it("Submission details fields are appended AFTER the caller's own (already humanized) fields", () => {
+    const fd = new FormData();
+    fd.set("Name", "Iryna Lopatina");
+    fd.set("email", "iryna@example.com");
+    applyFormspreeMetadata(fd, "workWithUs", { locale: "en", name: "Iryna Lopatina" });
+    const keys = [...fd.keys()];
+    expect(keys.indexOf("Name")).toBeLessThan(keys.indexOf("Language"));
+    expect(keys.indexOf("email")).toBeLessThan(keys.indexOf("Consent"));
+  });
+});
+
+describe("Submitted timestamp — Europe/Copenhagen, DST-correct, not the runtime's own timezone", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("winter (CET, UTC+1): a UTC instant is rendered one hour ahead", () => {
+    // 2026-01-15T12:00:00Z -> Copenhagen is UTC+1 in January (no DST).
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-15T12:00:00Z"));
+    const fd = new FormData();
+    applyFormspreeMetadata(fd, "contact", { locale: "en" });
+    expect(fd.get("Submitted")).toBe("15 January 2026 at 13:00");
+  });
+
+  it("summer (CEST, UTC+2): the SAME wall-clock UTC hour is rendered two hours ahead — proves this isn't a fixed UTC+1 offset, DST is applied automatically", () => {
+    // 2026-07-15T12:00:00Z -> Copenhagen is UTC+2 in July (DST active).
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-15T12:00:00Z"));
+    const fd = new FormData();
+    applyFormspreeMetadata(fd, "contact", { locale: "en" });
+    expect(fd.get("Submitted")).toBe("15 July 2026 at 14:00");
+  });
+
+  it("is independent of the test runtime's own local timezone (fixed Europe/Copenhagen, not `Intl`'s ambient default)", () => {
+    // Regression guard for the original bug: `toLocaleString(...)` with no
+    // `timeZone` option silently uses the RUNTIME's local zone (the
+    // applicant's own device, in production) — this pins it explicitly, so
+    // the result must match a fixed Europe/Copenhagen calculation regardless
+    // of TZ env var / OS setting the test happens to run under.
+    vi.useFakeTimers();
+    const instant = new Date("2026-07-15T12:00:00Z");
+    vi.setSystemTime(instant);
+    const fd = new FormData();
+    applyFormspreeMetadata(fd, "contact", { locale: "en" });
+    const expected = instant.toLocaleString("en-GB", {
+      dateStyle: "long",
+      timeStyle: "short",
+      timeZone: "Europe/Copenhagen",
+    });
+    expect(fd.get("Submitted")).toBe(expected);
+  });
+});
+
+describe("humanizeFormFields — consistent, human-readable labels for every form", () => {
+  it("relabels every known field name across the 6 forms", () => {
+    const fd = new FormData();
+    fd.set("name", "Jane Doe");
+    fd.set("phone", "+45 12 34 56 78");
+    fd.set("message", "hello");
+    fd.set("eventDate", "2099-06-01");
+    fd.set("eventTime", "18:00");
+    fd.set("guests", "4");
+    fd.set("package", "Morning session");
+    fd.set("additionalServices", "Breakfast, Lunch");
+    fd.set("roleInterest", "Social media & content");
+    fd.set("experience", "5 years");
+    fd.set("whyRorum", "I care");
+    fd.set("links", "https://example.com");
+    humanizeFormFields(fd);
+
+    expect(fd.get("Name")).toBe("Jane Doe");
+    expect(fd.get("Phone")).toBe("+45 12 34 56 78");
+    expect(fd.get("Message")).toBe("hello");
+    expect(fd.get("Event Date")).toBe("2099-06-01");
+    expect(fd.get("Event Time")).toBe("18:00");
+    expect(fd.get("Guests")).toBe("4");
+    expect(fd.get("Package")).toBe("Morning session");
+    expect(fd.get("Additional Services")).toBe("Breakfast, Lunch");
+    expect(fd.get("Interested in")).toBe("Social media & content");
+    expect(fd.get("Experience")).toBe("5 years");
+    expect(fd.get("Why RoRUM?")).toBe("I care");
+    expect(fd.get("Links")).toBe("https://example.com");
+  });
+
+  it("never renames `email` (Formspree's Reply-To trigger), `subject`, or `privacyConsent`", () => {
+    const fd = new FormData();
+    fd.set("email", "a@b.com");
+    fd.set("subject", "[RoRUM] Test");
+    fd.set("privacyConsent", "on");
+    humanizeFormFields(fd);
+    expect(fd.get("email")).toBe("a@b.com");
+    expect(fd.get("subject")).toBe("[RoRUM] Test");
+    expect(fd.get("privacyConsent")).toBe("on");
+    expect(fd.has("Email")).toBe(false);
+    expect(fd.has("Subject")).toBe(false);
+  });
+
+  it("humanizes an unrecognized (e.g. manager-added Sanity Contact) field name generically", () => {
+    const fd = new FormData();
+    fd.set("preferredContactMethod", "Phone");
+    humanizeFormFields(fd);
+    expect(fd.get("Preferred Contact Method")).toBe("Phone");
+  });
+
+  it("preserves relative order when every field gets renamed (order isn't Formspree's display order — see below — but this keeps the payload legible for debugging)", () => {
+    const fd = new FormData();
+    fd.set("name", "Jane");
+    fd.set("phone", "123");
+    fd.set("message", "hi");
+    humanizeFormFields(fd);
+    expect([...fd.keys()]).toEqual(["Name", "Phone", "Message"]);
+  });
+
+  it("a skipped field (email) keeps its original position; renamed fields move after it, in processing order — a FormData mechanics detail, NOT something calling code should rely on, since Formspree ignores FormData order entirely", () => {
+    const fd = new FormData();
+    fd.set("name", "Jane");
+    fd.set("email", "a@b.com");
+    fd.set("phone", "123");
+    humanizeFormFields(fd);
+    // `email` is untouched in place; `name`/`phone` are deleted + re-set,
+    // which appends them at the then-current end — this is exactly why no
+    // test in this file (or anywhere else) asserts a specific overall key
+    // order for a real submission's humanized FormData.
+    expect([...fd.keys()]).toEqual(["email", "Name", "Phone"]);
   });
 });
 

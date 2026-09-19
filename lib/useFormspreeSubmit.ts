@@ -5,24 +5,35 @@ import { useFormContent } from "@/components/FormContentProvider";
 import { useLocale } from "@/lib/useLocale";
 import {
   applyFormspreeMetadata,
+  humanizeFormFields,
   submitToFormspree,
   type RorumFormKey,
 } from "@/lib/formspree";
 
 /**
  * The one submission path every RORUM form uses. Given a validated FormData,
- * it stamps the standardized metadata (applyFormspreeMetadata), POSTs through
+ * it relabels every field to a human-readable key (humanizeFormFields),
+ * stamps the standardized metadata (applyFormspreeMetadata), POSTs through
  * the shared submitToFormspree() helper, and drives the success / error /
  * "not configured" UI state — no component keeps its own fetch or fake
- * setTimeout.
+ * setTimeout. Centralizing both here means every RORUM form gets the same
+ * consistent, human-readable email presentation with NO changes to the
+ * component itself — the component only ever deals with its own technical
+ * field names (`name`, `roleInterest`, `eventDate`, ...).
  *
  * Contract:
  * - success is set ONLY after Formspree confirms the POST
  * - the form is reset ONLY on confirmed success (caller passes the element)
- * - on any failure the user's input is untouched; a localized message shows:
- *     FORMSPREE_NOT_CONFIGURED -> messages.formNotConfiguredMessage
- *     any other failure        -> options.failedMessage, else
- *                                 messages.formSubmitFailedMessage
+ * - `formData.get("privacyConsent") !== "on"` ALWAYS blocks delivery here,
+ *   regardless of what the calling component already validated — a
+ *   centralized floor under every form's own consent check, never bypassable
+ *   by a form-specific validation gap
+ * - on any failure (including missing consent) the user's input is
+ *   untouched, `sent` is never set, and a localized message shows:
+ *     missing/unchecked consent -> messages.privacyConsentRequiredMessage
+ *     FORMSPREE_NOT_CONFIGURED  -> messages.formNotConfiguredMessage
+ *     any other failure         -> options.failedMessage, else
+ *                                  messages.formSubmitFailedMessage
  * - `submissionLock` prevents a double POST even if the button isn't disabled
  *
  * `options.failedMessage` lets a form supply its own (Sanity-managed,
@@ -55,12 +66,33 @@ export function useFormspreeSubmit(
   ): Promise<boolean> {
     if (submissionLock.current || sent) return false;
 
+    // Centralized safety net, in addition to (not instead of) each
+    // component's own validatePrivacyConsent() check: every RORUM form must
+    // have explicit consent before ANY delivery attempt. A real bug once let
+    // Host at RORUM's booking form skip its consent check entirely (see
+    // InquiryForm.tsx) and deliver with no consent recorded — this refuses
+    // the POST here too, so a future form-specific validation gap can never
+    // again result in an actual submission going out without consent. In
+    // the normal case a component's own validation already caught this and
+    // never calls submit() at all, so this reuses the SAME shared, already-
+    // localized message every form's inline validation uses — never a
+    // second, different message stacked on top of one already shown.
+    if (formData.get("privacyConsent") !== "on") {
+      setSubmitError(messages.privacyConsentRequiredMessage);
+      return false;
+    }
+
     submissionLock.current = true;
     setIsSubmitting(true);
     setSubmitError("");
 
     try {
-      applyFormspreeMetadata(formData, form, { locale });
+      // Captured BEFORE humanizing — that renames `name` to "Name", so
+      // applyFormspreeMetadata's " — {name}" subject suffix couldn't read it
+      // off the FormData afterward.
+      const name = String(formData.get("name") ?? "").trim();
+      humanizeFormFields(formData);
+      applyFormspreeMetadata(formData, form, { locale, name });
       await submitToFormspree(formData);
       setSent(true);
       formElement?.reset();

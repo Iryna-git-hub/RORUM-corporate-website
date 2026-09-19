@@ -15,9 +15,14 @@ import type { SelectableOption } from "@/components/InquiryForm";
 // Formspree form does not have file uploads enabled, see the diagnostic in
 // git history). Delivers through the shared `useFormspreeSubmit("workWithUs")`
 // hook — one Formspree endpoint/form/recipient, same as every other RORUM
-// form. Submission carries `form_name: "Work With Us application"` and
-// `subject: "[RoRUM] Work With Us application — {name}"` (this convention
-// predates and is unrelated to the CV-upload removal).
+// form. Email subject: `[RoRUM] Work With Us — {name}` (RORUM_FORMS.workWithUs).
+//
+// Field relabeling (roleInterest -> "Interested in", experience ->
+// "Experience", etc.) and the "Submission details" group (Language / Page /
+// Consent / Submitted) are handled centrally by the shared hook
+// (`useFormspreeSubmit` -> `lib/formspree.ts`'s `humanizeFormFields` +
+// `applyFormspreeMetadata`) — this component only builds the raw,
+// technically-named FormData, same as every other RORUM form.
 
 export interface WorkWithUsApplicationFormContent {
   modalTitle: string;
@@ -170,8 +175,9 @@ function WorkWithUsDialog({
     // resolveOptionLabel()'s own established convention for optional fields.
     if (!String(formData.get("links") ?? "").trim()) formData.delete("links");
 
-    // Delivery / success / error state / form reset are all owned by the
-    // shared hook — same one every other RORUM form uses. `experience` and
+    // Delivery / success / error state / form reset — and the human-readable
+    // relabeling (roleInterest -> "Interested in", etc.) — are all owned by
+    // the shared hook, same as every other RORUM form. `experience`/
     // `whyRorum` ride along in `formData` exactly as the textarea produced
     // them: `new FormData(form)` never collapses or rewrites a textarea's
     // value, so every newline and blank-line paragraph break the applicant

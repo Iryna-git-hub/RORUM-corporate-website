@@ -192,15 +192,18 @@ describe("ContactForm — real delivery path (Formspree helper mocked)", () => {
     await fillValidContactForm();
     await screen.findByText(/Your message is ready/i);
     const sentData = submitToFormspreeMock.mock.calls[0]![0] as FormData;
-    expect(sentData.get("name")).toBe("Jane Doe");
+    expect(sentData.get("Name")).toBe("Jane Doe");
     expect(sentData.get("email")).toBe("jane@example.com");
-    expect(sentData.get("message")).toBe("Hello there");
-    // Standardized, English, form-type-first, name appended:
-    expect(sentData.get("form_name")).toBe("Contact request");
+    expect(sentData.get("Message")).toBe("Hello there");
+    // Standardized, English, form-type-first, name appended. No separate
+    // form_name — the subject already identifies the form type.
+    expect(sentData.has("form_name")).toBe(false);
     expect(sentData.get("subject")).toBe("[RoRUM] Contact request — Jane Doe");
-    expect(sentData.get("_subject")).toBe("[RoRUM] Contact request — Jane Doe");
-    // locale comes from the mocked pathname "/da/contact"
-    expect(sentData.get("locale")).toBe("da");
+    expect(sentData.has("_subject")).toBe(false);
+    // locale comes from the mocked pathname "/da/contact", surfaced as the
+    // human-readable "Submission details" field, not a raw `locale` field.
+    expect(sentData.has("locale")).toBe(false);
+    expect(sentData.get("Language")).toBe("Danish");
     // the recipient address is never in the payload
     expect([...sentData.keys()]).not.toContain("_replyto");
   });
@@ -277,18 +280,36 @@ describe("ContactForm — success modal close behavior (Done / X / Escape / back
   });
 });
 
-describe("ContactForm — Privacy consent shown/required settings (Task 9)", () => {
-  it("privacyConsent.shown=false: the checkbox is not rendered at all, and submitting never blocks on it", async () => {
+describe("ContactForm — privacy consent is ALWAYS mandatory, the Sanity shown/required toggle can no longer waive it", () => {
+  // Regression coverage: this toggle used to let a manager configure a real
+  // submission with NO consent recorded at all (`shown: false` even hid the
+  // only way to grant it) — the exact class of bug found live on the Host at
+  // RORUM form. Both settings are now ignored for gating purposes.
+  it("privacyConsent.shown=false: the checkbox is still rendered (the toggle no longer hides it)", async () => {
     render(<ContactForm formSection={{ _key: "form", items: [] } as unknown as RawPageSection} privacyConsent={{ shown: false, required: true }} />);
-    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /agree to the Privacy policy|read and agree/i })).toBeInTheDocument();
   });
 
-  it("privacyConsent.required=false: submitting without checking it produces no privacy error", async () => {
+  it("privacyConsent.required=false: submitting without checking it is STILL blocked", async () => {
     const formSection = { _key: "form", items: [{ _key: "field-name", itemKey: "field-name", value: "text", title: i18n("Full Name") }] } as unknown as RawPageSection;
     render(<ContactForm formSection={formSection} privacyConsent={{ shown: true, required: false }} />);
     await userEvent.type(screen.getByLabelText(/Full Name/), "Jane");
     await userEvent.click(screen.getByRole("button", { name: /Send message/ }));
-    expect(screen.queryByText(/agree to the Privacy policy/i)).not.toBeInTheDocument();
+    expect(await screen.findByText(/agree to the Privacy policy/i)).toBeInTheDocument();
+    expect(submitToFormspreeMock).not.toHaveBeenCalled();
+  });
+
+  it("privacyConsent.shown=false AND required=false: checking the (still-rendered) checkbox still allows a real submission through", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    const formSection = { _key: "form", items: [{ _key: "field-name", itemKey: "field-name", value: "text", title: i18n("Full Name") }] } as unknown as RawPageSection;
+    render(<ContactForm formSection={formSection} privacyConsent={{ shown: false, required: false }} successMessage="Delivered!" />);
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Jane");
+    await userEvent.click(screen.getByRole("checkbox", { name: /agree to the Privacy policy|read and agree/i }));
+    await userEvent.click(screen.getByRole("button", { name: /Send message/ }));
+
+    await screen.findByRole("dialog");
+    const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
+    expect(fd.get("Consent")).toBe("Yes");
   });
 });
 

@@ -153,6 +153,12 @@ async function fillBooking() {
   await userEvent.selectOptions(screen.getByLabelText(/Package/), "package0");
   await userEvent.type(screen.getByLabelText(/Event date/), "2099-01-01");
   await userEvent.type(screen.getByLabelText(/Comment/), "A quiet morning meeting");
+  // Privacy consent is mandatory on every form, booking included (a real bug
+  // once let this form through without it — see the dedicated describe
+  // block below) — this helper must check it so every OTHER booking test
+  // still exercises a genuinely valid, deliverable submission.
+  const consent = screen.getByRole("checkbox", { name: /read and agree|agree to the Privacy policy/i }) as HTMLInputElement;
+  if (!consent.checked) await userEvent.click(consent);
 }
 
 // See ContactForm.test.tsx's fillValidContactForm() for why every field is
@@ -199,18 +205,23 @@ describe("InquiryForm — unified Formspree delivery", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
-    expect(fd.get("form_name")).toBe("Host at RORUM inquiry");
+    expect(fd.has("form_name")).toBe(false);
     expect(fd.get("subject")).toBe("[RoRUM] Host at RORUM inquiry — Jane Doe");
-    expect(fd.get("_subject")).toBe("[RoRUM] Host at RORUM inquiry — Jane Doe");
-    expect(fd.get("locale")).toBe("uk");
+    expect(fd.has("_subject")).toBe(false);
+    expect(fd.has("locale")).toBe(false);
+    expect(fd.get("Language")).toBe("Ukrainian");
     // Payload quality: the submitted value is the visible LABEL shown in the
     // <option>, never the internal "package0" id — see lib/formspree.ts's
     // resolveOptionLabel().
-    expect(fd.get("package")).toBe("Morning session");
-    expect(fd.get("name")).toBe("Jane Doe");
+    expect(fd.get("Package")).toBe("Morning session");
+    expect(fd.get("Name")).toBe("Jane Doe");
+    // Regression guard: this form once let a submission through with NO
+    // consent check at all (see the dedicated "requires privacy consent"
+    // describe block below) — a genuinely valid submission must record it.
+    expect(fd.get("Consent")).toBe("Yes");
   });
 
-  it("decoration: uses the Event Decoration form_name + subject, and shows the accessible success modal", async () => {
+  it("decoration: uses the Event Decoration subject, and shows the accessible success modal", async () => {
     submitToFormspreeMock.mockResolvedValue(undefined);
     render(<InquiryForm type="decoration" title="Plan your decoration" successMessage="Decoration request received!" />);
     await fillDecoration();
@@ -219,8 +230,10 @@ describe("InquiryForm — unified Formspree delivery", () => {
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText("Decoration request received!")).toBeInTheDocument();
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
-    expect(fd.get("form_name")).toBe("Event Decoration inquiry");
+    expect(fd.has("form_name")).toBe(false);
     expect(fd.get("subject")).toBe("[RoRUM] Event Decoration inquiry — Erik Vestergaard");
+    expect(fd.has("_subject")).toBe(false);
+    expect(fd.get("Consent")).toBe("Yes");
   });
 
   it("decoration: Done closes the success modal, returns focus to the submit button, and the form can be submitted again", async () => {
@@ -320,6 +333,131 @@ describe("InquiryForm — unified Formspree delivery", () => {
   });
 });
 
+// --- Privacy consent is mandatory — regression coverage for the bug where
+// the booking (Host at RORUM) variant let a submission through with NO
+// consent check at all: `PrivacyConsent required={false}` + no
+// `validatePrivacyConsent()` call. Both the component's own validation AND
+// the shared `useFormspreeSubmit` hook's centralized guard are covered here,
+// for both InquiryForm variants (booking and decoration/default). ------------
+
+describe("InquiryForm — privacy consent is mandatory (no exceptions)", () => {
+  it("booking: blocks submission when consent is unchecked — no Formspree call, no success dialog, localized error, input preserved", async () => {
+    render(
+      <InquiryForm
+        type="booking"
+        title="Apply to Host"
+        successMessage="Host request received!"
+        packageOptions={[{ value: "package0", label: "Morning session" }]}
+      />,
+    );
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Jane Doe");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 12 34 56 78");
+    await userEvent.type(screen.getByLabelText(/^Email/), "jane@example.com");
+    await userEvent.type(screen.getByLabelText(/Event date/), "2099-01-01");
+    await userEvent.type(screen.getByLabelText(/Comment/), "A quiet morning meeting");
+    // Deliberately left unchecked.
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+
+    expect(await screen.findByText(/agree to the Privacy policy/i)).toBeInTheDocument();
+    expect(submitToFormspreeMock).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("Jane Doe");
+    expect((screen.getByLabelText(/Comment/) as HTMLTextAreaElement).value).toBe("A quiet morning meeting");
+  });
+
+  it("booking: the consent checkbox is unchecked by default and is keyboard-accessible (Space toggles it)", async () => {
+    render(<InquiryForm type="booking" title="Apply to Host" packageOptions={[{ value: "package0", label: "Morning session" }]} />);
+    const consent = screen.getByRole("checkbox", { name: /read and agree|agree to the Privacy policy/i }) as HTMLInputElement;
+    expect(consent.checked).toBe(false);
+    consent.focus();
+    await userEvent.keyboard(" ");
+    expect(consent.checked).toBe(true);
+  });
+
+  it("booking: submitting via keyboard (Enter) without consent is blocked exactly like a mouse click", async () => {
+    render(
+      <InquiryForm
+        type="booking"
+        title="Apply to Host"
+        packageOptions={[{ value: "package0", label: "Morning session" }]}
+      />,
+    );
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 12 34 56 78");
+    await userEvent.type(screen.getByLabelText(/^Email/), "jane@example.com");
+    await userEvent.type(screen.getByLabelText(/Event date/), "2099-01-01");
+    await userEvent.type(screen.getByLabelText(/Comment/), "A quiet morning meeting");
+    // Enter inside a single-line <input> implicitly submits the form (unlike
+    // inside the Comment <textarea>, which would just insert a newline) —
+    // this is the keyboard-only submission path the task asked to cover.
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Jane Doe{Enter}");
+
+    expect(await screen.findByText(/agree to the Privacy policy/i)).toBeInTheDocument();
+    expect(submitToFormspreeMock).not.toHaveBeenCalled();
+  });
+
+  it("booking: checking consent AFTER a blocked attempt allows submission without re-entering anything else", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(
+      <InquiryForm
+        type="booking"
+        title="Apply to Host"
+        successMessage="Host request received!"
+        packageOptions={[{ value: "package0", label: "Morning session" }]}
+      />,
+    );
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Jane Doe");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 12 34 56 78");
+    await userEvent.type(screen.getByLabelText(/^Email/), "jane@example.com");
+    await userEvent.type(screen.getByLabelText(/Event date/), "2099-01-01");
+    await userEvent.type(screen.getByLabelText(/Comment/), "A quiet morning meeting");
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+    expect(submitToFormspreeMock).not.toHaveBeenCalled();
+
+    const consent = screen.getByRole("checkbox", { name: /read and agree|agree to the Privacy policy/i });
+    await userEvent.click(consent);
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Host request received!")).toBeInTheDocument();
+    const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
+    expect(fd.get("Name")).toBe("Jane Doe");
+    expect(fd.get("Consent")).toBe("Yes");
+  });
+
+  it("decoration: blocks submission when consent is unchecked — no Formspree call, no success dialog, localized error, input preserved", async () => {
+    render(<InquiryForm type="decoration" title="Plan your decoration" successMessage="Decoration request received!" />);
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Erik Vestergaard");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 98 76 54 32");
+    await userEvent.type(screen.getByLabelText(/^Email/), "erik@example.com");
+    await userEvent.type(screen.getByLabelText(/Event date/), "2099-01-01");
+    await userEvent.type(screen.getByLabelText(/Message/), "Florals and candles for 20 guests");
+    // Deliberately left unchecked.
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+
+    expect(await screen.findByText(/agree to the Privacy policy/i)).toBeInTheDocument();
+    expect(submitToFormspreeMock).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("Erik Vestergaard");
+  });
+
+  it("decoration: the consent checkbox is unchecked by default", async () => {
+    render(<InquiryForm type="decoration" title="Plan your decoration" />);
+    const consent = screen.getByRole("checkbox", { name: /read and agree|agree to the Privacy policy/i }) as HTMLInputElement;
+    expect(consent.checked).toBe(false);
+  });
+
+  it("the Privacy Policy link inside the consent copy is present and opens the policy (both InquiryForm variants)", async () => {
+    for (const type of ["booking", "decoration"] as const) {
+      cleanup();
+      render(<InquiryForm type={type} title="Test" packageOptions={[{ value: "package0", label: "Morning session" }]} />);
+      const policyButton = screen.getByRole("button", { name: /Privacy policy/i });
+      expect(policyButton).toBeInTheDocument();
+      await userEvent.click(policyButton);
+      expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    }
+  });
+});
+
 // --- Payload quality: submitted package/service values are LABELS, never
 // internal ids (the bug this task fixes) -----------------------------------
 
@@ -329,6 +467,8 @@ async function fillBookingRequired() {
   await userEvent.type(screen.getByLabelText(/^Email/), "jane@example.com");
   await userEvent.type(screen.getByLabelText(/Event date/), "2099-01-01");
   await userEvent.type(screen.getByLabelText(/Comment/), "A quiet morning meeting");
+  const consent = screen.getByRole("checkbox", { name: /read and agree|agree to the Privacy policy/i }) as HTMLInputElement;
+  if (!consent.checked) await userEvent.click(consent);
 }
 
 describe.each([
@@ -385,17 +525,17 @@ describe.each([
       await screen.findByText("ok");
 
       const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
-      expect(fd.get("package")).toBe(chosenPackageLabel);
-      expect(fd.get("additionalServices")).toBe(expectedServicesJoined);
+      expect(fd.get("Package")).toBe(chosenPackageLabel);
+      expect(fd.get("Additional Services")).toBe(expectedServicesJoined);
       // Raw internal option ids must never leak into the payload.
       for (const option of [...packageOptions, ...serviceOptions]) {
-        expect(fd.get("package")).not.toBe(option.value);
-        expect(String(fd.get("additionalServices"))).not.toContain(option.value);
+        expect(fd.get("Package")).not.toBe(option.value);
+        expect(String(fd.get("Additional Services"))).not.toContain(option.value);
       }
       // Unaffected metadata still present and correct.
-      expect(fd.get("form_name")).toBe("Host at RORUM inquiry");
-      expect(fd.get("locale")).toBe("uk");
-      expect(typeof fd.get("page_url")).toBe("string");
+      expect(fd.has("form_name")).toBe(false);
+      expect(fd.get("Language")).toBe("Ukrainian");
+      expect(typeof fd.get("Page")).toBe("string");
     });
   },
 );

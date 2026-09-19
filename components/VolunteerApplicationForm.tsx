@@ -9,7 +9,6 @@ import {
   validatePrivacyConsent,
 } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
-import { formspreeConfig, isFormspreeConfigured } from "@/lib/formspree";
 import { useFormspreeSubmit } from "@/lib/useFormspreeSubmit";
 
 export interface VolunteerFormContent {
@@ -151,21 +150,17 @@ function VolunteerApplicationDialog({
     >
     <form
       className="grid gap-4"
-      // Only set the native action when Formspree is actually configured —
-      // otherwise a no-JS submit would POST to the 404 placeholder endpoint.
-      // JS submit (handleSubmit) always runs and surfaces the "not set up"
-      // notice. Matches components/ContactForm.tsx.
-      action={isFormspreeConfigured() ? formspreeConfig.endpoint : undefined}
-      method="post"
+      // No `action`/`method` — delivery is JS-only, same as every other
+      // RORUM form. This used to also set a native `action` as a no-JS
+      // fallback, but with `noValidate` also set (needed so the JS path's
+      // own localized validation runs instead of the browser's native
+      // tooltips), that fallback had no client-side validation of ANY kind
+      // — required fields, privacy consent included — confirmed with
+      // JavaScript disabled. See components/ContactForm.tsx's matching fix.
       onSubmit={handleSubmit}
       noValidate
       aria-busy={isSubmitting}
     >
-      {/* No-JS fallback metadata; the JS path re-sets these via
-          applyFormspreeMetadata() (adds " — {name}", locale, page_url). */}
-      <input type="hidden" name="form_name" value="Volunteer application" />
-      <input type="hidden" name="subject" value="[RoRUM] Volunteer application" />
-      <input type="hidden" name="_subject" value="[RoRUM] Volunteer application" />
       <div className="grid gap-2 mb-1">
         <h2
           id="volunteer-modal-title"

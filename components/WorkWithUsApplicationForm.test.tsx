@@ -182,7 +182,7 @@ describe("WorkWithUsApplicationForm — required-field validation", () => {
     await screen.findByRole("dialog");
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
     // Dropped entirely when blank — never a bare empty value shipped.
-    expect(fd.has("links")).toBe(false);
+    expect(fd.has("Links")).toBe(false);
   });
 
   it("Links submits exactly as typed when the applicant does fill it in", async () => {
@@ -195,7 +195,7 @@ describe("WorkWithUsApplicationForm — required-field validation", () => {
 
     await screen.findByRole("dialog");
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
-    expect(fd.get("links")).toBe("https://linkedin.com/in/anna-holm");
+    expect(fd.get("Links")).toBe("https://linkedin.com/in/anna-holm");
   });
 
   it("requires privacy consent", async () => {
@@ -211,6 +211,71 @@ describe("WorkWithUsApplicationForm — required-field validation", () => {
 
     expect(await screen.findByText(/agree to the Privacy policy/i)).toBeInTheDocument();
     expect(submitToFormspreeMock).not.toHaveBeenCalled();
+    expect(screen.queryByText(content.modalTitleSent)).not.toBeInTheDocument();
+    expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("Anna Holm");
+  });
+
+  it("the consent checkbox is unchecked by default when the modal opens", async () => {
+    render(<WorkWithUsApplicationButton content={content} roleOptions={roleOptions} />);
+    await openModal();
+    expect(
+      (screen.getByRole("checkbox", { name: /agree to the Privacy policy|read and agree/i }) as HTMLInputElement)
+        .checked,
+    ).toBe(false);
+  });
+
+  it("blocks keyboard-only submission (Enter in a text field) exactly like a mouse click", async () => {
+    render(<WorkWithUsApplicationButton content={content} roleOptions={roleOptions} />);
+    await openModal();
+    await userEvent.type(screen.getByLabelText(/^Email/), "anna@example.com");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 60 60 60 60");
+    await userEvent.click(screen.getByRole("checkbox", { name: "Social media & content" }));
+    await userEvent.type(screen.getByLabelText(/Tell us about your experience/), "Experience text");
+    await userEvent.type(screen.getByLabelText(/Why would you like to work with RORUM/), "Why text");
+    // Enter inside a single-line <input> implicitly submits the form.
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Anna Holm{Enter}");
+
+    expect(await screen.findByText(/agree to the Privacy policy/i)).toBeInTheDocument();
+    expect(submitToFormspreeMock).not.toHaveBeenCalled();
+  });
+
+  it("checking consent after a blocked attempt allows submission without re-entering anything else, with Consent: Yes in the payload", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<WorkWithUsApplicationButton content={content} roleOptions={roleOptions} />);
+    await openModal();
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Anna Holm");
+    await userEvent.type(screen.getByLabelText(/^Email/), "anna@example.com");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 60 60 60 60");
+    await userEvent.click(screen.getByRole("checkbox", { name: "Social media & content" }));
+    await userEvent.type(screen.getByLabelText(/Tell us about your experience/), "Experience text");
+    await userEvent.type(screen.getByLabelText(/Why would you like to work with RORUM/), "Why text");
+    await userEvent.click(screen.getByRole("button", { name: /Send Application/i }));
+    expect(submitToFormspreeMock).not.toHaveBeenCalled();
+
+    const consent = screen.getByRole("checkbox", { name: /agree to the Privacy policy|read and agree/i });
+    await userEvent.click(consent);
+    await userEvent.click(screen.getByRole("button", { name: /Send Application/i }));
+
+    await screen.findByRole("dialog");
+    const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
+    expect(fd.get("Consent")).toBe("Yes");
+    expect(fd.get("Name")).toBe("Anna Holm");
+  });
+
+  it("reopening the modal after a previous successful submission still starts with consent unchecked", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<WorkWithUsApplicationButton content={content} roleOptions={roleOptions} />);
+    await openModal();
+    await fillRequiredFields();
+    await userEvent.click(screen.getByRole("button", { name: /Send Application/i }));
+    await screen.findByRole("dialog");
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+
+    await openModal();
+    expect(
+      (screen.getByRole("checkbox", { name: /agree to the Privacy policy|read and agree/i }) as HTMLInputElement)
+        .checked,
+    ).toBe(false);
   });
 });
 
@@ -242,8 +307,8 @@ describe("WorkWithUsApplicationForm — role-interest multi-select", () => {
 
     await screen.findByRole("dialog");
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
-    expect(fd.get("roleInterest")).toBe("Social media & content, Event support / practical help, Other");
-    expect(String(fd.get("roleInterest"))).not.toMatch(/role0|role1|role2|role7/);
+    expect(fd.get("Interested in")).toBe("Social media & content, Event support / practical help, Other");
+    expect(String(fd.get("Interested in"))).not.toMatch(/role0|role1|role2|role7/);
   });
 
   it("no duplicate values can be produced — each checkbox contributes its value at most once", async () => {
@@ -254,7 +319,7 @@ describe("WorkWithUsApplicationForm — role-interest multi-select", () => {
     await userEvent.click(screen.getByRole("button", { name: /Send Application/i }));
     await screen.findByRole("dialog");
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
-    expect(fd.get("roleInterest")).toBe("Social media & content");
+    expect(fd.get("Interested in")).toBe("Social media & content");
   });
 });
 
@@ -275,7 +340,7 @@ describe("WorkWithUsApplicationForm — multiline text preservation (hard requir
 
     await screen.findByRole("dialog");
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
-    expect(fd.get("experience")).toBe(multiline);
+    expect(fd.get("Experience")).toBe(multiline);
   });
 
   it("Experience and skills: blank-line paragraph breaks and bullet-like lines survive unchanged, never collapsed to one line", async () => {
@@ -304,8 +369,8 @@ describe("WorkWithUsApplicationForm — multiline text preservation (hard requir
     // JSON/HTML-encoded. Only an outer .trim() would ever be acceptable, and
     // this string has no leading/trailing whitespace to trim in the first
     // place, so exact equality is the correct assertion.
-    expect(fd.get("experience")).toBe(multiParagraph);
-    const value = String(fd.get("experience"));
+    expect(fd.get("Experience")).toBe(multiParagraph);
+    const value = String(fd.get("Experience"));
     expect(value.split("\n")).toHaveLength(7);
     expect(value).toContain("\n\n");
     expect(value).not.toMatch(/ {2,}/);
@@ -328,7 +393,7 @@ describe("WorkWithUsApplicationForm — multiline text preservation (hard requir
 
     await screen.findByRole("dialog");
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
-    expect(fd.get("whyRorum")).toBe(whyMultiline);
+    expect(fd.get("Why RoRUM?")).toBe(whyMultiline);
   });
 
   it("outer whitespace on the raw field is untouched (the app never trims the submitted value itself — only validation reads a local trimmed copy)", async () => {
@@ -352,7 +417,7 @@ describe("WorkWithUsApplicationForm — multiline text preservation (hard requir
     // ships. (Field-level outer trimming, if the owner wants it, is a
     // Formspree/display concern, not something this test mandates either
     // way — it only proves the app itself doesn't mutate the value.)
-    expect(fd.get("experience")).toBe("  Padded on both sides.  ");
+    expect(fd.get("Experience")).toBe("  Padded on both sides.  ");
   });
 });
 
@@ -372,10 +437,35 @@ describe("WorkWithUsApplicationForm — success / error / resubmission", () => {
     expect(screen.queryByLabelText(/Full Name/)).not.toBeInTheDocument();
 
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
-    expect(fd.get("form_name")).toBe("Work With Us application");
-    expect(fd.get("subject")).toBe("[RoRUM] Work With Us application — Anna Holm");
-    expect(fd.get("_subject")).toBe("[RoRUM] Work With Us application — Anna Holm");
-    expect(fd.get("locale")).toBe("uk");
+    // Exactly one subject field — Formspree's own documented `subject`,
+    // never the legacy `_subject`.
+    expect(fd.get("subject")).toBe("[RoRUM] Work With Us — Anna Holm");
+    expect(fd.has("_subject")).toBe(false);
+    expect(fd.has("form_name")).toBe(false);
+    expect(fd.has("locale")).toBe(false);
+    // Human-readable, grouped "Submission details" instead.
+    expect(fd.get("Language")).toBe("Ukrainian");
+    expect(fd.get("Consent")).toBe("Yes");
+    expect(typeof fd.get("Submitted")).toBe("string");
+    expect(String(fd.get("Submitted")).length).toBeGreaterThan(0);
+    // Reply-To still works: `email` is Formspree's OWN documented trigger
+    // field, so it's deliberately never relabeled (no `_replyto` needed/sent).
+    expect(fd.get("email")).toBe("anna@example.com");
+    expect(fd.has("_replyto")).toBe(false);
+    // Main application content, human-readable, all present — NOTE: this
+    // deliberately does NOT assert a specific key ORDER. Verified against a
+    // real Formspree Free-plan account, the notification email/dashboard
+    // renders fields ALPHABETICALLY regardless of FormData order, so
+    // FormData order isn't part of the actual contract — see lib/formspree.ts.
+    expect(fd.get("Name")).toBe("Anna Holm");
+    expect(fd.get("email")).toBe("anna@example.com");
+    expect(fd.get("Phone")).toBe("+45 60 60 60 60");
+    expect(fd.get("Interested in")).toBe("Social media & content");
+    expect(fd.get("Experience")).toBe("Five years in hospitality.");
+    expect(fd.get("Why RoRUM?")).toBe("I love the community.");
+    expect(fd.has("privacyConsent")).toBe(false);
+    expect(fd.has("roleInterest")).toBe(false);
+    expect(fd.has("whyRorum")).toBe(false);
   });
 
   it("a failed submit shows the inline error (role=alert), no success, and preserves every typed value", async () => {

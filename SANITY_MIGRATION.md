@@ -619,7 +619,7 @@ x-default present, 143 sitemap `<loc>` entries.
 | Legal / company facts | `lib/siteContent.ts`, `lib/siteConfig.ts` | **Hardcoded** | CVR, company name, address facts rendered on legal pages are still in code, not Sanity. Low priority (rarely changes) but not manager-editable. |
 | Gallery collections | `galleryCollection` / `mediaItem` | **Connected** | Used by Catering / Event Decoration / Host / Community galleries via `lib/sanityGallery.ts` (canonical-vs-legacy policy). |
 | Cookie / privacy consent UI | `PrivacyConsent` / `PrivacyPolicyModal` | **Connected via `formMessages` + `legalPage-privacy-policy`** | Consent copy from `formMessages`; modal body from the privacy `legalPage`. |
-| Forms (all) | `lib/useFormspreeSubmit.ts` + `lib/formspree.ts` | **Unified, code-complete (Task 4)** | All 6 forms submit through ONE shared path to ONE Formspree endpoint/form/recipient, with standardized `form_name` + `[RoRUM]` subject + locale metadata. No fake success anywhere. Owner just needs to create the Formspree form + set `NEXT_PUBLIC_FORMSPREE_ENDPOINT` (§20.12 / R6). |
+| Forms (all) | `lib/useFormspreeSubmit.ts` + `lib/formspree.ts` | **Unified, code-complete; live endpoint configured** | All 6 forms submit through ONE shared path to ONE Formspree endpoint/form/recipient. As of the §20.22 email-readability pass: `subject` (Formspree's documented Subject-header field, not the legacy undocumented `_subject`) + `[RoRUM] <type> — {name}`; every field relabeled to a human-readable key (`humanizeFormFields`); a "Submission details" group (Language/Page/Consent/Submitted) replaces the old raw `locale`/`page_url`/`form_name`. No fake success anywhere. Field **labels** are controllable this way on the Free plan; field **order** is not — Formspree sorts alphabetically regardless of submission order, verified against a real account (§20.22). |
 
 ## 20.4 Per-page audit checklist (this pass)
 
@@ -1495,6 +1495,40 @@ Full detail: **MIGRATION_REPORT.md Part 37.** Current contract:
   was attempted and blocked by Sanity's own OAuth login wall (GitHub/Google/email — no credentials
   available in this environment); confirmed via schema source instead.
 - No production dataset mutation was performed by this pass — only read-only verification queries.
+
+## 20.22 Part 39 — Formspree email readability, all 6 forms (2026-09-19)
+
+Not a Sanity migration — a Formspree-delivery correctness/consistency pass (`lib/formspree.ts` +
+`lib/useFormspreeSubmit.ts`), recorded here because it's the same shared forms infrastructure
+audited in §20.12.
+
+- **Root cause, verified against a real Formspree Free-plan submission** (not assumed): the earlier
+  "duplicate subject" came from stamping BOTH a plain `subject` field and the undocumented `_subject`
+  onto every submission. Formspree's own docs (`email-subject-line`, `email-reply-to-address`)
+  document exactly `subject` (email Subject header) and a field literally named `email` (Reply-To) —
+  `_subject`/`_replyto` are not documented anywhere and, confirmed live, still show up as ordinary
+  visible fields rather than being hidden. Switched to the documented `subject`/`email` fields
+  everywhere; dropped `_subject`/`_replyto`/`form_name` entirely (subject already identifies the form
+  type, so `form_name` was redundant).
+- **New finding, verified live**: Formspree renders the notification email and the submissions
+  dashboard with fields sorted **alphabetically by field name**, not in FormData submission order —
+  not documented, not configurable on the Free plan. So field **order** cannot be controlled without
+  an artificial naming trick (explicitly ruled out — no numeric prefixes, no invisible characters).
+  Field **labels** ARE controllable (the field name IS the label on the default template), so that's
+  the entire lever this pass uses.
+- `lib/formspree.ts`'s new `humanizeFormFields()` relabels every submitted field to a human-readable
+  key (`eventDate` → "Event Date", `roleInterest` → "Interested in", etc. — override table + a
+  generic camelCase/snake_case splitter for anything else, including a manager-added Sanity Contact
+  field this file can't know about in advance) — except `email`/`subject`/`privacyConsent`, which
+  keep their functional meaning. `applyFormspreeMetadata()` now always appends a "Submission details"
+  group (Language/Page/Consent/Submitted — English locale names, Yes/No, a readable timestamp) in
+  place of the old raw `locale`/`page_url`/`privacyConsent`. Both run inside
+  `useFormspreeSubmit.submit()` itself — every one of the 6 forms gets this for free with no
+  component-level changes (Work With Us's earlier bespoke per-field renaming was removed again as
+  redundant once this became the shared, centralized behavior).
+- Applies uniformly to Contact, Volunteer, Work With Us, Catering, Event Decoration, and Host at
+  RORUM. No visible form design, validation, locale behavior, loading/success/error state, or
+  Formspree endpoint/recipient changed.
 
 ---
 

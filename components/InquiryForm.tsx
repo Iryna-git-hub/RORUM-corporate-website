@@ -223,10 +223,14 @@ export function InquiryForm({
           nextErrors.guests = messages.guestsRangeMessage;
         }
       }
-    } else {
-      const privacyError = validatePrivacyConsent(formData, messages.privacyConsentRequiredMessage);
-      if (privacyError) nextErrors.privacyConsent = privacyError;
     }
+    // Privacy consent is mandatory on EVERY form, booking included — this
+    // used to be skipped for booking (paired with `PrivacyConsent
+    // required={false}` below), which let a Host at RORUM request through
+    // with no consent at all. `useFormspreeSubmit.submit()` also refuses to
+    // deliver without it now, as a second, independent safety net.
+    const privacyError = validatePrivacyConsent(formData, messages.privacyConsentRequiredMessage);
+    if (privacyError) nextErrors.privacyConsent = privacyError;
 
     setErrors(nextErrors);
     setSubmitError("");
@@ -435,7 +439,7 @@ export function InquiryForm({
           <FieldError id="booking-message-error" message={errors.message} />
         </label>
 
-        <PrivacyConsent id="booking-privacy" required={false} />
+        <PrivacyConsent id="booking-privacy" error={errors.privacyConsent} />
 
         <button ref={submitButtonRef} className={SUBMIT_BUTTON_CLASS} type="submit" disabled={isSubmitting}>
           {isSubmitting ? messages.sendingLabel : submitLabel}

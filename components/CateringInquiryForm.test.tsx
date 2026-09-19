@@ -62,12 +62,13 @@ describe("CateringInquiryForm — unified Formspree delivery", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
-    expect(fd.get("form_name")).toBe("Catering inquiry");
+    expect(fd.has("form_name")).toBe(false);
     expect(fd.get("subject")).toBe("[RoRUM] Catering inquiry — Sofia Berg");
-    expect(fd.get("_subject")).toBe("[RoRUM] Catering inquiry — Sofia Berg");
-    expect(fd.get("locale")).toBe("en");
-    expect(fd.get("eventDate")).toBe("2099-05-01");
-    expect(fd.get("message")).toBe("Lunch for 30 people");
+    expect(fd.has("_subject")).toBe(false);
+    expect(fd.has("locale")).toBe(false);
+    expect(fd.get("Language")).toBe("English");
+    expect(fd.get("Event Date")).toBe("2099-05-01");
+    expect(fd.get("Message")).toBe("Lunch for 30 people");
   });
 
   it("Done closes the success modal, returns focus to the submit button, and the form can be submitted again", async () => {
@@ -125,5 +126,60 @@ describe("CateringInquiryForm — unified Formspree delivery", () => {
     resolve();
     expect(await screen.findByText("ok")).toBeInTheDocument();
     expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("CateringInquiryForm — privacy consent is mandatory", () => {
+  it("the consent checkbox is unchecked by default", () => {
+    render(<CateringInquiryForm />);
+    expect((screen.getByRole("checkbox") as HTMLInputElement).checked).toBe(false);
+  });
+
+  it("blocks submission when consent is unchecked — no Formspree call, no success, localized error, input preserved", async () => {
+    render(<CateringInquiryForm successMessage="Catering request received!" />);
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Sofia Berg");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 55 55 55 55");
+    await userEvent.type(screen.getByLabelText(/^Email/), "sofia@example.com");
+    await userEvent.type(screen.getByLabelText(/Event date/), "2099-05-01");
+    await userEvent.type(screen.getByLabelText(/Message/), "Lunch for 30 people");
+    // Deliberately left unchecked.
+    await userEvent.click(screen.getByRole("button", { name: /Request Catering/i }));
+
+    expect(await screen.findByText(/agree to the Privacy policy/i)).toBeInTheDocument();
+    expect(submitToFormspreeMock).not.toHaveBeenCalled();
+    expect(screen.queryByText("Catering request received!")).not.toBeInTheDocument();
+    expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("Sofia Berg");
+  });
+
+  it("blocks keyboard-only submission (Enter in a text field) exactly like a mouse click", async () => {
+    render(<CateringInquiryForm successMessage="Catering request received!" />);
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 55 55 55 55");
+    await userEvent.type(screen.getByLabelText(/^Email/), "sofia@example.com");
+    await userEvent.type(screen.getByLabelText(/Message/), "Lunch for 30 people");
+    // Enter inside a single-line <input> implicitly submits the form.
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Sofia Berg{Enter}");
+
+    expect(await screen.findByText(/agree to the Privacy policy/i)).toBeInTheDocument();
+    expect(submitToFormspreeMock).not.toHaveBeenCalled();
+  });
+
+  it("checking consent after a blocked attempt allows submission, with Consent: Yes in the payload", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<CateringInquiryForm successMessage="Catering request received!" />);
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Sofia Berg");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 55 55 55 55");
+    await userEvent.type(screen.getByLabelText(/^Email/), "sofia@example.com");
+    await userEvent.type(screen.getByLabelText(/Event date/), "2099-05-01");
+    await userEvent.type(screen.getByLabelText(/Message/), "Lunch for 30 people");
+    await userEvent.click(screen.getByRole("button", { name: /Request Catering/i }));
+    expect(submitToFormspreeMock).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("checkbox"));
+    await userEvent.click(screen.getByRole("button", { name: /Request Catering/i }));
+
+    await screen.findByRole("dialog");
+    const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
+    expect(fd.get("Consent")).toBe("Yes");
+    expect(fd.get("Name")).toBe("Sofia Berg");
   });
 });

@@ -55,13 +55,14 @@ describe("VolunteerApplicationForm — unified Formspree delivery", () => {
     await waitFor(() => expect(within(dialog).getByRole("button", { name: "Close" })).toHaveFocus());
     expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
-    expect(fd.get("form_name")).toBe("Volunteer application");
+    expect(fd.has("form_name")).toBe(false);
     expect(fd.get("subject")).toBe("[RoRUM] Volunteer application — Mette Larsen");
-    expect(fd.get("_subject")).toBe("[RoRUM] Volunteer application — Mette Larsen");
-    expect(fd.get("locale")).toBe("da");
-    expect(fd.get("name")).toBe("Mette Larsen");
+    expect(fd.has("_subject")).toBe(false);
+    expect(fd.has("locale")).toBe(false);
+    expect(fd.get("Language")).toBe("Danish");
+    expect(fd.get("Name")).toBe("Mette Larsen");
     expect(fd.get("email")).toBe("mette@example.com");
-    expect(fd.get("message")).toBe("I'd love to help at events");
+    expect(fd.get("Message")).toBe("I'd love to help at events");
   });
 
   it("Done closes the whole modal and returns focus to the trigger; reopening shows a fresh form, not the previous success state", async () => {
@@ -111,5 +112,74 @@ describe("VolunteerApplicationForm — unified Formspree delivery", () => {
     resolve();
     expect(await screen.findByText("ok")).toBeInTheDocument();
     expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("VolunteerApplicationForm — privacy consent is mandatory", () => {
+  it("the consent checkbox is unchecked by default when the modal opens", async () => {
+    render(<VolunteerApplicationButton />);
+    await userEvent.click(screen.getByRole("button", { name: /Apply to volunteer/i }));
+    expect((screen.getByRole("checkbox") as HTMLInputElement).checked).toBe(false);
+  });
+
+  it("blocks submission when consent is unchecked — no Formspree call, no success dialog, localized error, input preserved", async () => {
+    render(<VolunteerApplicationButton content={{ modalTitle: "V", messagePlaceholder: "", successMessage: "Application sent!", errorMessage: "err" }} />);
+    await userEvent.click(screen.getByRole("button", { name: /Apply to volunteer/i }));
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Mette Larsen");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 11 22 33 44");
+    await userEvent.type(screen.getByLabelText(/^Email/), "mette@example.com");
+    await userEvent.type(screen.getByLabelText(/Message/), "I'd love to help at events");
+    // Deliberately left unchecked.
+    await userEvent.click(screen.getByRole("button", { name: /Send Application/i }));
+
+    expect(await screen.findByText(/agree to the Privacy policy/i)).toBeInTheDocument();
+    expect(submitToFormspreeMock).not.toHaveBeenCalled();
+    expect(screen.queryByText("Application sent!")).not.toBeInTheDocument();
+    expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("Mette Larsen");
+  });
+
+  it("blocks keyboard-only submission (Enter in a text field) exactly like a mouse click", async () => {
+    render(<VolunteerApplicationButton content={{ modalTitle: "V", messagePlaceholder: "", successMessage: "Application sent!", errorMessage: "err" }} />);
+    await userEvent.click(screen.getByRole("button", { name: /Apply to volunteer/i }));
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 11 22 33 44");
+    await userEvent.type(screen.getByLabelText(/^Email/), "mette@example.com");
+    await userEvent.type(screen.getByLabelText(/Message/), "I'd love to help at events");
+    // Enter inside a single-line <input> implicitly submits the form.
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Mette Larsen{Enter}");
+
+    expect(await screen.findByText(/agree to the Privacy policy/i)).toBeInTheDocument();
+    expect(submitToFormspreeMock).not.toHaveBeenCalled();
+  });
+
+  it("checking consent after a blocked attempt allows submission, with Consent: Yes in the payload", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<VolunteerApplicationButton content={{ modalTitle: "V", messagePlaceholder: "", successMessage: "Application sent!", errorMessage: "err" }} />);
+    await userEvent.click(screen.getByRole("button", { name: /Apply to volunteer/i }));
+    await userEvent.type(screen.getByLabelText(/Full Name/), "Mette Larsen");
+    await userEvent.type(screen.getByLabelText(/Phone number/), "+45 11 22 33 44");
+    await userEvent.type(screen.getByLabelText(/^Email/), "mette@example.com");
+    await userEvent.type(screen.getByLabelText(/Message/), "I'd love to help at events");
+    await userEvent.click(screen.getByRole("button", { name: /Send Application/i }));
+    expect(submitToFormspreeMock).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("checkbox"));
+    await userEvent.click(screen.getByRole("button", { name: /Send Application/i }));
+
+    await screen.findByRole("dialog");
+    const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
+    expect(fd.get("Consent")).toBe("Yes");
+    expect(fd.get("Name")).toBe("Mette Larsen");
+  });
+
+  it("reopening the modal after a previous successful submission still starts with consent unchecked", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<VolunteerApplicationButton content={{ modalTitle: "V", messagePlaceholder: "", successMessage: "Application sent!", errorMessage: "err" }} />);
+    await openAndFill();
+    await userEvent.click(screen.getByRole("button", { name: /Send Application/i }));
+    await screen.findByRole("dialog");
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+
+    await userEvent.click(screen.getByRole("button", { name: /Apply to volunteer/i }));
+    expect((screen.getByRole("checkbox") as HTMLInputElement).checked).toBe(false);
   });
 });

@@ -39,7 +39,7 @@ export async function submitToFormspree(formData: FormData): Promise<void> {
 // only identifier.
 
 export interface FormspreeFormMeta {
-  /** Human-readable form identifier — sent as `form_name`. */
+  /** Standardized English email subject (before any name suffix). No longer sent as a separate `form_name` field — see `applyFormspreeMetadata`. */
   formName: string;
   /** Standardized English email subject (before any name suffix). */
   subject: string;
@@ -60,7 +60,7 @@ export const RORUM_FORMS = {
   },
   workWithUs: {
     formName: "Work With Us application",
-    subject: "[RoRUM] Work With Us application",
+    subject: "[RoRUM] Work With Us",
     appendName: true,
   },
   catering: {
@@ -82,40 +82,164 @@ export const RORUM_FORMS = {
 
 export type RorumFormKey = keyof typeof RORUM_FORMS;
 
+const LOCALE_ENGLISH_NAMES: Record<string, string> = {
+  en: "English",
+  da: "Danish",
+  uk: "Ukrainian",
+};
+
+// Explicit IANA zone, not the applicant's own device/browser timezone —
+// without this, `toLocaleString` silently falls back to the RUNTIME's local
+// timezone, which is whatever timezone the visitor's device happens to be
+// set to (anywhere in the world), not RoRUM's own. "Europe/Copenhagen" makes
+// `Intl` apply Denmark's actual DST rules (CET/UTC+1 in winter, CEST/UTC+2
+// in summer) automatically — this is a single conversion (the `Date`'s
+// underlying UTC instant -> Copenhagen wall-clock time for display), not a
+// double conversion; `new Date()` itself carries no timezone, only an
+// instant. Note this is independent of, and often WON'T match, what
+// Formspree's own dashboard shows for the same submission — that renders in
+// UTC (not configurable), so during Danish summer time it reads exactly 2
+// hours earlier than this field, by design.
+const SUBMITTED_AT_TIME_ZONE = "Europe/Copenhagen";
+
+/** Always English, regardless of `locale` — this is a note for the RoRUM team, not visitor-facing content. */
+function formatSubmittedAt(date: Date = new Date()): string {
+  return date.toLocaleString("en-GB", {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: SUBMITTED_AT_TIME_ZONE,
+  });
+}
+
+// Fields with a name Formspree treats as special, or that this helper itself
+// manages separately — never renamed by `humanizeFormFields`:
+//  - `email`   — Formspree's OFFICIAL, documented Reply-To trigger (a field
+//                literally named `email`; see
+//                help.formspree.io/articles/building-your-form/email-reply-to-address).
+//                Renaming it away silently breaks Reply-To.
+//  - `subject` — Formspree's OFFICIAL, documented email-Subject trigger (see
+//                help.formspree.io/articles/building-your-form/email-subject-line).
+//                Set by `applyFormspreeMetadata` below; must stay lowercase.
+//  - `privacyConsent` — folded into the "Submission details" block's
+//                `Consent` field by `applyFormspreeMetadata`, not shown as-is.
+const HUMANIZE_SKIP = new Set(["email", "subject", "privacyConsent"]);
+
+// The handful of fields whose mechanical camelCase→"Title Case" split
+// (below) wouldn't read naturally — everything else across all 6 forms
+// (name, phone, message, eventDate, eventTime, guests, package,
+// additionalServices, experience, links) already comes out right without an
+// override; see lib/formspree.test.ts for the full table.
+const FIELD_LABEL_OVERRIDES: Record<string, string> = {
+  roleInterest: "Interested in",
+  whyRorum: "Why RoRUM?",
+};
+
+/**
+ * "eventDate" -> "Event Date", "additionalServices" -> "Additional
+ * Services", "guests" -> "Guests". Used by `humanizeFormFields` as the
+ * fallback for any field without an explicit `FIELD_LABEL_OVERRIDES` entry —
+ * covers custom fields a manager adds in Sanity (e.g. Contact's
+ * CMS-configurable field list) that this file can't know about in advance.
+ */
+function humanizeFieldName(name: string): string {
+  return name
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/**
+ * Relabels every field in `formData` to a human-readable key — "name" ->
+ * "Name", "eventDate" -> "Event Date", etc. (override table first, then the
+ * mechanical splitter above) — EXCEPT the fields in `HUMANIZE_SKIP`.
+ *
+ * IMPORTANT, verified against a real Formspree Free-plan account: Formspree
+ * renders the notification email and dashboard fields ALPHABETICALLY BY
+ * FIELD NAME, not in FormData submission order, and this is not configurable
+ * on the Free plan. So this function controls each field's LABEL (this is
+ * genuinely achievable — the field name IS the label on the default
+ * template) but NOT its position. Do not rename fields to force a display
+ * order (e.g. numeric prefixes) — that reads as broken, robotic labels to
+ * the RoRUM team and was explicitly ruled out.
+ *
+ * Called once, by `useFormspreeSubmit.submit()`, for every RORUM form — so
+ * every component gets consistent labels for free, with zero changes to the
+ * component itself.
+ */
+export function humanizeFormFields(formData: FormData): void {
+  for (const key of [...formData.keys()]) {
+    if (HUMANIZE_SKIP.has(key)) continue;
+    const label = FIELD_LABEL_OVERRIDES[key] ?? humanizeFieldName(key);
+    if (label === key) continue;
+    const value = formData.get(key);
+    formData.delete(key);
+    if (value !== null) formData.set(label, value);
+  }
+}
+
+/**
+ * The "Submission details" block every RORUM form now gets — appended AFTER
+ * the form's own (already humanized) fields. Reads `privacyConsent` off the
+ * FormData and removes it (replaced by `Consent`); also removes any raw
+ * `locale`/`page_url`/`form_name` a caller's no-JS-fallback hidden inputs may
+ * have left behind, so nothing technical survives alongside it.
+ */
+function applySubmissionDetails(formData: FormData, locale?: string): void {
+  const consentRaw = formData.get("privacyConsent");
+  formData.delete("privacyConsent");
+  formData.delete("locale");
+  formData.delete("page_url");
+  formData.delete("form_name");
+
+  formData.set("Language", locale ? LOCALE_ENGLISH_NAMES[locale] ?? locale : "Unknown");
+  formData.set("Page", typeof window !== "undefined" ? window.location?.href ?? "" : "");
+  formData.set("Consent", consentRaw === "on" || consentRaw === "true" ? "Yes" : "No");
+  formData.set("Submitted", formatSubmittedAt());
+}
+
 /**
  * Adds the standardized metadata every RORUM submission carries, in place, to
- * the FormData built from the form element:
+ * the FormData built from the form element — call AFTER `humanizeFormFields`
+ * (see `useFormspreeSubmit.submit()`, the one place that calls both):
  *
- * - `form_name`   — human-readable form identifier (RORUM_FORMS[key].formName)
- * - `subject`     — English subject, form type first, optional " — {name}"
- * - `_subject`    — same value; Formspree's field for the actual email Subject
- * - `locale`      — the visitor's locale ("en" | "da" | "uk"), when known
- * - `page_url`    — the page the form was submitted from (browser only)
+ * - `subject` — Formspree's OFFICIAL, documented field for the email Subject
+ *   header (help.formspree.io/articles/building-your-form/email-subject-line
+ *   recommends exactly `name="subject"`). This project previously used the
+ *   undocumented `_subject` convention and, before that, BOTH `subject` and
+ *   `_subject` at once — the real duplicate-subject bug. Verified against a
+ *   real Formspree Free-plan submission: like every other field, `subject`
+ *   ALSO appears as an ordinary row in the notification body/dashboard —
+ *   Formspree has no purely-hidden variant of this mechanism on the Free
+ *   plan (a true custom template is a paid-plan feature — see below). That
+ *   row is an accepted, unavoidable Free-plan characteristic, not something
+ *   to work around with more special fields.
+ * - the "Submission details" block (Language / Page / Consent / Submitted) —
+ *   see `applySubmissionDetails` above.
  *
  * Purely synchronous string work — no network. The recipient address is NOT
  * added here (or anywhere in the app); it lives on the Formspree form.
+ *
+ * `options.name`, when passed, is used for the subject's " — {name}" suffix
+ * INSTEAD of reading `formData.get("name")` — needed because
+ * `humanizeFormFields` already renamed `name` to "Name" by this point.
  */
 export function applyFormspreeMetadata(
   formData: FormData,
   form: RorumFormKey,
-  options: { locale?: string } = {},
+  options: { locale?: string; name?: string } = {},
 ): void {
-  const meta = RORUM_FORMS[form];
+  const meta: FormspreeFormMeta = RORUM_FORMS[form];
 
   let subject: string = meta.subject;
   if (meta.appendName) {
-    const name = String(formData.get("name") ?? "").trim();
+    const name = (options.name ?? String(formData.get("name") ?? "")).trim();
     if (name) subject = `${subject} — ${name}`;
   }
 
-  formData.set("form_name", meta.formName);
   formData.set("subject", subject);
-  formData.set("_subject", subject);
-
-  if (options.locale) formData.set("locale", options.locale);
-  if (typeof window !== "undefined" && window.location?.href) {
-    formData.set("page_url", window.location.href);
-  }
+  applySubmissionDetails(formData, options.locale);
 }
 
 // --- Payload-quality helpers for value/label option fields ------------------
