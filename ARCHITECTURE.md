@@ -273,13 +273,15 @@ tool, backed by Next.js Draft Mode:
   / `sanityEventImageAttr`, all over `sanityFieldAttr` → `createDataAttribute`),
   emitted only in Draft Mode, using stable `_key`-based field paths and
   focusing the whole containing `mediaItem`/`contentItem`. Coverage is
-  site-wide (every public page) — see MIGRATION_REPORT.md Part 31 for the
-  per-page inventory and the STATIC/DERIVED exclusions.
+  site-wide (every public page); the per-page inventory and STATIC/DERIVED
+  exclusions were documented in the (since-removed) MIGRATION_REPORT.md
+  development diary, recoverable from git history if ever needed.
 - The Presentation preview URL is a relative `/` (Studio is embedded on the
   same origin), so no per-environment code or URL config is needed.
 
-See `MIGRATION_REPORT.md` Parts 29–30 for the full rationale, the stega
-root-cause analysis, and the write token / read token isolation rules.
+The full rationale, stega root-cause analysis, and write/read token isolation
+rules were documented in the (since-removed) MIGRATION_REPORT.md development
+diary, recoverable from git history if ever needed.
 
 ---
 
@@ -341,8 +343,8 @@ Sanity Studio configuration, schemas, structures, queries and CMS-related code.
 `tests/`
 Automated tests.
 
-`MIGRATION_REPORT.md`
-Historical migration record.
+`HANDOFF.md`
+Current setup, deployment, ownership, and known-limitations summary for handoff.
 
 `SANITY_MIGRATION.md`
 Current CMS migration requirements and status.

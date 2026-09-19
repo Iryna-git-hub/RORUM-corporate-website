@@ -33,15 +33,17 @@ export function PrivacyPolicyContent({ email = fallbackContactDetails.email }: {
         <li>consent, where you have given consent for a specific purpose</li>
       </ul>
 
-      <h2>5. CV and collaboration inquiries</h2>
+      <h2>5. Work with us applications and collaboration inquiries</h2>
       <p>
-        If you submit your CV, portfolio or other information through the Work
-        with us page, RORUM uses this information to review possible
-        collaborations, roles or future opportunities.
+        If you apply through the Work with us page, RORUM uses the information
+        you submit — such as your experience, the role you are interested in
+        and any links you choose to share — to review possible collaborations,
+        roles or future opportunities.
       </p>
       <p>
-        CVs and related messages may be kept for up to 12 months, unless you ask
-        RORUM to delete them earlier or unless a longer period is agreed.
+        Applications and related messages may be kept for up to 12 months,
+        unless you ask RORUM to delete them earlier or unless a longer period
+        is agreed.
       </p>
 
       <h2>6. External providers</h2>

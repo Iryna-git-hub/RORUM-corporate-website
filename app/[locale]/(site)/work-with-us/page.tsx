@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { ArrowRight, DoorOpen, HeartHandshake, Sprout, type LucideIcon } from "lucide-react";
-import { CvUploadButton, type CvUploadFormContent } from "@/components/CvUploadModal";
+import {
+  WorkWithUsApplicationButton,
+  type WorkWithUsApplicationFormContent,
+} from "@/components/WorkWithUsApplicationForm";
+import type { SelectableOption } from "@/components/InquiryForm";
 import { Container, SectionLabel } from "@/components/ui";
 import { localizedPageMetadata } from "@/lib/seo";
 import { isLocale, type Locale } from "@/lib/i18n";
@@ -23,7 +27,7 @@ const HERO_TEXT_P_CLASS = "m-0 max-w-[66ch] text-text-primary text-base leading-
 
 const fallbackHeroParagraphs = [
   "If our work resonates with you, we would be happy to get to know you.",
-  "Please feel free to send us your CV, and if any opportunities arise within our projects or activities that match your experience and interests, we will be sure to get in touch.",
+  "If any opportunities arise within our projects or activities that match your experience and interests, we will be sure to get in touch — tell us a bit about yourself below.",
   "We believe that opportunities grow through people — and sometimes the right environment can open doors you didn't even know existed.",
   "Maybe it leads to a collaboration. Maybe to a role. Or maybe to a connection that brings something unexpected.",
   "Either way — it starts here.",
@@ -34,22 +38,42 @@ const fallbackCollaborationImages = [
   { image: "/images/work-with-us/light-collaboration.png", alt: "Light RORUM collaboration scene with planning materials" },
 ];
 
-const fallbackCvUploadForm: CvUploadFormContent = {
-  modalTitle: "Send your CV",
-  modalTitleSent: "Thank you — we received your CV",
+const fallbackApplicationForm: WorkWithUsApplicationFormContent = {
+  modalTitle: "Apply to work with us",
+  modalTitleSent: "Thank you — we received your application",
   description:
-    "We'd love to hear from you. Upload your CV and tell us a little about yourself — we'll keep your details in mind for future collaborations, roles, or opportunities at RORUM.",
+    "We'd love to hear from you. Tell us about yourself and how you'd like to get involved — we'll keep your details in mind for future collaborations, roles, or opportunities at RORUM.",
   descriptionSent:
     "Thank you for reaching out and sharing your story with RORUM. We'll keep your details in mind for future collaborations, roles, or opportunities.",
-  messagePlaceholder: "Tell us briefly what kind of collaboration you are interested in.",
-  dropzoneText: "Choose a PDF, DOC, or DOCX file",
-  errorMessage: "Something went wrong while sending your CV. Please try again.",
+  errorMessage: "Something went wrong while sending your application. Please try again.",
+  fullNamePlaceholder: "e.g. Anna Jensen",
+  emailPlaceholder: "e.g. anna@example.com",
+  phonePlaceholder: "e.g. +45 12 34 56 78",
+  roleInterestLabel: "What kind of role are you interested in?",
+  experienceLabel: "Tell us about your experience and skills",
+  experiencePlaceholder:
+    "Tell us briefly about your relevant experience, practical skills, and what you are good at.",
+  whyRorumLabel: "Why would you like to work with RORUM?",
+  whyRorumPlaceholder: "Tell us what interests you about RORUM and why you would like to work with us.",
+  linksLabel: "Links",
+  linksPlaceholder: "LinkedIn, portfolio, or personal website",
 };
+
+const fallbackRoleOptions: SelectableOption[] = [
+  { value: "role0", label: "Social media & content" },
+  { value: "role1", label: "Event planning & coordination" },
+  { value: "role2", label: "Event support / practical help" },
+  { value: "role3", label: "Kitchen & food preparation" },
+  { value: "role4", label: "Catering / serving at events" },
+  { value: "role5", label: "Community activities" },
+  { value: "role6", label: "Administration & coordination" },
+  { value: "role7", label: "Other" },
+];
 
 const fallback = {
   heroLabel: "Work with us",
   heroTitle: "Work with us",
-  cvUploadCta: "Send your CV",
+  applicationCta: "Apply now",
   seoTitle: "Work With Us | Opportunities at RORUM",
   description: "Explore opportunities to work and collaborate with RORUM and contribute to events, hospitality and community experiences.",
 };
@@ -61,7 +85,8 @@ async function getData(locale: Locale) {
       heroParagraphs: fallbackHeroParagraphs,
       featureItems: fallbackFeatureItems,
       collaborationImages: fallbackCollaborationImages,
-      cvUploadForm: fallbackCvUploadForm,
+      applicationForm: fallbackApplicationForm,
+      roleOptions: fallbackRoleOptions,
     };
   }
 
@@ -69,7 +94,7 @@ async function getData(locale: Locale) {
 
   const heroSection = getSection(newPage?.sections, "hero");
   const featuresSection = getSection(newPage?.sections, "features");
-  const formSection = getSection(newPage?.sections, "cvUploadForm");
+  const formSection = getSection(newPage?.sections, "applyForm");
 
   const heroParagraphItems = (heroSection?.items ?? []).filter((i) => i.itemKey?.startsWith("hero"));
   const heroParagraphs = heroParagraphItems.length
@@ -93,28 +118,76 @@ async function getData(locale: Locale) {
       }))
     : fallbackCollaborationImages;
 
-  const cvUploadForm: CvUploadFormContent = {
+  const applicationForm: WorkWithUsApplicationFormContent = {
     modalTitle:
-      pickLocalized(getItem(formSection, "modalTitle")?.title, locale) ?? fallbackCvUploadForm.modalTitle,
+      pickLocalized(getItem(formSection, "modalTitle")?.title, locale) ?? fallbackApplicationForm.modalTitle,
     modalTitleSent:
-      pickLocalized(getItem(formSection, "modalTitleSent")?.title, locale) ?? fallbackCvUploadForm.modalTitleSent,
+      pickLocalized(getItem(formSection, "modalTitleSent")?.title, locale) ?? fallbackApplicationForm.modalTitleSent,
     description:
-      pickLocalized(getItem(formSection, "description")?.text, locale) ?? fallbackCvUploadForm.description,
+      pickLocalized(getItem(formSection, "description")?.text, locale) ?? fallbackApplicationForm.description,
     descriptionSent:
-      pickLocalized(getItem(formSection, "descriptionSent")?.text, locale) ?? fallbackCvUploadForm.descriptionSent,
-    messagePlaceholder:
-      pickLocalized(getItem(formSection, "messagePlaceholder")?.title, locale) ?? fallbackCvUploadForm.messagePlaceholder,
-    dropzoneText:
-      pickLocalized(getItem(formSection, "dropzoneText")?.title, locale) ?? fallbackCvUploadForm.dropzoneText,
+      pickLocalized(getItem(formSection, "descriptionSent")?.text, locale) ?? fallbackApplicationForm.descriptionSent,
     errorMessage:
-      pickLocalized(getItem(formSection, "errorMessage")?.text, locale) ?? fallbackCvUploadForm.errorMessage,
+      pickLocalized(getItem(formSection, "errorMessage")?.text, locale) ?? fallbackApplicationForm.errorMessage,
+    fullNamePlaceholder:
+      pickLocalized(getItem(formSection, "fullNamePlaceholder")?.title, locale) ??
+      fallbackApplicationForm.fullNamePlaceholder,
+    emailPlaceholder:
+      pickLocalized(getItem(formSection, "emailPlaceholder")?.title, locale) ?? fallbackApplicationForm.emailPlaceholder,
+    phonePlaceholder:
+      pickLocalized(getItem(formSection, "phonePlaceholder")?.title, locale) ?? fallbackApplicationForm.phonePlaceholder,
+    roleInterestLabel:
+      pickLocalized(getItem(formSection, "roleInterestLabel")?.title, locale) ?? fallbackApplicationForm.roleInterestLabel,
+    experienceLabel:
+      pickLocalized(getItem(formSection, "experienceLabel")?.title, locale) ?? fallbackApplicationForm.experienceLabel,
+    experiencePlaceholder:
+      pickLocalized(getItem(formSection, "experiencePlaceholder")?.title, locale) ??
+      fallbackApplicationForm.experiencePlaceholder,
+    whyRorumLabel:
+      pickLocalized(getItem(formSection, "whyRorumLabel")?.title, locale) ?? fallbackApplicationForm.whyRorumLabel,
+    whyRorumPlaceholder:
+      pickLocalized(getItem(formSection, "whyRorumPlaceholder")?.title, locale) ??
+      fallbackApplicationForm.whyRorumPlaceholder,
+    linksLabel: pickLocalized(getItem(formSection, "linksLabel")?.title, locale) ?? fallbackApplicationForm.linksLabel,
+    linksPlaceholder:
+      pickLocalized(getItem(formSection, "linksPlaceholder")?.title, locale) ?? fallbackApplicationForm.linksPlaceholder,
   };
+
+  // Role-interest checkboxes — same canonical value/label array pattern
+  // InquiryForm.tsx's `packageOptions`/`serviceOptions` already established:
+  // the stable, submitted `value` IS the item's own itemKey ("role0" etc.),
+  // never re-typed as a separate field; the visible `label` is the item's
+  // localized title. Falls back to the built-in English set whenever Sanity
+  // yields nothing usable (no "role*" rows yet, or every row resolving to an
+  // empty label) — the checkbox group must never render empty with an
+  // unsatisfiable "at least one role" requirement. Matches `sanity/schemaTypes/objects/
+  // contentItem.ts`'s `role[0-7]` Studio-visibility pattern exactly (not a
+  // loose "starts with role" prefix) so a manager can never add a row that's
+  // editable on the frontend but invisible/unrecognized in Studio, or vice
+  // versa. The fallback label is looked up by itemKey, not array position —
+  // a reordered, partially-translated, or edited row can never inherit a
+  // different role's label.
+  const roleItems = (formSection?.items ?? []).filter((i) => /^role[0-7]$/.test(i.itemKey ?? ""));
+  const resolvedRoleOptions: SelectableOption[] = roleItems
+    .map((item) => ({
+      value: item.itemKey!,
+      label:
+        pickLocalized(item.title, locale) ??
+        fallbackRoleOptions.find((o) => o.value === item.itemKey)?.label ??
+        "",
+    }))
+    .filter((option) => option.label !== "");
+  // Falls back to the built-in set whenever Sanity yields nothing usable —
+  // no "role*" rows at all, or (defensively) every row resolving to an empty
+  // label — so the checkbox group is never rendered empty with an
+  // unsatisfiable "at least one role" requirement.
+  const roleOptions: SelectableOption[] = resolvedRoleOptions.length ? resolvedRoleOptions : fallbackRoleOptions;
 
   return {
     heroLabel: pickLocalized(heroSection?.label, locale) ?? fallback.heroLabel,
     heroTitle: pickLocalized(heroSection?.title, locale) ?? fallback.heroTitle,
-    cvUploadCta:
-      pickLocalized(getItem(heroSection, "cvUploadCta")?.title, locale) ?? fallback.cvUploadCta,
+    applicationCta:
+      pickLocalized(getItem(heroSection, "applyCta")?.title, locale) ?? fallback.applicationCta,
     seoTitle: pickLocalized(newPage?.seo?.title, locale) ?? fallback.seoTitle,
     description: pickLocalized(newPage?.seo?.description, locale) ?? fallback.description,
     ogImageUrl: urlForImage(newPage?.seo?.ogImage as unknown as Parameters<typeof urlForImage>[0])
@@ -124,7 +197,8 @@ async function getData(locale: Locale) {
     heroParagraphs,
     featureItems,
     collaborationImages,
-    cvUploadForm,
+    applicationForm,
+    roleOptions,
   };
 }
 
@@ -149,8 +223,16 @@ export async function generateMetadata({
 export default async function WorkWithUsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "en";
-  const { heroLabel, heroTitle, cvUploadCta, heroParagraphs, featureItems, collaborationImages, cvUploadForm } =
-    await getData(locale);
+  const {
+    heroLabel,
+    heroTitle,
+    applicationCta,
+    heroParagraphs,
+    featureItems,
+    collaborationImages,
+    applicationForm,
+    roleOptions,
+  } = await getData(locale);
 
   return (
     <>
@@ -169,17 +251,18 @@ export default async function WorkWithUsPage({ params }: { params: Promise<{ loc
                   </p>
                 ))}
               </div>
-              <CvUploadButton
+              <WorkWithUsApplicationButton
                 className="group inline-flex items-center justify-center gap-2 min-h-[46px] w-fit px-[clamp(20px,3vw,30px)] border border-primary rounded-pill bg-primary text-white text-[12.5px] font-bold tracking-[0.02em] uppercase cursor-pointer transition-[transform,background-color,border-color,color] duration-[180ms] ease-[ease] hover:-translate-y-px hover:bg-primary-dark hover:border-primary-dark hover:text-white active:bg-primary-darker active:border-primary-darker max-sm:w-full"
-                content={cvUploadForm}
+                content={applicationForm}
+                roleOptions={roleOptions}
               >
-                <span>{cvUploadCta}</span>
+                <span>{applicationCta}</span>
                 <ArrowRight
                   className="w-[15px] h-[15px] shrink-0 transition-transform duration-[180ms] ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1"
                   aria-hidden="true"
                   strokeWidth={1.9}
                 />
-              </CvUploadButton>
+              </WorkWithUsApplicationButton>
             </div>
             <div className="relative w-full aspect-square min-h-0 overflow-visible isolate max-sm:max-w-full">
               <div className="absolute overflow-hidden bg-beige shadow-[0_18px_42px_rgba(var(--rgb-brown),0.1)] top-0 right-0 w-[66.666%] aspect-square">

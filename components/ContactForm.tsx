@@ -1,9 +1,10 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { PrivacyConsent, validatePrivacyConsent } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
+import { FormSuccessModal } from "@/components/FormSuccessModal";
 import { useLocale } from "@/lib/useLocale";
 import { formspreeConfig, isFormspreeConfigured } from "@/lib/formspree";
 import { useFormspreeSubmit } from "@/lib/useFormspreeSubmit";
@@ -75,7 +76,13 @@ export function ContactForm({
   const { messages } = useFormContent();
   const { locale } = useLocale();
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { sent, isSubmitting, submitError, submit, setSubmitError } = useFormspreeSubmit("contact");
+  const { sent, isSubmitting, submitError, submit, setSubmitError, resetSuccess } = useFormspreeSubmit("contact");
+  const submitButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  function closeSuccessModal() {
+    resetSuccess();
+    requestAnimationFrame(() => submitButtonRef.current?.focus());
+  }
 
   const fields = resolveContactFormFields(formSection, messages, locale);
   const showPrivacyConsent = privacyConsent?.shown ?? true;
@@ -106,6 +113,7 @@ export function ContactForm({
   }
 
   return (
+    <>
     <form
       className="grid gap-4 border-0 rounded-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] text-text-primary overflow-hidden p-[clamp(20px,3vw,4rem)]"
       // Native `action` only once a real endpoint exists — otherwise a no-JS
@@ -130,14 +138,6 @@ export function ContactForm({
           {formTitle}
         </h2>
       </div>
-      {sent ? (
-        <div
-          className="border border-[rgba(var(--rgb-light-green),0.28)] rounded-none bg-[rgba(var(--rgb-beige),0.24)] p-3.5 text-primary-dark font-bold"
-          role="status"
-        >
-          {successMessage}
-        </div>
-      ) : null}
       {submitError ? (
         <div
           className="border border-[rgba(var(--rgb-red),0.24)] bg-[rgba(var(--rgb-red),0.08)] p-3.5 text-accent text-sm font-bold leading-[1.55]"
@@ -190,12 +190,24 @@ export function ContactForm({
         <PrivacyConsent id="contact-privacy" error={errors.privacyConsent} required={requirePrivacyConsent} />
       ) : null}
       <button
+        ref={submitButtonRef}
         className="inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] lg:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker disabled:cursor-not-allowed disabled:opacity-[0.62] disabled:transform-none"
         type="submit"
-        disabled={isSubmitting || sent}
+        disabled={isSubmitting}
       >
         {isSubmitting ? messages.sendingLabel : submitLabel}
       </button>
     </form>
+    {sent ? (
+      <FormSuccessModal
+        titleId="contact-success-title"
+        title={messages.successTitle}
+        message={successMessage}
+        doneLabel={messages.doneLabel}
+        closeLabel={messages.closeLabel}
+        onClose={closeSuccessModal}
+      />
+    ) : null}
+    </>
   );
 }

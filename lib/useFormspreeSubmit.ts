@@ -28,6 +28,15 @@ import {
  * `options.failedMessage` lets a form supply its own (Sanity-managed,
  * localized) generic-failure copy — e.g. the Volunteer / Work With Us modals'
  * `errorMessage` content field — instead of the shared default.
+ *
+ * `resetSuccess()` clears `sent` without touching anything else (error state,
+ * the submission lock). Callers whose success UI can be dismissed without
+ * unmounting the form (the page-embedded forms' success modal) MUST call this
+ * when that UI closes — `submit()` treats `sent === true` as "already
+ * delivered" and no-ops, so leaving it set would silently block resubmission.
+ * Forms whose success state instead lives inside a dialog that fully
+ * unmounts on close (Volunteer, Work With Us) don't need it — a fresh mount
+ * already starts from `sent === false`.
  */
 export function useFormspreeSubmit(
   form: RorumFormKey,
@@ -69,5 +78,9 @@ export function useFormspreeSubmit(
     }
   }
 
-  return { sent, isSubmitting, submitError, submit, setSubmitError };
+  function resetSuccess() {
+    setSent(false);
+  }
+
+  return { sent, isSubmitting, submitError, submit, setSubmitError, resetSuccess };
 }

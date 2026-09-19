@@ -62,7 +62,7 @@ const EXPECTED_SECTION_ORDER: Record<string, string[]> = {
   "page-events": ["hero", "filters", "closingCta"],
   "page-host-at-rorum": ["hero", "gallery", "session", "packages", "steps", "inquiryForm"],
   "page-volunteer": ["hero", "applicationForm"],
-  "page-work-with-us": ["hero", "features", "cvUploadForm"],
+  "page-work-with-us": ["hero", "features", "applyForm"],
   // page-faq / page-catering-menu-examples: hero/banner first, then an
   // open-ended set of category sections — order within the set is editorial.
 };
@@ -76,6 +76,21 @@ const KNOWN_OBSOLETE = new Set<string>([
   "page-about:closingCta:settings", // same
   "page-events:closingCta:settings", // legacy `variant=host` — frontend hardcodes variant="host"
   "page-home:editorialHostAtRorum:settings", // legacy `variant=reversed` — frontend hardcodes `reversed`
+]);
+
+// Distinct from KNOWN_OBSOLETE: these fields are populated-but-Studio-hidden
+// ON PURPOSE, not as dead residue — the value is still actively used, just
+// not through a Studio input. `page-work-with-us:applyForm`'s own `title`
+// field is a deliberate example: Studio's array-item preview.prepare() falls
+// back to `title ?? sectionKey`, and this section's `title` INPUT stays
+// hidden (all its copy lives in items[], same as every other form section),
+// so the migration script set `title` directly so the section list shows
+// "Apply Form" instead of the raw key "applyForm" — see
+// scripts/migrate-work-with-us-rename-section.ts. Calling this "obsolete"
+// would be misleading (the value is load-bearing for the Studio UI), so it
+// gets its own bucket, counted separately in the summary.
+const INTENTIONAL_PRESENTATION_ONLY = new Set<string>([
+  "page-work-with-us:applyForm:title", // drives the section-list preview label only; see comment above
 ]);
 
 function hasData(value: unknown): boolean {
@@ -122,6 +137,7 @@ async function main() {
   const liveKeys = new Set<string>();
   let bugs = 0;
   let obsolete = 0;
+  let presentationOnly = 0;
   let unlisted = 0;
   let orderDrift = 0;
   let residueRows = 0;
@@ -157,8 +173,11 @@ async function main() {
       console.log(`\n  [${sectionKey}]  kind=${sectionKind}  (${source})`);
       console.log(`      populated: ${populated.join(", ") || "(none)"}`);
       console.log(`      shown    : ${shown.join(", ") || "(none)"}`);
-      const realBugs = populatedButHidden.filter((f) => !KNOWN_OBSOLETE.has(`${key}:${f}`));
+      const realBugs = populatedButHidden.filter(
+        (f) => !KNOWN_OBSOLETE.has(`${key}:${f}`) && !INTENTIONAL_PRESENTATION_ONLY.has(`${key}:${f}`),
+      );
       const documentedObsolete = populatedButHidden.filter((f) => KNOWN_OBSOLETE.has(`${key}:${f}`));
+      const presentationOnlyFields = populatedButHidden.filter((f) => INTENTIONAL_PRESENTATION_ONLY.has(`${key}:${f}`));
       if (realBugs.length) {
         console.log(`      🐛 POPULATED-BUT-HIDDEN (bug): ${realBugs.join(", ")}`);
         bugs += realBugs.length;
@@ -166,6 +185,10 @@ async function main() {
       if (documentedObsolete.length) {
         console.log(`      ·  obsolete (documented, data preserved): ${documentedObsolete.join(", ")}`);
         obsolete += documentedObsolete.length;
+      }
+      if (presentationOnlyFields.length) {
+        console.log(`      ·  presentation-only (intentional, drives Studio preview label): ${presentationOnlyFields.join(", ")}`);
+        presentationOnly += presentationOnlyFields.length;
       }
       if (visibleButEmpty.length) {
         console.log(`      ·  visible-but-empty: ${visibleButEmpty.join(", ")}`);
@@ -197,6 +220,7 @@ async function main() {
   console.log(`\n================ SUMMARY ================`);
   console.log(`  POPULATED-BUT-HIDDEN fields (bugs): ${bugs}`);
   console.log(`  obsolete stored fields (hidden, documented, data preserved): ${obsolete}`);
+  console.log(`  presentation-only fields (intentional, drive a Studio preview label): ${presentationOnly}`);
   console.log(`  live sections with no allow-list entry (fell back to kind): ${unlisted}`);
   console.log(`  stale allow-list keys (declared, no live section): ${stale.length ? stale.join(", ") : "none"}`);
   console.log(`  pages with section-order drift: ${orderDrift}`);

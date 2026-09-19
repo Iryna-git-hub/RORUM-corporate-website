@@ -143,6 +143,8 @@ export type FormMessages = {
   eventDateLabel?: InternationalizedArrayString;
   agreeButtonLabel?: InternationalizedArrayString;
   closeLabel?: InternationalizedArrayString;
+  successTitle?: InternationalizedArrayString;
+  doneLabel?: InternationalizedArrayString;
   copyLabel?: InternationalizedArrayString;
   copiedLabel?: InternationalizedArrayString;
   packageLabel?: InternationalizedArrayString;
@@ -984,6 +986,8 @@ export type FormMessagesQueryResult = {
   eventDateLabel?: InternationalizedArrayString;
   agreeButtonLabel?: InternationalizedArrayString;
   closeLabel?: InternationalizedArrayString;
+  successTitle?: InternationalizedArrayString;
+  doneLabel?: InternationalizedArrayString;
   copyLabel?: InternationalizedArrayString;
   copiedLabel?: InternationalizedArrayString;
   packageLabel?: InternationalizedArrayString;

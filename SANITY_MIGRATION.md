@@ -1,5 +1,16 @@
 # RORUM — Sanity Migration Specification and Checklist
 
+> **Handoff note:** this document is a dated, cumulative migration specification
+> and audit log — much of it (especially the numbered "Part"/section entries
+> later in the file) describes point-in-time findings, some since resolved,
+> some still open. For a current, consolidated summary of setup, ownership,
+> and known outstanding content gaps, see **[HANDOFF.md](./HANDOFF.md)**
+> instead. This file's general policy sections (Studio field ordering,
+> editor-friendly naming, dataset-safety rules, testing conventions) also
+> overlap substantially with `CLAUDE.md` — that overlap was left as-is during
+> handoff cleanup rather than risk trimming operationally-relevant detail
+> without a full dedicated review.
+
 ## Mission
 
 The RORUM website must be manageable through Sanity Studio by a non-technical administrator.
@@ -581,8 +592,8 @@ Route segment: `app/[locale]/(site)/<route>/page.tsx`. `en` is unprefixed; `da`/
 | 6 | `/event-decoration` | `page-event-decoration` | **Fully connected.** Hero + CTA, "Suitable Decoration Formats" chips + gallery (14 photos, DA/UK alt backfilled, real video supported), "What we style" split (intro migrated into section `text`), 3-step setup, inquiry form. | COMPLETE |
 | 7 | `/host-at-rorum` | `page-host-at-rorum` | **Fully connected.** Hero, 15-photo gallery (DA/UK alt backfilled), "Each Session Includes", Hosting Packages (3 tiers, price + checklist), 3-step setup, inquiry form. Package `<select>` + Additional-Services checkboxes now driven by the same canonical Sanity items as the cards (stable `itemKey` values, not localized labels). | COMPLETE |
 | 8 | `/community-membership` (WECODA) | `page-community-membership` | **Fully connected.** Hero (intro migrated into `text`, external WECODA link + apply-CTA DA/UK fixed), Donation section (9 bank rows, 2 copyable — bug fixed, QR image), "Connecting Women" 2-column intro, "What You Gain" benefit grid (image authoritative over icon), Application section + steps, gallery (8 photos + 2 videos, DA/UK alt backfilled). | COMPLETE |
-| 9 | `/volunteer` | `page-volunteer` | **Technical chain complete** (verified Phase C): hero eyebrow/heading/body/closing paragraphs + "Apply to volunteer" CTA all render EN/DA/UK from `page-volunteer`; `/da/volunteer` renders Danish. **BUT** the **application-modal** copy (4 items in `sections[applicationForm]`: `modalTitle`, `messagePlaceholder`, `successMessage`, `errorMessage`) is stored **EN-only**. Because `contentItem` `title`/`text` carry the shared all-or-nothing i18n rule, a half-translated row is invalid → **Studio cannot re-publish `page-volunteer` until these 4 strings get DA/UK** (the published version stays live; API writes bypassed the check). Schema/resolver/`<VolunteerApplicationButton>` all support DA/UK — only the content is missing. Form delivery is now wired through the shared Formspree path (Task 4 / §20.12). | CONTENT-BLOCKED — 4 modal strings need DA/UK before Studio re-publish (§20.9) |
-| 10 | `/work-with-us` | `page-work-with-us` | Hero + CTAs render EN/DA/UK (`/da/work-with-us` = "Arbejd med os"). **BUT** two item groups are stored **EN-only**, so — same mechanism as Volunteer — **Studio cannot re-publish `page-work-with-us`** until they get DA/UK: the **CV-upload-modal** copy (7 items in `sections[cvUploadForm]`: `modalTitle`, `modalTitleSent`, `description`, `descriptionSent`, `messagePlaceholder`, `dropzoneText`, `errorMessage`) **and** the 3 **"Why work with us" feature bullets** (`sections[features]`: `feature0/1/2` — visible untranslated on `/da` `/uk` today). Technical chain fully supports DA/UK. | CONTENT-BLOCKED — 7 modal strings + 3 feature bullets need DA/UK before Studio re-publish (§20.9) |
+| 9 | `/volunteer` | `page-volunteer` | **Fully connected.** Hero eyebrow/heading/body/closing paragraphs + "Apply to volunteer" CTA, and the application-modal copy (`sections[applicationForm]`: `modalTitle`, `messagePlaceholder`, `successMessage`, `errorMessage`) all render EN/DA/UK. The earlier EN-only content gap on the 4 modal strings has since been supplied — `npm run sanity:audit-sections` reports 0 partial-i18n fields for this document; Studio re-publish is no longer blocked. Form delivery wired through the shared Formspree path (Task 4 / §20.12). | COMPLETE |
+| 10 | `/work-with-us` | `page-work-with-us` | **Fully connected.** Hero + CTA, feature bullets, and the application form (renamed section `applyForm`, manager-facing "Apply Form" — a fully text-based application: Full name/Email/Phone with example placeholders, Role interest, Experience & skills, Why RORUM, Links, Privacy consent) all render EN/DA/UK. No CV/file-upload field exists anywhere in this form. The earlier CV-upload-modal EN-only content gap no longer applies (that architecture was removed and replaced); `npm run sanity:audit-sections` reports 0 partial-i18n fields for this document. | COMPLETE |
 | 11 | `/contact` | `page-contact` + `contactInfo` + `socialLinks` + `formMessages` | **Fully connected.** Hero (intro text, reorderable address/phone/email rows), form section (4 configured fields Full Name/Phone/Email/Message, privacy-consent show/require, FAQ-prompt override), map, social icons (Instagram+Facebook after the R3 guard). The "0 form fields" seen during the audit was a stale dev-server cache (B1 — resolved, not a code defect); the clean build renders all fields + working validation. SEO empty on the published doc — approved copy in `drafts.page-contact` (§20.7). | COMPLETE |
 | 12 | `/faq` | `page-faq` | **Fully connected.** 4 categories / 9 questions render from `page-faq` (`faqCategory` sections, per-question optional link). **Category titles, questions AND answers are fully translated EN/DA/UK — verified live on a clean build (`/da/faq` renders Danish end to end).** The Phase 1 audit's "EN-only" claim was a stale-dev-cache artifact, now corrected. `faqPage`/`faqGroup` legacy schema removed (§20.8). Only outstanding item: publish the SEO draft (§20.7). | COMPLETE |
 | 13 | `/terms` | `legalPage-terms` + `siteSettings` + `contactInfo` | **Sections 2+ fully connected & translated** (Portable Text from `legalPage.body`, EN/DA/UK). **Section 1 "Company details"** is a hardcoded block in `terms/page.tsx` — the *facts* (company name, CVR, email, address) already come from Sanity (`getCompanyContactFacts()` → `siteSettings`/`contactInfo`), but the **heading ("1. Company details"), the intro sentence, and the field labels ("Address:", "CVR:", …) are hardcoded English** and show untranslated on `/da` `/uk`. Needs an owner decision (§20.6) — fold Section 1 into `legalPage.body`, or localize the chrome. `legalPage.seo`: draft pending (§20.7) + R4 EN-copy decision. `lastUpdated` renders (⚠ the SEO draft blanks it — §20.7). | PARTIAL — legal Section 1 hardcoded EN |
@@ -600,7 +611,7 @@ x-default present, 143 sitemap `<loc>` entries.
 | Header / primary nav | `navigation` singleton | **Fully connected**, trilingual | Items + dropdown children (`navChild`/`navItem`). `lib/data.ts` `navItems` is fallback only. |
 | Footer | `footer` singleton | **Fully connected**, trilingual | 4 link columns, contact-details label, copyright, 3 legal links — all EN/DA/UK. |
 | Contact info | `contactInfo` singleton | **Fully connected** | address / phone / email / `mapQueryAddress`. Shared by Contact page, Footer, event practical details. |
-| Social links | `socialLinks` singleton | **Connected, data-quality issue — see risk R3** | Published doc has Instagram, Facebook **and a stray LinkedIn entry (`https://linkedin.com`)**; `platform` unset on all 3 entries. Part 22 decision: RORUM has no LinkedIn — it was to be removed by publishing `drafts.socialLinks`, but that draft **no longer exists** and LinkedIn is still live in Header/Footer/Contact. |
+| Social links | `socialLinks` singleton | **Connected; frontend-guarded, one manual Studio cleanup remains — see risk R3** | Published doc still has a stray LinkedIn entry (`https://linkedin.com`) alongside Instagram/Facebook, but `lib/sanityContact.ts`'s `resolveSocialLinks()` filters it out before rendering — verified on a clean build: LinkedIn appears 0 times in Header, Footer or Contact. The document itself still needs the entry deleted in Studio (safe, non-blocking) to clear its own validation warning — see `HANDOFF.md` §18. |
 | Shared form messages | `formMessages` singleton | **Connected** | Labels/placeholders/validation/success/privacy/FAQ-prompt text used by every form. |
 | Shared event labels | `eventMessages` singleton | **Connected** | Event-detail UI strings. |
 | Site settings | `siteSettings` singleton | **Partially connected** | `siteUrl` now fixed/read-only `https://ro-rum.dk`; `website` editable. `defaultSeo` (site-wide SEO fallback tier) is **not populated** — pages fall to their own per-page hardcoded defaults. |
@@ -697,12 +708,15 @@ these routes. Needs an owner yes/no (Part 24 §6).
   fully translated (Sanity `legalPage.body`, EN/DA/UK). Section 1 is a hardcoded block in the 3
   `*/page.tsx` components — the facts are Sanity-sourced but the heading/intro/labels are English.
   Needs an owner decision on how to make it editable/localized (§20.6).
-- **Volunteer application modal (4 strings) + Work-With-Us CV modal (7 strings)** — stored EN-only.
-  Technical chain fully supports DA/UK (verified). Exact keys listed in the route table (rows 9–10)
-  and §20.6. **Do not invent — owner/translator must supply.**
-- `sanity:audit-translations` baseline (Part 17 §17.5): remaining gaps are mostly gallery/dish
-  `alt` text (informative, not visible copy) plus the 11 form-modal strings above; `event` (73,
-  unrelated); `legalPage` (6 — the SEO fields, §20.7); `socialLinks` (1 — the stray LinkedIn, R3).
+- ~~Volunteer application modal (4 strings) + Work-With-Us CV modal (7 strings) — stored EN-only~~ →
+  **RESOLVED.** Both are now fully translated EN/DA/UK (`npm run sanity:audit-sections` reports 0
+  partial-i18n fields for either document). The Work-With-Us "CV modal" itself no longer exists —
+  it was replaced by a fully text-based Apply Form (§20.2 rows 9–10, and the Apply Form cleanup
+  pass that renamed `sections[cvUploadForm]` → `sections[applyForm]`).
+- `sanity:audit-translations` baseline (Part 17 §17.5): the 11 form-modal strings noted above are
+  now resolved (see above); remaining gaps are mostly gallery/dish `alt` text (informative, not
+  visible copy); `event` (73, unrelated); `legalPage` (6 — the SEO fields, §20.7); `socialLinks`
+  (1 — the stray LinkedIn, R3).
 Fixing the visible-copy gaps requires authoring real DA/UK translations — a content task, needs owner sign-off on
 provenance.
 
@@ -710,9 +724,11 @@ provenance.
 All six real submission forms — Contact, Volunteer, Work With Us, Catering, Event Decoration,
 Host at RORUM — now submit through the single shared path
 `lib/useFormspreeSubmit.ts` → `lib/formspree.ts` `applyFormspreeMetadata()` → `submitToFormspree()`
-→ one `NEXT_PUBLIC_FORMSPREE_ENDPOINT`, one Formspree form, one recipient. **The recipient
-(`lopatina.iryna@gmail.com`) is configured on the Formspree form only — it is not in any component,
-not in the payload, and a test (`components/forms-delivery-contract.test.tsx`) fails the build if
+→ one `NEXT_PUBLIC_FORMSPREE_ENDPOINT`, one Formspree form, one recipient. **The recipient is
+configured on the Formspree form only** (at Task 4 time, the developer's own address
+`lopatina.iryna@gmail.com`, for development/testing — the client replaces this with their own on
+transfer, see §20.12's OWNER CONFIGURATION) — it is not in any component, not in the payload, and a
+test (`components/forms-delivery-contract.test.tsx`) fails the build if
 it ever appears in `app/` or `components/`.**
 - Every submission carries `form_name` (human-readable: "Contact request", "Volunteer
   application", "Work With Us application", "Catering inquiry", "Event Decoration inquiry", "Host at
@@ -729,22 +745,22 @@ it ever appears in `app/` or `components/`.**
 - Website success/error/unavailable copy stays in the existing EN/DA/UK `formMessages`
   architecture. `VolunteerApplicationForm` also keeps its gated native `action`
   (`isFormspreeConfigured() ? endpoint : undefined`).
-- **CV file:** the Work With Us modal attaches the validated file as `cv` (multipart). Formspree
-  accepts a multipart POST on every plan, but the file is only stored/forwarded when **File
-  Uploads** is enabled on the form (owner action below). If a Formspree form is configured with
-  strict field validation, an unexpected `cv` field could in principle be rejected — so **after
-  connecting the endpoint, send one test Work With Us application with an attachment and confirm it
-  arrives** before relying on it. If that ever 422s, the fix is to enable File Uploads (not to
-  add a separate upload service).
+- **CV file — superseded, no longer applicable.** At the time this section was written, the Work
+  With Us modal attached a validated file as `cv` (multipart), and this bullet told the owner to
+  enable Formspree's File Uploads and test-send an attachment. That architecture was fully removed
+  in a later pass: Work With Us is now a fully text-based application (no file input, no `cv`
+  field, no attachment of any kind) — see §20.2 row 10. Nothing to enable or test here.
 - Tests: `lib/formspree.test.ts` (metadata + endpoint), `components/{ContactForm,
-  VolunteerApplicationForm,CvUploadModal,CateringInquiryForm,InquiryForm}.test.tsx`,
-  `components/forms-delivery-contract.test.tsx` — 56 form-delivery tests, all green.
+  VolunteerApplicationForm,WorkWithUsApplicationForm,CateringInquiryForm,InquiryForm}.test.tsx`,
+  `components/forms-delivery-contract.test.tsx` — form-delivery tests, all green.
 
 **OWNER ACTION (the only remaining step — §20.12):** create/select ONE Formspree form, set its
-recipient to `lopatina.iryna@gmail.com`, copy its endpoint into `NEXT_PUBLIC_FORMSPREE_ENDPOINT`
-(local `.env.local` + the deployment env). Optionally enable File Uploads on that form for the CV
-attachment. Until then every form correctly shows the localized "not available yet" message and
-never claims a false success.
+recipient to the client's own inbox (see `.env.example`'s `FORMSPREE_RECIPIENT_EMAIL` — the
+developer's own address was used during development and must not be reused), copy its endpoint into
+`NEXT_PUBLIC_FORMSPREE_ENDPOINT` (local `.env.local` + the deployment env). File Uploads does not
+need to be enabled — no RORUM form attaches a file (Work With Us is fully text-based). Until the
+endpoint is set, every form correctly shows the localized "not available yet" message and never
+claims a false success.
 
 **R7 — Dataset safety: automated mutation testing targets `production`.**
 `.env.local` → `NEXT_PUBLIC_SANITY_DATASET=production`, and a **write token is present**
@@ -818,8 +834,9 @@ content decisions (`siteSettings.defaultSeo`, legal Section 1).
    field order/labels/previews/reorder/validation against spec §10 and §19. Fold in a
    representative Publish test per page (§18) using draft-only changes on `production`.
 8. **R6 — Form delivery** (Task 4 done in code — §20.12): create ONE Formspree form, set its
-   recipient to `lopatina.iryna@gmail.com`, put its endpoint in `NEXT_PUBLIC_FORMSPREE_ENDPOINT`
-   (local + deployment). Optionally enable File Uploads on that form for the Work With Us CV.
+   recipient to the client's own inbox (see `.env.example`'s `FORMSPREE_RECIPIENT_EMAIL`), put its
+   endpoint in `NEXT_PUBLIC_FORMSPREE_ENDPOINT` (local + deployment). No file-upload setting is
+   needed — no RORUM form attaches a file.
 9. **Responsive + Publish sign-off** for every page (§19 items still ⬜ in 20.4), then mark
    COMPLETE.
 
@@ -1036,16 +1053,22 @@ form type is always first. Website success/error/unavailable copy stays localize
 
 ### OWNER CONFIGURATION — the only remaining step
 
+At the time this was written, the recipient below was set to the developer's own address
+(`lopatina.iryna@gmail.com`) for development/testing — the client must replace it with their own on
+transfer.
+
 1. In Formspree, create **one** form (or reuse an existing one).
-2. Set that form's **recipient** to `lopatina.iryna@gmail.com` (in the Formspree dashboard — not in code).
+2. Set that form's **recipient** to the client's own inbox (in the Formspree dashboard — not in
+   code; see `.env.example`'s `FORMSPREE_RECIPIENT_EMAIL` for the documented/intended address).
 3. Copy the form's endpoint (looks like `https://formspree.io/f/xxxxxxxx`).
 4. Set `NEXT_PUBLIC_FORMSPREE_ENDPOINT=<that endpoint>` in `.env.local` **and** in the deployment
    environment. Redeploy.
 5. Leave the form's **"Subject" setting at its default** in Formspree — the app already sends a
    standardized `_subject` per form; a custom Subject in the dashboard would override it.
-6. *(for the CV attachment)* enable **File Uploads** on that Formspree form, then send one test
-   Work With Us application with a file attached and confirm it arrives (see the "CV file" note
-   above). Without File Uploads the application text still delivers.
+
+No file-upload setting is needed — Work With Us was later rebuilt as a fully text-based application
+(no CV/file field anywhere; see §20.2 row 10). The step that used to be here (enable File Uploads,
+test-send a CV attachment) no longer applies.
 
 No second form, no per-form endpoints, no code change. After step 4 the forms switch from the
 "not available yet" message to real delivery automatically.
@@ -1489,10 +1512,13 @@ Audited in §20.3. In-repo shared components and their CMS sources:
   own `resolveMembershipMedia`). Mixed photo+video, unified Lightbox (Parts 18–19).
 - `components/FAQAccordion.tsx` / `FAQInlinePrompt.tsx` — `page-faq` + `formMessages`.
 - Forms: `ContactForm`, `CateringInquiryForm`, `InquiryForm`, `VolunteerApplicationForm`,
-  `CvUploadModal`, `ApplicationModal` — copy from `formMessages` + page-specific `contentItem`
-  roles; **all submit through the one shared `useFormspreeSubmit` → `submitToFormspree` path**
-  (Task 4 / §20.12). No real endpoint is configured yet, so they show the localized "not
-  available" message — never a false success.
+  `WorkWithUsApplicationForm`, `ApplicationModal`, `FormSuccessModal`, `FormSuccessContent` — copy
+  from `formMessages` + page-specific `contentItem` roles; **all submit through the one shared
+  `useFormspreeSubmit` → `submitToFormspree` path** (Task 4 / §20.12), with a shared success
+  dialog/content experience (`FormSuccessModal` for page-embedded forms; `FormSuccessContent`
+  swapped directly into an already-open modal for Volunteer/Work With Us). `CvUploadModal` no
+  longer exists — Work With Us was rebuilt as `WorkWithUsApplicationForm`, a fully text-based
+  application with no CV/file upload (§20.2 row 10).
 - SEO: `lib/seo.ts` + `shared/seoResolution.ts` + `components/JsonLd.tsx` + `SeoObjectInput` /
   `SeoAllLanguagesInput` Studio components.
 
@@ -1504,7 +1530,10 @@ check on every page that reuses them.
 # 22. Migration Reporting
 
 `SANITY_MIGRATION.md` (this file) = current status and what remains (§20).
-`MIGRATION_REPORT.md` = history and rationale (Parts 1–28; the `page`/`sections[]` migration is
-Parts 16–28).
+`MIGRATION_REPORT.md`, the original development diary that once held history and rationale (Parts
+1–28; the `page`/`sections[]` migration was Parts 16–28), was intentionally removed from the repo
+during handoff cleanup — see `HANDOFF.md` §18. It's recoverable from git history if ever needed but
+does not need to be recreated. This file's own dated §20.x Part/Phase entries now serve that
+"history and rationale" purpose going forward.
 
 Do not duplicate large historical explanations here.

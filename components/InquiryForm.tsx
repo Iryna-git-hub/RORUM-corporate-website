@@ -1,12 +1,13 @@
 "use client";
 
 import type { FormEvent, ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   PrivacyConsent,
   validatePrivacyConsent,
 } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
+import { FormSuccessModal } from "@/components/FormSuccessModal";
 import { useFormspreeSubmit } from "@/lib/useFormspreeSubmit";
 import { resolveMultiOptionLabels, resolveOptionLabel, type RorumFormKey } from "@/lib/formspree";
 
@@ -43,8 +44,6 @@ const FORM_HEADING_CLASS = "grid gap-2 mb-1";
 const FORM_TITLE_CLASS =
   "m-0 font-body text-[clamp(17px,1.35vw,20px)] font-[800] leading-tight tracking-normal normal-case text-text-primary";
 const FORM_INTRO_CLASS = "m-0 text-[15px] leading-[1.65] text-text-primary";
-const SUCCESS_CLASS =
-  "border border-[rgba(var(--rgb-light-green),0.28)] rounded-none bg-[rgba(var(--rgb-beige),0.24)] p-3.5 text-primary-dark font-bold";
 const ERROR_CLASS =
   "border border-[rgba(var(--rgb-red),0.24)] bg-[rgba(var(--rgb-red),0.08)] p-3.5 text-accent text-sm font-bold leading-[1.55]";
 const FORM_GRID_CLASS = "grid grid-cols-2 gap-3.5 max-sm:grid-cols-1";
@@ -130,8 +129,9 @@ export function InquiryForm({
 }) {
   const { messages } = useFormContent();
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { sent, isSubmitting, submitError, submit, setSubmitError } =
+  const { sent, isSubmitting, submitError, submit, setSubmitError, resetSuccess } =
     useFormspreeSubmit(FORMSPREE_KEY_BY_TYPE[type]);
+  const submitButtonRef = useRef<HTMLButtonElement | null>(null);
   const [selectedPackage, setSelectedPackage] = useState("");
   // Memoized on the actual `packageOptions` prop (stable server-provided
   // data, never changes after mount) so the mount-only effect below can
@@ -239,18 +239,30 @@ export function InquiryForm({
     if (delivered) setSelectedPackage("");
   }
 
+  function closeSuccessModal() {
+    resetSuccess();
+    requestAnimationFrame(() => submitButtonRef.current?.focus());
+  }
+
+  const successModal = sent ? (
+    <FormSuccessModal
+      titleId={`${type}-success-title`}
+      title={messages.successTitle}
+      message={resolvedSuccessMessage}
+      doneLabel={messages.doneLabel}
+      closeLabel={messages.closeLabel}
+      onClose={closeSuccessModal}
+    />
+  ) : null;
+
   if (isBooking) {
     return (
+      <>
       <form className={CARD_FORM_CLASS} onSubmit={onSubmit} noValidate>
         <div className={FORM_HEADING_CLASS}>
           <h2 className={FORM_TITLE_CLASS}>{title}</h2>
           {intro ? <p className={FORM_INTRO_CLASS}>{intro}</p> : null}
         </div>
-        {sent ? (
-          <div className={SUCCESS_CLASS} role="status">
-            {resolvedSuccessMessage}
-          </div>
-        ) : null}
         {submitError ? (
           <div className={ERROR_CLASS} role="alert">
             {submitError}
@@ -425,24 +437,22 @@ export function InquiryForm({
 
         <PrivacyConsent id="booking-privacy" required={false} />
 
-        <button className={SUBMIT_BUTTON_CLASS} type="submit" disabled={isSubmitting || sent}>
+        <button ref={submitButtonRef} className={SUBMIT_BUTTON_CLASS} type="submit" disabled={isSubmitting}>
           {isSubmitting ? messages.sendingLabel : submitLabel}
         </button>
       </form>
+      {successModal}
+      </>
     );
   }
 
   return (
+    <>
     <form className={CARD_FORM_CLASS} onSubmit={onSubmit} noValidate>
       <div className={FORM_HEADING_CLASS}>
         <h2 className={FORM_TITLE_CLASS}>{title}</h2>
         {intro ? <p className={FORM_INTRO_CLASS}>{intro}</p> : null}
       </div>
-      {sent ? (
-        <div className={SUCCESS_CLASS} role="status">
-          {resolvedSuccessMessage}
-        </div>
-      ) : null}
       {submitError ? (
         <div className={ERROR_CLASS} role="alert">
           {submitError}
@@ -530,9 +540,11 @@ export function InquiryForm({
 
       <PrivacyConsent id={`${type}-privacy`} error={errors.privacyConsent} />
 
-      <button className={SUBMIT_BUTTON_CLASS} type="submit" disabled={isSubmitting || sent}>
+      <button ref={submitButtonRef} className={SUBMIT_BUTTON_CLASS} type="submit" disabled={isSubmitting}>
         {isSubmitting ? messages.sendingLabel : submitLabel}
       </button>
     </form>
+    {successModal}
+    </>
   );
 }

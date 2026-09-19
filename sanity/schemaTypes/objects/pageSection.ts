@@ -167,9 +167,9 @@ const SECTION_FIELD_VISIBILITY: Record<string, readonly PageSectionField[]> = {
   "page-volunteer:applicationForm": ["items"], // ONLY the modal-copy rows (modalTitle / messagePlaceholder / successMessage / errorMessage)
 
   // ── Work With Us (app/[locale]/(site)/work-with-us/page.tsx) ──────────
-  "page-work-with-us:hero": ["label", "title", "media", "items"], // eyebrow, H1, 2 collaboration photos, hero-paragraph rows + "Send your CV" button row
+  "page-work-with-us:hero": ["label", "title", "media", "items"], // eyebrow, H1, 2 collaboration photos, hero-paragraph rows + "Apply now" button row
   "page-work-with-us:features": ["items"], // ONLY the 3 "Why work with us" bullets (icon + one line each) — no section heading is read
-  "page-work-with-us:cvUploadForm": ["items"], // ONLY the CV-modal copy rows
+  "page-work-with-us:applyForm": ["items"], // ONLY the application-form copy rows — the section's own `title` field is deliberately left hidden here too (all copy lives in items[]), but IS set to "Apply Form"/localized for Studio's list preview (see scripts/migrate-work-with-us-rename-section.ts). Section key renamed from the legacy "cvUploadForm" by that same script — the form itself has been fully text-based (no CV/file upload) since components/WorkWithUsApplicationForm.tsx replaced components/CvUploadModal.tsx.
 };
 
 /**

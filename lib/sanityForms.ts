@@ -16,6 +16,10 @@ export interface ResolvedFormMessages {
   eventDateLabel: string;
   agreeButtonLabel: string;
   closeLabel: string;
+  /** Shared success-modal/content chrome title, e.g. "Thank you!" — forms with their own Sanity-authored success title (e.g. the Work With Us application form's `modalTitleSent`) use that instead. First-class Sanity field (`formMessages.successTitle`), not `extraLabels`. */
+  successTitle: string;
+  /** The success modal/content's primary action label — deliberately distinct from `closeLabel` (used only for the X's aria-label). First-class Sanity field (`formMessages.doneLabel`), not `extraLabels`. */
+  doneLabel: string;
   copyLabel: string;
   copiedLabel: string;
   packageLabel: string;
@@ -27,16 +31,8 @@ export interface ResolvedFormMessages {
   commentLabel: string;
   guestsRangeMessage: string;
   invalidPhoneMessage: string;
-  fileRequiredMessage: string;
-  fileTypeMessage: string;
-  fileSizeMessage: string;
-  uploadCvLabel: string;
-  removeFileLabel: string;
-  shortMessageLabel: string;
   sendingLabel: string;
-  applicationSentLabel: string;
   sendApplicationLabel: string;
-  submitCvLabel: string;
   formNotConfiguredMessage: string;
   /** Shown when a form submit fails for a reason OTHER than "no endpoint configured" (a real network/server error, once delivery is wired). */
   formSubmitFailedMessage: string;
@@ -62,6 +58,8 @@ export const defaultFormMessages: ResolvedFormMessages = {
   eventDateLabel: "Event date",
   agreeButtonLabel: "I Have Read and Agree",
   closeLabel: "Close",
+  successTitle: "Thank you!",
+  doneLabel: "Done",
   copyLabel: "Copy",
   copiedLabel: "Copied",
   packageLabel: "Package",
@@ -73,16 +71,8 @@ export const defaultFormMessages: ResolvedFormMessages = {
   commentLabel: "Comment",
   guestsRangeMessage: "Please enter a whole number between 1 and 12.",
   invalidPhoneMessage: "Please enter a valid phone number.",
-  fileRequiredMessage: "Please upload your CV.",
-  fileTypeMessage: "Please upload a PDF, DOC, or DOCX file.",
-  fileSizeMessage: "Please keep your file under 10 MB.",
-  uploadCvLabel: "Upload your CV",
-  removeFileLabel: "Remove file",
-  shortMessageLabel: "Short message",
   sendingLabel: "Sending...",
-  applicationSentLabel: "Application Sent",
   sendApplicationLabel: "Send Application",
-  submitCvLabel: "Submit CV",
   formNotConfiguredMessage: "This form isn't fully set up yet — please contact us directly.",
   formSubmitFailedMessage: "Something went wrong sending your message. Please try again, or contact us directly.",
   contactFormMessagePlaceholder: "Tell us a little about your request, timing and preferences.",
@@ -112,6 +102,8 @@ export function resolveFormMessages(doc: FormMessages | null | undefined, locale
     eventDateLabel: pickLocalizedOr(doc?.eventDateLabel, locale, defaultFormMessages.eventDateLabel),
     agreeButtonLabel: pickLocalizedOr(doc?.agreeButtonLabel, locale, defaultFormMessages.agreeButtonLabel),
     closeLabel: pickLocalizedOr(doc?.closeLabel, locale, defaultFormMessages.closeLabel),
+    successTitle: pickLocalizedOr(doc?.successTitle, locale, defaultFormMessages.successTitle),
+    doneLabel: pickLocalizedOr(doc?.doneLabel, locale, defaultFormMessages.doneLabel),
     copyLabel: pickLocalizedOr(doc?.copyLabel, locale, defaultFormMessages.copyLabel),
     copiedLabel: pickLocalizedOr(doc?.copiedLabel, locale, defaultFormMessages.copiedLabel),
     packageLabel: pickLocalizedOr(doc?.packageLabel, locale, defaultFormMessages.packageLabel),
@@ -131,16 +123,8 @@ export function resolveFormMessages(doc: FormMessages | null | undefined, locale
     commentLabel: pickLocalizedOr(doc?.commentLabel, locale, defaultFormMessages.commentLabel),
     guestsRangeMessage: pickLocalizedOr(doc?.guestsRangeMessage, locale, defaultFormMessages.guestsRangeMessage),
     invalidPhoneMessage: pickLabel(doc?.extraLabels, "invalidPhoneMessage", locale, defaultFormMessages.invalidPhoneMessage),
-    fileRequiredMessage: pickLabel(doc?.extraLabels, "fileRequiredMessage", locale, defaultFormMessages.fileRequiredMessage),
-    fileTypeMessage: pickLabel(doc?.extraLabels, "fileTypeMessage", locale, defaultFormMessages.fileTypeMessage),
-    fileSizeMessage: pickLabel(doc?.extraLabels, "fileSizeMessage", locale, defaultFormMessages.fileSizeMessage),
-    uploadCvLabel: pickLabel(doc?.extraLabels, "uploadCvLabel", locale, defaultFormMessages.uploadCvLabel),
-    removeFileLabel: pickLabel(doc?.extraLabels, "removeFileLabel", locale, defaultFormMessages.removeFileLabel),
-    shortMessageLabel: pickLabel(doc?.extraLabels, "shortMessageLabel", locale, defaultFormMessages.shortMessageLabel),
     sendingLabel: pickLabel(doc?.extraLabels, "sendingLabel", locale, defaultFormMessages.sendingLabel),
-    applicationSentLabel: pickLabel(doc?.extraLabels, "applicationSentLabel", locale, defaultFormMessages.applicationSentLabel),
     sendApplicationLabel: pickLabel(doc?.extraLabels, "sendApplicationLabel", locale, defaultFormMessages.sendApplicationLabel),
-    submitCvLabel: pickLabel(doc?.extraLabels, "submitCvLabel", locale, defaultFormMessages.submitCvLabel),
     formNotConfiguredMessage: pickLabel(
       doc?.extraLabels,
       "formNotConfiguredMessage",

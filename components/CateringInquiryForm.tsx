@@ -1,12 +1,13 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   PrivacyConsent,
   validatePrivacyConsent,
 } from "@/components/PrivacyConsent";
 import { useFormContent } from "@/components/FormContentProvider";
+import { FormSuccessModal } from "@/components/FormSuccessModal";
 import { useFormspreeSubmit } from "@/lib/useFormspreeSubmit";
 
 function validateField(
@@ -49,7 +50,13 @@ export function CateringInquiryForm({
 }) {
   const { messages } = useFormContent();
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { sent, isSubmitting, submitError, submit, setSubmitError } = useFormspreeSubmit("catering");
+  const { sent, isSubmitting, submitError, submit, setSubmitError, resetSuccess } = useFormspreeSubmit("catering");
+  const submitButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  function closeSuccessModal() {
+    resetSuccess();
+    requestAnimationFrame(() => submitButtonRef.current?.focus());
+  }
 
   const requiredFields: [name: string, label: string][] = [
     ["name", messages.fullNameLabel],
@@ -88,6 +95,7 @@ export function CateringInquiryForm({
     "block w-full mt-1.75 border border-beige rounded-none bg-white px-[13px] py-3 text-text-primary text-base font-medium leading-[1.45] placeholder:text-[rgba(var(--rgb-dark-brown),0.38)] placeholder:font-medium placeholder:opacity-100 focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(var(--rgb-light-green),0.24)] aria-[invalid=true]:border-accent aria-[invalid=true]:outline-none aria-[invalid=true]:shadow-[0_0_0_2px_rgba(var(--rgb-red),0.16)]";
 
   return (
+    <>
     <form
       className="grid gap-4 border-0 rounded-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] text-text-primary overflow-hidden p-[clamp(20px,3vw,4rem)]"
       onSubmit={onSubmit}
@@ -99,14 +107,6 @@ export function CateringInquiryForm({
         </h2>
         {intro ? <p className="m-0 text-[15px] leading-[1.65] text-text-primary">{intro}</p> : null}
       </div>
-      {sent ? (
-        <div
-          className="border border-[rgba(var(--rgb-light-green),0.28)] rounded-none bg-[rgba(var(--rgb-beige),0.24)] p-3.5 text-primary-dark font-bold"
-          role="status"
-        >
-          {successMessage}
-        </div>
-      ) : null}
       {submitError ? (
         <div
           className="border border-[rgba(var(--rgb-red),0.24)] bg-[rgba(var(--rgb-red),0.08)] p-3.5 text-accent text-sm font-bold leading-[1.55]"
@@ -198,9 +198,10 @@ export function CateringInquiryForm({
       <PrivacyConsent id="catering-privacy" error={errors.privacyConsent} />
 
       <button
+        ref={submitButtonRef}
         className="inline-flex items-center justify-center justify-self-stretch self-center min-h-10.5 w-full px-6 py-0 border border-cta-red rounded-pill bg-cta-red text-white text-[12.5px] lg:text-[13px] font-bold tracking-[0.02em] uppercase cursor-pointer transition duration-180 ease-[ease] hover:-translate-y-px hover:bg-cta-red-hover hover:border-cta-red-hover hover:text-white focus-visible:bg-cta-red-hover focus-visible:border-cta-red-hover focus-visible:text-white active:bg-primary-darker active:border-primary-darker disabled:cursor-not-allowed disabled:opacity-[0.62] disabled:transform-none"
         type="submit"
-        disabled={isSubmitting || sent}
+        disabled={isSubmitting}
       >
         {isSubmitting ? messages.sendingLabel : submitLabel}
       </button>
@@ -208,5 +209,16 @@ export function CateringInquiryForm({
         {footerNote}
       </p>
     </form>
+    {sent ? (
+      <FormSuccessModal
+        titleId="catering-success-title"
+        title={messages.successTitle}
+        message={successMessage}
+        doneLabel={messages.doneLabel}
+        closeLabel={messages.closeLabel}
+        onClose={closeSuccessModal}
+      />
+    ) : null}
+    </>
   );
 }

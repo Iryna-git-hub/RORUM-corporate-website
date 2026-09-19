@@ -104,7 +104,7 @@ const SECTION_KIND: Record<string, string> = {
   "page-host-at-rorum:hero": "hero", "page-host-at-rorum:gallery": "gallery", "page-host-at-rorum:session": "split",
   "page-host-at-rorum:packages": "cta", "page-host-at-rorum:steps": "steps", "page-host-at-rorum:inquiryForm": "form",
   "page-volunteer:hero": "hero", "page-volunteer:applicationForm": "form",
-  "page-work-with-us:hero": "hero", "page-work-with-us:features": "iconGrid", "page-work-with-us:cvUploadForm": "form",
+  "page-work-with-us:hero": "hero", "page-work-with-us:features": "iconGrid", "page-work-with-us:applyForm": "form",
 };
 
 test.describe("pageSection.ts — explicit SECTION_FIELD_VISIBILITY allow-list (mocked contexts, no Studio runtime)", () => {
@@ -193,7 +193,7 @@ test.describe("pageSection.ts — explicit SECTION_FIELD_VISIBILITY allow-list (
     // ── Work With Us
     { key: "page-work-with-us:hero", visible: ["label", "title", "media", "items"] },
     { key: "page-work-with-us:features", visible: ["items"] }, // no section heading read
-    { key: "page-work-with-us:cvUploadForm", visible: ["items"] },
+    { key: "page-work-with-us:applyForm", visible: ["items"] },
   ];
   for (const { key, visible } of EXPECTED) {
     const [docId, sectionKey] = key.split(":");
@@ -314,7 +314,7 @@ test.describe("pageSection.ts — explicit SECTION_FIELD_VISIBILITY allow-list (
       "page-host-at-rorum:hero", "page-host-at-rorum:gallery", "page-host-at-rorum:session",
       "page-host-at-rorum:packages", "page-host-at-rorum:steps", "page-host-at-rorum:inquiryForm",
       "page-volunteer:hero", "page-volunteer:applicationForm",
-      "page-work-with-us:hero", "page-work-with-us:features", "page-work-with-us:cvUploadForm",
+      "page-work-with-us:hero", "page-work-with-us:features", "page-work-with-us:applyForm",
     ];
     expect([...declared].sort()).toEqual([...new Set(liveSections)].sort());
   });
@@ -357,6 +357,10 @@ test.describe("contentItem.ts — ITEM_ROLE_RULES matrix (mocked document+parent
       "format0", "format1", "format2", "format3", "format4", "format5",
       "tailoredNote", "step0", "step1", "step2",
       "submitLabel", "messagePlaceholder", "footerNote", "successMessage",
+      "modalTitle", "modalTitleSent", "fullNamePlaceholder", "emailPlaceholder", "phonePlaceholder",
+      "roleInterestLabel", "role0", "role7",
+      "experienceLabel", "experiencePlaceholder", "whyRorumLabel", "whyRorumPlaceholder",
+      "linksLabel", "linksPlaceholder",
       "requestCta", "featuredDishesLabel", "backToCateringCta", "disclaimerNote", "emptyStateMessage",
       "followUsTitle", "contactDetail-address", "contactDetail-phone", "contactDetail-email", "field-name",
       "faqPromptQuestion", "faqPromptLabel",
@@ -2982,22 +2986,61 @@ test.describe("Volunteer / Work With Us — modal-copy item roles + form-section
     }
   });
 
-  test("Work With Us cvUploadForm: 4 heading/placeholder rows are Title-only; 3 message rows are Text-only; all required EN/DA/UK", () => {
-    for (const itemKey of ["modalTitle", "modalTitleSent", "messagePlaceholder", "dropzoneText"]) {
-      const doc = docWithItem("page-work-with-us", "cvUploadForm", itemKey);
+  test("Work With Us applyForm: heading/placeholder rows (incl. the example placeholders + new application-form fields) are Title-only; 3 message rows are Text-only; all required EN/DA/UK", () => {
+    for (const itemKey of [
+      "modalTitle",
+      "modalTitleSent",
+      "fullNamePlaceholder",
+      "emailPlaceholder",
+      "phonePlaceholder",
+      "roleInterestLabel",
+      "role0",
+      "role7",
+      "experienceLabel",
+      "experiencePlaceholder",
+      "whyRorumLabel",
+      "whyRorumPlaceholder",
+      "linksLabel",
+      "linksPlaceholder",
+    ]) {
+      const doc = docWithItem("page-work-with-us", "applyForm", itemKey);
       const parent = doc.sections[0]!.items[0]!;
-      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBe("Work With Us CV-modal heading/placeholder");
+      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBe("Work With Us application-form heading/placeholder");
       expect(callHidden(field(contentItemType, "title"), { document: doc, parent }), itemKey).toBe(false);
       expect(callHidden(field(contentItemType, "text"), { document: doc, parent }), itemKey).toBe(true);
       expect(isFieldRequiredByItemRole("title")(doc, parent), itemKey).toBe(true);
     }
     for (const itemKey of ["description", "descriptionSent", "errorMessage"]) {
-      const doc = docWithItem("page-work-with-us", "cvUploadForm", itemKey);
+      const doc = docWithItem("page-work-with-us", "applyForm", itemKey);
       const parent = doc.sections[0]!.items[0]!;
-      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBe("Work With Us CV-modal message");
+      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBe("Work With Us application-form message");
       expect(callHidden(field(contentItemType, "text"), { document: doc, parent }), itemKey).toBe(false);
       expect(isFieldRequiredByItemRole("text")(doc, parent), itemKey).toBe(true);
     }
+    // The retired CV-upload-only rows must NOT match any role anymore (hidden
+    // from Studio the same as any other unrecognized itemKey would be) — and
+    // must never reappear once removed, even under the OLD section key (which
+    // no longer exists in production, but the role pattern itself must not
+    // silently resurrect a match for it either).
+    for (const itemKey of ["dropzoneText", "messagePlaceholder"]) {
+      const doc = docWithItem("page-work-with-us", "applyForm", itemKey);
+      const parent = doc.sections[0]!.items[0]!;
+      expect(matchItemRoleInContext(doc, parent)?.role, itemKey).toBeUndefined();
+    }
+  });
+
+  test("Work With Us applyForm: the section's own title is 'Apply Form' — no manager-facing 'CV upload form' wording remains anywhere in the schema", () => {
+    // The role/section NAMES themselves (the human-readable Studio strings
+    // this schema defines, independent of live content) must contain no CV
+    // wording at all.
+    const wwuRoleNames = ITEM_ROLE_RULES.filter((r) => r.sectionKeys?.includes("applyForm")).map((r) => r.role);
+    expect(wwuRoleNames.length).toBeGreaterThan(0);
+    for (const name of wwuRoleNames) {
+      expect(name.toLowerCase()).not.toContain("cv");
+      expect(name.toLowerCase()).not.toContain("upload");
+    }
+    // No role rule anywhere in the schema still targets the legacy key.
+    expect(ITEM_ROLE_RULES.some((r) => r.sectionKeys?.includes("cvUploadForm"))).toBe(false);
   });
 
   test("Work With Us features: feature bullets show Icon + Title only, Title required EN/DA/UK", () => {
@@ -3018,7 +3061,7 @@ test.describe("Volunteer / Work With Us — modal-copy item roles + form-section
   test("the form section's own label/title/text are hidden for both pages (all copy lives in items)", () => {
     for (const [docId, sectionKey] of [
       ["page-volunteer", "applicationForm"],
-      ["page-work-with-us", "cvUploadForm"],
+      ["page-work-with-us", "applyForm"],
     ] as const) {
       const parent = { sectionKey, sectionKind: "form" };
       const document = { _id: docId };
@@ -3035,7 +3078,7 @@ test.describe("Volunteer / Work With Us — modal-copy item roles + form-section
     const wrong = docWithItem("page-contact", "applicationForm", "modalTitle");
     expect(matchItemRoleInContext(wrong, wrong.sections[0]!.items[0]!)).toBeUndefined();
     // the Volunteer role must NOT fire on the Work-With-Us doc, and vice-versa
-    const wwuItemOnVol = docWithItem("page-volunteer", "cvUploadForm", "dropzoneText");
+    const wwuItemOnVol = docWithItem("page-volunteer", "applyForm", "role0");
     expect(matchItemRoleInContext(wwuItemOnVol, wwuItemOnVol.sections[0]!.items[0]!)).toBeUndefined();
     const volItemOnWwu = docWithItem("page-work-with-us", "applicationForm", "modalTitle");
     expect(matchItemRoleInContext(volItemOnWwu, volItemOnWwu.sections[0]!.items[0]!)).toBeUndefined();

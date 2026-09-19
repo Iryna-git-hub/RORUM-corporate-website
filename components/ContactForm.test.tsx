@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 
@@ -101,12 +101,29 @@ describe("ContactForm — validation derived from field type", () => {
 
 });
 
+// `userEvent.type` appends at each element's last-known cursor position
+// rather than re-reading the live DOM value — harmless the first time a
+// field is filled, but on a RESUBMIT test (fill → submit → success →
+// Done → fill again) the native `form.reset()` the shared hook calls
+// clears the actual DOM value without userEvent noticing, so a bare
+// `.type()` the second time silently double-types on top of stale
+// tracked state. `.clear()` first makes every fill idempotent regardless
+// of prior field contents.
 async function fillValidContactForm() {
-  await userEvent.type(screen.getByLabelText(/Full Name/), "Jane Doe");
-  await userEvent.type(screen.getByLabelText(/Phone number/), "+45 12 34 56 78");
-  await userEvent.type(screen.getByLabelText(/^Email/), "jane@example.com");
-  await userEvent.type(screen.getByLabelText(/Message/), "Hello there");
-  await userEvent.click(screen.getByRole("checkbox"));
+  const name = screen.getByLabelText(/Full Name/);
+  await userEvent.clear(name);
+  await userEvent.type(name, "Jane Doe");
+  const phone = screen.getByLabelText(/Phone number/);
+  await userEvent.clear(phone);
+  await userEvent.type(phone, "+45 12 34 56 78");
+  const email = screen.getByLabelText(/^Email/);
+  await userEvent.clear(email);
+  await userEvent.type(email, "jane@example.com");
+  const message = screen.getByLabelText(/Message/);
+  await userEvent.clear(message);
+  await userEvent.type(message, "Hello there");
+  const consent = screen.getByRole("checkbox") as HTMLInputElement;
+  if (!consent.checked) await userEvent.click(consent);
   await userEvent.click(screen.getByRole("button", { name: /Send message/ }));
 }
 
@@ -144,15 +161,27 @@ describe("ContactForm — truthful submission behavior: no email delivery is con
     expect(await screen.findByText(/isn't fully set up yet/i)).toBeInTheDocument();
     expect(screen.queryByText(/Something went wrong sending/i)).not.toBeInTheDocument();
   });
+
+  it("errors never open the success modal — they stay inline as role=alert", async () => {
+    submitToFormspreeMock.mockRejectedValue(new Error("FORMSPREE_SUBMISSION_FAILED"));
+    render(<ContactForm />);
+    await fillValidContactForm();
+    await screen.findByRole("alert");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
 });
 
 describe("ContactForm — real delivery path (Formspree helper mocked)", () => {
-  it("when submitToFormspree resolves, the success message shows and the form resets", async () => {
+  it("when submitToFormspree resolves, an accessible success MODAL shows (not an inline banner) and the form resets", async () => {
     submitToFormspreeMock.mockResolvedValue(undefined);
     render(<ContactForm successMessage="Delivered!" />);
     await fillValidContactForm();
 
-    expect(await screen.findByText("Delivered!")).toBeInTheDocument();
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Delivered!")).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Done" })).toBeInTheDocument();
+    // No leftover inline role="status" banner anywhere on the page.
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
     expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("");
   });
@@ -195,6 +224,56 @@ describe("ContactForm — real delivery path (Formspree helper mocked)", () => {
 
     expect(await screen.findByText("Delivered!")).toBeInTheDocument();
     expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("ContactForm — success modal close behavior (Done / X / Escape / backdrop)", () => {
+  it("Done closes the modal, clears success state, and the form can be submitted again", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<ContactForm successMessage="Delivered!" />);
+    await fillValidContactForm();
+    await screen.findByRole("dialog");
+
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    // Resubmission must actually go through, not silently no-op against a
+    // stale `sent === true` guard inside the shared hook.
+    await fillValidContactForm();
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(submitToFormspreeMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("the X button closes the success modal", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<ContactForm successMessage="Delivered!" />);
+    await fillValidContactForm();
+    const dialog = await screen.findByRole("dialog");
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("Escape closes the success modal and returns focus to the submit button", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<ContactForm successMessage="Delivered!" />);
+    await fillValidContactForm();
+    await screen.findByRole("dialog");
+
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("button", { name: /Send message/ })).toHaveFocus());
+  });
+
+  it("clicking the backdrop closes the success modal", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<ContactForm successMessage="Delivered!" />);
+    await fillValidContactForm();
+    await screen.findByRole("dialog");
+
+    const overlay = document.querySelector('[role="presentation"]') as HTMLElement;
+    fireEvent.mouseDown(overlay);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });
 

@@ -32,7 +32,7 @@ For every substantial task follow this workflow:
 2. Inspect the existing implementation.
 3. Identify affected routes, components, schemas, queries and utilities.
 4. Search for existing project patterns before creating new ones.
-5. Read the relevant sections of `MIGRATION_REPORT.md`.
+5. Read the relevant sections of `HANDOFF.md` and `SANITY_MIGRATION.md` for prior context (`MIGRATION_REPORT.md`, the original development diary, was intentionally removed from this repo during handoff cleanup — see `HANDOFF.md` §18; it is recoverable from git history if ever needed but does not need to be recreated).
 6. Consult `ARCHITECTURE.md` when architectural context is needed.
 7. Consult `SANITY_MIGRATION.md` for Sanity migration work.
 8. Use Context7 only when current external-library documentation is required.
@@ -128,36 +128,40 @@ When information conflicts, use the following priority:
 1. Current working code
 2. Actual application behavior
 3. `ARCHITECTURE.md`
-4. `SANITY_MIGRATION.md`
-5. Relevant recent entries in `MIGRATION_REPORT.md`
+4. `HANDOFF.md`
+5. `SANITY_MIGRATION.md`
 6. Historical implementation assumptions
 
-`MIGRATION_REPORT.md` is historical context, not an absolute source of truth.
+`SANITY_MIGRATION.md`'s dated Part/Phase entries are historical context, not an absolute source of truth — current code and `git log` take precedence when they disagree.
 
 ---
 
-# 6. MIGRATION_REPORT.md Usage
+# 6. SANITY_MIGRATION.md Usage
 
-`MIGRATION_REPORT.md` may be large.
+`MIGRATION_REPORT.md` — the original development diary this section used to describe — was
+intentionally removed from the repo during handoff cleanup (see `HANDOFF.md` §18). It is
+recoverable from git history on branches that predate the cleanup if ever needed, but does not
+need to be recreated. `SANITY_MIGRATION.md` is the current source for migration status, and its
+dated Part/Phase entries (§20.x) now serve the same "avoid repeating completed work" purpose.
+
+`SANITY_MIGRATION.md` may be large.
 
 Do NOT read the whole document for every task.
 
 Instead:
 
 1. identify the current page or feature
-2. search the report for that page, schema, component or feature
+2. search the document for that page, schema, component or feature
 3. read only relevant sections
 4. use it to avoid repeating completed work or undoing deliberate decisions
 
-Current code takes precedence when the report is outdated.
+Current code takes precedence when a dated entry is outdated.
 
-When migration work is completed, update the report only when useful to preserve important migration history.
+When migration work is completed, update `SANITY_MIGRATION.md` only when useful to preserve important migration history — add a new dated entry rather than rewriting an existing one.
 
-Do not rewrite unrelated historical sections.
+Do not rewrite unrelated historical (dated Part/Phase) sections.
 
-Do not turn `MIGRATION_REPORT.md` into a task checklist.
-
-Use `SANITY_MIGRATION.md` for migration status and acceptance criteria.
+Do not turn `SANITY_MIGRATION.md` into a task checklist.
 
 ---
 

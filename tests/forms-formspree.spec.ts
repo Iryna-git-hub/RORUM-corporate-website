@@ -15,6 +15,18 @@ import { gotoAndStabilize } from "./support";
 
 const UNAVAILABLE = /not been configured yet|isn't fully set up yet|temporarily unavailable/i;
 
+// This spec asserts the UNCONFIGURED/placeholder Formspree state (the
+// shipped default). If this environment's `.env.local` has a real endpoint
+// configured (some local dev setups do), the app actually attempts the
+// POST instead of short-circuiting, and this spec's own route interception
+// aborts it — producing the generic failure message instead of the
+// "not configured" one these tests expect. Skip here in that case rather
+// than fail noisily; tests/forms-success-modal.spec.ts is this spec's
+// mirror image (it needs a real endpoint and skips when this one would run).
+const configuredEndpoint = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT ?? "";
+const isFormspreeConfigured = Boolean(configuredEndpoint) && !configuredEndpoint.includes("FORM_ID_PLACEHOLDER");
+test.skip(isFormspreeConfigured, "Asserts the unconfigured/placeholder Formspree state; this .env.local has a real endpoint configured.");
+
 async function blockHeavyAssets(page: Page) {
   await page.route(/cdn\.sanity\.io\/(images|files)\//, (route) => route.abort());
 }
@@ -121,25 +133,25 @@ test.describe("Formspree delivery — every form, unconfigured state", () => {
     expect(getHits()).toEqual([]);
   });
 
-  test("Work With Us application (CV modal): valid submit with a PDF → localized 'unavailable' alert, no success, input kept, subject is NOT 'CV application'", async ({ page }) => {
+  test("Work With Us application (text-based, no CV/file upload): valid submit → localized 'unavailable' alert, no success, input kept, no file field, no formspree.io request", async ({ page }) => {
     const getHits = await watchFormspree(page);
     await gotoAndStabilize(page, "/work-with-us");
-    await page.getByRole("button", { name: /Send your CV/i }).click();
+    await page.getByRole("button", { name: /Apply now/i }).click();
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
+    // The old CV/file-upload flow is gone — confirm it stays gone.
+    expect(await dialog.locator('input[type="file"]').count()).toBe(0);
     await dialog.locator('input[name="name"]').fill("QA Formspree");
     await dialog.locator('input[name="email"]').fill("qa@example.com");
     await dialog.locator('input[name="phone"]').fill("+45 12 34 56 78");
-    await dialog.locator('input[name="cv"]').setInputFiles({
-      name: "qa-resume.pdf",
-      mimeType: "application/pdf",
-      buffer: Buffer.from("%PDF-1.4 automated test"),
-    });
+    await dialog.getByRole("checkbox", { name: /Social media/i }).check();
+    await dialog.locator('textarea[name="experience"]').fill("Automated delivery-wiring check — experience.");
+    await dialog.locator('textarea[name="whyRorum"]').fill("Automated delivery-wiring check — why RORUM.");
     await dialog.locator('input[name="privacyConsent"]').check();
-    await dialog.getByRole("button", { name: /Submit CV/i }).click();
+    await dialog.getByRole("button", { name: /Send Application/i }).click();
 
     await expect(dialog.getByRole("alert").filter({ hasText: UNAVAILABLE })).toBeVisible();
-    await expect(dialog.getByText(/we received your CV/i)).toHaveCount(0);
+    await expect(dialog.getByText(/we received your application/i)).toHaveCount(0);
     await expect(dialog.locator('input[name="name"]')).toHaveValue("QA Formspree");
     expect(getHits()).toEqual([]);
   });

@@ -93,6 +93,20 @@ export default defineType({
       description: 'E.g. "Close" — used for close buttons across popups. / Напр. «Закрити» — використовується для кнопок закриття спливних вікон.',
     }),
     defineField({
+      name: "successTitle",
+      title: "Success title",
+      type: "internationalizedArrayString",
+      description:
+        'Title shown after a form is submitted successfully, e.g. "Thank you!" — shared by every form\'s success popup (each form\'s own message text below it stays specific to that form). / Заголовок, що показується після успішного надсилання форми, напр. «Дякуємо!» — спільний для спливного вікна успіху кожної форми (текст повідомлення під ним лишається специфічним для кожної форми).',
+    }),
+    defineField({
+      name: "doneLabel",
+      title: "Done button",
+      type: "internationalizedArrayString",
+      description:
+        'Label for the primary button in the successful-submission message, e.g. "Done". / Напис кнопки в повідомленні про успішне надсилання, напр. «Готово».',
+    }),
+    defineField({
       name: "copyLabel",
       title: "Generic \"Copy\" button label",
       type: "internationalizedArrayString",
@@ -159,18 +173,28 @@ export default defineType({
     // field per string, since a named field per label would each count
     // separately toward the cap, while every array row here reuses the same
     // two shared paths regardless of how many labels exist. Keys used:
-    // invalidPhoneMessage, fileRequiredMessage, fileTypeMessage,
-    // fileSizeMessage, uploadCvLabel, removeFileLabel, shortMessageLabel,
-    // sendingLabel, applicationSentLabel, sendApplicationLabel,
-    // submitCvLabel, formNotConfiguredMessage, formSubmitFailedMessage,
+    // invalidPhoneMessage, sendingLabel, sendApplicationLabel,
+    // formNotConfiguredMessage, formSubmitFailedMessage,
     // contactFormMessagePlaceholder, contactFallbackNote.
+    // (successTitle/doneLabel were briefly added here, then promoted to
+    // first-class fields above — see git history if that row-based approach
+    // is ever relevant again; production's extraLabels never actually
+    // contained rows for those two keys, so nothing needed to be removed.
+    // fileRequiredMessage/fileTypeMessage/fileSizeMessage/uploadCvLabel/
+    // removeFileLabel/shortMessageLabel/submitCvLabel were the Work With Us
+    // CV-upload form's own labels — removed along with that architecture
+    // when Work With Us became a fully text-based application form; see git
+    // history and scripts/migrate-work-with-us-application-form.ts.
+    // applicationSentLabel became dead once VolunteerApplicationForm's submit
+    // button stopped showing a post-success label state — removed along with
+    // that change; see scripts/migrate-remove-cv-form-messages.ts.)
     defineField({
       name: "extraLabels",
       title: "Additional shared labels",
       type: "array",
       of: [defineArrayMember({ type: "keyedString" })],
       description:
-        "More shared form text (CV upload, volunteer form button states, contact form). Each row is identified by its key — do not rename keys or add rows with new keys. / Додатковий спільний текст форм (завантаження резюме, стани кнопок форми волонтерства, форма контактів). Кожен рядок визначається своїм ключем — не перейменовуйте ключі та не додавайте рядки з новими ключами.",
+        "More shared form text (volunteer form button states, contact form). Each row is identified by its key — do not rename keys or add rows with new keys. / Додатковий спільний текст форм (стани кнопок форми волонтерства, форма контактів). Кожен рядок визначається своїм ключем — не перейменовуйте ключі та не додавайте рядки з новими ключами.",
     }),
   ],
   preview: {

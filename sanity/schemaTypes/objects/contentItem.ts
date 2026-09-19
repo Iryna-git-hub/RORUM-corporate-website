@@ -123,7 +123,7 @@ const ITEM_KEY_PREVIEW_LABELS: Record<string, string> = {
   supportText: "Donation — closing note",
   column0: "Intro — column 1",
   column1: "Intro — column 2",
-  // Volunteer application modal / Work With Us CV-upload modal. Keyed by
+  // Volunteer application modal / Work With Us application modal. Keyed by
   // itemKey alone (like every entry here), so keep these specific enough not
   // to mislead if a same-named itemKey ever appears in another role — e.g.
   // NOT a bare "description" (that itemKey is also "Home editorial
@@ -131,9 +131,30 @@ const ITEM_KEY_PREVIEW_LABELS: Record<string, string> = {
   // title/text is empty.
   modalTitle: "Modal heading",
   modalTitleSent: "Modal heading (after sending)",
-  dropzoneText: "File drop-zone text",
   descriptionSent: "Modal text (after sending)",
   errorMessage: "Error / failure message",
+  // Work With Us application-form fields (see components/
+  // WorkWithUsApplicationForm.tsx) — example-style field placeholders, role
+  // interest checkboxes, the two large textareas, and the optional links
+  // field.
+  fullNamePlaceholder: "Full name — example placeholder",
+  emailPlaceholder: "Email — example placeholder",
+  phonePlaceholder: "Phone — example placeholder",
+  roleInterestLabel: "Role-interest checkboxes — legend",
+  role0: "Role option 1",
+  role1: "Role option 2",
+  role2: "Role option 3",
+  role3: "Role option 4",
+  role4: "Role option 5",
+  role5: "Role option 6",
+  role6: "Role option 7",
+  role7: "Role option 8",
+  experienceLabel: "Experience & skills — field label",
+  experiencePlaceholder: "Experience & skills — placeholder",
+  whyRorumLabel: "Why RORUM — field label",
+  whyRorumPlaceholder: "Why RORUM — placeholder",
+  linksLabel: "Links — field label",
+  linksPlaceholder: "Links — placeholder",
 };
 
 export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
@@ -468,28 +489,30 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
 
   // ==========================================================================
   // Volunteer (page-volunteer) + Work With Us (page-work-with-us) — the
-  // application/CV-upload modal copy + Work With Us' "features" bullets. Each
+  // application-modal copy + Work With Us' "features" bullets. Each
   // modal row is a fixed, singular reserved row read via ONE of `.title` /
   // `.text` (see the respective page.tsx's getData() —
   // `getItem(formSection, "<itemKey>")?.title|text`). The technical chain
-  // (schema/resolver/component) fully supports EN/DA/UK; the stored DA/UK
-  // VALUES are currently missing (SANITY_MIGRATION.md §20.9).
+  // (schema/resolver/component) fully supports EN/DA/UK, and the stored DA/UK
+  // values are now fully supplied on both documents (verified via
+  // `npm run sanity:audit-sections` — 0 partial-i18n fields on either page).
   //
   // These ARE marked `requiredFields`. An earlier version deliberately left
-  // them off, reasoning that would keep the pages publishable while the
+  // them off, reasoning that would keep the pages publishable while
   // translations were missing — that reasoning was wrong. `title`/`text`
   // already carry the shared all-or-nothing i18n rule (see requiredWhen in
   // i18nValidation.ts): a row filled for EN only but not DA/UK is invalid and
-  // blocks Publish regardless of `requiredFields`. Since both pages' rows are
-  // currently EN-only, both pages are already un-republishable from Studio
-  // until a translator fills the gap. Marking `requiredFields` doesn't change
-  // that; it only upgrades the Studio error from the confusing "filled in for
-  // some languages but not all — … or clear the field completely" to the
-  // direct "Please add the Danish and Ukrainian translations." — and removes
-  // the "clear the field to unblock" footgun (which would silently drop the
-  // EN copy and leave the frontend on its hardcoded fallback). The content
-  // gap itself is tracked in SANITY_MIGRATION.md §20.9. `documentIds`-scoped
-  // since "applicationForm"/"cvUploadForm"/"features" are page-specific keys.
+  // blocks Publish regardless of `requiredFields`. So a half-translated row
+  // (EN-only, as these once were) would already un-republish the page from
+  // Studio; marking `requiredFields` doesn't change that — it only upgrades
+  // the Studio error from the confusing "filled in for some languages but not
+  // all — … or clear the field completely" to the direct "Please add the
+  // Danish and Ukrainian translations." — and removes the "clear the field to
+  // unblock" footgun (which would silently drop the EN copy and leave the
+  // frontend on its hardcoded fallback). This stays in place as a guard
+  // against the same gap reopening if a new item key is ever added EN-only.
+  // `documentIds`-scoped since "applicationForm"/"applyForm"/"features" are
+  // page-specific keys.
   // ==========================================================================
   {
     role: "Volunteer application-modal heading/placeholder",
@@ -510,18 +533,25 @@ export const ITEM_ROLE_RULES: readonly ItemRoleRule[] = [
     fieldLabels: { text: "Message" },
   },
   {
-    role: "Work With Us CV-modal heading/placeholder",
+    // The form itself is fully text-based — no CV/file upload — see
+    // components/WorkWithUsApplicationForm.tsx. The section's manager-facing
+    // Studio title is "Apply Form" (set on the section's own `title` field by
+    // scripts/migrate-work-with-us-rename-section.ts); its technical
+    // `sectionKey` is "applyForm" (renamed from the legacy "cvUploadForm" by
+    // that same script — see its own header comment for the full
+    // audit/backup/migrate/verify record).
+    role: "Work With Us application-form heading/placeholder",
     documentIds: ["page-work-with-us"],
-    sectionKeys: ["cvUploadForm"],
-    itemKeyPattern: /^(modalTitle|modalTitleSent|messagePlaceholder|dropzoneText)$/,
+    sectionKeys: ["applyForm"],
+    itemKeyPattern: /^(modalTitle|modalTitleSent|fullNamePlaceholder|emailPlaceholder|phonePlaceholder|roleInterestLabel|role[0-7]|experienceLabel|experiencePlaceholder|whyRorumLabel|whyRorumPlaceholder|linksLabel|linksPlaceholder)$/,
     visible: ["title"],
     requiredFields: ["title"],
     fieldLabels: { title: "Text" },
   },
   {
-    role: "Work With Us CV-modal message",
+    role: "Work With Us application-form message",
     documentIds: ["page-work-with-us"],
-    sectionKeys: ["cvUploadForm"],
+    sectionKeys: ["applyForm"],
     itemKeyPattern: /^(description|descriptionSent|errorMessage)$/,
     visible: ["text"],
     requiredFields: ["text"],

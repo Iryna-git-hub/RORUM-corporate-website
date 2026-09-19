@@ -68,7 +68,13 @@ test.describe("Host at RORUM payload labels — locale-mocked (da/uk), never del
     await page.getByRole("checkbox", { name: "Frokost" }).check();
     await page.locator('form button[type="submit"]').first().click();
 
-    await expect(page.getByRole("status")).toBeVisible();
+    // Page-embedded forms (Host at RORUM included) now show the shared
+    // success DIALOG (FormSuccessModal/ApplicationModal), not an inline
+    // role="status" element — see components/InquiryForm.tsx.
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Tak!" })).toBeVisible();
+    await expect(dialog).toContainText("Tak. Din Vær vært hos RORUM-anmodning er klar til RORUM-teamet.");
     expect(capturedBody).toContain("Eftermiddagssession");
     expect(capturedBody).toContain("Morgenmad");
     expect(capturedBody).toContain("Frokost");
@@ -96,7 +102,13 @@ test.describe("Host at RORUM payload labels — locale-mocked (da/uk), never del
     await page.getByRole("checkbox", { name: "Обід" }).check();
     await page.locator('form button[type="submit"]').first().click();
 
-    await expect(page.getByRole("status")).toBeVisible();
+    // Page-embedded forms (Host at RORUM included) now show the shared
+    // success DIALOG (FormSuccessModal/ApplicationModal), not an inline
+    // role="status" element — see components/InquiryForm.tsx.
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Дякуємо!" })).toBeVisible();
+    await expect(dialog).toContainText("Дякуємо. Ваш запит на проведення в RORUM передано команді RORUM.");
     expect(capturedBody).toContain("Денна сесія");
     expect(capturedBody).toContain("Сніданок");
     expect(capturedBody).toContain("Обід");
@@ -152,7 +164,11 @@ test.describe("Real live Formspree submissions — explicitly authorized, run on
 
     const request = await requestPromise;
     const body = request.postData() ?? "";
-    await expect(page.getByRole("status")).toBeVisible();
+    // Page-embedded forms now show the shared success DIALOG (FormSuccessModal/
+    // ApplicationModal), not an inline role="status" element — see components/InquiryForm.tsx.
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Thank you!" })).toBeVisible();
 
     // The resolved LABELS must be present...
     expect(body).toContain("Morning session");
@@ -180,7 +196,9 @@ test.describe("Real live Formspree submissions — explicitly authorized, run on
 
     const request = await requestPromise;
     const body = request.postData() ?? "";
-    await expect(page.getByRole("status")).toBeVisible();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Thank you!" })).toBeVisible();
     expect(body).toContain(QA_DISCLAIMER);
     expect(body).toContain("Catering inquiry");
   });
@@ -199,7 +217,9 @@ test.describe("Real live Formspree submissions — explicitly authorized, run on
 
     const request = await requestPromise;
     const body = request.postData() ?? "";
-    await expect(page.getByRole("status")).toBeVisible();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Thank you!" })).toBeVisible();
     expect(body).toContain(QA_DISCLAIMER);
     expect(body).toContain("Contact request");
   });

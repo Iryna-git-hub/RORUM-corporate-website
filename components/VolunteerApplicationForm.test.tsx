@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 
@@ -35,13 +35,24 @@ async function openAndFill() {
 }
 
 describe("VolunteerApplicationForm — unified Formspree delivery", () => {
-  it("submits through the shared helper with the Volunteer form_name + standardized English subject + locale", async () => {
+  it("submits through the shared helper with the Volunteer form_name + standardized English subject + locale, and shows the shared success content IN PLACE — no second/nested dialog", async () => {
     submitToFormspreeMock.mockResolvedValue(undefined);
     render(<VolunteerApplicationButton content={{ modalTitle: "Volunteer", messagePlaceholder: "", successMessage: "Application sent!", errorMessage: "err" }} />);
     await openAndFill();
     await userEvent.click(screen.getByRole("button", { name: /Send Application/i }));
 
-    expect(await screen.findByText("Application sent!")).toBeInTheDocument();
+    const dialogs = await screen.findAllByRole("dialog");
+    expect(dialogs).toHaveLength(1);
+    const dialog = dialogs[0]!;
+    expect(within(dialog).getByText("Application sent!")).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Done" })).toBeInTheDocument();
+    // The form fields are gone — replaced in place, not layered underneath.
+    expect(screen.queryByLabelText(/Full Name/)).not.toBeInTheDocument();
+    // The swapped-in dialog content must actually remount (not just update
+    // in place) so its mount effect re-focuses the close button — the only
+    // success announcement a screen reader gets now that there's no
+    // separate role="status" banner.
+    await waitFor(() => expect(within(dialog).getByRole("button", { name: "Close" })).toHaveFocus());
     expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
     expect(fd.get("form_name")).toBe("Volunteer application");
@@ -51,6 +62,22 @@ describe("VolunteerApplicationForm — unified Formspree delivery", () => {
     expect(fd.get("name")).toBe("Mette Larsen");
     expect(fd.get("email")).toBe("mette@example.com");
     expect(fd.get("message")).toBe("I'd love to help at events");
+  });
+
+  it("Done closes the whole modal and returns focus to the trigger; reopening shows a fresh form, not the previous success state", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<VolunteerApplicationButton content={{ modalTitle: "Volunteer", messagePlaceholder: "", successMessage: "Application sent!", errorMessage: "err" }} />);
+    await openAndFill();
+    await userEvent.click(screen.getByRole("button", { name: /Send Application/i }));
+    await screen.findByRole("dialog");
+
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("button", { name: /Apply to volunteer/i })).toHaveFocus());
+
+    await userEvent.click(screen.getByRole("button", { name: /Apply to volunteer/i }));
+    expect(await screen.findByLabelText(/Full Name/)).toHaveValue("");
+    expect(screen.queryByText("Application sent!")).not.toBeInTheDocument();
   });
 
   it("a failed submit shows no success and preserves the typed values", async () => {

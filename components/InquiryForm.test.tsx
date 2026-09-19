@@ -7,7 +7,7 @@
 // arrays, and that the submitted VALUE is always the stable identifier —
 // never the (renameable, localized) label.
 import { describe, expect, it, afterEach, beforeEach, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 
@@ -155,17 +155,32 @@ async function fillBooking() {
   await userEvent.type(screen.getByLabelText(/Comment/), "A quiet morning meeting");
 }
 
+// See ContactForm.test.tsx's fillValidContactForm() for why every field is
+// `.clear()`ed first — makes this helper safe to call twice in the same
+// test (fill → submit → success → Done → fill again) after the shared
+// hook's native `form.reset()`, which userEvent doesn't otherwise notice.
 async function fillDecoration() {
-  await userEvent.type(screen.getByLabelText(/Full Name/), "Erik Vestergaard");
-  await userEvent.type(screen.getByLabelText(/Phone number/), "+45 98 76 54 32");
-  await userEvent.type(screen.getByLabelText(/^Email/), "erik@example.com");
-  await userEvent.type(screen.getByLabelText(/Event date/), "2099-01-01");
-  await userEvent.type(screen.getByLabelText(/Message/), "Florals and candles for 20 guests");
-  await userEvent.click(screen.getByRole("checkbox"));
+  const name = screen.getByLabelText(/Full Name/);
+  await userEvent.clear(name);
+  await userEvent.type(name, "Erik Vestergaard");
+  const phone = screen.getByLabelText(/Phone number/);
+  await userEvent.clear(phone);
+  await userEvent.type(phone, "+45 98 76 54 32");
+  const email = screen.getByLabelText(/^Email/);
+  await userEvent.clear(email);
+  await userEvent.type(email, "erik@example.com");
+  const eventDate = screen.getByLabelText(/Event date/);
+  await userEvent.clear(eventDate);
+  await userEvent.type(eventDate, "2099-01-01");
+  const message = screen.getByLabelText(/Message/);
+  await userEvent.clear(message);
+  await userEvent.type(message, "Florals and candles for 20 guests");
+  const consent = screen.getByRole("checkbox") as HTMLInputElement;
+  if (!consent.checked) await userEvent.click(consent);
 }
 
 describe("InquiryForm — unified Formspree delivery", () => {
-  it("booking: submits through submitToFormspree with the Host at RORUM form_name + standardized subject + locale, and NO fake setTimeout", async () => {
+  it("booking: submits through submitToFormspree with the Host at RORUM form_name + standardized subject + locale, shows an accessible success MODAL (not an inline banner), and NO fake setTimeout", async () => {
     submitToFormspreeMock.mockResolvedValue(undefined);
     render(
       <InquiryForm
@@ -178,7 +193,10 @@ describe("InquiryForm — unified Formspree delivery", () => {
     await fillBooking();
     await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
 
-    expect(await screen.findByText("Host request received!")).toBeInTheDocument();
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Host request received!")).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Done" })).toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(submitToFormspreeMock).toHaveBeenCalledTimes(1);
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
     expect(fd.get("form_name")).toBe("Host at RORUM inquiry");
@@ -192,16 +210,34 @@ describe("InquiryForm — unified Formspree delivery", () => {
     expect(fd.get("name")).toBe("Jane Doe");
   });
 
-  it("decoration: uses the Event Decoration form_name + subject", async () => {
+  it("decoration: uses the Event Decoration form_name + subject, and shows the accessible success modal", async () => {
     submitToFormspreeMock.mockResolvedValue(undefined);
     render(<InquiryForm type="decoration" title="Plan your decoration" successMessage="Decoration request received!" />);
     await fillDecoration();
     await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
 
-    expect(await screen.findByText("Decoration request received!")).toBeInTheDocument();
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Decoration request received!")).toBeInTheDocument();
     const fd = submitToFormspreeMock.mock.calls[0]![0] as FormData;
     expect(fd.get("form_name")).toBe("Event Decoration inquiry");
     expect(fd.get("subject")).toBe("[RoRUM] Event Decoration inquiry — Erik Vestergaard");
+  });
+
+  it("decoration: Done closes the success modal, returns focus to the submit button, and the form can be submitted again", async () => {
+    submitToFormspreeMock.mockResolvedValue(undefined);
+    render(<InquiryForm type="decoration" title="Plan your decoration" successMessage="Decoration request received!" />);
+    await fillDecoration();
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+    await screen.findByRole("dialog");
+
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("button", { name: /Send inquiry/i })).toHaveFocus());
+
+    await fillDecoration();
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(submitToFormspreeMock).toHaveBeenCalledTimes(2);
   });
 
   it("decoration: a failed submit shows the localized generic error (not just the booking branch), no success, input kept", async () => {
@@ -213,6 +249,7 @@ describe("InquiryForm — unified Formspree delivery", () => {
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent(/Something went wrong sending/i);
     expect(screen.queryByText("Decoration request received!")).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect((screen.getByLabelText(/Full Name/) as HTMLInputElement).value).toBe("Erik Vestergaard");
     expect((screen.getByLabelText(/Message/) as HTMLTextAreaElement).value).toBe("Florals and candles for 20 guests");
   });

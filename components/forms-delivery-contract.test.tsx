@@ -11,7 +11,7 @@ import path from "node:path";
 const FORM_COMPONENTS = [
   "ContactForm.tsx",
   "VolunteerApplicationForm.tsx",
-  "CvUploadModal.tsx",
+  "WorkWithUsApplicationForm.tsx",
   "CateringInquiryForm.tsx",
   "InquiryForm.tsx",
 ];

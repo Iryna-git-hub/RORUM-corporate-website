@@ -3,6 +3,7 @@
 import type { FormEvent, ReactNode } from "react";
 import { useCallback, useRef, useState } from "react";
 import { ApplicationModal } from "@/components/ApplicationModal";
+import { FormSuccessContent } from "@/components/FormSuccessContent";
 import {
   PrivacyConsent,
   validatePrivacyConsent,
@@ -117,8 +118,33 @@ function VolunteerApplicationDialog({
     await submit(formData, form);
   }
 
+  if (sent) {
+    return (
+      // `key` forces a remount (not just a content update) across the
+      // form/success swap — ApplicationModal's own mount effect (moving
+      // focus to its close button, the only success announcement a screen
+      // reader gets now that there's no separate role="status") only runs
+      // on mount, not on a same-element update.
+      <ApplicationModal
+        key="success"
+        titleId="volunteer-success-title"
+        closeLabel={messages.closeLabel}
+        onClose={onClose}
+      >
+        <FormSuccessContent
+          titleId="volunteer-success-title"
+          title={messages.successTitle}
+          message={content.successMessage}
+          doneLabel={messages.doneLabel}
+          onDone={onClose}
+        />
+      </ApplicationModal>
+    );
+  }
+
   return (
     <ApplicationModal
+      key="form"
       titleId="volunteer-modal-title"
       closeLabel={messages.closeLabel}
       onClose={onClose}
@@ -148,15 +174,6 @@ function VolunteerApplicationDialog({
           {content.modalTitle}
         </h2>
       </div>
-
-      {sent ? (
-        <div
-          className="border border-[rgba(var(--rgb-light-green),0.28)] rounded-none bg-[rgba(var(--rgb-beige),0.24)] p-3.5 text-primary-dark font-bold"
-          role="status"
-        >
-          {content.successMessage}
-        </div>
-      ) : null}
 
       {submitError ? (
         <div
@@ -247,13 +264,9 @@ function VolunteerApplicationDialog({
       <button
         className={SUBMIT_BUTTON_CLASS}
         type="submit"
-        disabled={isSubmitting || sent}
+        disabled={isSubmitting}
       >
-        {isSubmitting
-          ? messages.sendingLabel
-          : sent
-            ? messages.applicationSentLabel
-            : messages.sendApplicationLabel}
+        {isSubmitting ? messages.sendingLabel : messages.sendApplicationLabel}
       </button>
     </form>
     </ApplicationModal>
