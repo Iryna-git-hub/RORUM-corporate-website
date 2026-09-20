@@ -2628,9 +2628,24 @@ button.btn,
    to fit the trust bar at all — hide it outright and leave the rest of the
    original Hero (100svh, centered, absolutely-positioned trust bar)
    completely untouched. Above 860px (e.g. 414x896) or above 639px wide,
-   nothing in this rule applies. */
+   nothing in this rule applies.
+
+   With the trust bar gone, `.home-hero-copy`'s own `margin-top: -35%` (set
+   unconditionally for every phone-width viewport by the `@media
+   (max-width: 639px)` block above — deliberately, to leave room below the
+   copy for the trust bar there) has nothing left to make room for, so it
+   just biases the whole copy block upward instead of letting
+   `.home-hero-full`'s existing `grid; align-items: center` center it.
+   Cancelling it back to `0` here (only at this narrower, short-mobile
+   condition — the wider `max-width: 639px` rule, and its `-35%`, still
+   apply everywhere else, e.g. 414x896) lets that pre-existing centering
+   act on `.home-hero-copy` as one block, correctly for any content length/
+   wrap/CTA width, with no new offset of any kind. */
 @media (max-width: 639px) and (max-height: 860px) {
   .home-hero-trust {
     display: none;
+  }
+  .home-hero-copy {
+    margin-top: 0;
   }
 }

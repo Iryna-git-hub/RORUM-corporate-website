@@ -125,6 +125,23 @@ test.describe("Home Hero — trust/benefits bar is hidden (not reflowed) on shor
         if (await ctas.count()) {
           await expect(ctas.first()).toBeVisible();
         }
+
+        // The copy block (eyebrow/H1/description/CTAs, treated as ONE
+        // group) fits entirely within the Hero and is visually centered —
+        // regression guard for the bug where `.home-hero-copy`'s
+        // `margin-top: -35%` (calibrated to leave room for the now-hidden
+        // trust bar) biased the whole block upward with nothing left to
+        // make room for. `.home-hero-full`'s pre-existing `align-items:
+        // center` does the actual centering once that bias is cancelled —
+        // no fixed offset here, so this stays correct for any content
+        // length/wrap (checked across EN/DA/UK, which wrap differently).
+        const copyBox = (await page.locator(".home-hero-copy").boundingBox())!;
+        const heroBox = (await hero.boundingBox())!;
+        expect(copyBox.y).toBeGreaterThanOrEqual(0);
+        expect(copyBox.y + copyBox.height).toBeLessThanOrEqual(height + 1);
+        const copyCenter = copyBox.y + copyBox.height / 2;
+        const heroCenter = heroBox.y + heroBox.height / 2;
+        expect(Math.abs(copyCenter - heroCenter)).toBeLessThan(height * 0.12);
       });
     }
   }
