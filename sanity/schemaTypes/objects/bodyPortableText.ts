@@ -8,6 +8,8 @@ export default defineType({
   name: "bodyPortableText",
   title: "Body content",
   type: "array",
+  description:
+    "Rich text — paragraphs, headings, bold/italic, bullet and numbered lists, and links. Used for long-form content like legal page bodies. / Форматований текст — абзаци, заголовки, жирний/курсив, марковані й нумеровані списки та посилання. Використовується для великих текстів, напр. текстів юридичних сторінок.",
   of: [
     defineArrayMember({
       type: "block",
@@ -15,7 +17,10 @@ export default defineType({
         { title: "Normal", value: "normal" },
         { title: "Heading", value: "h2" },
       ],
-      lists: [{ title: "Bullet", value: "bullet" }],
+      lists: [
+        { title: "Bullet", value: "bullet" },
+        { title: "Numbered", value: "number" },
+      ],
       marks: {
         decorators: [
           { title: "Bold", value: "strong" },
@@ -31,6 +36,7 @@ export default defineType({
                 name: "href",
                 title: "URL",
                 type: "string",
+                description: "The link's destination URL. / URL-адреса, куди веде посилання.",
                 validation: (rule) => rule.required(),
               }),
             ],

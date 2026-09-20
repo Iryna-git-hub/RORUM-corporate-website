@@ -1,25 +1,8 @@
-import { companyDetails, contactDetails } from "@/lib/siteConfig";
+import { contactDetails as fallbackContactDetails } from "@/lib/siteConfig";
 
-export function PrivacyPolicyContent() {
+export function PrivacyPolicyContent({ email = fallbackContactDetails.email }: { email?: string }) {
   return (
     <>
-      <h2>1. Company details</h2>
-      <p>
-        RORUM is a Copenhagen-based business connected to events, private
-        meetings, catering, event decoration and community experiences.
-      </p>
-      <p>
-        <strong>{companyDetails.name}</strong>
-        <br />
-        Address: {contactDetails.shortAddress}
-        <br />
-        CVR: {companyDetails.cvr}
-        <br />
-        Contact: <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a>
-        <br />
-        Website: {companyDetails.website}
-      </p>
-
       <h2>2. Information you submit</h2>
       <p>
         When you contact RORUM through a form or email, you may provide
@@ -50,15 +33,17 @@ export function PrivacyPolicyContent() {
         <li>consent, where you have given consent for a specific purpose</li>
       </ul>
 
-      <h2>5. CV and collaboration inquiries</h2>
+      <h2>5. Work with us applications and collaboration inquiries</h2>
       <p>
-        If you submit your CV, portfolio or other information through the Work
-        with us page, RORUM uses this information to review possible
-        collaborations, roles or future opportunities.
+        If you apply through the Work with us page, RORUM uses the information
+        you submit — such as your experience, the role you are interested in
+        and any links you choose to share — to review possible collaborations,
+        roles or future opportunities.
       </p>
       <p>
-        CVs and related messages may be kept for up to 12 months, unless you ask
-        RORUM to delete them earlier or unless a longer period is agreed.
+        Applications and related messages may be kept for up to 12 months,
+        unless you ask RORUM to delete them earlier or unless a longer period
+        is agreed.
       </p>
 
       <h2>6. External providers</h2>
@@ -100,7 +85,7 @@ export function PrivacyPolicyContent() {
       <h2>10. Contact</h2>
       <p>
         For privacy questions, contact{" "}
-        <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a>.
+        <a href={`mailto:${email}`}>{email}</a>.
       </p>
     </>
   );

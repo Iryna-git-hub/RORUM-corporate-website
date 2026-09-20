@@ -1,76 +1,120 @@
-import Link from "next/link";
+import { LocaleLink as Link } from "@/components/LocaleLink";
 import { CalendarDays, Clock, TicketCheck, TicketX } from "lucide-react";
 import { Card } from "@/components/ui";
 import type { RorumEvent } from "@/lib/data";
+import { localeTags, type Locale } from "@/lib/i18n";
+import { pickLabel } from "@/lib/sanity-i18n";
+
+export interface EventCardMessages {
+  soldOutLabel: string;
+  spotsLeftOne: string;
+  spotsLeftOther: string;
+  timeToBeAnnouncedLabel: string;
+  viewEventAriaPrefix: string;
+}
+
+export const defaultEventCardMessages: EventCardMessages = {
+  soldOutLabel: "Sold out",
+  spotsLeftOne: "spot left",
+  spotsLeftOther: "spots left",
+  timeToBeAnnouncedLabel: "Time to be announced",
+  viewEventAriaPrefix: "View event:",
+};
+
+/**
+ * Resolves the shared `eventMessages` singleton into a localized
+ * `EventCardMessages` — the ONE place this mapping lives, so the Events
+ * listing and the Home "Upcoming events" strip render availability copy
+ * ("10 spots left" / "1 spot left" / "Sold out") from the exact same
+ * localized source (Phase 4). Every key falls back to its English default
+ * when the singleton hasn't been translated yet.
+ */
+export function resolveEventCardMessages(
+  labels: Parameters<typeof pickLabel>[0],
+  locale: Locale,
+): EventCardMessages {
+  return {
+    soldOutLabel: pickLabel(labels, "soldOutLabel", locale, defaultEventCardMessages.soldOutLabel),
+    spotsLeftOne: pickLabel(labels, "spotsLeftOne", locale, defaultEventCardMessages.spotsLeftOne),
+    spotsLeftOther: pickLabel(labels, "spotsLeftOther", locale, defaultEventCardMessages.spotsLeftOther),
+    timeToBeAnnouncedLabel: pickLabel(labels, "timeToBeAnnouncedLabel", locale, defaultEventCardMessages.timeToBeAnnouncedLabel),
+    viewEventAriaPrefix: pickLabel(labels, "viewEventAriaPrefix", locale, defaultEventCardMessages.viewEventAriaPrefix),
+  };
+}
 
 export function EventList({
   events,
   variant = "grid",
+  locale = "en",
+  messages = defaultEventCardMessages,
 }: {
   events: RorumEvent[];
   variant?: "grid" | "scroll";
+  locale?: Locale;
+  messages?: EventCardMessages;
 }) {
   return (
     <div
       className={variant === "scroll" ? "event-list event-list-scroll" : "event-list"}
     >
       {events.map((event) => (
-        <EventCard key={event.title} event={event} variant={variant} />
+        <EventCard key={event.title} event={event} variant={variant} locale={locale} messages={messages} />
       ))}
     </div>
   );
 }
 
-function formatEventDate(dateValue: string): string {
+function formatEventDate(dateValue: string, locale: Locale): string {
   const date = new Date(`${dateValue}T12:00:00`);
-  const weekday = date.toLocaleDateString("en-GB", { weekday: "short" });
-  const month = date.toLocaleDateString("en-GB", { month: "short" });
+  const tag = localeTags[locale];
+  const weekday = date.toLocaleDateString(tag, { weekday: "short" });
+  const month = date.toLocaleDateString(tag, { month: "short" });
   return `${weekday}, ${month} ${date.getDate()}`;
 }
 
-function formatEventBadgeDate(dateValue: string): { day: string; month: string } {
+function formatEventBadgeDate(dateValue: string, locale: Locale): { day: string; month: string } {
   const date = new Date(`${dateValue}T12:00:00`);
+  const tag = localeTags[locale];
   return {
-    day: date.toLocaleDateString("en-GB", { day: "2-digit" }),
-    month: date.toLocaleDateString("en-GB", { month: "short" }).toUpperCase(),
+    day: date.toLocaleDateString(tag, { day: "2-digit" }),
+    month: date.toLocaleDateString(tag, { month: "short" }).toUpperCase(),
   };
 }
 
-function formatListingDate(dateValue: string): string {
+function formatListingDate(dateValue: string, locale: Locale): string {
   const date = new Date(`${dateValue}T12:00:00`);
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(localeTags[locale], {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
 
-function formatEventTime(time: string): string {
-  return time?.replace("-", "–") ?? "Time to be announced";
+function formatEventTime(time: string, timeToBeAnnouncedLabel: string): string {
+  return time?.replace("-", "–") ?? timeToBeAnnouncedLabel;
 }
 
 export function EventCard({
   event,
   variant = "grid",
+  locale = "en",
+  messages = defaultEventCardMessages,
 }: {
   event: RorumEvent;
   variant?: "grid" | "scroll";
+  locale?: Locale;
+  messages?: EventCardMessages;
 }) {
-  const badgeDate = formatEventBadgeDate(event.date);
+  const badgeDate = formatEventBadgeDate(event.date, locale);
   const isListingCard = variant !== "scroll";
   const spotsLeft =
     typeof event.spotsLeft === "number" ? event.spotsLeft : event.ticketsLeft;
   const hasSpotsLeft = typeof spotsLeft === "number";
-  const ticketStatus = event.isSoldOut
-    ? "Sold out"
-    : hasSpotsLeft
-      ? `${spotsLeft} ${spotsLeft === 1 ? "spot" : "spots"} left`
-      : "";
-  const homeAvailability = event.isSoldOut
-    ? "Sold out"
-    : hasSpotsLeft
-      ? `${spotsLeft} ${spotsLeft === 1 ? "spot" : "spots"} left`
-      : "";
+  const spotsLeftText = hasSpotsLeft
+    ? `${spotsLeft} ${spotsLeft === 1 ? messages.spotsLeftOne : messages.spotsLeftOther}`
+    : "";
+  const ticketStatus = event.isSoldOut ? messages.soldOutLabel : spotsLeftText;
+  const homeAvailability = event.isSoldOut ? messages.soldOutLabel : spotsLeftText;
   const ListingAvailabilityIcon = event.isSoldOut ? TicketX : TicketCheck;
   const HomeAvailabilityIcon = event.isSoldOut ? TicketX : TicketCheck;
   const eventStartTime = event.time.split("-")[0] ?? "";
@@ -79,7 +123,7 @@ export function EventCard({
       className={`event-card ${isListingCard ? "event-card-listing" : ""} ${event.isSoldOut ? "is-sold-out" : ""}`.trim()}
       variant="event"
     >
-      <div className="event-media">
+      <div className="event-media" data-sanity={event.imageEditAttr}>
         <span
           className={`absolute inset-0 bg-center bg-cover bg-no-repeat scale-100 transition-[transform_0.42s_ease,filter_0.24s_ease] group-hover:scale-[1.07] group-focus-visible:scale-[1.07] ${
             event.isSoldOut
@@ -93,7 +137,7 @@ export function EventCard({
           className="absolute top-[14px] left-[14px] max-lg:top-[12px] max-lg:left-[12px] z-[1] grid place-items-center content-center gap-px w-[52px] min-h-[52px] px-[7px] py-[6px] bg-light-green text-[var(--color-text-heading)] text-center font-body"
           dateTime={event.date}
         >
-          <span className="text-secondary font-body text-[22px] leading-[0.9] font-black">
+          <span className="text-secondary font-body text-[22px] leading-[0.9] font-extrabold">
             {badgeDate.day}
           </span>
           <span className="text-gold font-body text-[11px] leading-[0.95] font-extrabold tracking-[0.04em]">
@@ -122,14 +166,14 @@ export function EventCard({
                 <span className="inline-flex items-center justify-center w-[30px] h-[30px] bg-[rgba(var(--rgb-light-green),0.12)] text-light-green shrink-0">
                   <CalendarDays className="size-4" aria-hidden="true" />
                 </span>
-                <time dateTime={event.date}>{formatListingDate(event.date)}</time>
+                <time dateTime={event.date}>{formatListingDate(event.date, locale)}</time>
               </span>
               <span className="inline-flex items-center gap-2 min-w-0">
                 <span className="inline-flex items-center justify-center w-[30px] h-[30px] bg-[rgba(var(--rgb-light-green),0.12)] text-light-green shrink-0">
                   <Clock className="size-4" aria-hidden="true" />
                 </span>
                 <time dateTime={`${event.date}T${eventStartTime}`}>
-                  {formatEventTime(event.time)}
+                  {formatEventTime(event.time, messages.timeToBeAnnouncedLabel)}
                 </time>
               </span>
             </div>
@@ -164,7 +208,7 @@ export function EventCard({
                     className="text-text-primary text-sm leading-[1.25] font-medium"
                     dateTime={event.date}
                   >
-                    {formatEventDate(event.date)}
+                    {formatEventDate(event.date, locale)}
                   </time>
                 </span>
               </span>
@@ -218,7 +262,7 @@ export function EventCard({
       <Link
         className="event-card-link group"
         href={`/events/${event.slug}`}
-        aria-label={`View event: ${event.title}`}
+        aria-label={`${messages.viewEventAriaPrefix} ${event.title}`}
       >
         {card}
       </Link>

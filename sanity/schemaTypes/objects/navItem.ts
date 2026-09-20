@@ -10,14 +10,17 @@ export default defineType({
   name: "navItem",
   title: "Navigation item",
   type: "object",
+  description:
+    "One top-level navigation item — either a direct link or a dropdown. / Один пункт верхнього рівня навігації — пряме посилання або випадаюче меню.",
   fields: [
     defineField({
       name: "label",
       title: "Label",
       type: "internationalizedArrayString",
+      description: "The nav item's visible text. / Видимий текст пункту навігації.",
       validation: (r) =>
         r.custom((v) =>
-          (v as { _key: string; value?: string }[] | undefined)?.find((x) => x._key === "en")
+          (v as { _key: string; language?: string; value?: string }[] | undefined)?.find((x) => x.language === "en" || x._key === "en")
             ?.value
             ? true
             : "English label is required.",
@@ -27,19 +30,22 @@ export default defineType({
       name: "href",
       title: "Path (leave empty for a dropdown)",
       type: "string",
+      description: "Path (leave empty for a dropdown). / Шлях (залиште порожнім для випадаючого меню).",
     }),
     defineField({
       name: "children",
       title: "Dropdown links (leave empty for a direct link)",
       type: "array",
       of: [defineArrayMember({ type: "navChild" })],
+      description:
+        "Dropdown links (leave empty for a direct link). / Посилання випадаючого меню (залиште порожнім для прямого посилання).",
     }),
   ],
   preview: {
     select: { label: "label", href: "href", children: "children" },
     prepare({ label, href, children }) {
-      const en = (label as { _key: string; value?: string }[] | undefined)?.find(
-        (v) => v._key === "en",
+      const en = (label as { _key: string; language?: string; value?: string }[] | undefined)?.find(
+        (v) => v.language === "en" || v._key === "en",
       );
       const kind = href
         ? href

@@ -5,10 +5,18 @@ import {
   EventFilters,
   type EventAvailabilityFilter,
   type EventDateFilter,
+  type EventFilterLabels,
   type EventPriceFilter,
 } from "@/components/EventFilters";
-import { EventsPaginatedList } from "@/components/EventsPaginatedList";
+import {
+  EventsPaginatedList,
+  type EventsEmptyStateText,
+} from "@/components/EventsPaginatedList";
+import type { EventCardMessages } from "@/components/EventCard";
 import type { RorumEvent } from "@/lib/data";
+import { isUpcomingEvent } from "@/lib/eventVisibility";
+import { useLocale } from "@/lib/useLocale";
+import { eventMatchesLanguage, flattenAvailableEventLanguages } from "@/lib/eventLanguage";
 
 // ---------------------------------------------------------------------------
 // Pure helpers (same logic as before, now runs client-side)
@@ -79,8 +87,28 @@ function getDateWindow(
 // with Next.js output: 'export'.
 // ---------------------------------------------------------------------------
 
-export function EventsClientPage({ events }: { events: RorumEvent[] }) {
+export function EventsClientPage({
+  events,
+  filters,
+  languageOptionOrder,
+  dateOptionOrder,
+  priceOptionOrder,
+  availabilityOptionOrder,
+  eventCardMessages,
+  emptyState,
+}: {
+  events: RorumEvent[];
+  filters?: EventFilterLabels;
+  /** The manager's own stored Language order, resolved server-side by lib/eventFilters.ts's `resolveOrderedEventLanguageOptions` — this is now the SOLE authority for both which languages are offered and in what order; this component no longer computes or sorts that list itself (see that function's own doc comment for the alphabetical-sort bug this replaces). */
+  languageOptionOrder?: { value: string; label: string }[];
+  dateOptionOrder?: { value: string; label: string }[];
+  priceOptionOrder?: { value: string; label: string }[];
+  availabilityOptionOrder?: { value: string; label: string }[];
+  eventCardMessages?: EventCardMessages;
+  emptyState?: EventsEmptyStateText;
+}) {
   const searchParams = useSearchParams();
+  const { locale } = useLocale();
 
   const rawDate = searchParams.get("date");
   const selectedDate: EventDateFilter =
@@ -98,9 +126,16 @@ export function EventsClientPage({ events }: { events: RorumEvent[] }) {
       ? rawAvailability
       : "all";
 
-  const languageOptions = Array.from(
-    new Set(events.map((event) => event.language).filter(Boolean)),
-  ).sort((a, b) => a.localeCompare(b));
+  // The manager's own stored order (via `languageOptionOrder`, resolved
+  // server-side) is the sole authority for both WHICH languages are valid
+  // and in WHAT order — never re-derived or re-sorted here. A caller that
+  // somehow doesn't provide it (shouldn't happen — app/[locale]/(site)/events/page.tsx
+  // always computes it now) falls back to first-seen order among the loaded
+  // events, deliberately NOT an alphabetical sort, so an accidental omission
+  // can never quietly resurrect the exact bug this replaced.
+  const languageOptions =
+    languageOptionOrder?.map((o) => o.value) ??
+    flattenAvailableEventLanguages(events);
 
   const rawLanguage = searchParams.get("language");
   const selectedLanguage =
@@ -122,11 +157,14 @@ export function EventsClientPage({ events }: { events: RorumEvent[] }) {
 
   const visibleEvents = [...events]
     .filter((event) => {
+      // Phase 3: a past event never appears in the listing, regardless of
+      // the selected date filter — the same shared rule the Home strip uses.
+      if (!isUpcomingEvent(event, now)) return false;
       const eventDate = normalizeDate(event.date);
       if (!eventDate) return false;
       if (dateStart && eventDate < dateStart) return false;
       if (dateEnd && eventDate > dateEnd) return false;
-      if (selectedLanguage !== "all" && event.language !== selectedLanguage)
+      if (!eventMatchesLanguage(event.language, selectedLanguage))
         return false;
       const soldOut = Boolean(event.isSoldOut);
       if (selectedAvailability === "sold-out") return soldOut;
@@ -160,13 +198,20 @@ export function EventsClientPage({ events }: { events: RorumEvent[] }) {
         selectedLanguage={selectedLanguage}
         selectedPrice={selectedPrice}
         selectedAvailability={selectedAvailability}
-        languageOptions={languageOptions}
+        languageOptionOrder={languageOptionOrder}
         hasActiveFilters={hasActiveFilters}
+        labels={filters}
+        dateOptionOrder={dateOptionOrder}
+        priceOptionOrder={priceOptionOrder}
+        availabilityOptionOrder={availabilityOptionOrder}
       />
       <EventsPaginatedList
         events={visibleEvents}
         initialPage={initialPage}
         queryParams={queryParams}
+        locale={locale}
+        messages={eventCardMessages}
+        emptyState={emptyState}
       />
     </>
   );

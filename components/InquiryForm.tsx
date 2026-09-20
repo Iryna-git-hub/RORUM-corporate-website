@@ -1,29 +1,51 @@
 "use client";
 
 import type { FormEvent, ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   PrivacyConsent,
   validatePrivacyConsent,
 } from "@/components/PrivacyConsent";
+import { useFormContent } from "@/components/FormContentProvider";
+import { FormSuccessModal } from "@/components/FormSuccessModal";
+import { useFormspreeSubmit } from "@/lib/useFormspreeSubmit";
+import { resolveMultiOptionLabels, resolveOptionLabel, type RorumFormKey } from "@/lib/formspree";
 
-const bookingPackageOptions = [
-  "Morning session",
-  "Afternoon session",
-  "Full day session",
-  "Not sure yet",
+// Fallback only — used when the caller doesn't supply `packageOptions`
+// (Sanity unavailable/not yet migrated). The canonical, Sanity-backed
+// source is `app/[locale]/(site)/host-at-rorum/page.tsx`'s own
+// `packageOptions`, derived from the SAME `packagesSection.items` array
+// PackageGrid's cards already use — one source, not two independently
+// maintained lists (see MIGRATION_REPORT.md for the defect this replaces:
+// this array used to be the ONLY source, with no `value` distinct from its
+// display text, so `?package=` deep-linking broke the moment a package was
+// renamed).
+const FALLBACK_PACKAGE_OPTIONS = [
+  { value: "package0", label: "Morning session" },
+  { value: "package1", label: "Afternoon session" },
+  { value: "package2", label: "Full day session" },
 ];
+const NOT_SURE_OPTION = { value: "not-sure", label: "Not sure yet" };
 
-const bookingServiceOptions = ["Breakfast", "Snacks", "Lunch", "Coffee setup"];
+// Fallback only — used when the caller doesn't supply `serviceOptions`. The
+// canonical, localized source is the same page's own `serviceOptions`,
+// read from `page-host-at-rorum`'s `inquiryForm` section's own
+// "service0".."service3" rows.
+const FALLBACK_SERVICE_OPTIONS = [
+  { value: "service0", label: "Breakfast" },
+  { value: "service1", label: "Snacks" },
+  { value: "service2", label: "Lunch" },
+  { value: "service3", label: "Coffee setup" },
+];
 
 const CARD_FORM_CLASS =
   "grid gap-4 border-0 rounded-none bg-white p-[clamp(20px,3vw,4rem)] text-text-primary shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] overflow-hidden";
 const FORM_HEADING_CLASS = "grid gap-2 mb-1";
 const FORM_TITLE_CLASS =
-  "m-0 font-body text-[clamp(17px,1.35vw,20px)] font-black leading-tight tracking-normal normal-case text-text-primary";
+  "m-0 font-body text-[clamp(17px,1.35vw,20px)] font-[800] leading-tight tracking-normal normal-case text-text-primary";
 const FORM_INTRO_CLASS = "m-0 text-[15px] leading-[1.65] text-text-primary";
-const SUCCESS_CLASS =
-  "border border-[rgba(var(--rgb-light-green),0.28)] rounded-none bg-[rgba(var(--rgb-beige),0.24)] p-3.5 text-primary-dark font-bold";
+const ERROR_CLASS =
+  "border border-[rgba(var(--rgb-red),0.24)] bg-[rgba(var(--rgb-red),0.08)] p-3.5 text-accent text-sm font-bold leading-[1.55]";
 const FORM_GRID_CLASS = "grid grid-cols-2 gap-3.5 max-sm:grid-cols-1";
 const LABEL_CLASS =
   "block text-[rgba(var(--rgb-dark-brown),0.5)] font-semibold text-[0.82rem]";
@@ -41,11 +63,13 @@ function validateField(
   name: string,
   value: FormDataEntryValue | null,
   label: string,
+  requiredFieldTemplate: string,
+  invalidEmailMessage: string,
 ): string {
   const stringValue = String(value ?? "");
-  if (!stringValue.trim()) return `${label} is required.`;
+  if (!stringValue.trim()) return requiredFieldTemplate.replace("{field}", label);
   if (name === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
-    return "Please enter a valid email address.";
+    return invalidEmailMessage;
   }
   return "";
 }
@@ -67,33 +91,81 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 
 export type InquiryFormType = "default" | "booking" | "decoration";
 
+// Which shared Formspree configuration each rendered variant delivers as.
+// "default" isn't used by any current page (Catering has its own
+// CateringInquiryForm) but is kept mapped for completeness.
+const FORMSPREE_KEY_BY_TYPE: Record<InquiryFormType, RorumFormKey> = {
+  booking: "hostAtRorum",
+  decoration: "eventDecoration",
+  default: "catering",
+};
+
+export interface SelectableOption {
+  /** Stable, non-localized identifier — the submitted form value and the `?package=` deep-link value. Never changes when the label is edited/renamed. */
+  value: string;
+  label: string;
+}
+
 export function InquiryForm({
   type = "default",
   title,
   intro,
   submitLabel = "Send inquiry",
+  successMessage,
+  messagePlaceholder,
+  packageOptions,
+  serviceOptions,
 }: {
   type?: InquiryFormType;
   title: ReactNode;
   intro?: string;
   submitLabel?: string;
+  successMessage?: string;
+  messagePlaceholder?: string;
+  /** Booking form only — canonical, Sanity-backed package options (same array PackageGrid's cards render). Falls back to FALLBACK_PACKAGE_OPTIONS when absent (Sanity unavailable). */
+  packageOptions?: SelectableOption[];
+  /** Booking form only — canonical, Sanity-backed Additional Services options. Falls back to FALLBACK_SERVICE_OPTIONS when absent. */
+  serviceOptions?: SelectableOption[];
 }) {
-  const [sent, setSent] = useState(false);
+  const { messages } = useFormContent();
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { sent, isSubmitting, submitError, submit, setSubmitError, resetSuccess } =
+    useFormspreeSubmit(FORMSPREE_KEY_BY_TYPE[type]);
+  const submitButtonRef = useRef<HTMLButtonElement | null>(null);
   const [selectedPackage, setSelectedPackage] = useState("");
+  // Memoized on the actual `packageOptions` prop (stable server-provided
+  // data, never changes after mount) so the mount-only effect below can
+  // safely depend on it without re-running every render.
+  const resolvedPackageOptions = useMemo(
+    () => [...(packageOptions?.length ? packageOptions : FALLBACK_PACKAGE_OPTIONS), NOT_SURE_OPTION],
+    [packageOptions],
+  );
+  const resolvedServiceOptions = serviceOptions?.length ? serviceOptions : FALLBACK_SERVICE_OPTIONS;
   const isBooking = type === "booking";
   const isDecoration = type === "decoration";
+  const resolvedSuccessMessage =
+    successMessage ??
+    (isBooking
+      ? "Thank you. Your Host at RORUM request is ready for the RORUM team."
+      : "Thank you. Your request is ready for the RORUM team.");
+  const resolvedMessagePlaceholder =
+    messagePlaceholder ??
+    (isBooking
+      ? "Tell us about your meeting format, timing and preferences."
+      : isDecoration
+        ? "Describe your event, location and desired visual setup."
+        : "Tell us a little about your request.");
 
   useEffect(() => {
     if (!isBooking || typeof window === "undefined") return undefined;
-    const packageName = getInitialPackage(bookingPackageOptions);
+    const packageName = getInitialPackage(resolvedPackageOptions.map((o) => o.value));
     if (!packageName) return undefined;
     const timeoutId = window.setTimeout(
       () => setSelectedPackage(packageName),
       0,
     );
     return () => window.clearTimeout(timeoutId);
-  }, [isBooking]);
+  }, [isBooking, resolvedPackageOptions]);
 
   function validateRequired(
     formData: FormData,
@@ -102,78 +174,113 @@ export function InquiryForm({
     const nextErrors: Record<string, string> = {};
 
     requiredFields.forEach(([name, label]) => {
-      const error = validateField(name, formData.get(name), label);
+      const error = validateField(name, formData.get(name), label, messages.requiredFieldTemplate, messages.invalidEmailMessage);
       if (error) nextErrors[name] = error;
     });
 
     return nextErrors;
   }
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const formData = new FormData(form);
+    if (isBooking) {
+      // Payload quality: submit the visible label shown to the visitor
+      // (e.g. "Morning session") instead of the internal, non-localized
+      // `value` (e.g. "package0") the native <select>/checkboxes carry —
+      // resolved against the SAME options arrays rendered below, so the
+      // result is automatically correct for the page's current locale.
+      resolveOptionLabel(formData, "package", resolvedPackageOptions);
+      resolveMultiOptionLabels(formData, "additionalServices", resolvedServiceOptions);
+    }
     const requiredFields: [string, string][] = isBooking
       ? [
-          ["package", "Package"],
-          ["phone", "Phone number"],
-          ["email", "Email"],
-          ["name", "Full Name"],
-          ["message", "Comment"],
+          // Phase 7: "Package" is optional on the Host at RORUM form — a
+          // visitor who isn't sure yet can still submit. "Event date" is
+          // required (added here + starred + `required` on the input below).
+          ["name", messages.fullNameLabel],
+          ["phone", messages.phoneLabel],
+          ["email", messages.emailLabel],
+          ["eventDate", messages.eventDateLabel],
+          ["message", messages.commentLabel],
         ]
       : [
-          ["name", "Full Name"],
-          ["phone", "Phone number"],
-          ["email", "Email"],
-          ["eventDate", "Event date"],
-          ["message", "Message"],
+          ["name", messages.fullNameLabel],
+          ["phone", messages.phoneLabel],
+          ["email", messages.emailLabel],
+          ["eventDate", messages.eventDateLabel],
+          ["message", messages.messageLabel],
         ];
     const nextErrors = validateRequired(formData, requiredFields);
     if (isBooking) {
       const guests = String(formData.get("guests") ?? "").trim();
       if (guests) {
         const guestCount = Number(guests);
-        if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > 30) {
-          nextErrors.guests = "Please enter a whole number between 1 and 30.";
+        // Phase 7: RORUM's room holds up to 12 guests — enforced here, on the
+        // input's `max`, and in the localized `guestsRangeMessage` copy.
+        if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > 12) {
+          nextErrors.guests = messages.guestsRangeMessage;
         }
       }
-    } else {
-      const privacyError = validatePrivacyConsent(formData);
-      if (privacyError) nextErrors.privacyConsent = privacyError;
     }
+    // Privacy consent is mandatory on EVERY form, booking included — this
+    // used to be skipped for booking (paired with `PrivacyConsent
+    // required={false}` below), which let a Host at RORUM request through
+    // with no consent at all. `useFormspreeSubmit.submit()` also refuses to
+    // deliver without it now, as a second, independent safety net.
+    const privacyError = validatePrivacyConsent(formData, messages.privacyConsentRequiredMessage);
+    if (privacyError) nextErrors.privacyConsent = privacyError;
 
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length) {
-      setSent(false);
-      return;
-    }
+    setSubmitError("");
+    if (Object.keys(nextErrors).length) return;
 
-    setSent(true);
-    setSelectedPackage("");
-    form.reset();
+    // Real delivery via the shared hook. On confirmed success the hook resets
+    // the form element; clear the controlled package <select> too. On failure
+    // nothing is cleared and a localized error shows.
+    const delivered = await submit(formData, form);
+    if (delivered) setSelectedPackage("");
   }
+
+  function closeSuccessModal() {
+    resetSuccess();
+    requestAnimationFrame(() => submitButtonRef.current?.focus());
+  }
+
+  const successModal = sent ? (
+    <FormSuccessModal
+      titleId={`${type}-success-title`}
+      title={messages.successTitle}
+      message={resolvedSuccessMessage}
+      doneLabel={messages.doneLabel}
+      closeLabel={messages.closeLabel}
+      onClose={closeSuccessModal}
+    />
+  ) : null;
 
   if (isBooking) {
     return (
+      <>
       <form className={CARD_FORM_CLASS} onSubmit={onSubmit} noValidate>
         <div className={FORM_HEADING_CLASS}>
           <h2 className={FORM_TITLE_CLASS}>{title}</h2>
           {intro ? <p className={FORM_INTRO_CLASS}>{intro}</p> : null}
         </div>
-        {sent ? (
-          <div className={SUCCESS_CLASS} role="status">
-            Thank you. Your Host at RORUM request is ready for the RORUM team.
+        {submitError ? (
+          <div className={ERROR_CLASS} role="alert">
+            {submitError}
           </div>
         ) : null}
 
         <label htmlFor="booking-name" className={LABEL_CLASS}>
-          Full Name<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+          {messages.fullNameLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id="booking-name"
             name="name"
             type="text"
             autoComplete="name"
-            placeholder="Full Name"
+            placeholder={messages.fullNameLabel}
             required
             aria-required="true"
             aria-invalid={Boolean(errors.name)}
@@ -184,7 +291,7 @@ export function InquiryForm({
         </label>
         <div className={FORM_GRID_CLASS}>
           <label htmlFor="booking-phone" className={LABEL_CLASS}>
-            Phone number<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+            {messages.phoneLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
             <input
               id="booking-phone"
               name="phone"
@@ -202,7 +309,7 @@ export function InquiryForm({
             <FieldError id="booking-phone-error" message={errors.phone} />
           </label>
           <label htmlFor="booking-email" className={LABEL_CLASS}>
-            Email<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+            {messages.emailLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
             <input
               id="booking-email"
               name="email"
@@ -223,14 +330,12 @@ export function InquiryForm({
 
         <div className={FORM_GRID_CLASS}>
           <label htmlFor="booking-package" className={LABEL_CLASS}>
-            Package<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+            {messages.packageLabel}
             <select
               id="booking-package"
               name="package"
               value={selectedPackage}
               onChange={(event) => setSelectedPackage(event.target.value)}
-              required
-              aria-required="true"
               aria-invalid={Boolean(errors.package)}
               aria-describedby={
                 errors.package ? "booking-package-error" : undefined
@@ -238,30 +343,35 @@ export function InquiryForm({
               className={SELECT_CLASS}
             >
               <option value="" disabled className={OPTION_CLASS}>
-                Select package
+                {messages.selectPackagePlaceholder}
               </option>
-              {bookingPackageOptions.map((option) => (
-                <option key={option} className={OPTION_CLASS}>
-                  {option}
+              {resolvedPackageOptions.map((option) => (
+                <option key={option.value} value={option.value} className={OPTION_CLASS}>
+                  {option.label}
                 </option>
               ))}
             </select>
             <FieldError id="booking-package-error" message={errors.package} />
           </label>
           <label htmlFor="booking-date" className={LABEL_CLASS}>
-            Event date
+            {messages.eventDateLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
             <input
               id="booking-date"
               name="eventDate"
               type="date"
+              required
+              aria-required="true"
+              aria-invalid={Boolean(errors.eventDate)}
+              aria-describedby={errors.eventDate ? "booking-date-error" : undefined}
               className={INPUT_CLASS}
             />
+            <FieldError id="booking-date-error" message={errors.eventDate} />
           </label>
         </div>
 
         <div className={FORM_GRID_CLASS}>
           <label htmlFor="booking-time" className={LABEL_CLASS}>
-            Event time
+            {messages.eventTimeLabel}
             <input
               id="booking-time"
               name="eventTime"
@@ -270,15 +380,15 @@ export function InquiryForm({
             />
           </label>
           <label htmlFor="booking-guests" className={LABEL_CLASS}>
-            Number of people
+            {messages.numberOfPeopleLabel}
             <input
               id="booking-guests"
               name="guests"
               type="number"
               min="1"
-              max="30"
+              max="12"
               inputMode="numeric"
-              placeholder="Approx. number"
+              placeholder={messages.guestsPlaceholder}
               aria-invalid={Boolean(errors.guests)}
               aria-describedby={
                 errors.guests ? "booking-guests-error" : undefined
@@ -291,33 +401,33 @@ export function InquiryForm({
 
         <fieldset className="grid grid-cols-2 gap-x-3 gap-y-2.5 m-0 p-0 border-0 max-sm:grid-cols-1">
           <legend className="col-span-full mb-0.5 text-[rgba(var(--rgb-dark-brown),0.5)] text-[0.82rem] font-semibold">
-            Additional services
+            {messages.additionalServicesLabel}
           </legend>
-          {bookingServiceOptions.map((service) => (
+          {resolvedServiceOptions.map((service) => (
             <label
-              key={service}
+              key={service.value}
               className="flex items-center justify-start flex-nowrap gap-2.5 min-h-10 py-2.25 px-2.75 bg-[rgba(var(--rgb-beige),0.18)] border border-[rgba(var(--rgb-beige),0.3)] rounded-none cursor-pointer"
             >
               <input
                 name="additionalServices"
                 type="checkbox"
-                value={service}
+                value={service.value}
                 className="appearance-none flex-none w-4.5 h-4.5 min-w-4.5 m-0 grid place-content-center border border-[rgba(var(--rgb-red),0.48)] bg-white cursor-pointer before:content-[''] before:w-2.5 before:h-2.5 before:bg-red before:scale-0 before:transition-transform before:duration-140 checked:before:scale-100"
               />
               <span className="inline-flex items-center min-w-0 text-text-primary text-base font-medium leading-[1.45] whitespace-nowrap">
-                {service}
+                {service.label}
               </span>
             </label>
           ))}
         </fieldset>
 
         <label htmlFor="booking-message" className={LABEL_CLASS}>
-          Comment<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+          {messages.commentLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <textarea
             id="booking-message"
             name="message"
             rows={5}
-            placeholder="Tell us about your meeting format, timing and preferences."
+            placeholder={resolvedMessagePlaceholder}
             required
             aria-required="true"
             aria-invalid={Boolean(errors.message)}
@@ -329,35 +439,38 @@ export function InquiryForm({
           <FieldError id="booking-message-error" message={errors.message} />
         </label>
 
-        <PrivacyConsent id="booking-privacy" required={false} />
+        <PrivacyConsent id="booking-privacy" error={errors.privacyConsent} />
 
-        <button className={SUBMIT_BUTTON_CLASS} type="submit">
-          {submitLabel}
+        <button ref={submitButtonRef} className={SUBMIT_BUTTON_CLASS} type="submit" disabled={isSubmitting}>
+          {isSubmitting ? messages.sendingLabel : submitLabel}
         </button>
       </form>
+      {successModal}
+      </>
     );
   }
 
   return (
+    <>
     <form className={CARD_FORM_CLASS} onSubmit={onSubmit} noValidate>
       <div className={FORM_HEADING_CLASS}>
         <h2 className={FORM_TITLE_CLASS}>{title}</h2>
         {intro ? <p className={FORM_INTRO_CLASS}>{intro}</p> : null}
       </div>
-      {sent ? (
-        <div className={SUCCESS_CLASS} role="status">
-          Thank you. Your request is ready for the RORUM team.
+      {submitError ? (
+        <div className={ERROR_CLASS} role="alert">
+          {submitError}
         </div>
       ) : null}
 
       <label htmlFor={`${type}-name`} className={LABEL_CLASS}>
-        Full Name<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+        {messages.fullNameLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
         <input
           id={`${type}-name`}
           name="name"
           type="text"
           autoComplete="name"
-          placeholder="Full Name"
+          placeholder={messages.fullNameLabel}
           aria-invalid={Boolean(errors.name)}
           aria-describedby={errors.name ? `${type}-name-error` : undefined}
           className={INPUT_CLASS}
@@ -366,7 +479,7 @@ export function InquiryForm({
       </label>
       <div className={FORM_GRID_CLASS}>
         <label htmlFor={`${type}-phone`} className={LABEL_CLASS}>
-          Phone number<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+          {messages.phoneLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id={`${type}-phone`}
             name="phone"
@@ -380,7 +493,7 @@ export function InquiryForm({
           <FieldError id={`${type}-phone-error`} message={errors.phone} />
         </label>
         <label htmlFor={`${type}-email`} className={LABEL_CLASS}>
-          Email<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+          {messages.emailLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id={`${type}-email`}
             name="email"
@@ -396,11 +509,13 @@ export function InquiryForm({
       </div>
       <div className={FORM_GRID_CLASS}>
         <label htmlFor={`${type}-date`} className={LABEL_CLASS}>
-          Event date<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+          {messages.eventDateLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
           <input
             id={`${type}-date`}
             name="eventDate"
             type="date"
+            required
+            aria-required="true"
             aria-invalid={Boolean(errors.eventDate)}
             aria-describedby={
               errors.eventDate ? `${type}-date-error` : undefined
@@ -412,16 +527,12 @@ export function InquiryForm({
       </div>
 
       <label htmlFor={`${type}-message`} className={LABEL_CLASS}>
-        Message<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
+        {messages.messageLabel}<span aria-hidden="true" className={REQUIRED_MARK_CLASS}>*</span>
         <textarea
           id={`${type}-message`}
           name="message"
           rows={5}
-          placeholder={
-            isDecoration
-              ? "Describe your event, location and desired visual setup."
-              : "Tell us a little about your request."
-          }
+          placeholder={resolvedMessagePlaceholder}
           aria-invalid={Boolean(errors.message)}
           aria-describedby={
             errors.message ? `${type}-message-error` : undefined
@@ -433,9 +544,11 @@ export function InquiryForm({
 
       <PrivacyConsent id={`${type}-privacy`} error={errors.privacyConsent} />
 
-      <button className={SUBMIT_BUTTON_CLASS} type="submit">
-        {submitLabel}
+      <button ref={submitButtonRef} className={SUBMIT_BUTTON_CLASS} type="submit" disabled={isSubmitting}>
+        {isSubmitting ? messages.sendingLabel : submitLabel}
       </button>
     </form>
+    {successModal}
+    </>
   );
 }

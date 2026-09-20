@@ -15,95 +15,6 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: schema.json
-export type WorkWithUsPage = {
-  _id: string;
-  _type: "workWithUsPage";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  heroLabel?: InternationalizedArrayString;
-  heroTitle?: InternationalizedArrayString;
-  heroParagraphs?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayText
-  >;
-  cvUploadCta?: InternationalizedArrayString;
-  heroImage?: ImageWithAlt;
-  seo?: Seo;
-};
-
-export type SanityImageAssetReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-};
-
-export type Seo = {
-  _type: "seo";
-  title?: InternationalizedArrayString;
-  description?: InternationalizedArrayText;
-  ogImage?: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: InternationalizedArrayString;
-    _type: "image";
-  };
-};
-
-export type ImageWithAlt = {
-  _type: "imageWithAlt";
-  asset?: SanityImageAssetReference;
-  media?: unknown;
-  hotspot?: SanityImageHotspot;
-  crop?: SanityImageCrop;
-  alt?: InternationalizedArrayString;
-};
-
-export type InternationalizedArrayString = Array<
-  {
-    _key: string;
-  } & InternationalizedArrayStringValue
->;
-
-export type VolunteerPage = {
-  _id: string;
-  _type: "volunteerPage";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  heroLabel?: InternationalizedArrayString;
-  heroTitle?: InternationalizedArrayString;
-  heroParagraphs?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayText
-  >;
-  highlights?: Array<
-    {
-      _key: string;
-    } & IconCard
-  >;
-  closingParagraphs?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayText
-  >;
-  applyCta?: CtaLink;
-  heroImage?: ImageWithAlt;
-  seo?: Seo;
-};
-
-export type CtaLink = {
-  _type: "ctaLink";
-  label?: InternationalizedArrayString;
-  href?: string;
-  localizedHrefOverride?: InternationalizedArrayString;
-};
-
 export type SocialLinks = {
   _id: string;
   _type: "socialLinks";
@@ -133,6 +44,40 @@ export type SiteSettings = {
   announcementLink?: CtaLink;
 };
 
+export type CtaLink = {
+  _type: "ctaLink";
+  label?: InternationalizedArrayString;
+  href?: string;
+  localizedHrefOverride?: InternationalizedArrayString;
+};
+
+export type InternationalizedArrayString = Array<
+  {
+    _key: string;
+  } & InternationalizedArrayStringValue
+>;
+
+export type SanityImageAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+};
+
+export type Seo = {
+  _type: "seo";
+  title?: InternationalizedArrayString;
+  description?: InternationalizedArrayText;
+  ogImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: InternationalizedArrayString;
+    _type: "image";
+  };
+};
+
 export type Navigation = {
   _id: string;
   _type: "navigation";
@@ -145,6 +90,12 @@ export type Navigation = {
     } & NavItem
   >;
   languageSwitcherLabel?: InternationalizedArrayString;
+  contactCtaLabel?: InternationalizedArrayString;
+  labels?: Array<
+    {
+      _key: string;
+    } & KeyedString
+  >;
 };
 
 export type LegalPage = {
@@ -173,125 +124,6 @@ export type InternationalizedArrayText = Array<
   } & InternationalizedArrayTextValue
 >;
 
-export type HostAtRorumPage = {
-  _id: string;
-  _type: "hostAtRorumPage";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  hero?: ServiceHero;
-  sessionLabel?: InternationalizedArrayString;
-  sessionTitle?: InternationalizedArrayString;
-  sessionImage?: ImageWithAlt;
-  includedItems?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
-  optionalLabel?: InternationalizedArrayString;
-  optionalItems?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
-  packagesLabel?: InternationalizedArrayString;
-  packagesTitle?: InternationalizedArrayString;
-  packagesIntro?: InternationalizedArrayText;
-  packages?: Array<
-    {
-      _key: string;
-    } & PackageTier
-  >;
-  cancellationTitle?: InternationalizedArrayString;
-  cancellationItems?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
-  stepsTitle?: InternationalizedArrayString;
-  steps?: Array<
-    {
-      _key: string;
-    } & TitledText
-  >;
-  inquiryIntro?: InternationalizedArrayText;
-  seo?: Seo;
-};
-
-export type ServiceHero = {
-  _type: "serviceHero";
-  label?: InternationalizedArrayString;
-  title?: InternationalizedArrayString;
-  text?: InternationalizedArrayText;
-  primaryCta?: CtaLink;
-  secondaryCta?: CtaLink;
-};
-
-export type HomePage = {
-  _id: string;
-  _type: "homePage";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  heroLabel?: InternationalizedArrayString;
-  heroTitle?: InternationalizedArrayString;
-  heroText?: InternationalizedArrayText;
-  heroTrustItems?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
-  heroImage?: ImageWithAlt;
-  heroVideoUrl?: string;
-  heroPrimaryCta?: CtaLink;
-  heroSecondaryCta?: CtaLink;
-  quickPaths?: Array<{
-    title?: InternationalizedArrayString;
-    text?: InternationalizedArrayText;
-    href?: string;
-    image?: ImageWithAlt;
-    _type: "quickPath";
-    _key: string;
-  }>;
-  eventsLabel?: InternationalizedArrayString;
-  eventsTitle?: InternationalizedArrayString;
-  attendEventsFeature?: EditorialFeature;
-  hostAtRorumFeature?: EditorialFeature;
-  closingSection?: NextStepSection;
-  seo?: Seo;
-};
-
-export type NextStepSection = {
-  _type: "nextStepSection";
-  eyebrow?: InternationalizedArrayString;
-  title?: InternationalizedArrayString;
-  text?: InternationalizedArrayText;
-  cta?: CtaLink;
-  faqQuestion?: InternationalizedArrayString;
-  faqLabel?: InternationalizedArrayString;
-  links?: Array<
-    {
-      _key: string;
-    } & NavChild
-  >;
-};
-
-export type EditorialFeature = {
-  _type: "editorialFeature";
-  eyebrow?: InternationalizedArrayString;
-  title?: InternationalizedArrayString;
-  intro?: InternationalizedArrayText;
-  description?: InternationalizedArrayText;
-  features?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
-  cta?: CtaLink;
-  image?: ImageWithAlt;
-  reversed?: boolean;
-};
-
 export type FormMessages = {
   _id: string;
   _type: "formMessages";
@@ -301,7 +133,33 @@ export type FormMessages = {
   requiredFieldTemplate?: InternationalizedArrayString;
   invalidEmailMessage?: InternationalizedArrayString;
   privacyConsentRequiredMessage?: InternationalizedArrayString;
-  privacyConsentLabel?: InternationalizedArrayText;
+  privacyConsentPrefixText?: InternationalizedArrayString;
+  faqQuestion?: InternationalizedArrayString;
+  faqLabel?: InternationalizedArrayString;
+  fullNameLabel?: InternationalizedArrayString;
+  phoneLabel?: InternationalizedArrayString;
+  emailLabel?: InternationalizedArrayString;
+  messageLabel?: InternationalizedArrayString;
+  eventDateLabel?: InternationalizedArrayString;
+  agreeButtonLabel?: InternationalizedArrayString;
+  closeLabel?: InternationalizedArrayString;
+  successTitle?: InternationalizedArrayString;
+  doneLabel?: InternationalizedArrayString;
+  copyLabel?: InternationalizedArrayString;
+  copiedLabel?: InternationalizedArrayString;
+  packageLabel?: InternationalizedArrayString;
+  selectPackagePlaceholder?: InternationalizedArrayString;
+  eventTimeLabel?: InternationalizedArrayString;
+  numberOfPeopleLabel?: InternationalizedArrayString;
+  guestsPlaceholder?: InternationalizedArrayString;
+  additionalServicesLabel?: InternationalizedArrayString;
+  commentLabel?: InternationalizedArrayString;
+  guestsRangeMessage?: InternationalizedArrayString;
+  extraLabels?: Array<
+    {
+      _key: string;
+    } & KeyedString
+  >;
 };
 
 export type Footer = {
@@ -310,6 +168,7 @@ export type Footer = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  contactDetailsLabel?: InternationalizedArrayString;
   columns?: Array<{
     title?: InternationalizedArrayString;
     links?: Array<
@@ -328,85 +187,17 @@ export type Footer = {
   copyrightText?: InternationalizedArrayString;
 };
 
-export type FaqPage = {
+export type EventMessages = {
   _id: string;
-  _type: "faqPage";
+  _type: "eventMessages";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  heroLabel?: InternationalizedArrayString;
-  heroTitle?: InternationalizedArrayString;
-  heroText?: InternationalizedArrayText;
-  seo?: Seo;
-};
-
-export type EventsPage = {
-  _id: string;
-  _type: "eventsPage";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: InternationalizedArrayString;
-  closingSection?: NextStepSection;
-  seo?: Seo;
-};
-
-export type EventDecorationPage = {
-  _id: string;
-  _type: "eventDecorationPage";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  hero?: ServiceHero;
-  stylingLabel?: InternationalizedArrayString;
-  stylingTitle?: InternationalizedArrayString;
-  stylingIntro?: Array<
+  labels?: Array<
     {
       _key: string;
-    } & InternationalizedArrayText
+    } & KeyedString
   >;
-  formats?: Array<
-    {
-      _key: string;
-    } & IconCard
-  >;
-  stylingImage?: ImageWithAlt;
-  suitableForLabel?: InternationalizedArrayString;
-  suitableFor?: Array<
-    {
-      _key: string;
-    } & IconCard
-  >;
-  tailoredNote?: TitledText;
-  stepsTitle?: InternationalizedArrayString;
-  steps?: Array<
-    {
-      _key: string;
-    } & TitledText
-  >;
-  inquiryIntro?: InternationalizedArrayText;
-  seo?: Seo;
-};
-
-export type TitledText = {
-  _type: "titledText";
-  title?: InternationalizedArrayString;
-  text?: InternationalizedArrayText;
-};
-
-export type ContactPage = {
-  _id: string;
-  _type: "contactPage";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  heroLabel?: InternationalizedArrayString;
-  introTitle?: InternationalizedArrayString;
-  introText?: InternationalizedArrayText;
-  followUsTitle?: InternationalizedArrayString;
-  formTitle?: InternationalizedArrayString;
-  successMessage?: InternationalizedArrayText;
-  seo?: Seo;
 };
 
 export type ContactInfo = {
@@ -424,172 +215,19 @@ export type ContactInfo = {
   mapQueryAddress?: string;
 };
 
-export type CommunityMembershipPage = {
+export type Page = {
   _id: string;
-  _type: "communityMembershipPage";
+  _type: "page";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  heroLabel?: InternationalizedArrayString;
-  heroTitle?: InternationalizedArrayString;
-  heroIntro?: Array<
+  pageKey?: string;
+  sections?: Array<
     {
       _key: string;
-    } & InternationalizedArrayText
+    } & PageSection
   >;
-  logo?: ImageWithAlt;
-  supportCta?: CtaLink;
-  externalSiteCta?: CtaLink;
-  priceStripText?: InternationalizedArrayString;
-  gallery?: Array<
-    {
-      _key: string;
-    } & ImageWithAlt
-  >;
-  introColumns?: Array<
-    {
-      _key: string;
-    } & TitledText
-  >;
-  benefitsTitle?: InternationalizedArrayString;
-  benefits?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
-  audiencesTitle?: InternationalizedArrayString;
-  audiences?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
-  applicationTitle?: InternationalizedArrayString;
-  applicationSteps?: Array<
-    {
-      _key: string;
-    } & TitledText
-  >;
-  applicationCta?: CtaLink;
   seo?: Seo;
-};
-
-export type CateringPage = {
-  _id: string;
-  _type: "cateringPage";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  hero?: ServiceHero;
-  menuFormatsTitle?: InternationalizedArrayString;
-  menuFormats?: Array<{
-    title?: InternationalizedArrayString;
-    description?: InternationalizedArrayText;
-    image?: ImageWithAlt;
-    _type: "menuFormatCard";
-    _key: string;
-  }>;
-  formats?: Array<
-    {
-      _key: string;
-    } & IconCard
-  >;
-  suitableForLabel?: InternationalizedArrayString;
-  suitableFor?: Array<
-    {
-      _key: string;
-    } & IconCard
-  >;
-  philosophyTitle?: InternationalizedArrayString;
-  philosophyText?: InternationalizedArrayText;
-  philosophyImage?: ImageWithAlt;
-  tailoredNote?: TitledText;
-  stepsTitle?: InternationalizedArrayString;
-  steps?: Array<
-    {
-      _key: string;
-    } & TitledText
-  >;
-  inquiryIntro?: InternationalizedArrayText;
-  seo?: Seo;
-};
-
-export type AboutPage = {
-  _id: string;
-  _type: "aboutPage";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  heroLabel?: InternationalizedArrayString;
-  heroTitle?: InternationalizedArrayString;
-  heroLead?: InternationalizedArrayText;
-  statementTitle?: InternationalizedArrayString;
-  statementText?: InternationalizedArrayText;
-  values?: Array<
-    {
-      _key: string;
-    } & TitledText
-  >;
-  pillarsLabel?: InternationalizedArrayString;
-  pillars?: Array<
-    {
-      _key: string;
-    } & TitledText
-  >;
-  locationTitle?: InternationalizedArrayString;
-  locationText?: InternationalizedArrayText;
-  locationImage?: ImageWithAlt;
-  seo?: Seo;
-};
-
-export type GalleryCollection = {
-  _id: string;
-  _type: "galleryCollection";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  key?: Slug;
-  title?: string;
-  images?: Array<
-    {
-      _key: string;
-    } & ImageWithAlt
-  >;
-};
-
-export type Slug = {
-  _type: "slug";
-  current?: string;
-  source?: string;
-};
-
-export type FaqGroup = {
-  _id: string;
-  _type: "faqGroup";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: InternationalizedArrayString;
-  order?: number;
-  items?: Array<{
-    question?: InternationalizedArrayString;
-    answer?: InternationalizedArrayText;
-    _type: "faqItem";
-    _key: string;
-  }>;
-};
-
-export type EventCategoryReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "eventCategory";
-};
-
-export type EventReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "event";
 };
 
 export type Event = {
@@ -598,80 +236,67 @@ export type Event = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  visibleLocales?: Array<string>;
   title?: InternationalizedArrayString;
   slug?: Slug;
   image?: ImageWithAlt;
-  category?: EventCategoryReference;
+  detailHeroImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  formattedDescription?: InternationalizedArrayBodyPortableText;
   date?: string;
   time?: string;
   price?: string;
-  language?: "English" | "Danish" | "Ukrainian";
-  host?: string;
-  isSoldOut?: boolean;
-  shortDescription?: InternationalizedArrayText;
-  longDescription?: InternationalizedArrayText;
+  address?: string;
+  whatToExpect?: InternationalizedArrayText;
   included?: Array<
     {
       _key: string;
-    } & InternationalizedArrayString
+    } & BulletText
   >;
-  whatToExpect?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
+  language?: Array<string>;
+  duration?: {
+    value?: number;
+    unit?: "minutes" | "hours";
+  };
+  arrival?: InternationalizedArrayString;
+  ticketProviderInfo?: {
+    label?: InternationalizedArrayString;
+    value?: InternationalizedArrayString;
+  };
+  shareSettings?: Array<{
+    type?:
+      | "share"
+      | "copyLink"
+      | "whatsapp"
+      | "email"
+      | "linkedin"
+      | "facebook"
+      | "instagram";
+    label?: InternationalizedArrayString;
+    enabled?: boolean;
+    _type: "shareAction";
+    _key: string;
+  }>;
+  billettoEventUrl?: string;
+  ticketUrl?: string;
+  ticketButtonLabel?: InternationalizedArrayString;
+  calendarUrl?: string;
+  waitlistUrl?: string;
+  ticketsLeft?: number;
+  isSoldOut?: boolean;
+  seo?: Seo;
+  shortDescription?: InternationalizedArrayText;
   practicalDetails?: Array<
     {
       _key: string;
     } & PracticalDetail
   >;
   ticketProvider?: string;
-  ticketUrl?: string;
-  calendarUrl?: string;
-  waitlistUrl?: string;
-  ticketsLeft?: number;
-  relatedEvents?: Array<
-    {
-      _key: string;
-    } & EventReference
-  >;
-  seo?: Seo;
-};
-
-export type EventCategory = {
-  _id: string;
-  _type: "eventCategory";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: InternationalizedArrayString;
-  slug?: Slug;
-};
-
-export type CateringMenuCategory = {
-  _id: string;
-  _type: "cateringMenuCategory";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: InternationalizedArrayString;
-  navLabel?: InternationalizedArrayString;
-  slug?: Slug;
-  description?: InternationalizedArrayText;
-  order?: number;
-  featuredItems?: Array<
-    {
-      _key: string;
-    } & CateringMenuItem
-  >;
-};
-
-export type SocialLink = {
-  _type: "socialLink";
-  icon?: "instagram" | "facebook" | "linkedin" | "whatsapp";
-  href?: string;
-  label?: InternationalizedArrayString;
-  brandColor?: string;
 };
 
 export type SanityImageCrop = {
@@ -690,10 +315,86 @@ export type SanityImageHotspot = {
   width?: number;
 };
 
+export type ImageWithAlt = {
+  _type: "imageWithAlt";
+  asset?: SanityImageAssetReference;
+  media?: unknown;
+  hotspot?: SanityImageHotspot;
+  crop?: SanityImageCrop;
+  alt?: InternationalizedArrayString;
+};
+
+export type Slug = {
+  _type: "slug";
+  current?: string;
+  source?: string;
+};
+
+export type TitledText = {
+  _type: "titledText";
+  title?: InternationalizedArrayString;
+  text?: InternationalizedArrayText;
+};
+
+export type SocialLink = {
+  _type: "socialLink";
+  icon?: "instagram" | "facebook";
+  href?: string;
+  label?: InternationalizedArrayString;
+  brandColor?: string;
+};
+
 export type PracticalDetail = {
   _type: "practicalDetail";
   label?: InternationalizedArrayString;
   value?: InternationalizedArrayString;
+};
+
+export type PageSection = {
+  _type: "pageSection";
+  sectionKey?: string;
+  sectionKind?:
+    | "hero"
+    | "gallery"
+    | "iconGrid"
+    | "split"
+    | "steps"
+    | "cta"
+    | "form"
+    | "quickPaths"
+    | "editorial"
+    | "servicesTeaser"
+    | "communityTeaser"
+    | "benefits"
+    | "menuCategory"
+    | "donation"
+    | "filters"
+    | "faqCategory"
+    | "custom";
+  label?: InternationalizedArrayString;
+  title?: InternationalizedArrayString;
+  text?: InternationalizedArrayText;
+  media?: Array<
+    {
+      _key: string;
+    } & MediaItem
+  >;
+  actions?: Array<
+    {
+      _key: string;
+    } & CtaAction
+  >;
+  items?: Array<
+    {
+      _key: string;
+    } & ContentItem
+  >;
+  settings?: Array<{
+    key?: string;
+    value?: string;
+    _type: "sectionSetting";
+    _key: string;
+  }>;
 };
 
 export type PackageTier = {
@@ -703,7 +404,7 @@ export type PackageTier = {
   items?: Array<
     {
       _key: string;
-    } & InternationalizedArrayString
+    } & BulletText
   >;
 };
 
@@ -724,42 +425,97 @@ export type NavChild = {
   label?: InternationalizedArrayString;
 };
 
+export type SanityFileAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+};
+
+export type MediaItem = {
+  _type: "mediaItem";
+  kind?: "image" | "video";
+  image?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  videoFile?: {
+    asset?: SanityFileAssetReference;
+    media?: unknown;
+    _type: "file";
+  };
+  videoUrl?: string;
+  posterImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  alt?: InternationalizedArrayString;
+  caption?: InternationalizedArrayText;
+};
+
+export type MediaGalleryItem = {
+  _type: "mediaGalleryItem";
+  image?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  videoUrl?: string;
+  alt?: InternationalizedArrayString;
+};
+
+export type KeyedString = {
+  _type: "keyedString";
+  key?: string;
+  value?: InternationalizedArrayString;
+};
+
 export type IconCard = {
   _type: "iconCard";
-  icon?:
-    | "UtensilsCrossed"
-    | "Flower"
-    | "Balloon"
-    | "Flame"
-    | "BadgeCheck"
-    | "ChefHat"
-    | "HandPlatter"
-    | "ClipboardList"
-    | "CookingPot"
-    | "ConciergeBell"
-    | "CalendarCheck"
-    | "Gem"
-    | "PartyPopper"
-    | "Lightbulb"
-    | "Sparkles"
-    | "Flower2"
-    | "CircleEllipsis"
-    | "Presentation"
-    | "Handshake"
-    | "BriefcaseBusiness"
-    | "Cake"
-    | "Landmark"
-    | "Building2"
-    | "Users";
+  icon?: string;
   title?: InternationalizedArrayString;
   text?: InternationalizedArrayText;
 };
 
-export type CateringMenuItem = {
-  _type: "cateringMenuItem";
-  name?: InternationalizedArrayString;
-  description?: InternationalizedArrayText;
+export type CtaAction = {
+  _type: "ctaAction";
+  actionKey?: string;
+  label?: InternationalizedArrayString;
+  linkType?: "internal" | "external" | "anchor";
+  href?: string;
+  openInNewTab?: boolean;
+  enabled?: boolean;
+};
+
+export type ContentItem = {
+  _type: "contentItem";
+  itemKey?: string;
+  icon?: string;
+  title?: InternationalizedArrayString;
+  text?: InternationalizedArrayText;
   image?: ImageWithAlt;
+  href?: string;
+  label?: InternationalizedArrayString;
+  value?: string;
+  copyEnabled?: boolean;
+};
+
+export type BulletText = {
+  _type: "bulletText";
+  text?: InternationalizedArrayString;
+};
+
+export type BulletParagraph = {
+  _type: "bulletParagraph";
+  text?: InternationalizedArrayText;
 };
 
 export type BodyPortableText = Array<{
@@ -770,7 +526,7 @@ export type BodyPortableText = Array<{
     _key: string;
   }>;
   style?: "normal" | "h2";
-  listItem?: "bullet";
+  listItem?: "bullet" | "number";
   markDefs?: Array<{
     href?: string;
     _type: "link";
@@ -897,52 +653,42 @@ export type Geopoint = {
 };
 
 export type AllSanitySchemaTypes =
-  | WorkWithUsPage
-  | SanityImageAssetReference
-  | Seo
-  | ImageWithAlt
-  | InternationalizedArrayString
-  | VolunteerPage
-  | CtaLink
   | SocialLinks
   | SiteSettings
+  | CtaLink
+  | InternationalizedArrayString
+  | SanityImageAssetReference
+  | Seo
   | Navigation
   | LegalPage
   | InternationalizedArrayBodyPortableText
   | InternationalizedArrayText
-  | HostAtRorumPage
-  | ServiceHero
-  | HomePage
-  | NextStepSection
-  | EditorialFeature
   | FormMessages
   | Footer
-  | FaqPage
-  | EventsPage
-  | EventDecorationPage
-  | TitledText
-  | ContactPage
+  | EventMessages
   | ContactInfo
-  | CommunityMembershipPage
-  | CateringPage
-  | AboutPage
-  | GalleryCollection
-  | Slug
-  | FaqGroup
-  | EventCategoryReference
-  | EventReference
+  | Page
   | Event
-  | EventCategory
-  | CateringMenuCategory
-  | SocialLink
   | SanityImageCrop
   | SanityImageHotspot
+  | ImageWithAlt
+  | Slug
+  | TitledText
+  | SocialLink
   | PracticalDetail
+  | PageSection
   | PackageTier
   | NavItem
   | NavChild
+  | SanityFileAssetReference
+  | MediaItem
+  | MediaGalleryItem
+  | KeyedString
   | IconCard
-  | CateringMenuItem
+  | CtaAction
+  | ContentItem
+  | BulletText
+  | BulletParagraph
   | BodyPortableText
   | InternationalizedArrayBodyPortableTextValue
   | InternationalizedArrayTextValue
@@ -957,119 +703,147 @@ export type AllSanitySchemaTypes =
   | Geopoint;
 
 // Source: sanity/queries/events.ts
-// Variable: eventsPageQuery
-// Query: *[_type == "eventsPage"][0]
-export type EventsPageQueryResult = {
-  _id: string;
-  _type: "eventsPage";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: InternationalizedArrayString;
-  closingSection?: NextStepSection;
-  seo?: Seo;
-} | null;
-
-// Source: sanity/queries/events.ts
 // Variable: allEventsQuery
-// Query: *[_type == "event"] | order(date asc){ ..., "categoryTitle": category->title }
+// Query: *[_type == "event" && $locale in visibleLocales] | order(date asc)
 export type AllEventsQueryResult = Array<{
   _id: string;
   _type: "event";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  visibleLocales?: Array<string>;
   title?: InternationalizedArrayString;
   slug?: Slug;
   image?: ImageWithAlt;
-  category?: EventCategoryReference;
+  detailHeroImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  formattedDescription?: InternationalizedArrayBodyPortableText;
   date?: string;
   time?: string;
   price?: string;
-  language?: "Danish" | "English" | "Ukrainian";
-  host?: string;
-  isSoldOut?: boolean;
-  shortDescription?: InternationalizedArrayText;
-  longDescription?: InternationalizedArrayText;
+  address?: string;
+  whatToExpect?: InternationalizedArrayText;
   included?: Array<
     {
       _key: string;
-    } & InternationalizedArrayString
+    } & BulletText
   >;
-  whatToExpect?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
+  language?: Array<string>;
+  duration?: {
+    value?: number;
+    unit?: "hours" | "minutes";
+  };
+  arrival?: InternationalizedArrayString;
+  ticketProviderInfo?: {
+    label?: InternationalizedArrayString;
+    value?: InternationalizedArrayString;
+  };
+  shareSettings?: Array<{
+    type?:
+      | "copyLink"
+      | "email"
+      | "facebook"
+      | "instagram"
+      | "linkedin"
+      | "share"
+      | "whatsapp";
+    label?: InternationalizedArrayString;
+    enabled?: boolean;
+    _type: "shareAction";
+    _key: string;
+  }>;
+  billettoEventUrl?: string;
+  ticketUrl?: string;
+  ticketButtonLabel?: InternationalizedArrayString;
+  calendarUrl?: string;
+  waitlistUrl?: string;
+  ticketsLeft?: number;
+  isSoldOut?: boolean;
+  seo?: Seo;
+  shortDescription?: InternationalizedArrayText;
   practicalDetails?: Array<
     {
       _key: string;
     } & PracticalDetail
   >;
   ticketProvider?: string;
-  ticketUrl?: string;
-  calendarUrl?: string;
-  waitlistUrl?: string;
-  ticketsLeft?: number;
-  relatedEvents?: Array<
-    {
-      _key: string;
-    } & EventReference
-  >;
-  seo?: Seo;
-  categoryTitle: InternationalizedArrayString | null;
 }>;
 
 // Source: sanity/queries/events.ts
 // Variable: eventBySlugQuery
-// Query: *[_type == "event" && slug.current == $slug][0]{    ...,    "categoryTitle": category->title,    relatedEvents[]->{ _id, title, slug, image, date }  }
+// Query: *[_type == "event" && slug.current == $slug][0]
 export type EventBySlugQueryResult = {
   _id: string;
   _type: "event";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  visibleLocales?: Array<string>;
   title?: InternationalizedArrayString;
   slug?: Slug;
   image?: ImageWithAlt;
-  category?: EventCategoryReference;
+  detailHeroImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  formattedDescription?: InternationalizedArrayBodyPortableText;
   date?: string;
   time?: string;
   price?: string;
-  language?: "Danish" | "English" | "Ukrainian";
-  host?: string;
-  isSoldOut?: boolean;
-  shortDescription?: InternationalizedArrayText;
-  longDescription?: InternationalizedArrayText;
+  address?: string;
+  whatToExpect?: InternationalizedArrayText;
   included?: Array<
     {
       _key: string;
-    } & InternationalizedArrayString
+    } & BulletText
   >;
-  whatToExpect?: Array<
-    {
-      _key: string;
-    } & InternationalizedArrayString
-  >;
+  language?: Array<string>;
+  duration?: {
+    value?: number;
+    unit?: "hours" | "minutes";
+  };
+  arrival?: InternationalizedArrayString;
+  ticketProviderInfo?: {
+    label?: InternationalizedArrayString;
+    value?: InternationalizedArrayString;
+  };
+  shareSettings?: Array<{
+    type?:
+      | "copyLink"
+      | "email"
+      | "facebook"
+      | "instagram"
+      | "linkedin"
+      | "share"
+      | "whatsapp";
+    label?: InternationalizedArrayString;
+    enabled?: boolean;
+    _type: "shareAction";
+    _key: string;
+  }>;
+  billettoEventUrl?: string;
+  ticketUrl?: string;
+  ticketButtonLabel?: InternationalizedArrayString;
+  calendarUrl?: string;
+  waitlistUrl?: string;
+  ticketsLeft?: number;
+  isSoldOut?: boolean;
+  seo?: Seo;
+  shortDescription?: InternationalizedArrayText;
   practicalDetails?: Array<
     {
       _key: string;
     } & PracticalDetail
   >;
   ticketProvider?: string;
-  ticketUrl?: string;
-  calendarUrl?: string;
-  waitlistUrl?: string;
-  ticketsLeft?: number;
-  relatedEvents: Array<{
-    _id: string;
-    title: InternationalizedArrayString | null;
-    slug: Slug | null;
-    image: ImageWithAlt | null;
-    date: string | null;
-  }> | null;
-  seo?: Seo;
-  categoryTitle: InternationalizedArrayString | null;
 } | null;
 
 // Source: sanity/queries/events.ts
@@ -1077,34 +851,13 @@ export type EventBySlugQueryResult = {
 // Query: *[_type == "event"].slug.current
 export type AllEventSlugsQueryResult = Array<string | null>;
 
-// Source: sanity/queries/faq.ts
-// Variable: faqPageQuery
-// Query: *[_type == "faqPage"][0]
-export type FaqPageQueryResult = {
-  _id: string;
-  _type: "faqPage";
-  _createdAt: string;
+// Source: sanity/queries/events.ts
+// Variable: allEventsForSitemapQuery
+// Query: *[_type == "event" && defined(slug.current)]{"slug": slug.current, visibleLocales, _updatedAt}
+export type AllEventsForSitemapQueryResult = Array<{
+  slug: string | null;
+  visibleLocales: Array<string> | null;
   _updatedAt: string;
-  _rev: string;
-  heroLabel?: InternationalizedArrayString;
-  heroTitle?: InternationalizedArrayString;
-  heroText?: InternationalizedArrayText;
-  seo?: Seo;
-} | null;
-
-// Source: sanity/queries/faq.ts
-// Variable: faqGroupsQuery
-// Query: *[_type == "faqGroup"] | order(order asc){ _id, title, order, items }
-export type FaqGroupsQueryResult = Array<{
-  _id: string;
-  title: InternationalizedArrayString | null;
-  order: number | null;
-  items: Array<{
-    question?: InternationalizedArrayString;
-    answer?: InternationalizedArrayText;
-    _type: "faqItem";
-    _key: string;
-  }> | null;
 }>;
 
 // Source: sanity/queries/globals.ts
@@ -1175,6 +928,12 @@ export type NavigationQueryResult = {
     } & NavItem
   >;
   languageSwitcherLabel?: InternationalizedArrayString;
+  contactCtaLabel?: InternationalizedArrayString;
+  labels?: Array<
+    {
+      _key: string;
+    } & KeyedString
+  >;
 } | null;
 
 // Source: sanity/queries/globals.ts
@@ -1186,6 +945,7 @@ export type FooterQueryResult = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  contactDetailsLabel?: InternationalizedArrayString;
   columns?: Array<{
     title?: InternationalizedArrayString;
     links?: Array<
@@ -1216,24 +976,117 @@ export type FormMessagesQueryResult = {
   requiredFieldTemplate?: InternationalizedArrayString;
   invalidEmailMessage?: InternationalizedArrayString;
   privacyConsentRequiredMessage?: InternationalizedArrayString;
-  privacyConsentLabel?: InternationalizedArrayText;
+  privacyConsentPrefixText?: InternationalizedArrayString;
+  faqQuestion?: InternationalizedArrayString;
+  faqLabel?: InternationalizedArrayString;
+  fullNameLabel?: InternationalizedArrayString;
+  phoneLabel?: InternationalizedArrayString;
+  emailLabel?: InternationalizedArrayString;
+  messageLabel?: InternationalizedArrayString;
+  eventDateLabel?: InternationalizedArrayString;
+  agreeButtonLabel?: InternationalizedArrayString;
+  closeLabel?: InternationalizedArrayString;
+  successTitle?: InternationalizedArrayString;
+  doneLabel?: InternationalizedArrayString;
+  copyLabel?: InternationalizedArrayString;
+  copiedLabel?: InternationalizedArrayString;
+  packageLabel?: InternationalizedArrayString;
+  selectPackagePlaceholder?: InternationalizedArrayString;
+  eventTimeLabel?: InternationalizedArrayString;
+  numberOfPeopleLabel?: InternationalizedArrayString;
+  guestsPlaceholder?: InternationalizedArrayString;
+  additionalServicesLabel?: InternationalizedArrayString;
+  commentLabel?: InternationalizedArrayString;
+  guestsRangeMessage?: InternationalizedArrayString;
+  extraLabels?: Array<
+    {
+      _key: string;
+    } & KeyedString
+  >;
+} | null;
+
+// Source: sanity/queries/globals.ts
+// Variable: eventMessagesQuery
+// Query: *[_type == "eventMessages"][0]
+export type EventMessagesQueryResult = {
+  _id: string;
+  _type: "eventMessages";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  labels?: Array<
+    {
+      _key: string;
+    } & KeyedString
+  >;
+} | null;
+
+// Source: sanity/queries/page.ts
+// Variable: pageByKeyQuery
+// Query: *[_type == "page" && pageKey == $pageKey][0]
+export type PageByKeyQueryResult = {
+  _id: string;
+  _type: "page";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  pageKey?: string;
+  sections?: Array<
+    {
+      _key: string;
+    } & PageSection
+  >;
+  seo?: Seo;
+} | null;
+
+// Source: sanity/queries/page.ts
+// Variable: pagesUpdatedAtQuery
+// Query: *[_type in ["page", "legalPage"]]{pageKey, _updatedAt}
+export type PagesUpdatedAtQueryResult = Array<
+  | {
+      pageKey: string | null;
+      _updatedAt: string;
+    }
+  | {
+      pageKey: "cookie-policy" | "privacy-policy" | "terms" | null;
+      _updatedAt: string;
+    }
+>;
+
+// Source: sanity/queries/pages.ts
+// Variable: legalPageQuery
+// Query: *[_type == "legalPage" && pageKey == $pageKey][0]
+export type LegalPageQueryResult = {
+  _id: string;
+  _type: "legalPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  pageKey?: "cookie-policy" | "privacy-policy" | "terms";
+  title?: InternationalizedArrayString;
+  subtitle?: InternationalizedArrayText;
+  lastUpdated?: string;
+  body?: InternationalizedArrayBodyPortableText;
+  seo?: Seo;
 } | null;
 
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '*[_type == "eventsPage"][0]': EventsPageQueryResult;
-    '*[_type == "event"] | order(date asc){ ..., "categoryTitle": category->title }': AllEventsQueryResult;
-    '*[_type == "event" && slug.current == $slug][0]{\n    ...,\n    "categoryTitle": category->title,\n    relatedEvents[]->{ _id, title, slug, image, date }\n  }': EventBySlugQueryResult;
+    '*[_type == "event" && $locale in visibleLocales] | order(date asc)': AllEventsQueryResult;
+    '*[_type == "event" && slug.current == $slug][0]': EventBySlugQueryResult;
     '*[_type == "event"].slug.current': AllEventSlugsQueryResult;
-    '*[_type == "faqPage"][0]': FaqPageQueryResult;
-    '*[_type == "faqGroup"] | order(order asc){ _id, title, order, items }': FaqGroupsQueryResult;
+    '*[_type == "event" && defined(slug.current)]{"slug": slug.current, visibleLocales, _updatedAt}': AllEventsForSitemapQueryResult;
     '*[_type == "siteSettings"][0]': SiteSettingsQueryResult;
     '*[_type == "contactInfo"][0]': ContactInfoQueryResult;
     '*[_type == "socialLinks"][0]': SocialLinksQueryResult;
     '*[_type == "navigation"][0]': NavigationQueryResult;
     '*[_type == "footer"][0]': FooterQueryResult;
     '*[_type == "formMessages"][0]': FormMessagesQueryResult;
+    '*[_type == "eventMessages"][0]': EventMessagesQueryResult;
+    '*[_type == "page" && pageKey == $pageKey][0]': PageByKeyQueryResult;
+    '*[_type in ["page", "legalPage"]]{pageKey, _updatedAt}': PagesUpdatedAtQueryResult;
+    '*[_type == "legalPage" && pageKey == $pageKey][0]': LegalPageQueryResult;
   }
 }

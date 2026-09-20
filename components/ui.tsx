@@ -1,15 +1,8 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
-import {
-  ArrowRight,
-  MapPin,
-  MessageCircle,
-  MessagesSquare,
-  Smile,
-  Sparkles,
-  Users,
-  Wine,
-} from "lucide-react";
+import { LocaleLink as Link } from "@/components/LocaleLink";
+import { FAQInlinePrompt } from "@/components/FAQInlinePrompt";
+import { getIconCardIcon } from "@/lib/iconCardIcons";
+import { MessageCircle, MessagesSquare } from "lucide-react";
 
 // NOTE ON THIS FILE'S MIGRATION APPROACH:
 // Container/Section/SectionLabel/Card/HomeHero/FAQInlinePrompt/CTASection
@@ -68,9 +61,11 @@ export function Section({
 export function SectionLabel({
   children,
   className = "",
+  "data-testid": dataTestId,
 }: {
   children: ReactNode;
   className?: string;
+  "data-testid"?: string;
 }) {
   return (
     // `label` is kept (deferred, like `btn`/`heading`/`section-head`): 18+
@@ -79,6 +74,7 @@ export function SectionLabel({
     // context overrides (see MIGRATION_REPORT.md for the full list).
     <span
       className={`label inline-flex items-center gap-[10px] text-red text-[0.78rem] font-extrabold tracking-[0.08em] uppercase w-fit border-b border-red ${className}`.trim()}
+      data-testid={dataTestId}
     >
       {children}
     </span>
@@ -97,6 +93,7 @@ export function SectionHeader({
   labelClassName = "",
   titleClassName = "",
   textClassName = "",
+  "data-testid": dataTestId,
 }: {
   label?: string;
   title: ReactNode;
@@ -106,6 +103,7 @@ export function SectionHeader({
   labelClassName?: string;
   titleClassName?: string;
   textClassName?: string;
+  "data-testid"?: string;
 }) {
   // `level` is restricted to 1-6 above, so this is always a valid heading tag.
   const HeadingTag = `h${level}` as HeadingTagName;
@@ -124,7 +122,11 @@ export function SectionHeader({
     // competing against this component's own layered Tailwind defaults)
     // instead of reaching in via a `.context .section-head` CSS selector.
     <div className={`section-head grid gap-3.5 max-w-190 mb-7 ${className}`.trim()}>
-      {label ? <SectionLabel className={labelClassName}>{label}</SectionLabel> : null}
+      {label ? (
+        <SectionLabel className={labelClassName} data-testid={dataTestId}>
+          {label}
+        </SectionLabel>
+      ) : null}
       <HeadingTag
         className={`section-title font-heading font-medium text-text-primary m-0 text-[clamp(1.85rem,2.6vw,2.3rem)] ${headingLeading} tracking-normal normal-case ${titleClassName}`.trim()}
       >
@@ -169,27 +171,37 @@ export function Button({
   children,
   variant = "primary",
   className: extraClassName = "",
+  target,
+  rel,
+  "data-testid": dataTestId,
 }: {
   href?: string;
   children: ReactNode;
   variant?: ButtonVariant;
   className?: string;
+  /** Opt-in only — omitting these keeps every existing caller's behavior (auto `_blank`/`noreferrer` for absolute hrefs) unchanged. */
+  target?: string;
+  rel?: string;
+  "data-testid"?: string;
 }) {
   const variantClass = variant === "primary" ? "" : variant;
   const className =
     `btn inline-flex items-center justify-center font-bold uppercase cursor-pointer transition-all duration-[180ms] ease-[ease] group has-[.button-arrow]:gap-2 ${variantClass} ${BUTTON_VARIANT_CLASSES[variant]} ${extraClassName}`.trim();
   if (!href)
     return (
-      <button className={className} type="button">
+      <button className={className} type="button" data-testid={dataTestId}>
         {children}
       </button>
     );
-  return href.startsWith("http") ? (
-    <a className={className} href={href} target="_blank" rel="noreferrer">
+  const isAbsolute = href.startsWith("http");
+  const resolvedTarget = target ?? (isAbsolute ? "_blank" : undefined);
+  const resolvedRel = rel ?? (isAbsolute ? "noreferrer" : undefined);
+  return isAbsolute ? (
+    <a className={className} href={href} target={resolvedTarget} rel={resolvedRel} data-testid={dataTestId}>
       {children}
     </a>
   ) : (
-    <Link className={className} href={href}>
+    <Link className={className} href={href} target={resolvedTarget} rel={resolvedRel} data-testid={dataTestId}>
       {children}
     </Link>
   );
@@ -229,24 +241,11 @@ export function Card({
   );
 }
 
-function TrustIcon({ item }: { item: string }) {
-  const normalized = item.toLowerCase();
-  const Icon = normalized.includes("guest")
-    ? Users
-    : normalized.includes("copenhagen")
-      ? MapPin
-      : normalized.includes("support")
-        ? Smile
-        : normalized.includes("catering")
-          ? Wine
-          : Sparkles;
-  return (
-    <Icon
-      className="w-[22px] h-[22px] text-gold shrink-0"
-      aria-hidden="true"
-      strokeWidth={1.8}
-    />
-  );
+export interface TrustItem {
+  title: string;
+  icon?: string;
+  /** Stable Sanity itemKey (e.g. "trust0"), when available — lets tests assert a specific badge by key instead of position. */
+  key?: string;
 }
 
 export function HomeHero({
@@ -258,20 +257,24 @@ export function HomeHero({
   image = "/images/hero.jpg",
   video,
   actions,
+  mediaEditAttr,
 }: {
   label?: string;
   title: ReactNode;
   text?: string;
   microcopy?: string;
-  trustItems?: string[];
+  trustItems?: TrustItem[];
   image?: string;
   video?: string;
   actions?: ReactNode;
+  /** `data-sanity` for the hero background media — set only in Draft Mode (see sanity/lib/dataAttr.ts). */
+  mediaEditAttr?: string;
 }) {
   return (
     <section
       className="home-hero-full relative min-h-[100svh] w-full grid items-center -mt-[78px] pt-[78px] bg-center bg-cover bg-no-repeat overflow-hidden max-sm:-mt-[68px] max-sm:pt-[68px]"
       style={{ backgroundImage: `url(${image})` }}
+      data-sanity={mediaEditAttr}
     >
       {video ? (
         <video
@@ -288,11 +291,11 @@ export function HomeHero({
       <div className="home-hero-overlay absolute inset-0 bg-[#00000080] z-[1]" />
       <Container className="relative z-2">
         <div className="home-hero-copy w-[min(62%,730px)] grid gap-[22px] py-[clamp(42px,7vw,84px)] translate-y-[clamp(-42px,-3vw,-18px)] max-lg:w-[min(72vw,680px)] max-lg:translate-y-0 max-sm:w-full max-sm:-mt-[35%] max-sm:translate-y-0 max-sm:gap-[18px]">
-          <SectionLabel className="text-beige! border-b-transparent!">{label}</SectionLabel>
+          <SectionLabel className="text-beige! border-b-transparent!" data-testid="home-hero-label">{label}</SectionLabel>
           <h1 className="heading font-heading font-medium text-white text-[clamp(34px,3.95vw,66px)] leading-[1.1] tracking-[0] normal-case max-sm:text-[clamp(31px,9vw,42px)] max-sm:leading-[1.2]">
             {title}
           </h1>
-          <p className="max-w-[58ch] m-0 text-text-on-image text-[18px] leading-[1.6]">{text}</p>
+          <p className="max-w-[58ch] m-0 text-text-on-image text-[18px] leading-[1.6]" data-testid="home-hero-text">{text}</p>
           {actions ? (
             <div className="flex flex-wrap gap-[12px]">
               {actions}
@@ -310,62 +313,31 @@ export function HomeHero({
           className="home-hero-trust absolute inset-x-0 bottom-0 z-[2] grid grid-cols-4 gap-[18px] w-full m-0 py-[18px] px-[max(16px,calc((100vw_-_1180px)/2))] list-none bg-[rgba(var(--rgb-cream),0.14)] backdrop-blur-[12px] max-sm:grid-cols-1"
           aria-label="RORUM highlights"
         >
-          {trustItems.map((item) => (
-            <li key={item}>
-              <TrustIcon item={item} />
-              <span>{item}</span>
-            </li>
-          ))}
+          {trustItems.map((item) => {
+            const Icon = getIconCardIcon(item.icon);
+            return (
+              <li key={item.title} data-testid={`home-hero-trust-${item.key ?? item.title}`}>
+                <Icon
+                  className="w-[22px] h-[22px] text-gold shrink-0"
+                  aria-hidden="true"
+                  strokeWidth={1.8}
+                  data-icon={item.icon}
+                />
+                <span>{item.title}</span>
+              </li>
+            );
+          })}
         </ul>
       ) : null}
     </section>
   );
 }
 
-export function FAQInlinePrompt({
-  href = "/faq",
-  question,
-  label,
-  questionClassName = "",
-  className = "",
-  linkClassName = "",
-}: {
-  href?: string;
-  question?: string;
-  label?: string;
-  questionClassName?: string;
-  className?: string;
-  linkClassName?: string;
-}) {
-  return (
-    // `faq-inline-prompt`/`faq-inline-prompt-link` are kept (deferred, like
-    // `section-head`): several other, not-yet-converted pages
-    // (catering, community-membership, forms) reach into them with their
-    // own `.some-wrapper .faq-inline-prompt(-link)` color overrides. The
-    // base declarations themselves are gone (fully replaced by the
-    // Tailwind utilities below); only the class names still need to exist
-    // for those external selectors to keep matching.
-    // The `p.faq-inline-prompt` tag+class rule (more specific than the
-    // class-only base rule) set font-size to 0.95rem, not the base rule's
-    // 0.8125rem - that's the actual effective value reflected below.
-    <p
-      className={`faq-inline-prompt flex flex-wrap items-center gap-x-2 gap-y-1 m-0 text-[0.95rem] font-medium leading-[1.4] text-[rgba(var(--rgb-dark-brown),0.62)] max-sm:justify-center max-sm:text-center ${className}`.trim()}
-    >
-      <span className={questionClassName}>{question || "Questions?"}</span>
-      <Link
-        className={`faq-inline-prompt-link group inline-flex items-center gap-1 text-red font-semibold no-underline transition-opacity duration-[160ms] ease-[ease] hover:opacity-75 ${linkClassName}`.trim()}
-        href={href}
-      >
-        <span>{label || "Read our FAQs"}</span>
-        <ArrowRight
-          className="w-[13px] h-[13px] shrink-0 transition-transform duration-[180ms] ease-[ease] group-hover:translate-x-1"
-          aria-hidden="true"
-          strokeWidth={1.9}
-        />
-      </Link>
-    </p>
-  );
-}
+// Lives in its own "use client" file (needs `useFormContent()` for its
+// default question/label text), imported above and re-exported here so
+// every existing `import { FAQInlinePrompt } from "@/components/ui"` keeps
+// working.
+export { FAQInlinePrompt };
 
 export interface CTALink {
   href: string;
@@ -377,6 +349,8 @@ export function CTASection({
   text,
   href,
   label,
+  target,
+  rel,
   eyebrow = "Next step",
   links = [],
   variant = "",
@@ -384,11 +358,15 @@ export function CTASection({
   cardClassName = "",
   faqQuestion = "",
   faqLabel = "Read FAQ",
+  "data-testid": dataTestId,
 }: {
   title: ReactNode;
   text?: string;
   href?: string;
   label?: ReactNode;
+  /** Opt-in — set when the resolved action's `openInNewTab` is true. */
+  target?: string;
+  rel?: string;
   eyebrow?: string;
   links?: CTALink[];
   variant?: "final" | "host" | "";
@@ -396,6 +374,7 @@ export function CTASection({
   cardClassName?: string;
   faqQuestion?: string;
   faqLabel?: string;
+  "data-testid"?: string;
 }) {
   const sectionBg = variant === "final" ? "bg-light-green" : "bg-cream";
   const sectionClass =
@@ -459,11 +438,13 @@ export function CTASection({
   const isNotSure = className.includes("next-step-section-not-sure");
 
   return (
-    <section className={sectionClass}>
+    <section className={sectionClass} data-testid={dataTestId}>
       <Container className="relative z-2">
         <Card className={cardClass}>
           <div className={copyClass}>
-            <SectionLabel className={eyebrowClassName}>{eyebrow}</SectionLabel>
+            <SectionLabel className={eyebrowClassName} data-testid={dataTestId ? `${dataTestId}-eyebrow` : undefined}>
+              {eyebrow}
+            </SectionLabel>
             {/* No literal `heading` class here (unlike some other
                 headings that keep it): its own line-height:1.2 would beat
                 this element's intended 1.25 regardless of `!important`
@@ -475,7 +456,9 @@ export function CTASection({
             >
               {title}
             </h2>
-            <p className={textClassName}>{text}</p>
+            <p className={textClassName} data-testid={dataTestId ? `${dataTestId}-text` : undefined}>
+              {text}
+            </p>
             {links.length ? (
               <div className="flex flex-wrap gap-[10px] mt-1 max-sm:grid" aria-label="Suggested paths">
                 {links.map((link) => (
@@ -502,16 +485,18 @@ export function CTASection({
             </div>
           ) : null}
           <div className={actionClass}>
-            <Button href={href}>
-              {variant === "final" ? (
-                <MessageCircle
-                  className="w-[18px] h-[18px] text-current"
-                  aria-hidden="true"
-                  strokeWidth={1.9}
-                />
-              ) : null}
-              {label}
-            </Button>
+            {href ? (
+              <Button href={href} target={target} rel={rel} data-testid={dataTestId ? `${dataTestId}-cta` : undefined}>
+                {variant === "final" ? (
+                  <MessageCircle
+                    className="w-[18px] h-[18px] text-current"
+                    aria-hidden="true"
+                    strokeWidth={1.9}
+                  />
+                ) : null}
+                {label}
+              </Button>
+            ) : null}
             {faqQuestion ? (
               <FAQInlinePrompt
                 question={faqQuestion}

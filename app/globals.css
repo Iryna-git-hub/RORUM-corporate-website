@@ -249,6 +249,46 @@ main {
   letter-spacing: -0.03em;
   color: var(--color-text-primary);
 }
+/* `uk` renders body/UI text in Nunito instead of Quicksand (see
+   app/fonts.ts - Quicksand has no Cyrillic glyphs), and at the same
+   font-size Nunito's glyphs sit visibly smaller than Quicksand's.
+   `font-size-adjust` corrects for that aspect-ratio difference without
+   touching the actual `font-size`/line-height/weight/letter-spacing of
+   anything, so button/nav/component geometry is unaffected. 0.54 was
+   chosen by rendering both fonts (real woff2 files, real browser layout)
+   and overlaying them at large size to compare cap-height/x-height
+   directly - 0.6 (and the whole 0.58-0.64 band initially assumed close)
+   measurably overshot, leaving Nunito visibly larger than Quicksand
+   rather than equal; 0.54 is where the two align. */
+html[lang="uk"] body {
+  font-size-adjust: 0.52;
+}
+/* `font-size-adjust` is inherited, so it would otherwise leak from `body`
+   into every Merriweather heading too - reset it everywhere Merriweather
+   (`var(--font-heading)`) is used, not just on `.heading`/`.font-heading`:
+   `.wecoda-membership-panel h3`, `.wecoda-application-process h4`,
+   `.quick-card-title`, and `.policy-content h2` all set
+   `font-family: var(--font-heading)` directly further down in this file
+   without either class. */
+html[lang="uk"] .font-heading,
+html[lang="uk"] .heading,
+html[lang="uk"] .wecoda-membership-panel h3,
+html[lang="uk"] .wecoda-application-process h4,
+html[lang="uk"] .quick-card-title,
+html[lang="uk"] .policy-content h2 {
+  font-size-adjust: none;
+}
+/* The header's nav links, language switcher, and CTA button are all
+   uppercase — governed by cap-height, not x-height. Nunito's and
+   Quicksand's cap-heights already match to within 1% (measured directly
+   from this project's cached font files: 0.705em vs 0.700em), so the
+   x-height-targeted `font-size-adjust: 0.52` above (tuned for lowercase
+   body copy) does nothing but inflate header text ~7% taller and wider
+   here. Opt the whole header back out, same mechanism as the heading
+   exemption above. */
+html[lang="uk"] header {
+  font-size-adjust: none;
+}
 .section-title {
   margin: 0;
   font-size: clamp(1.85rem, 2.6vw, 2.3rem);
@@ -481,7 +521,7 @@ button.btn,
   color: var(--color-red);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -799,10 +839,9 @@ button.btn,
   gap: 20px;
   min-width: 0;
 }
-@media (min-width: 640px) {
-  .wecoda-membership-content .wecoda-hero-external-link,
-  .wecoda-membership-content .faq-inline-prompt {
-    justify-self: start;
+@media (min-width: 1024px) {
+  .wecoda-membership-content {
+    justify-items: start;
   }
 }
 .wecoda-membership-cta {
@@ -872,7 +911,7 @@ button.btn,
   padding: 0;
   color: var(--color-gold);
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1.2;
   letter-spacing: 0.06em;
 }
@@ -882,7 +921,7 @@ button.btn,
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(16px, 1.2vw, 18px);
   line-height: 1.25;
-  font-weight: 900;
+  font-weight: 800;
 }
 .wecoda-application-steps p {
   margin: 0;
@@ -1190,6 +1229,136 @@ button.btn,
   pointer-events: none;
   user-select: none;
 }
+/*
+ * Video gallery cards deliberately size themselves from a fixed
+ * `aspect-ratio` (16/9, the most common web-video ratio) instead of the
+ * photo cards' "auto width, driven by the loaded image's own intrinsic
+ * ratio" behavior (see `.horizontal-gallery-item img` above). With `height`
+ * already fixed by `.horizontal-gallery-item` and `aspect-ratio` set here,
+ * the browser can compute this card's width immediately at layout time —
+ * before the video's metadata has even started downloading — so neither
+ * mounting the card nor the video's own first frame arriving ever causes a
+ * width/layout jump in the surrounding track. The `<video>` itself then
+ * fills that fixed box via `object-fit: contain` (never `cover`: cropping a
+ * video was exactly the visual defect a separate poster image already
+ * risked, so the video's own real proportions are always shown in full,
+ * never stretched or cropped). A vertical/portrait video letterboxes inside
+ * the 16:9 box; a wider-than-16:9 video letterboxes top/bottom instead —
+ * both cases show the shared neutral background below, never an image.
+ */
+.horizontal-gallery-video-item {
+  position: relative;
+  cursor: default;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: rgb(var(--rgb-dark-brown));
+}
+.horizontal-gallery-video-item video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: transparent;
+}
+/*
+ * Any non-interactive video preview (the main-track card, and the
+ * Lightbox's previous/next neighbor slides) — never carries native
+ * controls, so pointer-events are explicitly disabled rather than left
+ * ambiguous: every click/tap on the frame itself falls through to
+ * whatever real interactive element sits on top (the "Open video" button
+ * for the main-track card; nothing for a neighbor slide, which isn't
+ * meant to be interacted with at all).
+ */
+.horizontal-gallery-video-preview {
+  pointer-events: none;
+}
+/*
+ * The main-track video card's accessible open action. A real, always-
+ * rendered, keyboard-focusable <button> — not a click handler on a <div> —
+ * layered above the silent preview video via normal DOM stacking order
+ * (rendered after it, no z-index needed). Fills the whole card so the
+ * entire preview is one big hit target, matching the photo cards' own
+ * full-card <button> pattern.
+ */
+.horizontal-gallery-video-opener {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+.horizontal-gallery-video-opener-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(var(--rgb-dark-brown), 0.56);
+  color: var(--color-cream);
+  backdrop-filter: blur(6px);
+  transition: background-color 0.18s ease, transform 0.18s ease;
+}
+.horizontal-gallery-video-opener:hover .horizontal-gallery-video-opener-icon,
+.horizontal-gallery-video-opener:focus-visible .horizontal-gallery-video-opener-icon {
+  background: rgba(var(--rgb-dark-brown), 0.76);
+  transform: scale(1.06);
+}
+.horizontal-gallery-video-opener:focus-visible {
+  outline: none;
+}
+.horizontal-gallery-video-opener:focus-visible .horizontal-gallery-video-opener-icon {
+  box-shadow: 0 0 0 3px rgba(var(--rgb-cream), 0.85);
+}
+.horizontal-gallery-video-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(var(--rgb-dark-brown));
+  pointer-events: none;
+}
+.horizontal-gallery-video-loading-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid rgba(var(--rgb-cream), 0.3);
+  border-top-color: rgba(var(--rgb-cream), 0.9);
+  animation: horizontal-gallery-video-spin 0.8s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .horizontal-gallery-video-loading-spinner {
+    animation: none;
+  }
+}
+@keyframes horizontal-gallery-video-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.horizontal-gallery-video-fallback {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+.horizontal-gallery-video-fallback-message {
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(var(--rgb-cream), 0.14);
+  color: var(--color-cream);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
 .section-head h3,
 .card h3 {
   text-transform: none;
@@ -1232,14 +1401,67 @@ button.btn,
   filter: none;
   z-index: 2;
 }
-.gallery-lightbox-slide img {
+.gallery-lightbox-slide img,
+.gallery-lightbox-slide video {
   max-width: 100%;
   max-height: calc(100% - 18px);
   object-fit: contain;
   object-position: 50% 50%;
-  user-select: none;
-  pointer-events: none;
   box-shadow: 0 24px 70px rgba(var(--rgb-brown), 0.32);
+}
+.gallery-lightbox-slide img {
+  user-select: none;
+  /* The dialog content box (dialogContentRef) is pointer-events:none so a
+     click/tap in its empty gutters/cells falls through to the real backdrop
+     div beneath and closes the Lightbox (see dialogContentRef's own comment
+     in HorizontalGallery.tsx). The visible image itself must opt back into
+     hit-testing so a click/tap directly ON the photo is swallowed here (no
+     onClick handler is attached) instead of also falling through and
+     closing — "click on image does nothing" stays true either way. */
+  pointer-events: auto;
+}
+/* The prev/next preview slides are visually de-emphasized (scaled down,
+   dimmed) rather than removed: at >=640px they stay a genuine visible
+   preview, so their own <img> inherits `pointer-events: auto` from the
+   base rule above like any other slide image — clicking that dimmed
+   preview is swallowed there (no onClick handler) rather than falling
+   through to the backdrop, same "content belonging to the Lightbox, not
+   backdrop" contract as the active image. Only at <=639px does their
+   CONTAINER go fully invisible (opacity:0; pointer-events:none) — and an
+   invisible neighbor <img>, sized by the mobile-only `max-width:
+   calc(100vw - 24px)` rule, can still render nearly full-viewport-width
+   and silently swallow taps meant for the real backdrop. That mobile-only
+   override (pointer-events: none on the neighbor slides' own <img>) lives
+   in the `@media (max-width: 639px)` block below, alongside the container
+   rule it pairs with — not here, since here it would also apply at
+   >=640px and make the visible preview click-through to the backdrop
+   instead of swallowing the tap. */
+/* Neutral letterboxing surface for a contained video — never an image. */
+.gallery-lightbox-slide video {
+  background: rgb(var(--rgb-dark-brown));
+}
+/* Only the active slide's video is interactive (real controls); the
+   previous/next preview slides render a silent, aria-hidden frame (see
+   NeighborVideoPreview) and must never intercept a click/swipe. At >=640px
+   the neighbor slide is a genuine visible preview (same as a neighbor
+   <img> — see that rule's own comment above), so its video must swallow a
+   click on itself (pointer-events: auto, no handler attached) rather than
+   falling through dialogContentRef's pointer-events:none cascade to the
+   real backdrop and closing the Lightbox. The <=639px case — where the
+   neighbor is fully invisible but can still render oversized (same
+   mobile-only `max-width: calc(100vw - 24px)` rule the neighbor <img>
+   is sized by, a few lines down) — is handled by the scoped override
+   inside the `@media (max-width: 639px)` block below, mirroring the
+   neighbor-image fix exactly. */
+.gallery-lightbox-slide-prev video,
+.gallery-lightbox-slide-next video {
+  pointer-events: auto;
+}
+/* Native controls on the active video must stay interactive at every
+   breakpoint now that dialogContentRef (and everything it inherits into,
+   including this slide) is pointer-events:none by default. */
+.gallery-lightbox-slide-active video {
+  pointer-events: auto;
 }
 @media (min-width: 1024px) {
   .gallery-lightbox-slide-active {
@@ -1257,15 +1479,38 @@ button.btn,
     object-fit: cover;
     object-position: center center;
   }
+  /* Deliberately NOT the same rule as the image above: a photo can safely
+     full-bleed crop on wide desktop viewports, but doing that to a video
+     would crop/distort exactly what the poster-removal decision was meant
+     to prevent (MIGRATION_REPORT.md) — the active video always keeps its
+     own full, undistorted frame via `contain`, filling the available box
+     and letterboxing (neutral background above) instead of cropping. */
+  .gallery-lightbox-slide-active video {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: contain;
+    object-position: center center;
+  }
 }
 .gallery-lightbox-close {
   position: fixed;
   z-index: 2002;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid rgba(var(--rgb-cream), 0.66);
   background: rgba(var(--rgb-cream), 0.12);
   color: var(--color-surface-light);
   cursor: pointer;
-  font-size: 0;
+  /* dialogContentRef is pointer-events:none (see .gallery-lightbox-slide
+     img's own comment) — the Close button must opt back in to stay
+     clickable/tappable. */
+  pointer-events: auto;
 }
 .gallery-lightbox-close {
   top: 22px;
@@ -1274,10 +1519,18 @@ button.btn,
   height: 42px;
   border-radius: 50%;
 }
+.gallery-lightbox-close:hover,
+.gallery-lightbox-close:focus-visible {
+  background: rgba(var(--rgb-cream), 0.22);
+  outline: none;
+}
 .gallery-lightbox-nav {
   position: absolute;
   top: 50%;
   z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 44px;
   height: 44px;
   border: 1px solid rgba(var(--rgb-cream), 0.42);
@@ -1286,7 +1539,9 @@ button.btn,
   color: var(--color-cream);
   transform: translateY(-50%);
   cursor: pointer;
-  font-size: 0;
+  /* dialogContentRef is pointer-events:none (see .gallery-lightbox-slide
+     img's own comment) — Previous/Next must opt back in to stay clickable. */
+  pointer-events: auto;
 }
 .gallery-lightbox-nav-prev {
   left: 22px;
@@ -1294,44 +1549,10 @@ button.btn,
 .gallery-lightbox-nav-next {
   right: 22px;
 }
-.gallery-lightbox-nav::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 12px;
-  height: 12px;
-  border-top: 2px solid currentColor;
-  border-right: 2px solid currentColor;
-}
-.gallery-lightbox-nav-prev::before {
-  transform: translate(-35%, -50%) rotate(-135deg);
-}
-.gallery-lightbox-nav-next::before {
-  transform: translate(-65%, -50%) rotate(45deg);
-}
-.gallery-lightbox-nav:hover {
+.gallery-lightbox-nav:hover,
+.gallery-lightbox-nav:focus-visible {
   background: rgba(var(--rgb-dark-brown), 0.72);
-}
-.gallery-lightbox-close::before,
-.gallery-lightbox-close::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  background: currentColor;
-}
-.gallery-lightbox-close::before,
-.gallery-lightbox-close::after {
-  width: 16px;
-  height: 2px;
-  transform-origin: center;
-}
-.gallery-lightbox-close::before {
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-.gallery-lightbox-close::after {
-  transform: translate(-50%, -50%) rotate(-45deg);
+  outline: none;
 }
 
 /* Home hero */
@@ -1443,6 +1664,7 @@ button.btn,
   min-height: clamp(250px, 28vw, 360px);
   overflow: hidden;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
   padding: clamp(18px, 2.4vw, 26px);
   padding-bottom: clamp(108px, 9vw, 124px);
@@ -1517,6 +1739,7 @@ button.btn,
 .quick-card-content {
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   gap: 14px;
   text-align: center;
@@ -1527,6 +1750,7 @@ button.btn,
   position: relative;
   z-index: 1;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   gap: 36px;
   transform-origin: center top;
@@ -1553,6 +1777,8 @@ button.btn,
 }
 .quick-card-title {
   display: block;
+  max-width: 24ch;
+  overflow-wrap: break-word;
   font-family: var(--font-heading), Georgia, serif;
   color: var(--quick-card-tone);
   font-size: clamp(19px, 1.65vw, 23px);
@@ -1560,7 +1786,6 @@ button.btn,
   letter-spacing: 0;
   text-transform: none;
   font-weight: 600;
-  white-space: nowrap;
   transition: color 0.26s ease;
 }
 .quick-card-text {
@@ -1696,6 +1921,13 @@ button.btn,
   left: -10px;
   z-index: 20;
   min-width: 210px;
+  /* Grid's default `min-width: auto` on the implicit column lets a nowrap
+     item's unbroken content width (e.g. a long Ukrainian option label) force
+     the track — and this container's own rendered width — past the
+     `min-width`/`width` caps below ("grid blowout"). `minmax(0, 1fr)` gives
+     the single implicit column an explicit 0 floor so it can never grow past
+     the container's own declared width, regardless of content. */
+  grid-template-columns: minmax(0, 1fr);
   display: grid;
   gap: 4px;
   padding: 10px;
@@ -1742,6 +1974,7 @@ button.btn,
 }
 .events-filter-menu button {
   width: 100%;
+  min-width: 0;
   padding: 10px 11px 10px 24px;
   border: 0;
   border-radius: 0;
@@ -1751,7 +1984,13 @@ button.btn,
   font-size: 15px;
   line-height: 1.25;
   text-align: left;
-  white-space: nowrap;
+  /* Was `nowrap` — on a fixed-width dropdown that forced a long option
+     label (e.g. Ukrainian's longer Price options) to overflow the menu
+     instead of wrapping. Every label that already fits on one line renders
+     identically; only labels wider than the menu now wrap to a second line
+     instead of bleeding past the viewport. */
+  white-space: normal;
+  overflow-wrap: break-word;
   cursor: pointer;
 }
 .events-filter-menu button:hover,
@@ -1861,7 +2100,7 @@ button.btn,
   --event-card-body-bg: var(--color-white);
   background: var(--event-card-body-bg);
   --color-text-muted: var(--color-event-muted);
-  box-shadow: 0 12px 34px rgb(109 89 85 / 18%);
+  box-shadow: 0 10px 12px rgb(109 89 85 / 18%);
   transition:
     transform 0.24s ease,
     box-shadow 0.24s ease,
@@ -1945,7 +2184,7 @@ button.btn,
   color: var(--color-white);
   cursor: pointer;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1;
   text-transform: uppercase;
   transition:
@@ -2320,15 +2559,37 @@ button.btn,
     pointer-events: none;
     transform: scale(0.9);
   }
+  /* At this width the neighbor slide is fully invisible (above), but the
+     base (unscoped) rules re-enabling pointer-events on every slide's own
+     <img>/<video> (see their own comments a few hundred lines up) still
+     reach the neighbor slides' media too — and that media is sized by the
+     mobile-only `max-width: calc(100vw - 24px)` rule a few lines down, so
+     an invisible neighbor photo/video can render at nearly full viewport
+     width and silently swallow taps meant for the real backdrop around the
+     visible active image. Scoped to this breakpoint only — at >=640px the
+     neighbor preview IS visible and must keep swallowing a tap on itself
+     (see the base rules' own comments), so this must NOT apply there.
+     Equal selector specificity to the base rules, but this wins when both
+     match (mobile) because it is later in the stylesheet. */
+  .gallery-lightbox-slide-prev img,
+  .gallery-lightbox-slide-next img,
+  .gallery-lightbox-slide-prev video,
+  .gallery-lightbox-slide-next video {
+    pointer-events: none;
+  }
   .gallery-lightbox-slide-active {
     width: 100%;
   }
-  .gallery-lightbox-slide img {
+  .gallery-lightbox-slide img,
+  .gallery-lightbox-slide video {
     max-width: calc(100vw - 24px);
     max-height: 100%;
   }
   .gallery-lightbox-nav {
     background: rgba(var(--rgb-dark-brown), 0.58);
+    /* Mobile relies on swipe (and tap-backdrop / tap-X) to navigate/close —
+       the Previous/Next buttons are a desktop/tablet-only control. */
+    display: none;
   }
   .gallery-lightbox-nav-prev {
     left: 8px;
@@ -2345,6 +2606,46 @@ button.btn,
     gap: 16px;
   }
   .event-section-head .btn {
+    margin-top: 0;
+  }
+}
+
+/* Home Hero — short mobile viewports (e.g. 375x667, 360x740). The trust/
+   benefits bar (`.home-hero-trust`, absolutely positioned at the bottom of
+   `.home-hero-full`'s `100svh` box) can overlap the Hero copy above it
+   (CTA row, sometimes the paragraph text) when the copy's own content is
+   tall enough to need most of that height — worse in Danish/Ukrainian,
+   which wrap onto more lines than English at the same width. Measured live:
+   Ukrainian still overlapped at 390x844 (English did not), so 860px (not
+   the 639/640px width breakpoint this project's other `.home-hero-*` mobile
+   rules use) is the actual, measured cutoff, not a guess.
+   An earlier attempt reflowed the Hero into normal document flow below this
+   threshold (`min-height: 0`, `display: block`, trust bar `position:
+   static`) so it would grow to fit instead of overlapping. That was
+   reverted: it changed the Hero's height model and, combined with small
+   anti-aliased text over a photo backdrop, made the trust bar's own content
+   read as harder to see. Simplest fix instead: below this size, don't try
+   to fit the trust bar at all — hide it outright and leave the rest of the
+   original Hero (100svh, centered, absolutely-positioned trust bar)
+   completely untouched. Above 860px (e.g. 414x896) or above 639px wide,
+   nothing in this rule applies.
+
+   With the trust bar gone, `.home-hero-copy`'s own `margin-top: -35%` (set
+   unconditionally for every phone-width viewport by the `@media
+   (max-width: 639px)` block above — deliberately, to leave room below the
+   copy for the trust bar there) has nothing left to make room for, so it
+   just biases the whole copy block upward instead of letting
+   `.home-hero-full`'s existing `grid; align-items: center` center it.
+   Cancelling it back to `0` here (only at this narrower, short-mobile
+   condition — the wider `max-width: 639px` rule, and its `-35%`, still
+   apply everywhere else, e.g. 414x896) lets that pre-existing centering
+   act on `.home-hero-copy` as one block, correctly for any content length/
+   wrap/CTA width, with no new offset of any kind. */
+@media (max-width: 639px) and (max-height: 860px) {
+  .home-hero-trust {
+    display: none;
+  }
+  .home-hero-copy {
     margin-top: 0;
   }
 }

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+import { LocaleLink as Link } from "@/components/LocaleLink";
 import { Card } from "@/components/ui";
 import { ArrowRight, CircleCheckBig } from "lucide-react";
 
@@ -60,6 +60,8 @@ export interface PackageItem {
   title: string;
   price: string;
   items: string[];
+  /** Stable identifier used for the `?package=` deep-link value and matched against the booking form's own package selector — never the (localized, renameable) `title`. */
+  value: string;
 }
 
 export function PackageCard({
@@ -84,7 +86,7 @@ export function PackageCard({
           still targeted by the deferred `.card h3, .section-head h3 {
           text-transform: none; letter-spacing: 0 }` reset, which - being
           unlayered - beats a plain Tailwind utility regardless of order. */}
-      <h3 className="m-0 font-body text-cream text-[clamp(1.125rem,1rem_+_1vw,1.5rem)] leading-[1.2] font-black tracking-[0.04em]! uppercase! border-b border-b-[rgba(var(--rgb-white),0.3)] pb-3.75">
+      <h3 className="m-0 font-body text-cream text-[clamp(1.125rem,1rem_+_1vw,1.5rem)] leading-[1.2] font-extrabold tracking-[0.04em]! uppercase! border-b border-b-[rgba(var(--rgb-white),0.3)] pb-3.75">
         {title}
       </h3>
       <span className="flex flex-nowrap items-baseline gap-2 w-full text-cream text-xs font-bold">
@@ -93,7 +95,7 @@ export function PackageCard({
             {priceMatch[1] ? (
               <span className="hidden">{priceMatch[1].trim()}</span>
             ) : null}
-            <span className="flex-none whitespace-nowrap text-white text-lg leading-[1.2] font-black">
+            <span className="flex-none whitespace-nowrap text-white text-lg leading-[1.2] font-extrabold">
               {priceMatch[2]}
             </span>
             <span className="flex-none whitespace-nowrap ml-1.25 text-[rgba(var(--rgb-cream),0.9)] text-[0.8125rem] leading-none font-medium normal-case tracking-normal">
@@ -148,11 +150,11 @@ export function PackageGrid({
         const packageHref = ctaHref
           ? ctaHref.includes("?")
             ? ctaHref
-            : `${ctaHref.split("#")[0]}?package=${encodeURIComponent(item.title)}#${ctaHref.split("#")[1]}`
+            : `${ctaHref.split("#")[0]}?package=${encodeURIComponent(item.value)}#${ctaHref.split("#")[1]}`
           : "";
         return (
           <PackageCard
-            key={item.title}
+            key={item.value}
             {...item}
             ctaHref={packageHref}
             ctaLabel={ctaLabel}

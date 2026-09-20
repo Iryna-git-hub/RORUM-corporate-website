@@ -5,6 +5,9 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { PrivacyPolicyContent } from "@/components/PrivacyPolicyContent";
+import { RichText } from "@/components/RichText";
+import { useFormContent } from "@/components/FormContentProvider";
+import { useLocale } from "@/lib/useLocale";
 
 function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
   if (!container) return [];
@@ -33,6 +36,11 @@ export function PrivacyPolicyModal({
 }) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const { messages, privacyPolicy } = useFormContent();
+  const { locale } = useLocale();
+  const lastUpdatedText = privacyPolicy.lastUpdated
+    ? new Intl.DateTimeFormat(locale, { year: "numeric", month: "long" }).format(new Date(privacyPolicy.lastUpdated))
+    : null;
 
   useEffect(() => {
     const applicationDialog = returnFocusRef.current?.closest<HTMLElement>(
@@ -114,20 +122,20 @@ export function PrivacyPolicyModal({
               id={titleId}
               className="font-heading text-text-primary tracking-[-0.03em] m-0 mb-2.5 text-[clamp(2rem,5vw,2.6rem)] font-light leading-none"
             >
-              Privacy Policy
+              {privacyPolicy.title}
             </h2>
-            <p className="m-0 text-sm leading-[1.55]">
-              How RORUM handles personal information submitted through this website.
-            </p>
-            <p className="mt-1.75 text-light-green text-xs font-bold leading-[1.55]">
-              Last updated: May 2026
-            </p>
+            <p className="m-0 text-sm leading-[1.55]">{privacyPolicy.subtitle}</p>
+            {lastUpdatedText ? (
+              <p className="mt-1.75 text-light-green text-xs font-bold leading-[1.55]">
+                {lastUpdatedText}
+              </p>
+            ) : null}
           </div>
           <button
             ref={closeButtonRef}
             className="absolute top-4.5 right-4.5 w-10.5 h-10.5 inline-flex items-center justify-center border border-[rgba(var(--rgb-brown),0.16)] rounded-full bg-white text-dark-brown transition-[border-color,color,transform] duration-180 ease-[ease] hover:border-red hover:text-red hover:-translate-y-px focus-visible:border-red focus-visible:text-red focus-visible:-translate-y-px focus-visible:outline-none"
             type="button"
-            aria-label="Close Privacy Policy"
+            aria-label={`${messages.closeLabel} ${privacyPolicy.title}`}
             onClick={onClose}
           >
             <X aria-hidden="true" strokeWidth={1.8} />
@@ -136,10 +144,10 @@ export function PrivacyPolicyModal({
 
         <div
           className="policy-content w-full overflow-y-auto overscroll-contain pt-1.5 px-[clamp(22px,4vw,36px)] pb-7 outline-none [scrollbar-gutter:stable] focus-visible:shadow-[inset_0_0_0_2px_rgba(var(--rgb-light-green),0.32)] max-sm:pt-1 max-sm:px-4.5 max-sm:pb-6"
-          aria-label="Privacy Policy content"
+          aria-label={`${privacyPolicy.title} content`}
           tabIndex={0}
         >
-          <PrivacyPolicyContent />
+          {privacyPolicy.body ? <RichText value={privacyPolicy.body} /> : <PrivacyPolicyContent />}
         </div>
 
         <footer className="py-4.5 px-[clamp(22px,4vw,36px)] border-t border-border bg-cream max-sm:pt-3.5 max-sm:px-4.5 max-sm:pb-[calc(14px+env(safe-area-inset-bottom))]">
@@ -148,7 +156,7 @@ export function PrivacyPolicyModal({
             type="button"
             onClick={onAgree}
           >
-            I Have Read and Agree
+            {messages.agreeButtonLabel}
           </button>
         </footer>
       </div>

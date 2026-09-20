@@ -2,90 +2,83 @@ import type { SchemaTypeDefinition } from "sanity";
 
 // Objects (reusable field shapes)
 import bodyPortableText from "./objects/bodyPortableText";
-import cateringMenuItem from "./objects/cateringMenuItem";
+import bulletParagraph from "./objects/bulletParagraph";
+import bulletText from "./objects/bulletText";
+import contentItem from "./objects/contentItem";
+import ctaAction from "./objects/ctaAction";
 import ctaLink from "./objects/ctaLink";
-import editorialFeature from "./objects/editorialFeature";
 import iconCard from "./objects/iconCard";
 import imageWithAlt from "./objects/imageWithAlt";
+import keyedString from "./objects/keyedString";
+import mediaGalleryItem from "./objects/mediaGalleryItem";
+import mediaItem from "./objects/mediaItem";
 import navChild from "./objects/navChild";
 import navItem from "./objects/navItem";
-import nextStepSection from "./objects/nextStepSection";
 import packageTier from "./objects/packageTier";
+import pageSection from "./objects/pageSection";
 import practicalDetail from "./objects/practicalDetail";
 import seo from "./objects/seo";
-import serviceHero from "./objects/serviceHero";
 import socialLink from "./objects/socialLink";
 import titledText from "./objects/titledText";
 
 // Structured documents
-import cateringMenuCategory from "./documents/cateringMenuCategory";
 import event from "./documents/event";
-import eventCategory from "./documents/eventCategory";
-import faqGroup from "./documents/faqGroup";
-import galleryCollection from "./documents/galleryCollection";
+import page from "./documents/page";
 
-// Singletons (globals + page documents)
-import aboutPage from "./singletons/aboutPage";
-import cateringPage from "./singletons/cateringPage";
-import communityMembershipPage from "./singletons/communityMembershipPage";
+// Global singletons. (The old per-page singletons — homePage, aboutPage,
+// cateringPage, … — were deleted once every page moved to the shared `page`
+// document type; see MIGRATION_REPORT.md Parts 16–17 and the R8 cleanup in
+// SANITY_MIGRATION.md §20.8. Their production documents were already gone; this
+// pass removed the now-dead schema types, queries and fallback fetches too.)
+//
+// Part 34 (MIGRATION_REPORT.md) also removed the last superseded standalone
+// document/object types — `galleryCollection`, `faqGroup` (+`faqItem`),
+// `cateringMenuCategory` (+`cateringMenuItem`), `serviceHero`,
+// `editorialFeature`, `nextStepSection`: 0 live documents, 0 references, never
+// wired to any field. Galleries / FAQ categories / menu categories are all
+// `pageSection`s on the relevant `page` document now.
 import contactInfo from "./singletons/contactInfo";
-import contactPage from "./singletons/contactPage";
-import eventDecorationPage from "./singletons/eventDecorationPage";
-import eventsPage from "./singletons/eventsPage";
-import faqPage from "./singletons/faqPage";
+import eventMessages from "./singletons/eventMessages";
 import footer from "./singletons/footer";
 import formMessages from "./singletons/formMessages";
-import homePage from "./singletons/homePage";
-import hostAtRorumPage from "./singletons/hostAtRorumPage";
 import legalPage from "./singletons/legalPage";
 import navigation from "./singletons/navigation";
 import siteSettings from "./singletons/siteSettings";
 import socialLinks from "./singletons/socialLinks";
-import volunteerPage from "./singletons/volunteerPage";
-import workWithUsPage from "./singletons/workWithUsPage";
 
 export const schemaTypes: SchemaTypeDefinition[] = [
   // Objects
   bodyPortableText,
-  cateringMenuItem,
+  bulletParagraph,
+  bulletText,
+  contentItem,
+  ctaAction,
   ctaLink,
-  editorialFeature,
   iconCard,
   imageWithAlt,
+  keyedString,
+  mediaGalleryItem,
+  mediaItem,
   navChild,
   navItem,
-  nextStepSection,
   packageTier,
+  pageSection,
   practicalDetail,
   seo,
-  serviceHero,
   socialLink,
   titledText,
   // Structured documents
-  cateringMenuCategory,
   event,
-  eventCategory,
-  faqGroup,
-  galleryCollection,
-  // Singletons
-  aboutPage,
-  cateringPage,
-  communityMembershipPage,
+  page,
+  // Global singletons
   contactInfo,
-  contactPage,
-  eventDecorationPage,
-  eventsPage,
-  faqPage,
+  eventMessages,
   footer,
   formMessages,
-  homePage,
-  hostAtRorumPage,
   legalPage,
   navigation,
   siteSettings,
   socialLinks,
-  volunteerPage,
-  workWithUsPage,
 ];
 
 /** Document type names that are singletons — exactly one instance should ever exist. */
@@ -96,17 +89,7 @@ export const SINGLETON_TYPES = new Set([
   "navigation",
   "footer",
   "formMessages",
-  "homePage",
-  "aboutPage",
-  "eventsPage",
-  "cateringPage",
-  "eventDecorationPage",
-  "hostAtRorumPage",
-  "communityMembershipPage",
-  "volunteerPage",
-  "workWithUsPage",
-  "contactPage",
-  "faqPage",
+  "eventMessages",
 ]);
 
 /**
@@ -114,3 +97,9 @@ export const SINGLETON_TYPES = new Set([
  * `pageKey`) rather than exactly one — handled separately in structure.ts.
  */
 export const LEGAL_PAGE_KEYS = ["terms", "privacy-policy", "cookie-policy"] as const;
+
+// The full set of `page` document keys lives in `sanity/lib/pageIds.ts`
+// (`PAGE_KEYS` / `PageKey` / `PAGE_DOC_ID`) — the authoritative source used
+// by `structure.ts` and the scripts. The old per-page singletons this shared
+// `page` type replaced have been removed (MIGRATION_REPORT.md Parts 16–17,
+// SANITY_MIGRATION.md §20.8).

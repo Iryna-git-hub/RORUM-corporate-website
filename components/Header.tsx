@@ -1,19 +1,28 @@
 "use client";
 
 import type { CSSProperties, KeyboardEvent } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { ChevronDown, MessageCircle, X } from "lucide-react";
 import { Fragment, useEffect, useId, useRef, useState } from "react";
-import { navItems, type NavItem } from "@/lib/data";
-import { socialLinks } from "@/lib/siteConfig";
+import { navItems as staticNavItems, type NavItem } from "@/lib/data";
+import { socialLinks as fallbackSocialLinks } from "@/lib/siteConfig";
+import type { ResolvedSocialLink } from "@/lib/sanityContact";
 import { SocialIcon } from "@/components/SocialIcon";
+import { LocaleLink as Link } from "@/components/LocaleLink";
 import { Button, Container } from "@/components/ui";
+import { localizedHref, locales, type Locale } from "@/lib/i18n";
+import { useLocale } from "@/lib/useLocale";
 
 type BrandColorStyle = CSSProperties & { "--social-brand-color": string };
 
-const languages = ["EN", "DA", "UA"];
+// Visible switcher labels — `uk`'s label mirrors its ISO/URL locale code
+// (correct for hreflang/URLs) exactly, so no separate mapping is needed here.
+const localeLabels: Record<Locale, string> = { en: "EN", da: "DA", uk: "UK" };
+const languages = locales.map((locale) => localeLabels[locale]);
+const localeByLabel: Record<string, Locale> = Object.fromEntries(
+  locales.map((locale) => [localeLabels[locale], locale]),
+);
 
 const navTriggerBaseClass =
   "appearance-none border-0 bg-transparent inline-flex items-center justify-center gap-0.5 font-[inherit] leading-none";
@@ -26,10 +35,12 @@ function LanguageDropdown({
   className = "",
   currentLanguage,
   onLanguageChange,
+  languageSwitcherLabel,
 }: {
   className?: string;
   currentLanguage: string;
   onLanguageChange: (language: string) => void;
+  languageSwitcherLabel: string;
 }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -98,7 +109,7 @@ function LanguageDropdown({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
-        aria-label={`Language: ${currentLanguage}`}
+        aria-label={`${languageSwitcherLabel}: ${currentLanguage}`}
         onClick={() => setOpen((isOpen) => !isOpen)}
         onKeyDown={handleTriggerKeyDown}
       >
@@ -110,7 +121,7 @@ function LanguageDropdown({
         id={menuId}
         className={`${dropdownMenuBaseClass} right-0 min-w-[92px] z-[3] ${open ? dropdownMenuOpenClass : dropdownMenuClosedClass}`}
         role="menu"
-        aria-label="Choose language"
+        aria-label={languageSwitcherLabel}
         onKeyDown={handleMenuKeyDown}
       >
         {languages.map((language) => (
@@ -138,15 +149,18 @@ function LanguageDropdown({
 function MobileLanguageSwitcher({
   currentLanguage,
   onLanguageChange,
+  languageSwitcherLabel,
 }: {
   currentLanguage: string;
   onLanguageChange: (language: string) => void;
+  languageSwitcherLabel: string;
 }) {
   return (
     <div
-      className="inline-flex items-center gap-3 rounded-full text-dark-brown bg-transparent backdrop-blur-[10px]"
+      className="inline-flex items-center flex-none gap-2.5 rounded-full text-dark-brown bg-transparent backdrop-blur-[10px]"
       role="group"
-      aria-label="Language selector"
+      aria-label={languageSwitcherLabel}
+      data-testid="mobile-language-switcher"
     >
       {languages.map((language, index) => (
         <Fragment key={language}>
@@ -172,13 +186,41 @@ function MobileLanguageSwitcher({
 const hamburgerSpanBase =
   "absolute left-2.5 w-6.5 h-0.5 bg-current [transition:transform_0.24s_ease,top_0.24s_ease,opacity_0.18s_ease]";
 
-export function Header() {
-  const pathname = usePathname();
+export function Header({
+  navItems = staticNavItems,
+  contactCtaLabel = "Let's Talk",
+  socialLinks = fallbackSocialLinks,
+  homeLabel = "Home",
+  openMenuLabel = "Open menu",
+  closeMenuLabel = "Close menu",
+  languageSwitcherLabel = "Choose language",
+}: {
+  navItems?: NavItem[];
+  contactCtaLabel?: string;
+  socialLinks?: ResolvedSocialLink[];
+  homeLabel?: string;
+  openMenuLabel?: string;
+  closeMenuLabel?: string;
+  languageSwitcherLabel?: string;
+}) {
+  const { locale, path } = useLocale();
+  const router = useRouter();
   const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [openMobileDropdown, setOpenMobileDropdown] = useState<string | null>(null);
-  const [currentLanguage, setCurrentLanguage] = useState("EN");
+  const currentLanguage = localeLabels[locale];
+
+  function changeLanguage(label: string) {
+    const nextLocale = localeByLabel[label];
+    if (!nextLocale || nextLocale === locale) return;
+    // Read the query string at click-time (not via useSearchParams(), which
+    // would force this component — rendered on every page via SiteShell —
+    // into a Suspense boundary just to preserve it) so filters like
+    // /events?date=week carry over to the new locale.
+    const query = window.location.search;
+    router.push(localizedHref(path, nextLocale) + query);
+  }
 
   useEffect(() => {
     let lastY = window.scrollY;
@@ -215,13 +257,11 @@ export function Header() {
     // unreachable in the link branch, not just defensively redundant.
     if (item.href === null) {
       return Boolean(
-        item.children.some(
-          (child) => pathname === child.href || pathname.startsWith(`${child.href}/`),
-        ),
+        item.children.some((child) => path === child.href || path.startsWith(`${child.href}/`)),
       );
     }
-    if (item.href === "/") return pathname === "/";
-    return pathname === item.href || pathname.startsWith(`${item.href}/`);
+    if (item.href === "/") return path === "/";
+    return path === item.href || path.startsWith(`${item.href}/`);
   }
 
   return (
@@ -261,7 +301,7 @@ export function Header() {
                   </button>
                   <div className={`${dropdownMenuBaseClass} left-[-14px] min-w-60 ${isOpen ? dropdownMenuOpenClass : dropdownMenuClosedClass}`}>
                     {item.children.map((child) => {
-                      const childActive = pathname === child.href || pathname.startsWith(`${child.href}/`);
+                      const childActive = path === child.href || path.startsWith(`${child.href}/`);
                       return (
                         <Link
                           className={`pt-2.5 pr-2.75 pb-2.5 pl-6 rounded-none text-[13px] whitespace-nowrap hover:bg-cream ${childActive ? "text-primary" : "text-text-primary"}`}
@@ -294,13 +334,18 @@ export function Header() {
                 (`max-[1100px]:`) doesn't combine into an AND'd media query
                 in this Tailwind version - it silently drops the `lg:` part.
                 A single raw arbitrary media query is unambiguous. */}
-            <div className="inline-flex items-center gap-2 px-4 py-[5px] rounded-full text-primary-dark backdrop-blur-[10px] m-0 text-[13px] [@media(min-width:1024px)_and_(max-width:1100px)]:hidden" aria-label="Language selector">
+            <div className="inline-flex items-center gap-2 px-4 py-[5px] rounded-full text-primary-dark backdrop-blur-[10px] m-0 text-[13px] [@media(min-width:1024px)_and_(max-width:1100px)]:hidden" role="group" aria-label={languageSwitcherLabel} data-testid="desktop-language-switcher">
               {languages.map((language, index) => (
                 <Fragment key={language}>
                   {index ? <i aria-hidden="true" className="not-italic opacity-35">|</i> : null}
-                  <span className={`inline-flex items-center justify-center min-h-[26px] font-semibold tracking-[0.04em] ${language === currentLanguage ? "text-red" : ""}`}>
+                  <button
+                    type="button"
+                    aria-pressed={language === currentLanguage}
+                    onClick={() => changeLanguage(language)}
+                    className={`inline-flex items-center justify-center min-h-[26px] border-0 bg-transparent p-0 font-semibold tracking-[0.04em] cursor-pointer hover:text-primary ${language === currentLanguage ? "text-red" : ""}`}
+                  >
                     {language}
-                  </span>
+                  </button>
                 </Fragment>
               ))}
             </div>
@@ -312,7 +357,8 @@ export function Header() {
             <LanguageDropdown
               className="hidden! [@media(min-width:1024px)_and_(max-width:1100px)]:inline-flex!"
               currentLanguage={currentLanguage}
-              onLanguageChange={setCurrentLanguage}
+              onLanguageChange={changeLanguage}
+              languageSwitcherLabel={languageSwitcherLabel}
             />
             <div className="flex-none">
               {/* `!important` on the color utilities: Tailwind's generated
@@ -324,14 +370,14 @@ export function Header() {
                 className="min-h-10 px-5 text-xs border-cta-red! bg-cta-red! text-white! hover:border-cta-red-hover! hover:bg-cta-red-hover! hover:text-white! lg:text-[13px] lg:font-bold lg:max-xl:min-h-9.5 lg:max-xl:px-3 lg:max-xl:whitespace-nowrap"
               >
                 <MessageCircle className="w-3.75 h-3.75 mr-1.75 -translate-y-px flex-none lg:max-xl:w-3.5 lg:max-xl:h-3.5 lg:max-xl:mr-1.25" aria-hidden="true" strokeWidth={2} />
-                Let&apos;s Talk
+                {contactCtaLabel}
               </Button>
             </div>
           </div>
           <button
             className={`relative z-[62] w-11.5 h-11.5 border-0 bg-transparent text-primary-dark cursor-pointer hidden max-lg:inline-flex ${menuOpen ? "opacity-0 pointer-events-none" : ""}`}
             type="button"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-label={menuOpen ? closeMenuLabel : openMenuLabel}
             aria-expanded={menuOpen}
             tabIndex={menuOpen ? -1 : 0}
             data-testid="mobile-menu-toggle"
@@ -346,30 +392,40 @@ export function Header() {
       <button
         className={`fixed inset-0 z-50 border-0 bg-[rgba(var(--rgb-dark-green),0.42)] [transition:opacity_0.24s_ease,visibility_0.24s_ease] ${menuOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
         type="button"
-        aria-label="Close menu"
+        aria-label={closeMenuLabel}
         onClick={closeMenus}
       />
       <aside
         className={`fixed top-0 right-0 z-[60] h-[100svh] max-h-[100dvh] w-screen grid grid-rows-[auto_auto_auto] content-start gap-6 pt-6 px-8 pb-8 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] bg-white text-text-primary shadow-[-18px_0_44px_rgba(var(--rgb-brown),0.16)] transition-transform duration-300 ease-[ease] ${menuOpen ? "translate-x-0" : "translate-x-full"}`}
         aria-label="Mobile menu"
       >
-        <div className="flex items-center justify-start gap-9.5 min-h-17 -mt-6 -mx-8 px-6.5 bg-cream border-b border-border max-[360px]:gap-2 max-[360px]:px-4">
+        <div className="flex items-center justify-start gap-4 min-h-17 -mt-6 -mx-8 px-4 bg-cream border-b border-border">
           <Link
-            // `!important` on the color utilities: `.btn`'s own deferred,
-            // still-unlayered CSS sets `background`/`border-color` too, and
-            // unlayered CSS always beats a layered Tailwind utility
-            // regardless of specificity.
-            className="btn flex-none min-h-9.5 px-3.5 border-cta-red! bg-cta-red! text-white! text-[11px] whitespace-nowrap hover:border-cta-red-hover! hover:bg-cta-red-hover! hover:text-white! focus-visible:border-cta-red-hover! focus-visible:bg-cta-red-hover! focus-visible:text-white! max-sm:min-h-10 max-sm:py-0 max-sm:text-xs max-[360px]:px-2.5 max-[360px]:text-[10px]"
+            // `!important` on every overridden `.btn` property (colors,
+            // padding, font-size): `.btn`'s own deferred, still-unlayered
+            // CSS sets `padding: 0 24px` and `font-size: 12.5px` as well as
+            // background/border-color, and unlayered CSS always beats a
+            // layered Tailwind utility regardless of specificity or source
+            // order — so a plain (non-`!`) padding/text-size override here
+            // is silently ignored. Sized once, unconditionally — this row
+            // only ever renders inside the mobile menu (opened via the
+            // `max-lg:` hamburger), so there's no wider viewport where a
+            // roomier size would ever actually be seen.
+            className="btn flex-none min-w-0 shrink min-h-9 px-5! py-0! text-[11px]! border-cta-red! bg-cta-red! text-white! whitespace-nowrap hover:border-cta-red-hover! hover:bg-cta-red-hover! hover:text-white! focus-visible:border-cta-red-hover! focus-visible:bg-cta-red-hover! focus-visible:text-white!"
             href="/contact"
             onClick={closeMenus}
           >
-            Let&apos;s Talk
+            {contactCtaLabel}
           </Link>
-          <MobileLanguageSwitcher currentLanguage={currentLanguage} onLanguageChange={setCurrentLanguage} />
+          <MobileLanguageSwitcher
+            currentLanguage={currentLanguage}
+            onLanguageChange={changeLanguage}
+            languageSwitcherLabel={languageSwitcherLabel}
+          />
           <button
-            className="inline-flex items-center justify-center w-10.5 h-10.5 border-0 rounded-full bg-transparent text-dark-brown cursor-pointer transition-[color,background-color] duration-180 ease-[ease] ml-auto hover:bg-[rgba(var(--rgb-dark-green),0.1)] hover:text-white hover:outline-none focus-visible:bg-[rgba(var(--rgb-dark-green),0.1)] focus-visible:text-white focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-beige)]"
+            className="inline-flex items-center justify-center flex-none w-10.5 h-10.5 border-0 rounded-full bg-transparent text-dark-brown cursor-pointer transition-[color,background-color] duration-180 ease-[ease] ml-auto hover:bg-[rgba(var(--rgb-dark-green),0.1)] hover:text-white hover:outline-none focus-visible:bg-[rgba(var(--rgb-dark-green),0.1)] focus-visible:text-white focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-beige)]"
             type="button"
-            aria-label="Close menu"
+            aria-label={closeMenuLabel}
             onClick={closeMenus}
           >
             <X aria-hidden="true" strokeWidth={2} className="w-[23px] h-[23px]" />
@@ -380,16 +436,16 @@ export function Header() {
             <Link
               className="flex items-center justify-between gap-3 py-[15px] w-full border-0 bg-transparent text-left text-dark-brown text-base font-bold tracking-[0.02em] uppercase"
               href="/"
-              aria-current={pathname === "/" ? "page" : undefined}
+              aria-current={path === "/" ? "page" : undefined}
               onClick={closeMenus}
             >
-              <span className="min-w-0">Home</span>
+              <span className="min-w-0">{homeLabel}</span>
             </Link>
           </div>
           {navItems.map((item) => {
             const active = isActiveItem(item);
             const isOpen = openMobileDropdown === item.label;
-            const mobileNavItemClass = `flex items-center justify-between gap-3 py-[15px] w-full border-0 bg-transparent text-left text-dark-brown text-base tracking-[0.02em] uppercase ${active ? "font-black" : "font-bold"}`;
+            const mobileNavItemClass = `flex items-center justify-between gap-3 py-[15px] w-full border-0 bg-transparent text-left text-dark-brown text-base tracking-[0.02em] uppercase ${active ? "font-extrabold" : "font-bold"}`;
             return (
               <div className="grid border-b border-beige last:border-b-0" key={item.label}>
                 {item.children ? (
@@ -415,10 +471,10 @@ export function Header() {
                 {item.children && isOpen ? (
                   <div className="grid pb-2">
                     {item.children.map((child) => {
-                      const childActive = pathname === child.href || pathname.startsWith(`${child.href}/`);
+                      const childActive = path === child.href || path.startsWith(`${child.href}/`);
                       return (
                         <Link
-                          className={`block pt-[13px] pb-[13px] pl-4 text-dark-brown text-sm ${childActive ? "font-black" : "font-semibold"}`}
+                          className={`block pt-[13px] pb-[13px] pl-4 text-dark-brown text-sm ${childActive ? "font-extrabold" : "font-semibold"}`}
                           aria-current={childActive ? "page" : undefined}
                           key={child.href}
                           href={child.href}
@@ -438,7 +494,7 @@ export function Header() {
           {socialLinks.map((link) => (
             <a
               href={link.href}
-              key={link.label}
+              key={link.id}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={link.label}

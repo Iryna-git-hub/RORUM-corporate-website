@@ -5,14 +5,48 @@ import { useEffect, useLayoutEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { splitLocaleFromPath } from "@/lib/i18n";
+import type { NavItem } from "@/lib/data";
+import type { ResolvedContactDetails, ResolvedSocialLink } from "@/lib/sanityContact";
 
-export function SiteShell({ children }: { children: ReactNode }) {
+export function SiteShell({
+  children,
+  navItems,
+  footerColumns,
+  footerLegalLinks,
+  footerCopyrightText,
+  contactCtaLabel,
+  contactDetailsLabel,
+  footerContactDetails,
+  footerSocialLinks,
+  homeLabel,
+  openMenuLabel,
+  closeMenuLabel,
+  languageSwitcherLabel,
+}: {
+  children: ReactNode;
+  navItems?: NavItem[];
+  footerColumns?: { title: string; links: { href: string; label: string }[] }[];
+  footerLegalLinks?: { href: string; label: string }[];
+  footerCopyrightText?: string;
+  contactCtaLabel?: string;
+  contactDetailsLabel?: string;
+  footerContactDetails?: ResolvedContactDetails;
+  footerSocialLinks?: ResolvedSocialLink[];
+  homeLabel?: string;
+  openMenuLabel?: string;
+  closeMenuLabel?: string;
+  languageSwitcherLabel?: string;
+}) {
   const pathname = usePathname();
-  const isHome = pathname === "/";
+  // Locale-neutral path — on a `/da/...`/`/uk/...` URL, raw `pathname`
+  // would never match "/" or the event-detail pattern below.
+  const { path, locale } = splitLocaleFromPath(pathname);
+  const isHome = path === "/";
   const shellClass = `site-shell ${isHome ? "site-shell-home" : "site-shell-inner"}`;
 
   useLayoutEffect(() => {
-    const isEventDetail = /^\/events\/[^/]+$/.test(pathname);
+    const isEventDetail = /^\/events\/[^/]+$/.test(path);
 
     // Preserve deliberate anchor navigation; ordinary event links are hash-free.
     if (!isEventDetail || window.location.hash) return;
@@ -26,7 +60,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     root.getClientRects();
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     root.style.scrollBehavior = previousScrollBehavior;
-  }, [pathname]);
+  }, [path]);
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia(
@@ -84,9 +118,25 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
   return (
     <div className={shellClass}>
-      <Header />
+      <Header
+        navItems={navItems}
+        contactCtaLabel={contactCtaLabel}
+        socialLinks={footerSocialLinks}
+        homeLabel={homeLabel}
+        openMenuLabel={openMenuLabel}
+        closeMenuLabel={closeMenuLabel}
+        languageSwitcherLabel={languageSwitcherLabel}
+      />
       <main>{children}</main>
-      <Footer />
+      <Footer
+        columns={footerColumns}
+        legalLinks={footerLegalLinks}
+        copyrightText={footerCopyrightText}
+        contactDetailsLabel={contactDetailsLabel}
+        contactDetails={footerContactDetails}
+        socialLinks={footerSocialLinks}
+        locale={locale}
+      />
     </div>
   );
 }

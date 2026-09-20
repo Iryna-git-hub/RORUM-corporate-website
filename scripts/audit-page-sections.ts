@@ -1,0 +1,235 @@
+/**
+ * READ-ONLY. Studio field-visibility + section-order audit for every `page`
+ * document.
+ *
+ * For each section it prints, side by side:
+ *   - which pageSection fields actually hold data in the live published doc
+ *   - which fields the schema's SECTION_FIELD_VISIBILITY allow-list shows the editor
+ *   - MISMATCH markers:
+ *       VISIBLE-BUT-EMPTY   field shown to the editor but never populated (usually fine — "fill me in")
+ *       POPULATED-BUT-HIDDEN field has data the editor can't see/edit  ← always a bug
+ *   - stale allow-list keys (declared for a section that no longer exists)
+ *   - sections present in the dataset with no explicit allow-list entry
+ *
+ * It also prints each page's stored section order so it can be eyeballed
+ * against the rendered page order (Studio shows sections in stored order;
+ * the frontend looks them up by key, so order is display-only — reorder in
+ * Studio if it drifts).
+ *
+ * Never writes anything. Usage:  npm run sanity:audit-sections
+ */
+import { createClient } from "@sanity/client";
+import {
+  SECTION_FIELD_VISIBILITY,
+  PAGE_SECTION_FIELDS,
+  resolveVisibleSectionFields,
+} from "@/sanity/schemaTypes/objects/pageSection";
+import { ALL_EVENT_FILTER_ITEM_KEYS } from "@/shared/eventFilterDefinitions";
+
+// Sections whose `items[]` are a FIXED, closed semantic set — no manager-added
+// rows are ever valid (unlike FAQ questions / menu dishes, which are open).
+// Any row here whose `itemKey` isn't in the allowed set is Studio residue
+// (an "add" click before the input disabled that action, an array paste, …):
+// it renders as a confusing unlabelled "Other items" card in the editor and
+// is read by nothing. Reported so it gets cleaned up.
+const CLOSED_ITEM_SETS: Record<string, ReadonlySet<string>> = {
+  "page-events:filters": new Set(ALL_EVENT_FILTER_ITEM_KEYS),
+};
+
+const client = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production",
+  apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION ?? "2025-02-19",
+  token: process.env.SANITY_API_WRITE_TOKEN,
+  useCdn: false,
+  perspective: "published",
+});
+
+const OPEN_SET_KINDS = new Set(["menuCategory", "faqCategory"]);
+
+// The section order each page's Studio editor should show — the SAME
+// top-to-bottom order the rendered website uses (the frontend looks sections
+// up by key, so the stored array order is purely the Studio display order;
+// if it drifts, reorder the sections in Studio). Verified against each
+// page.tsx's render order.
+const EXPECTED_SECTION_ORDER: Record<string, string[]> = {
+  "page-home": ["hero", "quickPaths", "eventsStrip", "editorialAttendEvents", "editorialHostAtRorum", "servicesTeaser", "communityTeaser", "closingCta"],
+  "page-about": ["hero", "statement", "community", "pillars", "closingCta"],
+  "page-catering": ["hero", "gallery", "menuFormats", "philosophy", "steps", "inquiryForm"],
+  "page-community-membership": ["hero", "donation", "intro", "benefits", "application", "gallery"],
+  "page-contact": ["hero", "form"],
+  "page-event-decoration": ["hero", "gallery", "styling", "steps", "inquiryForm"],
+  "page-events": ["hero", "filters", "closingCta"],
+  "page-host-at-rorum": ["hero", "gallery", "session", "packages", "steps", "inquiryForm"],
+  "page-volunteer": ["hero", "applicationForm"],
+  "page-work-with-us": ["hero", "features", "applyForm"],
+  // page-faq / page-catering-menu-examples: hero/banner first, then an
+  // open-ended set of category sections — order within the set is editorial.
+};
+
+// `<page-id>:<sectionKey>:<field>` combinations where the live document holds
+// data the editor deliberately cannot see — dead/legacy values kept only so
+// nothing is destroyed. Reported as "obsolete (documented)", never a bug.
+// See SANITY_MIGRATION.md §20.13.
+const KNOWN_OBSOLETE = new Set<string>([
+  "page-home:closingCta:settings", // legacy `variant=final` — frontend hardcodes variant="final" in JSX
+  "page-about:closingCta:settings", // same
+  "page-events:closingCta:settings", // legacy `variant=host` — frontend hardcodes variant="host"
+  "page-home:editorialHostAtRorum:settings", // legacy `variant=reversed` — frontend hardcodes `reversed`
+]);
+
+// Distinct from KNOWN_OBSOLETE: these fields are populated-but-Studio-hidden
+// ON PURPOSE, not as dead residue — the value is still actively used, just
+// not through a Studio input. `page-work-with-us:applyForm`'s own `title`
+// field is a deliberate example: Studio's array-item preview.prepare() falls
+// back to `title ?? sectionKey`, and this section's `title` INPUT stays
+// hidden (all its copy lives in items[], same as every other form section),
+// so the migration script set `title` directly so the section list shows
+// "Apply Form" instead of the raw key "applyForm" — see
+// scripts/migrate-work-with-us-rename-section.ts. Calling this "obsolete"
+// would be misleading (the value is load-bearing for the Studio UI), so it
+// gets its own bucket, counted separately in the summary.
+const INTENTIONAL_PRESENTATION_ONLY = new Set<string>([
+  "page-work-with-us:applyForm:title", // drives the section-list preview label only; see comment above
+]);
+
+function hasData(value: unknown): boolean {
+  if (value == null) return false;
+  if (Array.isArray(value)) {
+    if (value.length === 0) return false;
+    if (value[0] && typeof value[0] === "object" && "language" in (value[0] as object)) {
+      return value.some((e: { value?: unknown }) => (typeof e.value === "string" ? e.value.trim() !== "" : Boolean(e.value)));
+    }
+    return true;
+  }
+  if (typeof value === "string") return value.trim() !== "";
+  return true;
+}
+
+const FIXED_LOCALES = ["en", "da", "uk"] as const;
+
+/** For an internationalized-array field: which of EN/DA/UK actually carry a
+ *  non-empty value. Phase 13 — a `page-*` document's localized fields follow
+ *  the fixed EN/DA/UK model, so 1 or 2 present (not 0, not 3) is a partial
+ *  translation the manager still needs to finish. */
+function presentLocales(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return FIXED_LOCALES.filter((loc) =>
+    value.some((e: { language?: string; _key?: string; value?: unknown }) =>
+      (e.language === loc || e._key === loc) && typeof e.value === "string" && e.value.trim() !== "",
+    ),
+  );
+}
+
+function reportPartialI18n(label: string, value: unknown): number {
+  const present = presentLocales(value);
+  if (present.length === 0 || present.length === FIXED_LOCALES.length) return 0;
+  const missing = FIXED_LOCALES.filter((l) => !present.includes(l));
+  console.log(`      ⚠ PARTIAL i18n: ${label} has ${present.join("/")} but is missing ${missing.join("/")}`);
+  return 1;
+}
+
+async function main() {
+  const pages = await client.fetch<{ _id: string; pageKey?: string; sections?: Record<string, unknown>[] }[]>(
+    `*[_type == "page"]{ _id, pageKey, sections }`,
+  );
+
+  const liveKeys = new Set<string>();
+  let bugs = 0;
+  let obsolete = 0;
+  let presentationOnly = 0;
+  let unlisted = 0;
+  let orderDrift = 0;
+  let residueRows = 0;
+  let partialI18n = 0;
+
+  for (const page of pages.sort((a, b) => a._id.localeCompare(b._id))) {
+    console.log(`\n################ ${page._id} ################`);
+    const storedOrder = (page.sections ?? []).map((s) => String(s.sectionKey));
+    console.log(`  stored section order: ${storedOrder.join("  →  ")}`);
+    const expectedOrder = EXPECTED_SECTION_ORDER[page._id];
+    if (expectedOrder && storedOrder.join("|") !== expectedOrder.join("|")) {
+      console.log(`  ⚠ SECTION ORDER DRIFT — expected: ${expectedOrder.join("  →  ")}  (reorder in Studio)`);
+      orderDrift++;
+    }
+    for (const section of page.sections ?? []) {
+      const sectionKey = String(section.sectionKey);
+      const sectionKind = String(section.sectionKind);
+      const key = `${page._id}:${sectionKey}`;
+      const isOpenSet = OPEN_SET_KINDS.has(sectionKind);
+      if (!isOpenSet) liveKeys.add(key);
+
+      const explicit = SECTION_FIELD_VISIBILITY[key];
+      // Ask the real schema resolver — exactly what `fieldHidden` uses.
+      const visible = resolveVisibleSectionFields({ _id: page._id }, { sectionKind, sectionKey });
+      const source = explicit ? "allow-list" : isOpenSet ? `kind:${sectionKind} (open set)` : `kind:${sectionKind} (NO ALLOW-LIST ENTRY)`;
+      if (!explicit && !isOpenSet) unlisted++;
+
+      const populated = PAGE_SECTION_FIELDS.filter((f) => hasData(section[f]));
+      const shown = PAGE_SECTION_FIELDS.filter((f) => visible.has(f));
+      const populatedButHidden = populated.filter((f) => !visible.has(f));
+      const visibleButEmpty = shown.filter((f) => !populated.includes(f));
+
+      console.log(`\n  [${sectionKey}]  kind=${sectionKind}  (${source})`);
+      console.log(`      populated: ${populated.join(", ") || "(none)"}`);
+      console.log(`      shown    : ${shown.join(", ") || "(none)"}`);
+      const realBugs = populatedButHidden.filter(
+        (f) => !KNOWN_OBSOLETE.has(`${key}:${f}`) && !INTENTIONAL_PRESENTATION_ONLY.has(`${key}:${f}`),
+      );
+      const documentedObsolete = populatedButHidden.filter((f) => KNOWN_OBSOLETE.has(`${key}:${f}`));
+      const presentationOnlyFields = populatedButHidden.filter((f) => INTENTIONAL_PRESENTATION_ONLY.has(`${key}:${f}`));
+      if (realBugs.length) {
+        console.log(`      🐛 POPULATED-BUT-HIDDEN (bug): ${realBugs.join(", ")}`);
+        bugs += realBugs.length;
+      }
+      if (documentedObsolete.length) {
+        console.log(`      ·  obsolete (documented, data preserved): ${documentedObsolete.join(", ")}`);
+        obsolete += documentedObsolete.length;
+      }
+      if (presentationOnlyFields.length) {
+        console.log(`      ·  presentation-only (intentional, drives Studio preview label): ${presentationOnlyFields.join(", ")}`);
+        presentationOnly += presentationOnlyFields.length;
+      }
+      if (visibleButEmpty.length) {
+        console.log(`      ·  visible-but-empty: ${visibleButEmpty.join(", ")}`);
+      }
+
+      // Phase 13 — partial EN/DA/UK on any visible localized field of a page.
+      for (const f of ["label", "title", "text"] as const) {
+        if (visible.has(f)) partialI18n += reportPartialI18n(`${sectionKey}.${f}`, section[f]);
+      }
+      for (const it of (section.items as { itemKey?: string; title?: unknown; text?: unknown }[] | undefined) ?? []) {
+        partialI18n += reportPartialI18n(`${sectionKey}.items[${it.itemKey ?? "?"}].title`, it.title);
+        partialI18n += reportPartialI18n(`${sectionKey}.items[${it.itemKey ?? "?"}].text`, it.text);
+      }
+
+      const closedSet = CLOSED_ITEM_SETS[key];
+      if (closedSet) {
+        const strays = ((section.items as { _key?: string; itemKey?: string }[] | undefined) ?? []).filter(
+          (it) => !it.itemKey || !closedSet.has(it.itemKey),
+        );
+        if (strays.length) {
+          console.log(`      🐛 UNRECOGNIZED items[] row(s) in a closed set: ${strays.map((s) => s.itemKey ?? `(no itemKey, _key=${s._key})`).join(", ")}`);
+          residueRows += strays.length;
+        }
+      }
+    }
+  }
+
+  const stale = Object.keys(SECTION_FIELD_VISIBILITY).filter((k) => !liveKeys.has(k));
+  console.log(`\n================ SUMMARY ================`);
+  console.log(`  POPULATED-BUT-HIDDEN fields (bugs): ${bugs}`);
+  console.log(`  obsolete stored fields (hidden, documented, data preserved): ${obsolete}`);
+  console.log(`  presentation-only fields (intentional, drive a Studio preview label): ${presentationOnly}`);
+  console.log(`  live sections with no allow-list entry (fell back to kind): ${unlisted}`);
+  console.log(`  stale allow-list keys (declared, no live section): ${stale.length ? stale.join(", ") : "none"}`);
+  console.log(`  pages with section-order drift: ${orderDrift}`);
+  console.log(`  unrecognized items[] rows in a closed set (Studio residue): ${residueRows}`);
+  console.log(`  partial EN/DA/UK localized fields (manager needs to finish translating): ${partialI18n}`);
+  if (bugs > 0 || stale.length > 0 || orderDrift > 0 || residueRows > 0) process.exitCode = 1;
+}
+
+main().catch((error) => {
+  console.error("audit-page-sections failed:", error instanceof Error ? error.message : error);
+  process.exitCode = 1;
+});

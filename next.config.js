@@ -1,23 +1,23 @@
 const nextConfig = {
   outputFileTracingRoot: process.cwd(),
-  async redirects() {
-    return [
+  // The 3 permanent redirects that used to live here moved to middleware.ts
+  // (see LEGACY_REDIRECTS there) — middleware runs before the [locale]
+  // rewrite and can express "redirect regardless of which locale prefix was
+  // used" as one rule instead of one next.config.js entry per locale.
+  images: {
+    // Required for next/image to load Sanity-hosted images (e.g. the event
+    // detail page's hero banner, sourced via sanity/lib/image.ts's
+    // urlForImage()). Other Sanity-image call sites in this codebase render
+    // plain <img> tags instead of next/image and so didn't need this, but
+    // that's a separate, pre-existing pattern — not a reason to downgrade
+    // this page's <Image fill priority> hero away from next/image.
+    remotePatterns: [
       {
-        source: "/private-meetings",
-        destination: "/host-at-rorum",
-        permanent: true,
+        protocol: "https",
+        hostname: "cdn.sanity.io",
+        pathname: "/images/**",
       },
-      {
-        source: "/host-an-event",
-        destination: "/host-at-rorum",
-        permanent: true,
-      },
-      {
-        source: "/space-decoration-event-styling",
-        destination: "/event-decoration",
-        permanent: true,
-      },
-    ];
+    ],
   },
 };
 

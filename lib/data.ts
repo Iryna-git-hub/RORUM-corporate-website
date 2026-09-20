@@ -1,4 +1,7 @@
 import { contactDetails } from "@/lib/siteConfig";
+import { computeDurationFromTimeRange, type EventDuration } from "@/lib/eventDuration";
+import { plainTextToPortableText } from "@/lib/portableText";
+import { SITE_ORIGIN } from "@/shared/siteIdentity";
 
 export interface NavChild {
   href: string;
@@ -127,39 +130,145 @@ export const pages: PageMeta[] = [
   },
 ];
 
-export interface PracticalDetail {
+export type ShareActionType = "share" | "copyLink" | "whatsapp" | "email" | "linkedin" | "facebook" | "instagram";
+
+export interface ShareAction {
+  type: ShareActionType;
   label: string;
+  enabled: boolean;
+}
+
+export interface TicketProviderInfo {
+  // English-fallback-inclusive AND ends in a hardcoded English literal if
+  // Sanity has neither the current locale nor English — do not use this
+  // for anything locale-sensitive (that hardcoded tail defeats any
+  // locale-aware fallback layered on top of it). It exists for simple
+  // non-priority-chain call sites; the event detail page's own 5-tier
+  // chain uses `labelExactLocale`/`labelEnglish` below instead, precisely
+  // to avoid this field's hardcoded tail overriding a shared-label or
+  // code-default fallback that should have run first.
+  label: string;
+  // Exact-locale only, no fallback of any kind — `undefined` if this
+  // specific event has no translation for the *current* locale (regardless
+  // of whether it has an English one). Lets the event detail page check
+  // "does this event have its own translation for this exact locale"
+  // before ever falling through to the shared label, English, or a code
+  // default. Not set by static fallback events (Sanity not configured) —
+  // those have no per-locale data to check.
+  labelExactLocale?: string;
+  // This event's own English translation specifically, regardless of the
+  // current locale — no fallback beyond that (unlike `label`, this is
+  // `undefined`, not a hardcoded string, when the event has no English
+  // translation either). The priority chain's "this event's own English
+  // translation" step; using `label` there instead would incorrectly
+  // short-circuit past the shared label and code default whenever an event
+  // has no translation in either the current locale or English.
+  labelEnglish?: string;
   value: string;
 }
 
-// SINGLE IMAGE SOURCE OF TRUTH
-// Every event has exactly one `image` field. This field is used by:
-//   - EventCard (Events listing page, homepage scroll, related events)
-//   - EventDetailPage hero <Image> and Open Graph metadata
+// Same 6 actions, same order and labels as the schema's `shareSettings`
+// `initialValue` (sanity/schemaTypes/documents/event.ts) — used below as
+// every static event's default, and reused by lib/sanityEvents.ts as the
+// runtime fallback for any Sanity event document that predates this field.
+export const DEFAULT_SHARE_ACTIONS: ShareAction[] = [
+  { type: "share", label: "Share", enabled: true },
+  { type: "copyLink", label: "Copy link", enabled: true },
+  { type: "whatsapp", label: "WhatsApp", enabled: true },
+  { type: "email", label: "Email", enabled: true },
+  { type: "linkedin", label: "LinkedIn", enabled: true },
+  { type: "facebook", label: "Facebook", enabled: true },
+  { type: "instagram", label: "Instagram", enabled: true },
+];
+
+// TWO INDEPENDENT IMAGE CONCERNS (owner-mandated, decided 2026-09)
 //
-// Do NOT add heroImage, detailImage, coverImage or any secondary image field.
+// An event now has two separate image fields, on purpose:
+//   - `image` — the banner. Used by EventCard (listing page, homepage scroll,
+//     related events), the SEO/Open Graph/Twitter/JSON-LD sharing chain (see
+//     lib/eventSharing.ts's resolveEventShareData — falls back to this when
+//     no explicit `seo.ogImage`/`socialImageUrl` is set), and, as a display
+//     fallback only, the Event Detail hero background below.
+//   - `detailHeroImage` — a decorative background shown only at the top of
+//     this event's own detail page. Editing it must never change the card,
+//     the homepage, or what gets shared on social networks, and vice versa.
+//
+// This split exists so a manager can change the Detail page's background
+// photo without silently altering what search engines/social previews show,
+// and can update the sharing/card photo without silently redecorating the
+// Detail page hero. Previously both concerns shared the single `image`
+// field below — see MIGRATION_REPORT.md for that history.
+//
+// `detailHeroImage` is resolved with a display-only fallback onto the
+// already-computed banner URL (lib/sanityEvents.ts), NOT onto the generic
+// "/images/hero.jpg" placeholder — so an already-published event that
+// predates this field renders pixel-identical to before until an editor
+// explicitly sets it. No content migration is required.
+//
 // When images change, run `next build` to regenerate the static detail pages.
 export interface RorumEvent {
   slug: string;
   title: string;
   date: string;
   time: string;
-  category: string;
   price: string;
-  language: string;
-  host: string;
-  shortDescription: string;
-  longDescription: string;
+  // The event's venue address — defaults to the site's contact address for
+  // new Sanity events (see sanity/schemaTypes/documents/event.ts's
+  // `address` field), overridable per event. Not localized (a street
+  // address is the same fact regardless of display language).
+  address: string;
+  language: string[];
+  /** Localized Portable Text used as the Event Overview source of truth. */
+  formattedDescription?: unknown[];
   included: string[];
+  // Derived by splitting the Sanity `whatToExpect` field's per-language text
+  // on line breaks (lib/sanityEvents.ts) — one non-empty line per bullet.
   whatToExpect: string[];
-  practicalDetails: PracticalDetail[];
-  ticketProvider: string;
+  duration?: EventDuration;
+  arrival: string;
+  ticketProviderInfo: TicketProviderInfo;
+  // Ordered, already filtered to `enabled` actions the caller should render —
+  // see components/EventShare.tsx.
+  shareActions: ShareAction[];
   ticketUrl: string;
+  // The event's Billetto page URL, when the manager has connected it. When
+  // set, ticket availability is resolved live from the Billetto API
+  // (lib/eventAvailability.ts) instead of the manual `ticketsLeft` /
+  // `isSoldOut` fields, and this URL is also the Buy-ticket destination.
+  // Undefined for legacy / non-Billetto events.
+  billettoEventUrl?: string;
   calendarUrl: string;
   waitlistUrl: string;
   isSoldOut: boolean;
-  relatedEventSlugs: string[];
   image: string;
+  // A crawler-ready 1200x630 derivative of the Sanity banner. Metadata uses
+  // this after an explicit SEO image and before the site-wide fallback.
+  socialImageUrl?: string;
+  // Real Sanity alt text for `image`, when available. Optional because the
+  // hardcoded static events below have no Sanity asset to read alt text
+  // from — consumers fall back to a generated string when this is unset.
+  imageAlt?: string;
+  // `data-sanity` attribute for the event banner image, so Presentation can
+  // draw a click-to-edit overlay on the card/hero image in Draft Mode. Set
+  // only for Sanity-backed events viewed in Draft Mode (see
+  // lib/sanityEvents.ts); always undefined for the hardcoded static events.
+  imageEditAttr?: string;
+  // Decorative Event Detail page background — see the "TWO INDEPENDENT IMAGE
+  // CONCERNS" comment above this interface. Resolved URL, falling back to
+  // the already-resolved `image` (banner) above when the event has no
+  // `detailHeroImage` asset of its own — never falls back directly to the
+  // generic "/images/hero.jpg" placeholder. Purely decorative: rendered with
+  // alt="" and aria-hidden="true", never a meaningful accessible name.
+  detailHeroImage?: string;
+  // `data-sanity` for `detailHeroImage` specifically, so Presentation can
+  // draw a click-to-edit overlay on the Detail hero pointing at the correct
+  // field: `detailHeroImage` itself when this event has its own asset there,
+  // otherwise the banner `image` field (since that's what's actually
+  // rendering while `detailHeroImage` is unset) — see lib/sanityEvents.ts.
+  detailHeroImageEditAttr?: string;
+  // Optional override for the ticket button's label — defaults to "Buy
+  // Ticket" in the UI when unset.
+  ticketButtonLabel?: string;
   // Never populated by the data below, but read defensively by consumers
   // (app/events/[slug]/page.jsx, components/EventCard.jsx) as forward-compat
   // fallbacks in case a future/partial event omits ticketsLeft or supplies a
@@ -167,12 +276,22 @@ export interface RorumEvent {
   // a stricter type the actual consumer code doesn't rely on.
   ticketsLeft?: number;
   spotsLeft?: number;
-  duration?: string;
   startTime?: string;
   endTime?: string;
-  location?: string;
   fullDescription?: string;
   description?: string;
+  // Per-event Search Result Title/Description/Social Sharing Image — only
+  // set when the Sanity `seo` block has a value; consumers fall back to
+  // title/formattedDescription/image (above) when a piece is unset. Never
+  // populated by the static fallback data below.
+  seo?: { title?: string; description?: string; ogImageUrl?: string; ogImageAlt?: string };
+  // Which localized website versions this event is shown on ("Show on
+  // website languages" in Studio) — the authoritative visibility rule, see
+  // lib/eventVisibility.ts's isEventVisibleInLocale(). Undefined for the
+  // hardcoded static fallback events below (that code path is unrelated to
+  // per-event locale visibility) and, briefly, for any real Sanity event
+  // that predates migration — never populated by the static data below.
+  visibleLocales?: string[];
 }
 
 const featuredEvents: RorumEvent[] = [
@@ -181,14 +300,12 @@ const featuredEvents: RorumEvent[] = [
     title: "Copenhagen makers dinner",
     date: "2026-05-02",
     time: "18:30-21:30",
-    category: "Community Dinner",
     price: "295 kr.",
-    language: "English",
-    host: "RORUM Community Table",
-    shortDescription:
-      "A slow evening of seasonal food, local stories and new creative connections around one long table.",
-    longDescription:
+    language: ["English"],
+    address: contactDetails.shortAddress,
+    formattedDescription: plainTextToPortableText(
       "An intimate dinner for Copenhagen makers, hosts and independent creatives who want to meet in a setting that feels calm, useful and generous. Expect a seasonal shared table, gentle prompts and enough space for real conversation.",
+    ),
     included: [
       "Seasonal shared dinner",
       "Welcome drink",
@@ -202,26 +319,15 @@ const featuredEvents: RorumEvent[] = [
       "Facilitated introductions",
       "Time for conversation",
     ],
-    practicalDetails: [
-      { label: "Address", value: contactDetails.shortAddress },
-      {
-        label: "Arrival",
-        value: "Please arrive 5-10 minutes before the event begins.",
-      },
-      { label: "Duration", value: "3 hours" },
-      { label: "Language", value: "English" },
-      { label: "Tickets", value: "Purchased externally via Billetto" },
-    ],
-    ticketProvider: "Billetto",
+    duration: { value: 3, unit: "hours" },
+    arrival: "Please arrive 5-10 minutes before the event begins.",
+    ticketProviderInfo: { label: "Ticket provider", value: "Billetto" },
+    shareActions: DEFAULT_SHARE_ACTIONS,
     ticketUrl: "https://billetto.dk/",
     calendarUrl: "https://calendar.google.com/",
     waitlistUrl: `mailto:${contactDetails.email}?subject=Copenhagen%20Makers%20Dinner%20waitlist`,
     isSoldOut: false,
     ticketsLeft: 10,
-    relatedEventSlugs: [
-      "botanical-table-styling-workshop",
-      "freelance-morning-salon",
-    ],
     image: "/images/events/banners/copenhagen-makers-dinner.png",
   },
   {
@@ -229,14 +335,12 @@ const featuredEvents: RorumEvent[] = [
     title: "Botanical table styling workshop",
     date: "2026-05-03",
     time: "17:00-19:30",
-    category: "Workshop",
     price: "425 kr.",
-    language: "English",
-    host: "RORUM Styling Studio",
-    shortDescription:
-      "Learn approachable floral gestures, candle placement and calm table composition for intimate hosting.",
-    longDescription:
+    language: ["English"],
+    address: contactDetails.shortAddress,
+    formattedDescription: plainTextToPortableText(
       "A hands-on workshop for hosts, facilitators and visual thinkers who want to create welcoming tables without overcomplicating the room. We work with seasonal materials, scale, repetition and practical setup choices.",
+    ),
     included: [
       "Materials for table styling exercises",
       "Coffee, tea and a sweet pause",
@@ -250,23 +354,15 @@ const featuredEvents: RorumEvent[] = [
       "Small-group format",
       "Practical setup ideas",
     ],
-    practicalDetails: [
-      { label: "Address", value: contactDetails.shortAddress },
-      {
-        label: "Arrival",
-        value: "Please arrive 5-10 minutes before the event begins.",
-      },
-      { label: "Duration", value: "2.5 hours" },
-      { label: "Language", value: "English" },
-      { label: "Tickets", value: "Purchased externally via Billetto" },
-    ],
-    ticketProvider: "Billetto",
+    duration: { value: 2.5, unit: "hours" },
+    arrival: "Please arrive 5-10 minutes before the event begins.",
+    ticketProviderInfo: { label: "Ticket provider", value: "Billetto" },
+    shareActions: DEFAULT_SHARE_ACTIONS,
     ticketUrl: "https://billetto.dk/",
     calendarUrl: "https://calendar.google.com/",
     waitlistUrl: `mailto:${contactDetails.email}?subject=Botanical%20Table%20Styling%20Workshop%20waitlist`,
     isSoldOut: false,
     ticketsLeft: 8,
-    relatedEventSlugs: ["copenhagen-makers-dinner", "freelance-morning-salon"],
     image: "/images/events/banners/botanical-table-styling-workshop.png",
   },
   {
@@ -274,14 +370,12 @@ const featuredEvents: RorumEvent[] = [
     title: "Freelance morning salon",
     date: "2026-05-04",
     time: "09:00-11:00",
-    category: "Salon",
     price: "125 kr.",
-    language: "English",
-    host: "RORUM Work Circle",
-    shortDescription:
-      "Coffee, prompts and gentle accountability for independent creatives building work in Copenhagen.",
-    longDescription:
+    language: ["English"],
+    address: contactDetails.shortAddress,
+    formattedDescription: plainTextToPortableText(
       "A focused morning for freelancers and small creative businesses who want a calmer way to begin the day. Bring a current question, a practical task or a project that needs quiet momentum.",
+    ),
     included: [
       "Coffee and tea",
       "Guided check-in",
@@ -295,25 +389,14 @@ const featuredEvents: RorumEvent[] = [
       "Small-group reflection",
       "Calm morning rhythm",
     ],
-    practicalDetails: [
-      { label: "Address", value: contactDetails.shortAddress },
-      {
-        label: "Arrival",
-        value: "Please arrive 5-10 minutes before the event begins.",
-      },
-      { label: "Duration", value: "2 hours" },
-      { label: "Language", value: "English" },
-      { label: "Tickets", value: "Join the waitlist for updates" },
-    ],
-    ticketProvider: "Billetto",
+    duration: { value: 2, unit: "hours" },
+    arrival: "Please arrive 5-10 minutes before the event begins.",
+    ticketProviderInfo: { label: "Ticket provider", value: "Billetto" },
+    shareActions: DEFAULT_SHARE_ACTIONS,
     ticketUrl: "https://billetto.dk/",
     calendarUrl: "https://calendar.google.com/",
     waitlistUrl: `mailto:${contactDetails.email}?subject=Freelance%20Morning%20Salon%20waitlist`,
     isSoldOut: true,
-    relatedEventSlugs: [
-      "copenhagen-makers-dinner",
-      "botanical-table-styling-workshop",
-    ],
     image: "/images/events/banners/freelance-morning-salon.png",
   },
 ];
@@ -323,9 +406,8 @@ interface EventAddition {
   title: string;
   date: string;
   time: string;
-  category: string;
   price: string;
-  language?: string;
+  language?: string[];
   ticketsLeft?: number;
   isSoldOut?: boolean;
   image: string;
@@ -337,7 +419,6 @@ const eventAdditions: EventAddition[] = [
     title: "Soft launch breakfast",
     date: "2026-05-05",
     time: "09:00-11:00",
-    category: "Breakfast",
     price: "165 kr.",
     ticketsLeft: 6,
     image: "/images/events/banners/soft-launch-breakfast.png",
@@ -347,7 +428,6 @@ const eventAdditions: EventAddition[] = [
     title: "Candlelit listening room",
     date: "2026-05-07",
     time: "19:00-21:00",
-    category: "Culture",
     price: "185 kr.",
     ticketsLeft: 4,
     image: "/images/events/banners/candlelit-listening-room.png",
@@ -357,7 +437,6 @@ const eventAdditions: EventAddition[] = [
     title: "Summer table lab",
     date: "2026-05-12",
     time: "17:30-20:00",
-    category: "Workshop",
     price: "345 kr.",
     ticketsLeft: 9,
     image: "/images/events/banners/summer-table-lab.png",
@@ -367,7 +446,6 @@ const eventAdditions: EventAddition[] = [
     title: "Creative hosts circle",
     date: "2026-05-15",
     time: "18:00-20:00",
-    category: "Community",
     price: "95 kr.",
     ticketsLeft: 12,
     image: "/images/events/banners/creative-hosts-circle.png",
@@ -377,7 +455,6 @@ const eventAdditions: EventAddition[] = [
     title: "Nordic brunch club",
     date: "2026-05-17",
     time: "10:00-12:30",
-    category: "Food",
     price: "245 kr.",
     ticketsLeft: 5,
     image: "/images/events/banners/nordic-brunch-club.png",
@@ -387,7 +464,6 @@ const eventAdditions: EventAddition[] = [
     title: "Tiny talks evening",
     date: "2026-05-21",
     time: "18:30-21:00",
-    category: "Talks",
     price: "145 kr.",
     ticketsLeft: 7,
     image: "/images/events/banners/tiny-talks-evening.png",
@@ -397,7 +473,6 @@ const eventAdditions: EventAddition[] = [
     title: "Floral mood workshop",
     date: "2026-05-24",
     time: "17:00-19:30",
-    category: "Styling",
     price: "375 kr.",
     ticketsLeft: 3,
     image: "/images/events/banners/floral-mood-workshop.png",
@@ -407,7 +482,6 @@ const eventAdditions: EventAddition[] = [
     title: "Independent work morning",
     date: "2026-05-28",
     time: "09:00-11:30",
-    category: "Salon",
     price: "115 kr.",
     ticketsLeft: 11,
     image: "/images/events/banners/independent-work-morning.png",
@@ -417,7 +491,6 @@ const eventAdditions: EventAddition[] = [
     title: "Seasonal supper preview",
     date: "2026-05-31",
     time: "18:30-21:30",
-    category: "Dinner",
     price: "325 kr.",
     ticketsLeft: 8,
     image: "/images/events/banners/seasonal-supper-preview.png",
@@ -427,7 +500,6 @@ const eventAdditions: EventAddition[] = [
     title: "Community reset night",
     date: "2026-06-04",
     time: "18:00-20:30",
-    category: "Community",
     price: "135 kr.",
     ticketsLeft: 12,
     image: "/images/events/banners/community-reset-night.png",
@@ -437,9 +509,8 @@ const eventAdditions: EventAddition[] = [
     title: "Business breakfast Copenhagen",
     date: "2026-06-08",
     time: "08:30-10:30",
-    category: "Business Breakfast",
     price: "185 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 12,
     image: "/images/events/banners/business-breakfast-copenhagen.png",
   },
@@ -448,9 +519,8 @@ const eventAdditions: EventAddition[] = [
     title: "Networking for international founders",
     date: "2026-06-10",
     time: "18:00-20:30",
-    category: "Networking",
     price: "145 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 12,
     image: "/images/events/banners/networking-for-international-founders.png",
   },
@@ -459,9 +529,8 @@ const eventAdditions: EventAddition[] = [
     title: "Danish for Ukrainians: Everyday basics",
     date: "2026-06-12",
     time: "17:30-19:00",
-    category: "Language",
     price: "Free",
-    language: "Ukrainian",
+    language: ["Ukrainian"],
     ticketsLeft: 12,
     image: "/images/events/banners/danish-for-ukrainians-intro.png",
   },
@@ -470,9 +539,8 @@ const eventAdditions: EventAddition[] = [
     title: "Yoga after work reset",
     date: "2026-06-14",
     time: "18:00-19:15",
-    category: "Yoga",
     price: "125 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 10,
     image: "/images/events/banners/yoga-after-work-reset.png",
   },
@@ -481,9 +549,8 @@ const eventAdditions: EventAddition[] = [
     title: "Present yourself with confidence",
     date: "2026-06-16",
     time: "18:00-20:00",
-    category: "Self Improvement",
     price: "225 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 12,
     image: "/images/events/banners/present-yourself-with-confidence.png",
   },
@@ -492,9 +559,8 @@ const eventAdditions: EventAddition[] = [
     title: "Slow art evening",
     date: "2026-06-18",
     time: "18:30-20:30",
-    category: "Art",
     price: "165 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 9,
     image: "/images/events/banners/slow-art-evening.png",
   },
@@ -503,9 +569,8 @@ const eventAdditions: EventAddition[] = [
     title: "Danish conversation cafe",
     date: "2026-06-20",
     time: "10:00-12:00",
-    category: "Language",
     price: "75 kr.",
-    language: "Danish",
+    language: ["Danish"],
     ticketsLeft: 12,
     image: "/images/events/banners/danish-conversation-cafe.png",
   },
@@ -514,9 +579,8 @@ const eventAdditions: EventAddition[] = [
     title: "Creative business roundtable",
     date: "2026-06-23",
     time: "17:30-20:00",
-    category: "Business",
     price: "195 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 11,
     image: "/images/events/banners/creative-business-roundtable.png",
   },
@@ -525,9 +589,8 @@ const eventAdditions: EventAddition[] = [
     title: "Mindful morning yoga",
     date: "2026-06-25",
     time: "08:00-09:15",
-    category: "Yoga",
     price: "110 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 8,
     image: "/images/events/banners/mindful-morning-yoga.png",
   },
@@ -536,9 +599,8 @@ const eventAdditions: EventAddition[] = [
     title: "LinkedIn profile lab",
     date: "2026-06-27",
     time: "10:00-12:30",
-    category: "Business",
     price: "245 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 12,
     image: "/images/events/banners/linkedin-profile-lab.png",
   },
@@ -547,9 +609,8 @@ const eventAdditions: EventAddition[] = [
     title: "Ukrainian-Danish community night",
     date: "2026-06-30",
     time: "18:00-20:30",
-    category: "Community",
     price: "95 kr.",
-    language: "Ukrainian",
+    language: ["Ukrainian"],
     ticketsLeft: 12,
     image: "/images/events/banners/ukrainian-danish-community-night.png",
   },
@@ -558,9 +619,8 @@ const eventAdditions: EventAddition[] = [
     title: "Watercolor & wine",
     date: "2026-07-02",
     time: "19:00-21:00",
-    category: "Art",
     price: "195 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 7,
     image: "/images/events/banners/watercolor-and-wine.png",
   },
@@ -569,9 +629,8 @@ const eventAdditions: EventAddition[] = [
     title: "Danish work culture breakfast",
     date: "2026-07-04",
     time: "09:00-11:00",
-    category: "Business Breakfast",
     price: "175 kr.",
-    language: "Danish",
+    language: ["Danish"],
     ticketsLeft: 12,
     image: "/images/events/banners/danish-work-culture-breakfast.png",
   },
@@ -580,9 +639,8 @@ const eventAdditions: EventAddition[] = [
     title: "Calm networking for newcomers",
     date: "2026-07-07",
     time: "18:00-20:00",
-    category: "Networking",
     price: "135 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 12,
     image: "/images/events/banners/calm-networking-for-newcomers.png",
   },
@@ -591,9 +649,8 @@ const eventAdditions: EventAddition[] = [
     title: "Breathwork & tea",
     date: "2026-07-09",
     time: "18:30-20:00",
-    category: "Relaxation",
     price: "115 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 10,
     image: "/images/events/banners/breathwork-and-tea.png",
   },
@@ -602,9 +659,8 @@ const eventAdditions: EventAddition[] = [
     title: "Pitch practice evening",
     date: "2026-07-11",
     time: "17:30-20:00",
-    category: "Presentation",
     price: "215 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 9,
     image: "/images/events/banners/pitch-practice-evening.png",
   },
@@ -613,9 +669,8 @@ const eventAdditions: EventAddition[] = [
     title: "Clay & calm hands",
     date: "2026-07-14",
     time: "18:00-20:30",
-    category: "Art",
     price: "285 kr.",
-    language: "English",
+    language: ["English"],
     isSoldOut: true,
     image: "/images/events/banners/clay-and-calm-hands.png",
   },
@@ -624,9 +679,8 @@ const eventAdditions: EventAddition[] = [
     title: "Danish for Ukrainians: Workplace words",
     date: "2026-07-16",
     time: "17:30-19:00",
-    category: "Language",
     price: "Free",
-    language: "Ukrainian",
+    language: ["Ukrainian"],
     ticketsLeft: 12,
     image: "/images/events/banners/danish-for-ukrainians-workplace.png",
   },
@@ -635,9 +689,8 @@ const eventAdditions: EventAddition[] = [
     title: "International supper salon",
     date: "2026-07-18",
     time: "18:30-21:30",
-    category: "Community Dinner",
     price: "325 kr.",
-    language: "English",
+    language: ["English"],
     ticketsLeft: 12,
     image: "/images/events/banners/international-supper-salon.png",
   },
@@ -645,10 +698,11 @@ const eventAdditions: EventAddition[] = [
 
 const expandedEvents: RorumEvent[] = eventAdditions.map((event) => ({
   ...event,
-  language: event.language ?? "English",
-  host: "RORUM",
-  shortDescription: `${event.title} is an intimate RORUM gathering shaped for a warm Copenhagen room.`,
-  longDescription: `${event.title} brings people together around a simple hosted format with thoughtful pacing, a calm room setup and space for useful conversation.`,
+  language: event.language ?? ["English"],
+  address: contactDetails.shortAddress,
+  formattedDescription: plainTextToPortableText(
+    `${event.title} brings people together around a simple hosted format with thoughtful pacing, a calm room setup and space for useful conversation.`,
+  ),
   included: [
     "Hosted arrival",
     "Coffee, tea or seasonal drink",
@@ -662,25 +716,17 @@ const expandedEvents: RorumEvent[] = eventAdditions.map((event) => ({
     "Tea & refreshments",
     "Time for conversation",
   ],
-  practicalDetails: [
-    { label: "Address", value: contactDetails.shortAddress },
-    {
-      label: "Arrival",
-      value: "Please arrive 5-10 minutes before the event begins.",
-    },
-    { label: "Duration", value: event.time },
-    { label: "Language", value: event.language ?? "English" },
-    { label: "Tickets", value: "Purchased externally via Billetto" },
-  ],
-  ticketProvider: "Billetto",
+  // Computed from the event's actual time range rather than hardcoded —
+  // the previous version of this template set "Duration" to `event.time`
+  // itself (e.g. "18:30-21:30"), which was never a real duration.
+  duration: computeDurationFromTimeRange(event.time),
+  arrival: "Please arrive 5-10 minutes before the event begins.",
+  ticketProviderInfo: { label: "Ticket provider", value: "Billetto" },
+  shareActions: DEFAULT_SHARE_ACTIONS,
   ticketUrl: "https://billetto.dk/",
   calendarUrl: "https://calendar.google.com/",
   waitlistUrl: `mailto:${contactDetails.email}?subject=${encodeURIComponent(`${event.title} waitlist`)}`,
   isSoldOut: event.isSoldOut ?? false,
-  relatedEventSlugs: [
-    "copenhagen-makers-dinner",
-    "botanical-table-styling-workshop",
-  ],
 }));
 
 export const events: RorumEvent[] = [...featuredEvents, ...expandedEvents];
@@ -749,11 +795,14 @@ export interface PackageTier {
   title: string;
   price: string;
   items: string[];
+  /** Stable identifier for the `?package=` deep-link / form-selector value — never the (renameable) title. Deterministic per position since this static fallback array is never manager-edited. */
+  value: string;
 }
 
 export const packages: { host: PackageTier[]; booking: PackageTier[] } = {
   host: [
     {
+      value: "host-0",
       title: "Single session",
       price: "From 1,800 kr.",
       items: [
@@ -764,6 +813,7 @@ export const packages: { host: PackageTier[]; booking: PackageTier[] } = {
       ],
     },
     {
+      value: "host-1",
       title: "Evening series",
       price: "Custom quote",
       items: [
@@ -774,6 +824,7 @@ export const packages: { host: PackageTier[]; booking: PackageTier[] } = {
       ],
     },
     {
+      value: "host-2",
       title: "Weekend event",
       price: "Custom quote",
       items: [
@@ -786,6 +837,7 @@ export const packages: { host: PackageTier[]; booking: PackageTier[] } = {
   ],
   booking: [
     {
+      value: "package0",
       title: "Morning session",
       price: "Price: 2000 kr. ex VAT",
       items: [
@@ -796,6 +848,7 @@ export const packages: { host: PackageTier[]; booking: PackageTier[] } = {
       ],
     },
     {
+      value: "package1",
       title: "Afternoon session",
       price: "Price: 2000 kr. ex VAT",
       items: [
@@ -806,6 +859,7 @@ export const packages: { host: PackageTier[]; booking: PackageTier[] } = {
       ],
     },
     {
+      value: "package2",
       title: "Full day session",
       price: "Price: 3700 kr. ex VAT",
       items: [
@@ -890,4 +944,9 @@ export const serviceCards: ServiceCard[] = [
   },
 ];
 
-export const siteUrl = "https://rorum.dk";
+// Only consumed by scripts/import-content.ts (a historical, one-off content
+// seed script) to set the non-authoritative `siteSettings.siteUrl` Sanity
+// field at import time — the runtime app never reads this export (see
+// lib/siteSettings.ts's getSeoSiteDefaults(), which always uses SITE_ORIGIN
+// directly).
+export const siteUrl = SITE_ORIGIN;

@@ -1,0 +1,1573 @@
+# RORUM — Sanity Migration Specification and Checklist
+
+> **Handoff note:** this document is a dated, cumulative migration specification
+> and audit log — much of it (especially the numbered "Part"/section entries
+> later in the file) describes point-in-time findings, some since resolved,
+> some still open. For a current, consolidated summary of setup, ownership,
+> and known outstanding content gaps, see **[HANDOFF.md](./HANDOFF.md)**
+> instead. This file's general policy sections (Studio field ordering,
+> editor-friendly naming, dataset-safety rules, testing conventions) also
+> overlap substantially with `CLAUDE.md` — that overlap was left as-is during
+> handoff cleanup rather than risk trimming operationally-relevant detail
+> without a full dedicated review.
+
+## Mission
+
+The RORUM website must be manageable through Sanity Studio by a non-technical administrator.
+
+The goal is not merely to move hardcoded strings into Sanity.
+
+The goal is to create a complete, intuitive and reliable content-management workflow.
+
+The administrator should be able to understand the relationship between:
+
+Sanity Studio
+↕
+Website page
+
+without understanding React, TypeScript, GROQ or application internals.
+
+---
+
+# 1. Global Migration Requirements
+
+Appropriate editorial content should be editable through Sanity.
+
+Depending on the page, this may include:
+
+- section headings
+- subheadings
+- paragraphs
+- labels
+- cards
+- icons
+- images
+- alt text
+- videos
+- logos
+- buttons
+- links
+- lists
+- statistics
+- FAQ entries
+- contact information
+- testimonials
+- downloadable files
+- SEO content
+- metadata
+
+Do not expose purely technical implementation values.
+
+---
+
+# 2. Studio Must Follow the Website
+
+For each page, inspect the real rendered website from top to bottom.
+
+Studio sections and fields should follow approximately the same conceptual order.
+
+Example:
+
+Website:
+
+1. Hero
+2. About
+3. Values
+4. Team
+5. CTA
+
+Studio should normally present:
+
+1. Hero
+2. About
+3. Values
+4. Team
+5. CTA
+
+This allows a non-technical administrator to understand where content appears.
+
+---
+
+# 3. Editor-Friendly Naming
+
+Use human-readable labels.
+
+Good:
+
+- Hero heading
+- Hero image
+- Introduction
+- Main text
+- Values
+- Icon
+- Button text
+- Button link
+
+Avoid technical labels visible to editors such as:
+
+- `heroData`
+- `componentVariant`
+- `rawItems`
+- `internalConfig`
+- `sectionRef`
+
+unless unavoidable.
+
+Descriptions should be added where the field purpose may otherwise be unclear.
+
+---
+
+# 4. Images
+
+For editable images verify:
+
+- image can be selected/uploaded
+- image field is easy to understand
+- alt text is available where appropriate
+- query returns the correct data
+- frontend receives the data
+- frontend renders the image correctly
+- responsive behavior works
+
+Do not repeatedly load original full-resolution assets during automated tests.
+
+---
+
+# 5. Icons
+
+When icons represent editorial meaning:
+
+- use a controlled selector where practical
+- provide understandable labels
+- provide useful previews when practical
+- avoid requiring the administrator to know technical icon identifiers
+
+Verify:
+
+Sanity icon selection
+→ Publish
+→ frontend icon change
+
+when safe.
+
+---
+
+# 6. Buttons and Links
+
+Editable CTA content should normally include:
+
+- visible label
+- destination/link
+
+Where applicable also support:
+
+- internal/external behavior
+- optional accessibility information
+
+Use consistent button/link modeling across the project.
+
+---
+
+# 7. Repeated Content
+
+For sections such as:
+
+- cards
+- values
+- services
+- testimonials
+- gallery
+- FAQs
+- team members
+- statistics
+
+use arrays when appropriate.
+
+When visible website order matters:
+
+- Studio should allow reordering
+- resulting frontend order must match Studio order
+
+---
+
+# 8. Localization
+
+Translatable content must support:
+
+- English
+- Danish
+- Ukrainian
+
+Use the existing localization model.
+
+Do not create a new translation structure.
+
+Verify representative content in all three languages.
+
+---
+
+# 9. Sanity Page Audit Procedure
+
+For each page:
+
+## A. Open real page
+
+Use Playwright.
+
+Scroll through the entire rendered page.
+
+Do not audit solely from code.
+
+## B. Build content inventory
+
+Identify all page sections.
+
+Within every section identify:
+
+- text
+- images
+- icons
+- buttons
+- links
+- repeated items
+- video
+- metadata
+- relevant editorial controls
+
+## C. Compare with Sanity
+
+Classify every element:
+
+- complete
+- partial
+- hardcoded
+- duplicated
+- obsolete
+- incorrectly modeled
+
+## D. Implement missing CMS integration
+
+Connect:
+
+schema
+→ data
+→ query
+→ component
+→ page
+
+## E. Improve Studio UX
+
+Verify:
+
+- correct order
+- clear labels
+- clear grouping
+- appropriate validation
+- no unnecessary technical fields
+
+## F. Test
+
+Use the test procedure below.
+
+## G. Record completion
+
+Update the checklist in this file.
+
+---
+
+# 10. CMS Functional Test Procedure
+
+For representative fields:
+
+1. record original value
+2. change value in Studio
+3. verify validation
+4. Publish when safe
+5. reload frontend
+6. verify exact new value
+7. restore original value
+8. Publish restoration
+9. verify original frontend value is restored
+
+Representative fields should normally cover multiple content types, for example:
+
+- text
+- icon
+- image reference
+- CTA
+- ordered array
+
+Do not necessarily mutation-test every identical field when the underlying shared implementation has already been demonstrated.
+
+---
+
+# 11. Sanity Dataset Safety
+
+Before content mutation determine the active dataset.
+
+Running Studio on localhost does NOT mean the content is local.
+
+Preferred automated test environment:
+
+`development` or `staging` dataset
+
+Production content should not be used for broad destructive automated testing.
+
+If testing must use production:
+
+- use minimal temporary modifications
+- save original values
+- restore immediately
+- never bulk delete
+- never overwrite unrelated content
+- never leave QA placeholders behind
+
+Do not create, clone, import or switch datasets without first understanding current environment configuration and implications.
+
+---
+
+# 12. Bandwidth-Safe Playwright Testing
+
+Sanity bandwidth is limited.
+
+Images and video can consume significant traffic.
+
+Routine automated tests should therefore avoid downloading heavy Sanity assets.
+
+## Default policy
+
+For normal:
+
+- page auditing
+- navigation tests
+- localization tests
+- text tests
+- form tests
+- CMS data tests
+- responsive structure tests
+
+block unnecessary heavy Sanity image/video requests.
+
+Do not block Sanity content API traffic required for page data.
+
+---
+
+# 13. Playwright Request Interception
+
+Use Playwright request interception for bandwidth-heavy media where appropriate.
+
+Conceptual pattern:
+
+```ts
+await page.route("**/*", async (route) => {
+  const request = route.request();
+  const url = request.url();
+  const type = request.resourceType();
+
+  const isSanityAsset =
+    url.includes("cdn.sanity.io") || url.includes("sanity-cdn.com");
+
+  const isHeavyMedia = type === "image" || type === "media";
+
+  if (isSanityAsset && isHeavyMedia) {
+    await route.abort();
+    return;
+  }
+
+  await route.continue();
+});
+```
+
+Before permanently adding test helpers, inspect the actual asset domains and existing test architecture.
+
+Do not blindly block all images if a test requires layout or media verification.
+
+---
+
+# 14. Media Testing Levels
+
+Use three levels of media testing.
+
+## Level 1 — Reference verification
+
+Default.
+
+Verify:
+
+- asset reference exists
+- asset ID changed
+- image/video URL changed
+- DOM/source attributes changed
+
+Do not download media unnecessarily.
+
+## Level 2 — Lightweight rendering verification
+
+When actual rendering matters:
+
+- allow the specific asset
+- use optimized/resized image URLs where possible
+- avoid original high-resolution downloads
+- load only representative media
+
+## Level 3 — Real media behavior
+
+Use only for tasks specifically involving media behavior.
+
+Examples:
+
+- video playback
+- poster transition
+- video controls
+- image crop behavior
+- media-specific responsive behavior
+
+Do not use Level 3 during routine whole-site regression runs.
+
+---
+
+# 15. Video Policy
+
+Routine Playwright regression tests must not play video.
+
+Verify:
+
+- component exists
+- correct source/reference exists
+- poster exists where expected
+- controls/configuration are correct
+- autoplay behavior is correct
+
+Where consistent with intended UX, video should avoid unnecessary eager downloading.
+
+Prefer lazy media loading and `preload="none"` where appropriate.
+
+Only play video when specifically testing video functionality.
+
+---
+
+# 16. Image Policy
+
+Routine CMS tests usually do not need to download the final image.
+
+For image CMS testing prefer:
+
+Sanity reference
+→ frontend image URL/reference
+
+verification.
+
+When visual rendering must be tested:
+
+- use transformed image dimensions
+- avoid original-resolution assets
+- avoid repeating the same expensive rendering test across every viewport unless necessary
+
+---
+
+# 17. Responsive Testing
+
+Every migrated page should receive representative checks on:
+
+- mobile
+- tablet
+- desktop
+
+Check:
+
+- content order
+- overflow
+- clipping
+- typography
+- buttons
+- navigation
+- grids
+- cards
+- image containers
+- video containers
+- spacing
+
+When heavy media is blocked, distinguish:
+
+layout failure caused by missing test asset
+
+from
+
+actual frontend layout failure.
+
+Perform a targeted media-enabled test when necessary.
+
+---
+
+# 18. Studio Testing
+
+Where authentication allows Playwright to interact with Sanity Studio, verify representative workflows:
+
+- document opens
+- fields render
+- editing works
+- validation works
+- arrays reorder
+- icon selection works
+- image selection works
+- Publish works
+- no relevant editor errors occur
+
+Do not make destructive changes.
+
+If browser automation cannot pass authentication, report the limitation explicitly.
+
+---
+
+# 19. Definition of Fully Migrated Page
+
+A page may be marked COMPLETE only when:
+
+- actual rendered page was inspected
+- all sections were inventoried
+- appropriate editorial content is mapped to Sanity
+- hardcoded editorial content is removed where appropriate
+- queries work
+- frontend rendering works
+- Studio order makes sense
+- editor labels are understandable
+- unnecessary technical fields are hidden
+- validation works
+- representative changes were tested
+- Publish was tested where safe
+- frontend update was verified
+- test values were restored
+- localization was checked
+- responsive behavior was checked
+- no relevant runtime errors remain
+
+---
+
+# 20. Full-Site Migration Status
+
+> **Audit pass: 2026-09-01 (inventory & audit only — no code, schema, or content changes).**
+> Method: read-only inspection of `app/`, `sanity/`, `lib/`, `MIGRATION_REPORT.md` (Parts 16–28),
+> live GROQ reads against the `production` dataset, and a Playwright walk of every public route
+> at `http://localhost:3000` (EN + spot-checks in DA/UK). Studio UI could not be opened
+> (login-gated: Google / GitHub / email — no credentials); Studio findings below are from the
+> schema/structure source, not the running Studio.
+
+## 20.1 Content architecture (as built)
+
+- Every page is now **one `page` document** (`_type == "page"`, fixed id `page-<slug>`) holding an
+  ordered `sections[]` array built from the shared `pageSection` object (see
+  `sanity/schemaTypes/documents/page.ts`, `objects/pageSection.ts`, `objects/contentItem.ts`,
+  `objects/ctaAction.ts`, `objects/mediaItem.ts`). This replaced ~18 per-page singletons to stay
+  under Sanity's free-plan 2,000-attribute cap (MIGRATION_REPORT Parts 16–17).
+- **All 12 legacy page singletons are gone from the *published* dataset** (`homePage`, `aboutPage`,
+  `cateringPage`, `cateringMenuExamplesPage`, `eventDecorationPage`, `hostAtRorumPage`,
+  `communityMembershipPage`, `volunteerPage`, `workWithUsPage`, `contactPage`, `eventsPage`,
+  `faqPage` — 0 documents under `perspective: "published"`, which is all the public site and
+  `sanityFetch` ever read). **11 of them still exist as orphaned `drafts.<type>` documents**
+  (all except `contactPage`) — the old delete scripts removed only the published copy. Harmless to
+  the site, but they now reference schema types Phase B removed. A read-only-by-default cleanup
+  script is ready: `npm run sanity:delete-orphaned-legacy-singleton-drafts:dry-run` /
+  (live) `npm run sanity:delete-orphaned-legacy-singleton-drafts` — owner action, §20.6 / §20.8.
+- Their **schema types and GROQ queries are removed** (Phase B, §20.8) — Phase 6 schema cleanup
+  is **done** for the frontend/schema side; only the 11 draft documents above remain.
+- Locale resolution is in application code (`lib/sanity-i18n.ts` `pickLocalized()` /
+  `lib/sanity-sections.ts`), not GROQ. i18n storage = `sanity-plugin-internationalized-array`
+  (EN/DA/UK), registry is static in `sanity.config.ts` (do not filter it — see the long comment there).
+- 12 `page` documents exist: the 11 routed pages below + `page-catering-menu-examples`
+  (in-page overlay opened from `/catering`, no route, `seo` field intentionally hidden).
+
+## 20.2 Real route list
+
+Route segment: `app/[locale]/(site)/<route>/page.tsx`. `en` is unprefixed; `da`/`uk` are prefixed
+(`middleware.ts`). Legacy redirects: `/private-meetings` & `/host-an-event` → `/host-at-rorum`,
+`/space-decoration-event-styling` → `/event-decoration`.
+
+| # | Route | `page` doc / source | CMS coverage | Status |
+|---|---|---|---|---|
+| 1 | `/` (Home) | `page-home` | **Fully connected** (pilot). Hero text/video/trust items, quick paths (title/text/CTA/icon), events strip labels, 2 editorial feature blocks, services teaser, community teaser, closing CTA, SEO — all from `page-home.sections`. SEO title+description published EN/DA/UK. Events themselves from `event` docs. | COMPLETE |
+| 2 | `/about` | `page-about` | **Fully connected.** Hero + 2 quick links, Services teaser, Community teaser, "Thoughtful and practical" text section, closing CTA, SEO. `aboutPage.locationImage` confirmed dead (never migrated, by design). | COMPLETE |
+| 3 | `/events` (listing) | `page-events` + `event[]` | **Fully connected.** Hero H1, filter-group labels + language-option labels (reorderable), closing CTA. Event cards from `event` docs, locale-filtered by `visibleLocales`. `formMessages`/`eventMessages` shared. | COMPLETE |
+| 4 | `/events/[slug]` (event detail) | `event` doc | **Fully connected.** Title, description, date/time, address, language, price, "What to Expect", "Practical Details", included list, share actions (per-event enable/label), ticket/calendar/waitlist URLs, image + alt, per-event SEO override, Event JSON-LD. Static fallback array in `lib/data.ts` only used when Sanity is unconfigured. | COMPLETE |
+| 5 | `/catering` | `page-catering` (+ `page-catering-menu-examples`) | **Fully connected.** Hero + CTA, Menu Formats icon grid, "What we offer" list, 3-step setup, ~66-image `HorizontalGallery`, tailored-note, inquiry form. Menu Examples overlay = `page-catering-menu-examples` (6 dish categories). SEO empty on the published doc — approved copy is in `drafts.page-catering`, awaiting manual Publish (§20.7); frontend falls back correctly. | COMPLETE |
+| 6 | `/event-decoration` | `page-event-decoration` | **Fully connected.** Hero + CTA, "Suitable Decoration Formats" chips + gallery (14 photos, DA/UK alt backfilled, real video supported), "What we style" split (intro migrated into section `text`), 3-step setup, inquiry form. | COMPLETE |
+| 7 | `/host-at-rorum` | `page-host-at-rorum` | **Fully connected.** Hero, 15-photo gallery (DA/UK alt backfilled), "Each Session Includes", Hosting Packages (3 tiers, price + checklist), 3-step setup, inquiry form. Package `<select>` + Additional-Services checkboxes now driven by the same canonical Sanity items as the cards (stable `itemKey` values, not localized labels). | COMPLETE |
+| 8 | `/community-membership` (WECODA) | `page-community-membership` | **Fully connected.** Hero (intro migrated into `text`, external WECODA link + apply-CTA DA/UK fixed), Donation section (9 bank rows, 2 copyable — bug fixed, QR image), "Connecting Women" 2-column intro, "What You Gain" benefit grid (image authoritative over icon), Application section + steps, gallery (8 photos + 2 videos, DA/UK alt backfilled). | COMPLETE |
+| 9 | `/volunteer` | `page-volunteer` | **Fully connected.** Hero eyebrow/heading/body/closing paragraphs + "Apply to volunteer" CTA, and the application-modal copy (`sections[applicationForm]`: `modalTitle`, `messagePlaceholder`, `successMessage`, `errorMessage`) all render EN/DA/UK. The earlier EN-only content gap on the 4 modal strings has since been supplied — `npm run sanity:audit-sections` reports 0 partial-i18n fields for this document; Studio re-publish is no longer blocked. Form delivery wired through the shared Formspree path (Task 4 / §20.12). | COMPLETE |
+| 10 | `/work-with-us` | `page-work-with-us` | **Fully connected.** Hero + CTA, feature bullets, and the application form (renamed section `applyForm`, manager-facing "Apply Form" — a fully text-based application: Full name/Email/Phone with example placeholders, Role interest, Experience & skills, Why RORUM, Links, Privacy consent) all render EN/DA/UK. No CV/file-upload field exists anywhere in this form. The earlier CV-upload-modal EN-only content gap no longer applies (that architecture was removed and replaced); `npm run sanity:audit-sections` reports 0 partial-i18n fields for this document. | COMPLETE |
+| 11 | `/contact` | `page-contact` + `contactInfo` + `socialLinks` + `formMessages` | **Fully connected.** Hero (intro text, reorderable address/phone/email rows), form section (4 configured fields Full Name/Phone/Email/Message, privacy-consent show/require, FAQ-prompt override), map, social icons (Instagram+Facebook after the R3 guard). The "0 form fields" seen during the audit was a stale dev-server cache (B1 — resolved, not a code defect); the clean build renders all fields + working validation. SEO empty on the published doc — approved copy in `drafts.page-contact` (§20.7). | COMPLETE |
+| 12 | `/faq` | `page-faq` | **Fully connected.** 4 categories / 9 questions render from `page-faq` (`faqCategory` sections, per-question optional link). **Category titles, questions AND answers are fully translated EN/DA/UK — verified live on a clean build (`/da/faq` renders Danish end to end).** The Phase 1 audit's "EN-only" claim was a stale-dev-cache artifact, now corrected. `faqPage`/`faqGroup` legacy schema removed (§20.8). Only outstanding item: publish the SEO draft (§20.7). | COMPLETE |
+| 13 | `/terms` | `legalPage-terms` + `siteSettings` + `contactInfo` | **Sections 2+ fully connected & translated** (Portable Text from `legalPage.body`, EN/DA/UK). **Section 1 "Company details"** is a hardcoded block in `terms/page.tsx` — the *facts* (company name, CVR, email, address) already come from Sanity (`getCompanyContactFacts()` → `siteSettings`/`contactInfo`), but the **heading ("1. Company details"), the intro sentence, and the field labels ("Address:", "CVR:", …) are hardcoded English** and show untranslated on `/da` `/uk`. Needs an owner decision (§20.6) — fold Section 1 into `legalPage.body`, or localize the chrome. `legalPage.seo`: draft pending (§20.7) + R4 EN-copy decision. `lastUpdated` renders (⚠ the SEO draft blanks it — §20.7). | PARTIAL — legal Section 1 hardcoded EN |
+| 14 | `/privacy-policy` | `legalPage-privacy-policy` + `siteSettings`/`contactInfo` | Same shape as `/terms`. | PARTIAL — legal Section 1 hardcoded EN |
+| 15 | `/cookie-policy` | `legalPage-cookie-policy` + `siteSettings`/`contactInfo` | Same shape as `/terms`. | PARTIAL — legal Section 1 hardcoded EN |
+
+Non-public / infra routes: `/studio` (Sanity Studio, `noindex`, disallowed in robots.txt),
+`/sitemap.xml`, `/robots.txt` — all correct, canonical domain `https://ro-rum.dk`, hreflang +
+x-default present, 143 sitemap `<loc>` entries.
+
+## 20.3 Shared / global areas
+
+| Area | Source | Coverage | Notes |
+|---|---|---|---|
+| Header / primary nav | `navigation` singleton | **Fully connected**, trilingual | Items + dropdown children (`navChild`/`navItem`). `lib/data.ts` `navItems` is fallback only. |
+| Footer | `footer` singleton | **Fully connected**, trilingual | 4 link columns, contact-details label, copyright, 3 legal links — all EN/DA/UK. |
+| Contact info | `contactInfo` singleton | **Fully connected** | address / phone / email / `mapQueryAddress`. Shared by Contact page, Footer, event practical details. |
+| Social links | `socialLinks` singleton | **Connected; frontend-guarded, one manual Studio cleanup remains — see risk R3** | Published doc still has a stray LinkedIn entry (`https://linkedin.com`) alongside Instagram/Facebook, but `lib/sanityContact.ts`'s `resolveSocialLinks()` filters it out before rendering — verified on a clean build: LinkedIn appears 0 times in Header, Footer or Contact. The document itself still needs the entry deleted in Studio (safe, non-blocking) to clear its own validation warning — see `HANDOFF.md` §18. |
+| Shared form messages | `formMessages` singleton | **Connected** | Labels/placeholders/validation/success/privacy/FAQ-prompt text used by every form. |
+| Shared event labels | `eventMessages` singleton | **Connected** | Event-detail UI strings. |
+| Site settings | `siteSettings` singleton | **Partially connected** | `siteUrl` now fixed/read-only `https://ro-rum.dk`; `website` editable. `defaultSeo` (site-wide SEO fallback tier) is **not populated** — pages fall to their own per-page hardcoded defaults. |
+| SEO / metadata | `page.seo` / `legalPage.seo` / `event.seo` + `shared/seoResolution.ts` + `lib/seo.ts` | **Connected** | Shared resolver, per-locale, canonical/hreflang/OG/Twitter/JSON-LD. Studio "Search engine & social sharing" panel with live preview (`SeoObjectInput`). Gaps: legal-page SEO copy skipped (R4); several `page.seo` drafts unpublished (R1/R2). |
+| Legal / company facts | `lib/siteContent.ts`, `lib/siteConfig.ts` | **Hardcoded** | CVR, company name, address facts rendered on legal pages are still in code, not Sanity. Low priority (rarely changes) but not manager-editable. |
+| Gallery collections | `galleryCollection` / `mediaItem` | **Connected** | Used by Catering / Event Decoration / Host / Community galleries via `lib/sanityGallery.ts` (canonical-vs-legacy policy). |
+| Cookie / privacy consent UI | `PrivacyConsent` / `PrivacyPolicyModal` | **Connected via `formMessages` + `legalPage-privacy-policy`** | Consent copy from `formMessages`; modal body from the privacy `legalPage`. |
+| Forms (all) | `lib/useFormspreeSubmit.ts` + `lib/formspree.ts` | **Unified, code-complete; live endpoint configured** | All 6 forms submit through ONE shared path to ONE Formspree endpoint/form/recipient. As of the §20.22 email-readability pass: `subject` (Formspree's documented Subject-header field, not the legacy undocumented `_subject`) + `[RoRUM] <type> — {name}`; every field relabeled to a human-readable key (`humanizeFormFields`); a "Submission details" group (Language/Page/Consent/Submitted) replaces the old raw `locale`/`page_url`/`form_name`. No fake success anywhere. Field **labels** are controllable this way on the Free plan; field **order** is not — Formspree sorts alphabetically regardless of submission order, verified against a real account (§20.22). |
+
+## 20.4 Per-page audit checklist (this pass)
+
+Legend: ✅ verified this pass · ⬜ not verified this pass · ⚠️ verified, issue found · n/a not applicable
+
+| Page | rendered audited | sections inventoried | Sanity coverage mapped | text | images | icons | CTAs | localization (DA/UK) | Studio UX (schema-only) | Publish test | responsive (m/t/d) | console clean |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Home | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ (UK full) | ✅ | ⬜ | ⬜ | ✅ |
+| About | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ✅ | ⬜ | ⬜ | ✅ |
+| Events listing | ✅ | ✅ | ✅ | ✅ | ✅ | n/a | ✅ | ✅ (filter labels) | ✅ | ⬜ | ⬜ | ✅ |
+| Event detail | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ✅ | ⬜ | ⬜ | ✅ |
+| Catering | ✅ | ✅ | ✅ | ✅ | ✅ (66) | ✅ | ✅ | ⬜ | ✅ | ⬜ | ⬜ | ✅ |
+| Event Decoration | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ✅ | ⬜ | ⬜ | ✅ |
+| Host at RORUM | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ✅ | ⬜ | ⬜ | ✅ |
+| Community Membership | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | ✅ | ⬜ | ⬜ | ✅ |
+| Volunteer | ✅ | ✅ | ✅ | ✅ | ✅ | n/a | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ✅ |
+| Work With Us | ✅ | ✅ | ✅ | ✅ | ✅ | n/a | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ✅ |
+| Contact | ✅ | ✅ | ✅ | ✅ | n/a | ✅ | ✅ | ✅ | ✅ | ⬜ | ✅ (Phase 1, clean build) | ✅ |
+| FAQ | ✅ | ✅ | ✅ | ⚠️ EN-only | n/a | n/a | ✅ | ⚠️ | ✅ | ⬜ | ⬜ | ✅ |
+| Terms / Privacy / Cookie | ✅ | ✅ | ✅ | ⚠️ partial DA/UK | n/a | n/a | ✅ | ⚠️ | ✅ | ⬜ | ⬜ | ✅ |
+
+Publish tests and responsive (mobile/tablet/desktop) checks were **out of scope for the
+inventory pass** and remain to be done per-page during implementation — except **Contact**, which
+was fully re-verified during Phase 1 (B1): all form fields render, validation works (empty-submit,
+invalid email/phone, success + reset), EN/DA/UK labels, no overflow at 375 / 768 / 1440, against
+a clean production build.
+
+## 20.5 Blockers and risks
+
+**B1 — Contact form renders no input fields → RESOLVED (was a stale dev-server cache, not a code defect). Phase 1, 2026-09-01.**
+Root cause: `next-sanity`'s `sanityFetch` (`sanity/lib/live.ts` → `defineLive`) caches every query
+with `next: { revalidate: false }` and only ever revalidates via `<SanityLive>` sync-tag events.
+The long-running `next dev` server on :3000 held a `page-contact` snapshot from **before** the
+Part 21/23 form-field seeding, and `<SanityLive>` never fired a revalidation for it (the content
+changed while that dev process was not the one listening), so `resolveContactFormFields()` was
+handed a form section with no `field-*` items and correctly returned `[]`.
+Verified on a **clean isolated production build** (`RORUM_DIST_DIR=.next-prodtest next build` →
+`next start -p 3210`): `/contact`, `/da/contact`, `/uk/contact` all render Full Name / Phone /
+Email / Message + privacy consent + submit; empty-submit shows all 5 required errors; invalid
+phone/email show format errors; a valid submit shows the success state and resets; no horizontal
+overflow at 375 / 768 / 1440. Production (fresh build per deploy + a working `<SanityLive>` socket)
+is unaffected. **No code change made.** Local dev fix: restart the dev server, or `rm -rf .next`
+(this pass already cleared `.next/cache/fetch-cache`, which is disk-only — the running process
+still holds the stale entry in memory until restarted).
+The `page-contact` published document itself is correct and complete (verified via GROQ against
+both `api` and `apicdn`).
+
+**R1 / R2 — approved SEO copy is sitting in 13 unpublished drafts → checklist prepared, see §20.7. Phase 1, 2026-09-01.**
+The Part 24 backfill (`scripts/backfill-seo-copy.ts`) **did run and its drafts still exist** — 13
+of them (they were invisible to a default-perspective GROQ query, which collapses `drafts.*`;
+visible with `perspective: "raw"`). Published SEO is empty on ~10 pages; the frontend correctly
+falls back to each page's own hardcoded English `fallback.seoTitle` / `fallback.description`
+(verified on the clean build — `/da/catering` etc. show the English fallback, no broken/empty
+`<title>`). `page-home` SEO is already fully published EN/DA/UK (the earlier "renders code
+fallback" note was the stale :3000 server + coincidental string equality — corrected).
+**Not published or mutated.** §20.7 is the exact per-draft publish checklist, including two drafts
+that carry a real non-SEO regression if published blindly.
+
+**R3 — stray LinkedIn social link → FIXED in code (frontend guard). Phase 1, 2026-09-01.**
+Intent was unambiguous from history: Part 22 + `socialLink.ts`'s `SELECTABLE_PLATFORMS` narrowed
+to Instagram + Facebook; RORUM has no LinkedIn profile for the shared list. `drafts.socialLinks`
+(the intended cleanup) no longer exists, and the published `socialLinks` singleton still carries a
+`{icon:"linkedin", href:"https://linkedin.com"}` entry that renders in Header, Footer and Contact.
+Since production Sanity must not be mutated here, `lib/sanityContact.ts`'s `resolveSocialLinks()`
+now filters `links[]` to `RENDERED_SOCIAL_PLATFORMS` (Instagram, Facebook) before mapping — so the
+stray LinkedIn (and any future out-of-list value, or a link with no platform) never reaches the
+rendered site. Instagram + Facebook preserved, in order; no URL invented. A doc containing only
+out-of-list links returns `[]` (never resurrects the hardcoded fallback). Verified on the clean
+build: `linkedin` appears **0 times** in `/contact` and `/about` HTML; Header mobile menu, Footer
+and the Contact social nav all show Instagram + Facebook only. Event Share's separate LinkedIn
+support is untouched (`components/EventShare.tsx`).
+**Still needs a manual Studio action** (not blocking, not mutated by this pass): delete the
+`linkedin` entry from the `socialLinks` singleton so the published document stops showing the
+schema's "Value 'linkedin' did not match any allowed values" error. Until then the guard keeps the
+live site correct.
+
+**R4 — Legal-page SEO copy decision outstanding.**
+Terms/Privacy/Cookie EN `seo.title`/`seo.description` were deliberately NOT overwritten with the
+approved long copy (current values are the short MVP originals). `<title>` is not localized for
+these routes. Needs an owner yes/no (Part 24 §6).
+
+**R5 — DA/UK content gaps (pre-existing; corrected during Phase C verification — NOT as broad as the audit first thought).**
+- ~~FAQ EN-only~~ → **FALSE.** `page-faq` is fully translated EN/DA/UK (titles + questions + answers);
+  `/da/faq` renders Danish end to end on a clean build. The audit's claim was a stale-cache read.
+- **Legal pages — Section 1 "Company details" only.** Sections 2+ of Terms/Privacy/Cookie ARE
+  fully translated (Sanity `legalPage.body`, EN/DA/UK). Section 1 is a hardcoded block in the 3
+  `*/page.tsx` components — the facts are Sanity-sourced but the heading/intro/labels are English.
+  Needs an owner decision on how to make it editable/localized (§20.6).
+- ~~Volunteer application modal (4 strings) + Work-With-Us CV modal (7 strings) — stored EN-only~~ →
+  **RESOLVED.** Both are now fully translated EN/DA/UK (`npm run sanity:audit-sections` reports 0
+  partial-i18n fields for either document). The Work-With-Us "CV modal" itself no longer exists —
+  it was replaced by a fully text-based Apply Form (§20.2 rows 9–10, and the Apply Form cleanup
+  pass that renamed `sections[cvUploadForm]` → `sections[applyForm]`).
+- `sanity:audit-translations` baseline (Part 17 §17.5): the 11 form-modal strings noted above are
+  now resolved (see above); remaining gaps are mostly gallery/dish `alt` text (informative, not
+  visible copy); `event` (73, unrelated); `legalPage` (6 — the SEO fields, §20.7); `socialLinks`
+  (1 — the stray LinkedIn, R3).
+Fixing the visible-copy gaps requires authoring real DA/UK translations — a content task, needs owner sign-off on
+provenance.
+
+**R6 — Form delivery: unified on ONE shared Formspree config (Task 4, 2026-09-02). RESOLVED in code; one owner action remains.**
+All six real submission forms — Contact, Volunteer, Work With Us, Catering, Event Decoration,
+Host at RORUM — now submit through the single shared path
+`lib/useFormspreeSubmit.ts` → `lib/formspree.ts` `applyFormspreeMetadata()` → `submitToFormspree()`
+→ one `NEXT_PUBLIC_FORMSPREE_ENDPOINT`, one Formspree form, one recipient. **The recipient is
+configured on the Formspree form only** (at Task 4 time, the developer's own address
+`lopatina.iryna@gmail.com`, for development/testing — the client replaces this with their own on
+transfer, see §20.12's OWNER CONFIGURATION) — it is not in any component, not in the payload, and a
+test (`components/forms-delivery-contract.test.tsx`) fails the build if
+it ever appears in `app/` or `components/`.**
+- Every submission carries `form_name` (human-readable: "Contact request", "Volunteer
+  application", "Work With Us application", "Catering inquiry", "Event Decoration inquiry", "Host at
+  RORUM inquiry") + `subject` **and** `_subject` (`[RoRUM] <form type>` — English regardless of the
+  visitor's locale, form type always first, ` — {name}` appended when a name is present) + `locale`
+  (`en`/`da`/`uk`) + `page_url`, plus that form's own fields (name/email/phone/eventDate/guests/
+  package/additionalServices/message/CV file, per what each form actually renders).
+- **All fake-success is gone.** `CvUploadModal`'s 500 ms `setTimeout` "succeeds" and
+  `CateringInquiryForm` / `InquiryForm`'s bare `setSent(true)` + `form.reset()` were removed. A
+  form now shows success and resets **only after Formspree confirms the POST**; on failure the
+  user's input is preserved and a localized message shows (`formNotConfiguredMessage` for "no
+  endpoint yet", else `formSubmitFailedMessage` / the form's own Sanity `errorMessage`). The
+  hardcoded `mailto:rorum2025@gmail.com` in `CvUploadModal`'s error was removed.
+- Website success/error/unavailable copy stays in the existing EN/DA/UK `formMessages`
+  architecture. `VolunteerApplicationForm` also keeps its gated native `action`
+  (`isFormspreeConfigured() ? endpoint : undefined`).
+- **CV file — superseded, no longer applicable.** At the time this section was written, the Work
+  With Us modal attached a validated file as `cv` (multipart), and this bullet told the owner to
+  enable Formspree's File Uploads and test-send an attachment. That architecture was fully removed
+  in a later pass: Work With Us is now a fully text-based application (no file input, no `cv`
+  field, no attachment of any kind) — see §20.2 row 10. Nothing to enable or test here.
+- Tests: `lib/formspree.test.ts` (metadata + endpoint), `components/{ContactForm,
+  VolunteerApplicationForm,WorkWithUsApplicationForm,CateringInquiryForm,InquiryForm}.test.tsx`,
+  `components/forms-delivery-contract.test.tsx` — form-delivery tests, all green.
+
+**OWNER ACTION (the only remaining step — §20.12):** create/select ONE Formspree form, set its
+recipient to the client's own inbox (see `.env.example`'s `FORMSPREE_RECIPIENT_EMAIL` — the
+developer's own address was used during development and must not be reused), copy its endpoint into
+`NEXT_PUBLIC_FORMSPREE_ENDPOINT` (local `.env.local` + the deployment env). File Uploads does not
+need to be enabled — no RORUM form attaches a file (Work With Us is fully text-based). Until the
+endpoint is set, every form correctly shows the localized "not available yet" message and never
+claims a false success.
+
+**R7 — Dataset safety: automated mutation testing targets `production`.**
+`.env.local` → `NEXT_PUBLIC_SANITY_DATASET=production`, and a **write token is present**
+(`SANITY_API_WRITE_TOKEN`). There is no separate dev/staging dataset. Any Publish-flow test must
+follow §11/§18: record → change draft only where possible → publish → verify → restore → verify.
+Prefer never bulk-mutating; consider requesting a `staging` dataset before heavy CMS test work.
+
+**R8 — Legacy schema/query dead weight → DONE (Phase B, 2026-09-02).**
+Removed the 12 dead singleton schema types, the ~13 dead queries (`queries/faq.ts` deleted;
+`queries/pages.ts` reduced to `legalPageQuery`), and the guaranteed-`null` legacy fetch +
+`?? page?.x` fallback tiers from all 8 route files. `npm run sanity:typegen` regenerated
+(`sanity.types.ts` −1113 lines). Behaviour-preserving, verified. Full detail in §20.8.
+
+**R9 — Studio UX not verified against the running Studio.**
+Login-gated; this pass reviewed schema source only. `pageSection.ts` has grown a large set of
+document-scoped `hidden` special-cases (Contact/Events/Event Decoration/Host/Community/About)
+plus one site-wide `isCorrectlyShapedSection()` rule — maintainable-but-dense; worth a real
+Studio walkthrough per page (field order, labels, previews, reorderability, validation clarity)
+before declaring any page's Studio UX "done" to spec §19.
+
+**R10 — Running dev server may be serving stale cached CMS data (see B1).**
+Treat rendered-output observations from this audit as indicative, not authoritative, until
+re-verified against a fresh production build.
+
+## 20.6 Recommended implementation order
+
+**Phase 1 (done, 2026-09-01):** B1 diagnosed (stale cache, no code change), R3 fixed in code,
+R1/R2 checklist prepared (§20.7), R8 plan produced (§20.8).
+**Phase A (done, 2026-09-01):** Contact form false-success removed (R6) — now uses the shared
+`submitToFormspree` + translatable "not set up" notice, no fake success/reset. Independent review:
+SHIP.
+**Phase B (done, 2026-09-02):** R8 dead-code cleanup executed — §20.8. Per-batch review: SHIP;
+the later full-site review then caught that the cleanup's "0 documents" claim missed 11 orphaned
+`drafts.*` docs and that `sanity.types.ts` was stale — both corrected, see §20.8.
+**Phase C (done, 2026-09-02):** partially-migrated pages — §20.9. FAQ was already complete;
+Volunteer/WWU are technically complete + given editor-UX polish, content pending; legal Section 1
+needs an owner decision.
+**Phase D (done, 2026-09-02):** global/shared CMS audit — §20.10. All connected; two owner
+content decisions (`siteSettings.defaultSeo`, legal Section 1).
+
+**Next batch — MANUAL / OWNER actions, in order:**
+
+1. **Publish the SEO drafts** per the §20.7 checklist — start with the 11 clean pages,
+   then handle `legalPage-terms` + `legalPage-privacy-policy` carefully (they lose `lastUpdated`
+   on publish — re-set it in Studio right after). Then re-run
+   `npx playwright test tests/cms-catering-contract.spec.ts tests/seo.spec.ts` to re-green the
+   SEO assertions.
+2. **Delete the `linkedin` entry** from the `socialLinks` singleton in Studio (the R3
+   code guard already hides it on the site, but the published document keeps a schema validation
+   error until the entry is gone).
+3. **Add DA/UK translations** for the Volunteer / Work-With-Us EN-only strings (§20.9) — until
+   this is done **neither page can be re-published from Studio** (the all-or-nothing i18n rule
+   rejects a half-translated row). They now have clean labelled single-field editors:
+   - `page-volunteer` → `applicationForm` items: `modalTitle`, `messagePlaceholder`,
+     `successMessage`, `errorMessage` (4)
+   - `page-work-with-us` → `cvUploadForm` items: `modalTitle`, `modalTitleSent`, `description`,
+     `descriptionSent`, `messagePlaceholder`, `dropzoneText`, `errorMessage` (7)
+   - `page-work-with-us` → `features` items: `feature0`, `feature1`, `feature2` (3 — these render
+     untranslated English on `/da` `/uk` today)
+3b. **Delete the 11 orphaned legacy-singleton drafts** (§20.8) — harmless to the site, but dead
+    weight referencing removed schema types. Dry-run first, then run live with a write token:
+    `npm run sanity:delete-orphaned-legacy-singleton-drafts:dry-run` →
+    `npm run sanity:delete-orphaned-legacy-singleton-drafts`.
+4. **R4 — Legal-page EN SEO decision** (owner): keep the short MVP copy, or apply the approved
+   long copy (already in the drafts' DA/UK; EN was intentionally left). Then publish.
+5. **Legal Section 1 decision** (§20.9): fold "Company details" into `legalPage.body` (manager
+   authors + translates it), or add a structured localized block with the facts still pulled live.
+6. **`siteSettings.defaultSeo` decision** (§20.10): populate a trilingual site-wide default, or
+   leave it (per-page fallbacks then apply).
+7. **R9 — Studio UX walkthrough**, page by page, in the real Studio with the manager — confirm
+   field order/labels/previews/reorder/validation against spec §10 and §19. Fold in a
+   representative Publish test per page (§18) using draft-only changes on `production`.
+8. **R6 — Form delivery** (Task 4 done in code — §20.12): create ONE Formspree form, set its
+   recipient to the client's own inbox (see `.env.example`'s `FORMSPREE_RECIPIENT_EMAIL`), put its
+   endpoint in `NEXT_PUBLIC_FORMSPREE_ENDPOINT` (local + deployment). No file-upload setting is
+   needed — no RORUM form attaches a file.
+9. **Responsive + Publish sign-off** for every page (§19 items still ⬜ in 20.4), then mark
+   COMPLETE.
+
+## 20.7 SEO publish checklist (Phase 1 — 2026-09-01, read-only analysis; nothing published)
+
+Method: `perspective: "raw"` GROQ read of every `page` / `legalPage` document, published vs
+draft, plus a full structural diff of each draft against its published counterpart. The Part 24
+`scripts/backfill-seo-copy.ts` drafts **still exist** (13 of them) and hold the correct approved
+`seo.title` / `seo.description` for EN/DA/UK. Publishing each draft is a **manual Studio action**.
+
+**Frontend fallback is currently correct** — every page with an empty published `seo` renders its
+own hardcoded English `fallback.seoTitle` / `fallback.description` (verified on a clean build:
+`/da/catering`, `/da/about`, `/da/faq` etc. show the English fallback title, never an empty or
+broken `<title>`). Publishing the drafts adds the real localized values; it cannot regress the
+EN `<title>` (the approved EN copy equals each page's existing fallback constant).
+
+| Document | Publish the draft? | What publishing it does |
+|---|---|---|
+| `page-home` | **No draft, nothing to do** | SEO already published EN/DA/UK. |
+| `page-catering-menu-examples` | **No draft, nothing to do** | No route; `seo` field hidden by design. |
+| `page-about` | **Yes — clean** | Adds `seo.title` + `seo.description` EN/DA/UK. Only change vs published. |
+| `page-catering` | **Yes — clean** | Same. |
+| `page-events` | **Yes — clean** | Same. |
+| `page-faq` | **Yes — clean** | Same. |
+| `page-volunteer` | **Yes — clean** | Same. |
+| `page-work-with-us` | **Yes — clean** | Same. |
+| `page-contact` | **Yes — clean-ish** | Adds SEO EN/DA/UK. Also: 2 empty i18n `label` rows (no value — invisible) and one `pageSection.settings` row `privacyConsentRequired="true"` which is the **existing default behavior** (`resolvePrivacyConsentSettings` treats absent = required). No functional change. |
+| `page-community-membership` | **Yes — review first** | Adds SEO EN/DA/UK (only 1 SEO diff — its `seo` was slightly less empty). Also carries ~13 non-SEO diffs: 12 are empty i18n `label` rows (no value — invisible); **1 is real** — `sections[4].items[3]` (`step3`) gets `icon: "Activity"` set (published has none). Confirm that icon is wanted, or clear it in Studio after publishing. |
+| `page-event-decoration` | **Yes — clean** | Adds SEO (5 diffs). 2 empty i18n `label` rows otherwise. |
+| `page-host-at-rorum` | **Yes — clean** | Adds SEO. 6 empty i18n `label` rows otherwise (no values). |
+| `legalPage-cookie-policy` | **Yes — clean** | Adds `seo.title` + `seo.description` DA/UK (EN unchanged — stays "Cookie Policy" / short copy, the R4 decision). |
+| `legalPage-terms` | **Yes — ⚠ REGRESSION RISK** | Adds SEO DA/UK (EN unchanged). **BUT the draft has `lastUpdated` UNSET while published has `"2026-05-01"`** — publishing blanks the "Last updated: May 2026" line on `/terms`. After publishing, **re-enter the "Last updated" date in Studio** (or discard+recreate the draft SEO-only). |
+| `legalPage-privacy-policy` | **Yes — ⚠ REGRESSION RISK** | Same `lastUpdated` issue as Terms. Re-enter the date after publishing. |
+
+**Alternative (needs explicit owner authorization — not done):** instead of publishing the
+8-day-old drafts, a small script can patch **only** `seo.title` / `seo.description` onto each
+*published* document directly (revision-guarded), then discard the stale drafts — avoiding the
+empty-row residue, the `step3` icon, and the `lastUpdated` regression entirely. Say the word and
+this can be written (dry-run first, per §10/§11).
+
+## 20.8 R8 — dead-code cleanup — DONE (Phase B, 2026-09-02; no Sanity writes)
+
+The `page` + `sections[]` migration (Parts 16–17) deleted the *published* copy of all 12 legacy
+per-page singleton **documents** but left their **schema types, queries and fallback fetch
+call-sites** in place for rollback/typegen safety (Part 17 §17.4 — "the honest way to finish this
+refactor"). Confirmed 0 **published** documents for all 12 legacy types, then removed all the code:
+
+> **⚠ Correction (final review, 2026-09-02):** the earlier "0 documents, confirmed" wording was
+> published-perspective only. A `perspective: "raw"` query shows **11 of the 12 legacy singletons
+> still exist as `drafts.<type>` documents** (`drafts.homePage`, `drafts.aboutPage`,
+> `drafts.eventsPage`, `drafts.cateringPage`, `drafts.cateringMenuExamplesPage`,
+> `drafts.eventDecorationPage`, `drafts.hostAtRorumPage`, `drafts.communityMembershipPage`,
+> `drafts.volunteerPage`, `drafts.workWithUsPage`, `drafts.faqPage` — only `contactPage` is fully
+> gone). The old delete scripts used `client.delete(<publishedId>)`, which never removes the
+> `drafts.` sibling. **The public site is unaffected** (`sanity/lib/client.ts` +
+> `sanityFetch` read `perspective: "published"`, and there are 0 published legacy docs — the
+> removed `?? page?.x` code tiers were genuinely dead for site visitors), but these 11 drafts now
+> reference schema types this cleanup removed, so they show in Studio's "unknown type" surface and
+> still cost attribute budget. **Finishing this needs one Sanity write (draft deletion) — an
+> owner action.** A read-only-by-default script is ready and dry-run-verified against production:
+> `npm run sanity:delete-orphaned-legacy-singleton-drafts:dry-run` then (with a write token)
+> `npm run sanity:delete-orphaned-legacy-singleton-drafts` — backup + revision-guarded atomic
+> delete, exactly 11 hardcoded ids, no wildcard. See §20.6 item.
+
+- **A — deleted 12 legacy singleton schema files** (`sanity/schemaTypes/singletons/{homePage,
+  aboutPage, cateringPage, cateringMenuExamplesPage, eventDecorationPage, hostAtRorumPage,
+  communityMembershipPage, volunteerPage, workWithUsPage, contactPage, eventsPage, faqPage}.ts`);
+  pruned `sanity/schemaTypes/index.ts` (12 imports + 12 array entries + 12 `SINGLETON_TYPES`
+  entries — kept the 7 real singletons); refreshed the now-stale `PAGE_KEYS` doc comment.
+  `sanity.config.ts` needed no change (its `SINGLETON_TYPES.has()` / `"page"` / `"legalPage"`
+  checks just see a smaller set).
+- **B — removed the dead queries.** `sanity/queries/pages.ts` now holds only `legalPageQuery`.
+  `sanity/queries/faq.ts` deleted (was only `faqPageQuery`). `eventsPageQuery` removed from
+  `sanity/queries/events.ts`.
+- **C — removed the redundant legacy fetch + `?? page?.x` fallback tiers** from all 8 route files
+  (`about`, `community-membership`, `contact`, `event-decoration`, `faq`, `host-at-rorum`,
+  `volunteer`, `work-with-us`). Each dropped: the legacy import, one `sanityFetch({query:
+  <legacy>})` from its `Promise.all`, and every `?? pickLocalized(page?.X, locale)` /
+  `: page?.X?.length ? … :` branch that could never resolve (`page` was always `null` — 0
+  documents). Also removed now-dead helpers (`about`'s `resolveIconLinks`,
+  `community-membership`'s `splitBenefit`, `host-at-rorum`'s `pickLabel` import,
+  `event-decoration`/`host-at-rorum`'s `legacyGalleryMedia`). **Behaviour is provably unchanged**
+  — the removed tiers always returned `null`/`undefined`; the fallback chain now goes
+  section → hardcoded-fallback directly, exactly as it already did at runtime. `catering`/`events`
+  route files were already clean — untouched.
+- **D — regenerated types** (`npm run sanity:typegen`): `sanity.types.ts` −1113 lines net (26 →
+  14 queries, 68 → 56 schema types); `schema.json` regenerated (gitignored). `resolveContactFormFields`
+  and every other resolver unaffected. **Final-review correction (2026-09-02):** the working-tree
+  `sanity.types.ts` was found still carrying the removed legacy singleton *document* types
+  (`WorkWithUsPage`, `VolunteerPage`, …) — the `git stash` incident recovery had left it at the
+  pre-cleanup revision. Re-ran `npm run sanity:typegen`: legacy doc types now gone, all shared
+  types (`Seo`, `ImageWithAlt`, `InternationalizedArrayString`, …) retained, `tsc --noEmit` clean.
+  No code imported the legacy types by name, so nothing broke in the interim.
+- The `lib/content-contracts/*.ts` prose notes that referenced the old query names are now
+  historically inaccurate (they're `querySource:` string fields, not code — they don't break
+  anything); flagged for a light touch-up, not done this pass to keep the diff mechanical.
+
+**Verification:** `npx tsc --noEmit` clean · `npx eslint` (all changed files) 0 errors ·
+`npx vitest run` 528/528 · `next build` (isolated prod dir) succeeded, 148 static pages ·
+Playwright interactions/locale/sanity/schema-visibility/cms-about/cms-events/cms-home/
+cms-event-decoration — all pass · browser spot-checks (about, community-membership,
+host-at-rorum EN+DA) render identically to the pre-cleanup audit, 0 console errors.
+Pre-existing stale test **fully fixed after the final review**: `cms-events-contract.spec.ts`'s
+"cross-page consistency" test pinned `mindful-morning-yoga` (now past-dated) and hung 30 s on a
+disabled "Next page" link. Phase B guarded the click but left the strip/listing half skipped for a
+past fixture (silent coverage loss). It's now rewritten to **resolve the first currently-listed
+event dynamically** (`order(date asc)[0]`, matching both the Home strip and the listing's own
+default sort) — real, always-present consistency coverage regardless of dataset dates, no skip, no
+pinned slug. `AVAILABLE_SLUG`/`SOLD_OUT_SLUG`/`BASELINE_SLUG` remain only for the date-agnostic
+detail-page + "What to Expect" checks (a detail page is always reachable). The 6
+`cms-catering-contract.spec.ts` SEO failures are the same pre-existing unpublished-`page-catering.seo`
+gap (§20.7), unrelated.
+
+> **Content observation (not a code defect):** every one of the ~34 published `event` documents is
+> now past-dated (latest 2026-08-26; today 2026-09-02). The frontend deliberately does **not**
+> hide past events (see the comment in `EventsClientPage.tsx` — changing that is a live
+> filtering-behaviour decision), so `/events` and the Home strip still render, just showing past
+> events. Owner should add upcoming events; until then the "upcoming" framing is inaccurate.
+
+Follow-up not done (LOW, flagged by the Phase B reviewer): the `lib/content-contracts/*.ts`
+`querySource:` prose still names removed queries (harmless — no script/test consumes those
+strings; `about.ts`/`home.ts`'s misleading "proposed fix / not fixed" notes WERE corrected). A
+full content-contracts accuracy refresh is a small standalone pass.
+
+## 20.9 Phase C — partially-migrated pages (2026-09-02)
+
+| Page | Outcome |
+|---|---|
+| **FAQ** | Was **not** actually a gap. `page-faq` is fully translated EN/DA/UK; `/da/faq` renders Danish end to end on a clean build. → **COMPLETE** (SEO draft still to publish, §20.7). |
+| **Volunteer** | Technical chain (schema `internationalizedArray` → `pickLocalized(...locale)` resolver → `<VolunteerApplicationButton content={applicationForm}>`) is complete. Added Studio editor-UX: `contentItem.ts` roles "Volunteer application-modal heading/placeholder" + "…message" (show only the one relevant field, human label, friendly preview label), and `pageSection.ts` hides the `applicationForm` section's own unused label/title/text. **Correction after the final review:** the roles are now marked `requiredFields` (`title`/`text`). The earlier "left un-required so the page stays publishable" note was wrong — `contentItem` `title`/`text` already carry the shared all-or-nothing i18n rule, so a row filled for EN only (which is the current state of all 4) is invalid and **blocks Studio re-publish** regardless. `requiredFields` doesn't change that; it just makes the Studio error say "Please add the Danish and Ukrainian translations." instead of the confusing "…or clear the field completely", and removes the clear-to-unblock footgun. → **CONTENT-BLOCKED.** Owner/translator must add DA/UK for `modalTitle`, `messagePlaceholder`, `successMessage`, `errorMessage` on `page-volunteer`'s `applicationForm` items before the page can be re-published from Studio. (The live published page is unaffected until someone edits it.) |
+| **Work With Us** | Same treatment as Volunteer for the 7 `cvUploadForm` items. **Also** (found in the final review): the 3 **"Why work with us" feature bullets** (`sections[features]` — `feature0/1/2`) are EN-only too, had **no** item role, and render untranslated English on `/da` `/uk`. Added a "Work With Us feature bullet" role (`icon` + `title`, `title` required) so Studio surfaces them cleanly and flags the gap. → **CONTENT-BLOCKED.** DA/UK needed for `modalTitle`, `modalTitleSent`, `description`, `descriptionSent`, `messagePlaceholder`, `dropzoneText`, `errorMessage` (`cvUploadForm`) **and** `feature0`, `feature1`, `feature2` (`features`) on `page-work-with-us` before Studio re-publish. |
+| **Terms / Privacy / Cookie** | Sections 2+ fully translated (`legalPage.body`). **Section 1 "Company details"** is a hardcoded `<h2>1. Company details</h2>` + intro sentence + field labels in `terms/page.tsx` / `privacy-policy/page.tsx` / `cookie-policy/page.tsx`. The *facts* (company name, CVR, email, address) already come from Sanity (`getCompanyContactFacts()` → `siteSettings` + `contactInfo`, verified: `companyName: RORUM`, `cvr: 46033213`, `website: ro-rum.dk`). The wrapper chrome shows untranslated English on `/da` `/uk`. **NOT changed** — removing the hardcoded block before a Sanity replacement exists would drop Section 1 from the live pages, and translating the block myself is out of bounds ("do not invent legal language"). → **PARTIAL — owner decision needed** (fold Section 1 into `legalPage.body`, or add a structured localized block). |
+
+Verification: `tsc` clean · `eslint` clean · `vitest` 528/528 · `sanity-schema-visibility.spec.ts`
+326/326 (Volunteer/WWU role + field-hide + required-field + feature-bullet tests) ·
+`cms-events-contract.spec.ts` 29/29 · clean prod build renders `/volunteer`, `/work-with-us`
+(EN + DA), `/da/faq` (fully Danish), all 3 legal pages EN/DA/UK unchanged.
+
+## 20.10 Phase D — global / shared CMS (2026-09-02, audit only — no code needed)
+
+| Area | State |
+|---|---|
+| Navigation, Footer, contactInfo, formMessages, eventMessages | **Fully CMS, trilingual.** No work. |
+| socialLinks | R3 code guard in place; **owner must delete the stray `linkedin` entry in Studio** (§20.6). |
+| Company / legal facts (`getCompanyContactFacts`) | **Already CMS** — reads `siteSettings.companyName`/`.cvr`/`.website` + `contactInfo.email`/`.shortAddress`; `lib/siteConfig.ts` is only the Sanity-unavailable fallback. Not a gap. |
+| `siteSettings.defaultSeo` | **Empty** (not defined). The site-wide default-SEO fallback tier therefore contributes nothing; each page falls to its own hardcoded English fallback. Not a code gap — an **owner content decision** (populate a trilingual default, or leave it). |
+| `siteSettings.siteUrl` | Fixed / read-only `https://ro-rum.dk` (Part 26). Correct. |
+| Shared CTAs / gallery collections | Covered by Parts 18–28; no new gap. |
+| Legal Section 1 chrome | See §20.9 (owner decision). |
+
+## 20.11 Phase E — re-audit of the 8 "fully connected" pages (2026-09-02, verification only)
+
+Re-checked Home / About / Events listing / Event detail / Catering / Event Decoration / Host at
+RORUM / Community Membership against a clean production build, EN + DA (+ UK on Home). No rebuild
+needed; no new gaps found. Confirmed: every page's section content renders from `page-*.sections`
+and is localized (h1s + body all translate); Home SEO title/description **published** EN/DA/UK;
+Event detail Event JSON-LD + share actions present; Catering 66-image gallery renders with
+**zero empty `alt`** attributes; Community Membership 2 videos + exactly 2 bank-detail Copy
+buttons + WECODA link; all pages 0 console errors. The **only** outstanding item common to
+About / Events / Catering / Event Decoration / Host / Community is that their published
+`page-*.seo` is still empty → `<title>`/description render the (correct) per-page English
+fallback on every locale until the §20.7 drafts are published.
+
+## 20.12 Phase F — unified Formspree form delivery (Task 4, 2026-09-02)
+
+**One endpoint, one Formspree form, one recipient, for every form on the site.**
+
+### What changed (code, all in the local working tree)
+
+| File | Change |
+|---|---|
+| `lib/formspree.ts` | Kept `submitToFormspree()` (the network boundary) unchanged. Added `RORUM_FORMS` (the single registry of `form_name` + `[RoRUM] <type>` subject for the 6 forms) and `applyFormspreeMetadata(formData, key, {locale})` — a pure function that stamps `form_name`, `subject`, `_subject` (Formspree's real Subject field), `locale`, `page_url` onto the FormData. No recipient anywhere. |
+| `lib/useFormspreeSubmit.ts` | **New.** The one hook every form's submit goes through: `applyFormspreeMetadata` → `submitToFormspree` → success/error/`sent` state + `submissionLock` + reset-only-on-confirmed-success. `FORMSPREE_NOT_CONFIGURED` → `messages.formNotConfiguredMessage`; other failure → the form's own Sanity `errorMessage` if it has one, else `messages.formSubmitFailedMessage`. |
+| `components/ContactForm.tsx` | Switched from its inline `submitToFormspree` call to `useFormspreeSubmit("contact")`. Hidden `form_name`/`subject`/`_subject` updated to the standardized strings (no-JS fallback). |
+| `components/VolunteerApplicationForm.tsx` | `useFormspreeSubmit("volunteer", { failedMessage: content.errorMessage })`. Hidden inputs updated. |
+| `components/CvUploadModal.tsx` | **Removed the fake `submitCvApplication()` (500 ms `setTimeout`).** Now `useFormspreeSubmit("workWithUs", …)`; the validated CV is attached as `formData.set("cv", file)` for the multipart POST. Removed the hardcoded `mailto:rorum2025@gmail.com`. `closeLabel` "CV application" → "Work With Us application". |
+| `components/CateringInquiryForm.tsx` | **Removed the bare `setSent(true)` + `form.reset()`.** Now `useFormspreeSubmit("catering")`, async submit, error `role="alert"`, `disabled` while submitting. |
+| `components/InquiryForm.tsx` | **Removed the bare `setSent(true)`.** `FORMSPREE_KEY_BY_TYPE` maps `booking → hostAtRorum`, `decoration → eventDecoration`, `default → catering`. Async submit, shared error UI + submitting state on both render branches. The `?package=` deep-link `setTimeout` (unrelated to submission) is untouched. |
+| `.env.example` | `FORMSPREE_RECIPIENT_EMAIL=lopatina.iryna@gmail.com` + expanded comments. |
+
+### Subjects & metadata sent
+
+| Form | `form_name` | `subject` / `_subject` |
+|---|---|---|
+| Contact | `Contact request` | `[RoRUM] Contact request — {name}` |
+| Volunteer | `Volunteer application` | `[RoRUM] Volunteer application — {name}` |
+| Work With Us | `Work With Us application` | `[RoRUM] Work With Us application — {name}` |
+| Catering | `Catering inquiry` | `[RoRUM] Catering inquiry — {name}` |
+| Event Decoration | `Event Decoration inquiry` | `[RoRUM] Event Decoration inquiry — {name}` |
+| Host at RORUM | `Host at RORUM inquiry` | `[RoRUM] Host at RORUM inquiry — {name}` |
+
+Plus `locale` (`en`/`da`/`uk`), `page_url`, and each form's own fields. Subjects are English on
+every locale (one consistent Gmail-filter convention); the ` — {name}` suffix is additive and the
+form type is always first. Website success/error/unavailable copy stays localized via `formMessages`.
+
+### Tests (all green)
+
+- **Unit** (`vitest`): `lib/formspree.test.ts` (metadata construction, configured-endpoint POST to
+  the exact URL, non-ok → `FORMSPREE_SUBMISSION_FAILED`, unconfigured → zero network, "no
+  recipient / `_replyto` / `_to` in payload"); `components/{ContactForm,VolunteerApplicationForm,
+  CvUploadModal,CateringInquiryForm,InquiryForm}.test.tsx` (per form: routed through
+  `submitToFormspree`, `form_name`, standardized `subject`/`_subject`, `locale`, own fields
+  present, success→UI+reset, failure→no false success + input kept, missing endpoint→no network
+  + no false success, no double-submit; InquiryForm covers the Host **and** Event Decoration
+  variants — decoration failure + not-configured included); `components/forms-delivery-contract.test.tsx`
+  (every form uses `useFormspreeSubmit`, no `fetch(`, no fake `setTimeout`-success, no bare
+  `setSent(true)`, no email address anywhere in `app/`, `components/` or `lib/`; CV subject is
+  "Work With Us application", never "CV application").
+- **End-to-end** (`tests/forms-formspree.spec.ts`, real production build, Sanity media blocked):
+  all 6 forms — Contact, Catering, Event Decoration, Host at RORUM (booking), Volunteer (modal),
+  Work With Us (CV modal, real PDF attached) — a valid submit shows the localized "unavailable"
+  alert (from production `formMessages`), never a `role="status"` success, keeps the typed name,
+  and makes **zero requests to formspree.io**.
+
+### OWNER CONFIGURATION — the only remaining step
+
+At the time this was written, the recipient below was set to the developer's own address
+(`lopatina.iryna@gmail.com`) for development/testing — the client must replace it with their own on
+transfer.
+
+1. In Formspree, create **one** form (or reuse an existing one).
+2. Set that form's **recipient** to the client's own inbox (in the Formspree dashboard — not in
+   code; see `.env.example`'s `FORMSPREE_RECIPIENT_EMAIL` for the documented/intended address).
+3. Copy the form's endpoint (looks like `https://formspree.io/f/xxxxxxxx`).
+4. Set `NEXT_PUBLIC_FORMSPREE_ENDPOINT=<that endpoint>` in `.env.local` **and** in the deployment
+   environment. Redeploy.
+5. Leave the form's **"Subject" setting at its default** in Formspree — the app already sends a
+   standardized `_subject` per form; a custom Subject in the dashboard would override it.
+
+No file-upload setting is needed — Work With Us was later rebuilt as a fully text-based application
+(no CV/file field anywhere; see §20.2 row 10). The step that used to be here (enable File Uploads,
+test-send a CV attachment) no longer applies.
+
+No second form, no per-form endpoints, no code change. After step 4 the forms switch from the
+"not available yet" message to real delivery automatically.
+
+## 20.13 Phase G — Studio field-visibility allow-list + section-order verification (2026-09-03)
+
+**Owner's complaint:** on `/events`, the "Upcoming Events" section (its H1) showed Label,
+Buttons, Photos and Items in Studio even though the frontend reads only the Title. Symptom of a
+systemic modelling issue, not a one-off.
+
+**Root cause.** `pageSection.ts` decided field visibility by `sectionKind` (loose — e.g. every
+`hero`-kind section showed label/title/text/media/actions/items) and then patched the exceptions
+back out with a growing pile of per-document constant Sets
+(`SECTION_FIELD_FORCE_HIDDEN`, `CONTACT_HERO_FORCE_HIDDEN_FIELDS`, `HERO_MEDIA_ITEMS_FORCE_HIDDEN_FIELDS`,
+`COMMUNITY_MEMBERSHIP_*`, `EVENTS_FILTERS_*`, `ABOUT_TEXT_FORCE_VISIBLE_SECTION_KEYS`, …). A section
+only got its irrelevant fields hidden if someone had already written a constant for it —
+`page-events:hero` never had one, so it showed everything.
+
+**Fix — explicit allow-list.** `sanity/schemaTypes/objects/pageSection.ts` now has one
+`SECTION_FIELD_VISIBILITY` map keyed `<page-id>:<sectionKey>` → exactly the `pageSection` fields
+that section's own `getData()`/resolver reads (49 concrete sections, audited field-by-field
+against every `app/[locale]/(site)/*/page.tsx` + the live published document). `fieldHidden()` is
+now: *explicit allow-list entry if there is one, else the looser `SECTION_KIND_FALLBACK_VISIBILITY`
+by kind* — so an un-audited or brand-new section, and the open manager-extensible sets (menu
+categories, FAQ categories), are never over-hidden by omission. All ~10 per-document constant Sets
+are deleted.
+
+**Upcoming Events, before → after:**
+
+| Section | Before (Studio showed) | After |
+|---|---|---|
+| `/events` hero ("Upcoming Events at RORUM") | Small label, Title, Text, Photos/video, Buttons, Items | **Title only** |
+| Home "eventsStrip" | Small label, Title, Buttons | Small label, Title, Buttons (unchanged — the frontend does read all three) |
+
+**Other sections corrected** (populated-but-hidden or empty-and-irrelevant fields, per
+`npm run sanity:audit-sections`): About `statement`/`community` (dropped empty Small label);
+Catering `hero` (Photos), `menuFormats`/`inquiryForm` (Small label), `philosophy` (Small label +
+Buttons); Catering Menu Examples `banner` (Small label/Text/Buttons), `closing` (Small label/Buttons);
+Community Membership `benefits` (Small label), `application` (Small label), **`gallery` — its
+heading was hidden-but-rendered, now shown**; Contact `hero` (Photos/Buttons); Event Decoration
+`hero` (Photos/Items), `styling` (Buttons), `inquiryForm`/`steps`; Events `hero` (see above),
+`filters` (Small label/Title — items only); Host at RORUM `gallery` (down to Photos only),
+`session` (Text/Buttons), `packages` (Buttons); Volunteer/Work With Us form sections (items only);
+Work With Us `features` (items only). Full table: `npm run sanity:audit-sections`.
+
+**Obsolete stored data found, intentionally preserved** (hidden from editors, not deleted — the
+`variant` flag on 4 sections is stored but never read; the frontend hardcodes the variant in JSX):
+`page-home:closingCta.settings` (`variant=final`), `page-about:closingCta.settings` (`variant=final`),
+`page-events:closingCta.settings` (`variant=host`), `page-home:editorialHostAtRorum.settings`
+(`variant=reversed`). No production write. A future cleanup could `unset` these 4 `settings`
+arrays; there is no urgency since they're hidden and inert. `page-contact:form.settings` is the
+ONLY section whose `settings` is genuinely read (`privacyConsentShown`/`Required`,
+`faqPromptShown` via `getSetting()`) — there the raw field stays hidden because the friendly
+`ContactFormSectionInput` card is the editor interface for those toggles.
+
+**Section order (Studio = website).** The frontend looks sections up by key, so the stored
+`sections[]` array order is purely the Studio display order. `npm run sanity:audit-sections`
+(a **local / pre-release** check — it needs `.env.local` + a Sanity token, so it does NOT run in
+plain `npm test` / CI) checks each page's stored order against its rendered order
+(`EXPECTED_SECTION_ORDER`) — **all 10 routed pages already match; 0 drift** as of 2026-09-03. No
+reorder needed. FAQ / Catering-Menu-Examples have an open-ended set of category sections after the
+first section — order within that set is editorial.
+
+**Field order within a section** (`sectionKey`, `sectionKind`, then `label` → `title` → `text` →
+`media` → `actions` → `items` → `settings`) already follows editorial order (eyebrow, heading,
+description, image, buttons, list, advanced) — unchanged.
+
+**Tests:** `tests/sanity-schema-visibility.spec.ts` — the old 15-row `cases` table is replaced by
+(1) a data-driven loop over every `SECTION_FIELD_VISIBILITY` entry (published + draft id) asserting
+the schema's `hidden` callback agrees field-by-field, (2) an independent hand-written
+"expected reality" spot-check for 20 sections incl. the owner's exact example, (3) the owner's
+literal wording (`/events` "Upcoming Events" hides Label/Buttons/Photos/Items), (4) fallback tests
+(un-listed section → kind fallback; open sets; unshaped section → everything visible), (5) a
+1:1 map-vs-live check against a hand-maintained `liveSections` snapshot (catches stale keys / a
+new section added to the map without a live counterpart; update the snapshot when sections
+change). All of (1)–(5) run in plain `npm test` with no Sanity access.
+New read-only script `scripts/audit-page-sections.ts` (`npm run sanity:audit-sections`) — a
+**local / pre-release** check (needs `.env.local` + a Sanity token, so NOT part of CI): it
+compares the *live* dataset field-by-field against the schema resolver (`resolveVisibleSectionFields`),
+and fails on any populated-but-hidden field, stale key, or section-order drift.
+
+**Files:** `sanity/schemaTypes/objects/pageSection.ts` (rewritten visibility model),
+`tests/sanity-schema-visibility.spec.ts`, `scripts/audit-page-sections.ts` (new), `package.json`
+(new script). No schema field added/removed; no `sanity.types.ts` change; no production content
+touched.
+
+## 20.14 Phase H — Presentation Tool + secure Draft Mode preview (MIGRATION_REPORT Parts 29–31)
+
+Editors preview **unpublished drafts** on the real frontend inside Studio's **Presentation**
+view before publishing (§18 "Publish works" is now testable without guessing what a change
+will look like), with click-to-edit overlays on **every visible editorial element** — hero
+headings, eyebrows, paragraphs, buttons, section copy, footer, nav, and the Home hero image —
+in EN, DA and UK. Read-only Viewer token (`SANITY_API_READ_TOKEN`) is used for both server
+draft reads and the draft-only browser live connection; the Editor write token is never in
+the Next.js runtime. Normal visitors are unaffected — published content only, no stega, no
+static-generation regression, no deprecation warnings (`middleware.ts` → `proxy.ts`,
+`@sanity/image-url` named import).
+
+Part 30 root cause: stega encoding was polluting the `sectionKey`/`itemKey`/`kind`
+discriminators that `lib/sanity-sections.ts` matches with `===`, which broke every page-body
+lookup in Draft Mode (fell back to hardcoded English — no overlay, no localization). Fixed
+with `sanity/lib/stegaFilter.ts` (a `stega.filter` excluding those non-editorial fields).
+
+**Part 31 completed the non-text coverage.** Text carries its overlay via stega; images,
+galleries, editor-picked icons and event banners get an explicit `data-sanity` (Draft Mode
+only) via `sanity/lib/dataAttr.ts` — three wrappers over `sanityFieldAttr`
+(`sanitySectionMediaAttr` / `sanitySectionItemAttr` / `sanityEventImageAttr`), stable
+`_key`-based field paths, whole-`mediaItem`/`contentItem` focus. Now click-to-edit: Home
+(hero, quick paths, editorial section images, services cards, community bg), About
+(atmosphere images), Events (card + detail banner — only when the event has its own asset),
+Catering (gallery, menu-format cards, philosophy image, menu-examples banner + dishes),
+Event Decoration (gallery, styling image), Host at RORUM (gallery, session image), Community
+Membership (benefit cards, donation QR, gallery mosaic). Intentionally static: hardcoded
+WECODA logos, structural Lucide icons, the Contact map, header/footer social icons, all
+static fallback images. Tests: `tests/draft-mode.spec.ts` 19/19 (per-page image-annotation
+assertions verifying doc id + type + `_key` path + no positional indexes; published pages
+still assert 0 `[data-sanity]`), `sanity/lib/dataAttr.unit.test.ts` new. `npx next build`
+still all-SSG. See MIGRATION_REPORT.md Part 31.
+
+**Owner action:** `SANITY_API_READ_TOKEN` is configured locally; add it to the Netlify env
+and register the site as a CORS origin in sanity.io/manage. Upload a Social Sharing Image on
+`page-catering` (clears 3 pre-existing `cms-catering-contract` failures). No new Part 31
+owner action.
+
+---
+
+## 20.15 Phase I — full-dataset validation integrity audit + repair (2026-09-08)
+
+The owner hit a real Studio wall: editing **Community Membership** to add gallery media,
+Publish was blocked by 9 unrelated *"English alt text is required"* errors on the existing
+**Benefit** card images.
+
+**Authoritative audit tool** (new, read-only): `npm run sanity:audit-validation` wraps
+`sanity documents validate` (the official headless runner — real studio schema, every custom
+rule, every skip-when-hidden predicate, published **and** drafts) and classifies + separates
+genuine blockers from owner-content-decision docs. Exits non-zero only on a genuine blocker.
+`npm run sanity:audit-validation -- --warnings` also lists the non-blocking backlog.
+
+**Initial state:** 58 genuine blocking error markers across 6 documents (+2 test events).
+
+**Schema fixes** (no validation weakened globally — both narrowly scoped):
+
+- `sanity/schemaTypes/objects/imageWithAlt.ts` — `DECORATIVE_CONTENT_ITEM_IMAGE_ROLES` now
+  also covers `page-community-membership` benefit-card images (`benefits` / `benefitN`).
+  Those render `<Image alt="" aria-hidden="true">` (decorative icon beside a visible
+  `<h3>`/`<p>` — see `community-membership/page.tsx`), so alt text there is never announced;
+  requiring it only ever blocked Publish on legacy content and forced fake descriptions.
+  Document-scoped, same shape as the existing Home quickPaths/servicesTeaser exemption — About
+  and every other page keep alt required.
+- `sanity/schemaTypes/objects/ctaLink.ts` — an **entirely-empty** `siteSettings.announcementLink`
+  is now valid (a partially-filled one must still be completed). That field is `hidden` unless
+  the announcement banner is on, but its nested `href`/`label` `required()` rules still fired,
+  so a Studio-scaffolded empty link left behind after the manager turned the banner off made
+  `drafts.siteSettings` permanently un-publishable — the classic hidden-but-validated bug.
+  Scoped to `siteSettings` by document type; `serviceHero` / `editorialFeature` /
+  `nextStepSection` ctaLinks are untouched.
+
+**Data repairs** (`npm run sanity:repair-validation-integrity` — dry-run default, backs up
+every target to `scripts/backups/` before `--apply`, `ifRevisionId`-guarded, published + draft):
+
+- `page-community-membership` — `donation` bank-detail rows `bank0..bank8` `title`: added DA + UK
+  (standard banking labels; CVR/IBAN/SWIFT-BIC kept verbatim). `bank4.title`: dropped 2 stray
+  valueless i18n entries (Studio residue → "Required" on `.language`). `application.text`:
+  added DA + UK (one sentence).
+- `page-volunteer` — hero media alt + the 4 `applicationForm` modal-copy rows: DA + UK.
+- `page-work-with-us` — 2 hero media alts, the 3 `features` bullet titles (wording taken from
+  the section's own already-approved DA/UK hero paragraphs), and the 7 `cvUploadForm` modal-copy
+  rows: DA + UK. Closes the §20.9 EN-only gap for both pages.
+- `socialLinks` (published) — removed the obsolete `linkedin` row. RORUM's "no LinkedIn in the
+  shared social list" decision was already in `drafts.socialLinks` + `socialLink.ts`'s
+  `SELECTABLE_PLATFORMS`; this makes the published doc match so the live audit is clean.
+- `drafts.siteSettings` — deleted (confirmed pure empty Studio residue; every field differed
+  from the clean published doc only by a valueless stub). Published `siteSettings` untouched.
+
+**Result:** `npm run sanity:audit-validation` → **BLOCKING VALIDATION ERRORS: 0.**
+
+**Owner content decisions (still open, do not block any other document):**
+
+- Events `4db90711` (`one-more-event-test`) and `4112b7ff` (`a-new-event-at-the-rorom`) were
+  **test/demo events** — **deleted in Phase B (§20.16)** per explicit owner authorization.
+- Non-blocking warning backlog (pre-existing, `-- --warnings`): 11 orphaned legacy singleton
+  documents (`homePage`/`aboutPage`/… — the index comment's "their documents were already
+  gone" is inaccurate), a stray `event.host` field on ~35 events, `formMessages.privacyConsentLabel`.
+  None block Publish; cleanup only.
+
+Tests: `tests/sanity-schema-visibility.spec.ts` +7 (benefit decorative-alt exemption incl.
+document-scope guards; empty-announcementLink validity incl. the partially-filled + other-doc-type
+guards). Typecheck / ESLint / Vitest 615 / `next build` all green.
+
+---
+
+## 20.16 Phase B — test-event deletion + final Studio UX audit (2026-09-08)
+
+**Phase A — deleted the two test events** the owner authorized:
+
+| Slug | Base id | Copies removed |
+|---|---|---|
+| `one-more-event-test` | `4db90711-eb57-4388-930e-f9c70a3bd3bf` | published + draft |
+| `a-new-event-at-the-rorom` | `4112b7ff-3205-48f6-8c06-40d7a3d29642` | draft only (never published) |
+
+No inbound references anywhere in the dataset (checked pre-delete). Full documents backed up to
+`scripts/backups/deleted-test-events-*.json`. Published event count 33 → 32. `scripts/delete-test-events.ts`
+(dry-run default, slug + type + reference gates, backup before delete). `audit-validation.ts`'s
+`OWNER_DECISION_DOCS` emptied. `sanity:audit-validation` → **0 blocking, 0 owner-decision markers.**
+
+**Phase B — full Studio UX audit.** The visibility architecture (Phase G §20.13 allow-list +
+`ITEM_ROLE_RULES` + Events-filter groups) was found in good shape: `sanity:audit-sections` reported
+**0** populated-but-hidden fields, 0 section-order drift, 0 stale keys; `sanity:audit-validation`
+**0** blockers; the Events-filter Studio model (`EventsFiltersInput` + `shared/eventFilterDefinitions.ts`)
+already implements 4 manager-facing groups with editable localized labels, in-group reorder, and a
+fixed closed semantic set (no add/duplicate/remove, stable `value`s never editable). Fixes made:
+
+- **`page-events` `filters` — 1 unrecognized Studio-residue row** (empty `contentItem`, `_key`
+  `1c3dfe879f0a`, no `itemKey`) removed from published + draft. It rendered as a confusing
+  unlabelled "Other items" card and was read by nothing. `scripts/clean-events-filters-residue.ts`
+  (backup + revision guard). `audit-page-sections.ts` **extended** with a `CLOSED_ITEM_SETS` check
+  that now fails on any unrecognized row in `page-events:filters`.
+- **`pageSection.sectionKind` dropdown + preview subtitle** — showed raw identifiers
+  (`servicesTeaser`, `iconGrid`, …). Now plain-language via `SECTION_KIND_TITLES`
+  ("Services teaser", "Icon + text cards", …); stable `value`s unchanged; unknown kinds still
+  fall back to the raw value.
+- **`legalPage` Studio preview** — was `"Legal page — privacy-policy"`; now the entered English
+  title, or the human page name ("Privacy Policy" / "Terms" / "Cookie Policy") as a fallback.
+- **`sanity.config.ts` `newDocumentOptions`** — `galleryCollection` / `faqGroup` /
+  `cateringMenuCategory` (superseded document types, 0 live docs, unreferenced, not in the desk)
+  removed from the generic "+ Create" menu. Type definitions left registered so any stray legacy
+  document still renders with a schema; deleting the types is a separate dead-code cleanup.
+- **`isCorrectlyShapedSection` (`pageSection.ts`)** — post-review hardening: `sectionKey`/`sectionKind`
+  now hide only once a section has **both** (was: `sectionKind` alone). Both fields carry
+  `rule.required()`, so hiding one while the other is still empty was a latent hidden-required
+  blocker — the exact class Part 32 chased elsewhere. Every live section has both, so no visible
+  change; only a half-formed section now keeps showing the field it still needs.
+
+`structure.ts` desk order verified against site IA — Site singletons, then Pages in
+Home → About → Attend Events → Catering → Menu Examples → Event Decoration → Host → Community
+Membership → Volunteer → Work With Us → Contact → FAQ → legal — correct, no change. Field order
+within `pageSection` (label → title → text → media → actions → items → settings) and `contentItem`
+already editorial.
+
+Tests: `tests/sanity-schema-visibility.spec.ts` +4 (sectionKind friendly-title coverage; legalPage
+preview) and 1 updated (non-faqCategory subtitle now asserts the plain-language name). Typecheck /
+ESLint (0 errors) / Vitest 615 / `next build` (147 static pages) / `sanity:audit-sections` /
+`sanity:audit-validation` all green.
+
+---
+
+## 20.17 Phase C — Community Membership localization, page-events draft, legacy cleanup (2026-09-09)
+
+### A. Community Membership localization
+
+**Root cause of the manager's "English-only / raw Add item" complaint:** `RoleAwareAllLanguagesInput`
+only forced the always-EN/DA/UK input for FAQ / Contact / Events roles — every localized field on
+`page-community-membership` fell through to the plugin's English-only default (manager has to
+"+ Add language" twice per field). **Fix:** `CateringAllLanguagesInput` now checks
+`ALWAYS_ALL_LANGUAGES_DOCS` (was a single `page-catering-menu-examples` id) — `page-community-membership`
+added — and it is now also the `components.input` for `ctaAction.label` (so CM's CTA button labels
+get the 3 explicit rows too; every other page's CTA editing chains through to the plugin default
+unchanged). Every localized field on Community Membership now shows explicit English / Danish /
+Ukrainian inputs.
+
+**Content that was English-only (empty in Sanity → hardcoded fallback rendered on /da /uk),
+now EN+DA+UK** (`scripts/backfill-community-membership-donation-copy.ts` — EN written verbatim from
+the existing frontend fallback so English visitors see no change; DA/UK are new):
+donation `label`/`title`/`text`; donation message rows `scanText` / `scanSubtext` / `orText` /
+`bankTransferText` / `bankDetailsTitle` / `supportText`; `intro` `label`/`title`; `gallery`
+`label`/`title`; `benefits` `label`. 14 fields, published only (no draft exists). Bank row VALUES
+untouched (single-source, never localized); bank row LABELS already EN/DA/UK from Part 32.
+
+**Frontend wiring:** the `benefits` section eyebrow "Membership Benefits" was a `.tsx` literal —
+now read from `benefitsSection.label` (allow-list `page-community-membership:benefits` gains
+`label`), fallback-backed. Donation message rows got `fieldLabels` ("Message text" / "Closing
+note") so the field inside each labelled row reads clearly.
+
+### B. `drafts.page-events` filter-order draft — INSPECTED ONLY, not published or discarded
+
+`drafts.page-events` contains **exactly** two filter-option reorders and nothing else
+(`sections` are byte-identical once filter items are sorted by `itemKey` — no text edits, no
+group-order change, no Price/Availability change):
+
+| Group | Published (live) order | Draft order |
+|---|---|---|
+| Date options | Soonest first → This week → This month | This week → This month → Soonest first |
+| Language options | Danish → English → Ukrainian | Ukrainian → English → Danish |
+
+**Recommendation: DISCARD.** "Soonest first" is the natural primary date sort and belongs first;
+the draft reads like an un-published drag experiment, not deliberate editorial work. Left for the
+owner to publish or discard in Studio — **this task did not touch it.**
+
+### C. Legacy cleanup (all read-first-verified, backed up)
+
+- **`event.host`** (35 events): not in `event` schema, grep-verified unread by any frontend/lib/query
+  code. Unset (`scripts/remove-legacy-unknown-fields.ts`). No more "Unknown field found: host".
+- **`formMessages.privacyConsentLabel`**: superseded by `privacyConsentPrefixText` (frontend reads
+  the prefix + a Privacy Policy link, never `privacyConsentLabel`). Unset.
+- **11 orphaned legacy `*Page` drafts** (`drafts.homePage` … `drafts.faqPage`): dead schema types,
+  no published counterpart, each redundant with its `page-*` replacement. Deleted via the existing
+  `sanity:delete-orphaned-legacy-singleton-drafts` (atomic, revision-guarded, backed up).
+- **`sanity.previewUrlSecret` documents**: audited — 0 present in the dataset (these are
+  ephemeral Presentation-tool tokens Sanity auto-expires). Nothing created or deleted here.
+- **6 dead schema TYPES removed outright** — `galleryCollection`, `faqGroup` (+`faqItem`),
+  `cateringMenuCategory` (+`cateringMenuItem`), `serviceHero`, `editorialFeature`, `nextStepSection`:
+  0 live documents, 0 references, never wired to any field (typecheck confirms). Files deleted,
+  `schemaTypes/index.ts` + `sanity.config.ts` create-menu cleaned, `sanity typegen` regenerated
+  (56 → 48 schema types). `ctaLink` now has exactly one consumer (`siteSettings.announcementLink`).
+
+**Result:** `sanity:audit-validation` 0 blocking · `sanity:audit-sections` clean · warning backlog
+cleared (0 events with `host`, 0 `privacyConsentLabel`, 0 legacy `*Page` docs). Typecheck / ESLint
+(0 errors) / Vitest 617 / `next build` (147 pages) / relevant Playwright (incl. new
+`cms-community-membership-contract` + `legacy-schema-cleanup`) all green.
+
+---
+
+## 20.18 Part 35 — event UX, past-event hiding, forms, filter reorder, fixed EN/DA/UK inputs (2026-09-09)
+
+Full detail: **MIGRATION_REPORT.md Part 35.** Studio/CMS-relevant highlights:
+
+- **Fixed EN/DA/UK inputs everywhere (Phase 11B):** `CateringAllLanguagesInput` now renders the
+  3 fixed language rows for **every `page-*` / `legalPage-*` document** (was a 2-id allow-list) —
+  no "+ Add language", no remove-language, on `pageSection`/`contentItem`/`ctaAction`/
+  `imageWithAlt` localized fields. `event` keeps additive `visibleLocales`.
+- **"Add item" role shapes (Phase 6):** the "suitable for" gallery chip + menu-format card
+  `ITEM_ROLE_RULES` patterns are now optional (`/^(suitableFor\d*)?$/` etc.) so a manager-added
+  row gets the sibling shape (icon + EN/DA/UK title), not every generic field.
+- **Events filter reorder (Phase 12):** `EventsFiltersInput` renders option rows in stored order —
+  Move up/down now visibly applies. Frontend resolver unchanged.
+- **"Show on the site" toggle (Phase 8):** `community-membership/page.tsx` now honours
+  `ctaAction.enabled` for the WECODA link / support / apply CTAs.
+- **Studio delete (Phase 1):** `sanity/lib/studioDocumentActions.ts` (unit-tested) — `event` is
+  deletable, singletons / `page` / `legalPage` are not.
+- **Production writes:** 32 event `date`s redistributed to Sept–Oct 2026 (temporary test data);
+  `formMessages.guestsRangeMessage` → "1 and 12"; `page-community-membership` `benefits.text`
+  (icon attribution) + `donation.label` uk restored to "Пожертва". All backed up.
+- **Audit tool:** `sanity:audit-sections` now flags partial EN/DA/UK on page docs (Phase 13).
+
+---
+
+## 20.19 Part 36 — Billetto ticketing integration (2026-09-11)
+
+Full detail: **MIGRATION_REPORT.md Part 36** + **`BILLETTO_TICKETING.md`** (manager + dev guide).
+Studio/CMS-relevant:
+
+- **New `event` field `billettoEventUrl`** (string). Paste the Billetto event page URL — ticket
+  availability then updates automatically from the Billetto API; the numeric event id is derived
+  in code, never a manager field.
+- **`ticketUrl` / `ticketsLeft` / `isSoldOut` are hidden** on a Billetto-connected event (a valid
+  URL — a typo doesn't hide them). `BillettoTicketNotice` shows a green "managed automatically"
+  card. `ticketUrl` empty ⇒ the Billetto link is the "Buy ticket" destination.
+- **`ticketButtonLabel` now has an `initialValue`** — EN "Buy Ticket" / DA "Køb billet" / UK
+  "Купити квиток" (the wording already in `eventMessages.buyTicketLabel`). New events only;
+  existing custom labels untouched.
+- **Credentials** (`BILLETTO_API_KEY_ID` / `BILLETTO_ACCESS_KEY_SECRET`) are server-only env,
+  configured once in hosting, never per event, never `NEXT_PUBLIC`. Verified absent from the
+  client bundle + rendered HTML.
+- **Production write:** ONE event connected (`event-ddc618d18d7c` / `floral-mood-workshop` →
+  Billetto test event 1994849) via `sanity:connect-test-event-billetto` (backed up).
+- Audits: `sanity:audit-validation` 0 blocking, `sanity:audit-sections` clean.
+
+---
+
+## 20.20 Part 37 — Event description rich-text migration (2026-09-14)
+
+Full detail: **MIGRATION_REPORT.md Part 37.** Current contract:
+
+- `event.formattedDescription` is the only active Event detail description
+  field. It is fixed EN/DA/UK Portable Text with the existing selected-locale
+  validation behavior.
+- Studio starts with Website languages, Event title, Slug, Event image, Event
+  Detail image, Formatted description. Localized formatted descriptions use
+  Sanity's native Portable Text member editor (not the primitive-only Event
+  string/text control), so stored blocks remain structured and editable with
+  the configured heading, emphasis, list and link tools. The legacy basic-info
+  fieldset no longer hides these fields.
+- The Event page, Studio SEO preview, metadata, sharing and JSON-LD all derive
+  from the same formatted content. Existing images and image fields were not
+  changed by this migration.
+- Production: 38/38 raw documents have meaningful EN/DA/UK formatted content;
+  108 locale rows were migrated with backups and exact readback. The old field
+  was removed from 36 documents where equivalence was proven. Two documents
+  retain dormant raw legacy values because five locale rows genuinely differ;
+  they are outside the active schema/runtime and were preserved to avoid data
+  loss.
+
+---
+
+## 20.21 Part 38 — Event spoken-language multi-select (2026-09-14) — MIGRATED
+
+- `event.language` keeps its existing field name and human-readable values, and is now an optional
+  array-of-string checklist (checkbox grid) supporting English, Danish, and Ukrainian together.
+  Duplicate and out-of-list values are rejected by both the schema's own validation and the
+  frontend's `normalizeEventLanguages()`. This remains completely independent from `visibleLocales`
+  (confirmed live: the production document `test-5-event` has `language: ["English","Danish",
+  "Ukrainian"]` but `visibleLocales: ["en","uk"]` — Danish excluded from site visibility despite
+  being one of the event's spoken languages).
+- **Production migration applied and independently re-verified twice** (`sanity:migrate-event-languages`):
+  36/39 documents migrated scalar → singleton array, 0 failures, each write read back individually
+  by the script. A second, independent raw-perspective read confirmed the final state: 0 scalar
+  values remain; 37 documents have array values (36 migrated singletons + the one pre-existing
+  3-language document, `test-5-event`, untouched); 2 documents (draft + published of the
+  `rorum-sold-out-test` fixture) have no `language` at all — a legitimate, pre-existing gap, not a
+  migration failure. Re-running the dry-run afterward reported 0 pending (idempotent, complete).
+  A third read (this session, `perspective: "raw"`) reproduced the identical 39/0/37/2 counts.
+- **Runtime simplified now that rollout is complete**: `normalizeEventLanguages()` in
+  `lib/eventLanguage.ts` no longer accepts a scalar string — it is now `(value: readonly string[] |
+  undefined | null) => string[]`. This was verified safe by auditing every remaining producer of
+  `event.language`: `lib/data.ts`'s static fallback data (all `string[]`), `scripts/import-content.ts`
+  (spreads an already-`string[]` source), and `lib/sanityEvents.ts`'s own default fallback (changed
+  from the bare string `"English"` to `["English"]`) — no other code path fed this function a
+  scalar. The function still filters out unrecognized/duplicate array items, so a future
+  out-of-band write that somehow reintroduced a scalar would now be dropped as invalid input rather
+  than silently wrapped.
+- Event Detail joins localized language names with commas (`getEventLanguagesLabel`) — verified for
+  1/2/3 languages both by unit tests and live against a real migrated production event (see below).
+  Listing options flatten all event arrays (`flattenAvailableEventLanguages`); filtering uses
+  membership semantics (`eventMatchesLanguage`, `.includes()`), verified live: selecting the
+  "Ukrainian" filter on `/events` correctly narrows to exactly the events whose `language` array
+  contains `"Ukrainian"` (multi-language events would match every one of their selected languages).
+  JSON-LD's `inLanguage` (`getEventLanguageCodes`) is derived from the same resolved array — verified
+  live for a real migrated event (`1st-ukrainian-business-forum-in-denmark-2026`, `language:
+  ["Ukrainian"]`): rendered `inLanguage: "uk"`.
+- Studio: the `language` field renders as a checkbox grid (`options.list` + `layout: "grid"`, no
+  `layout` override needed beyond that for the native multi-select), titled "Event languages"
+  (plural), with a description explicitly stating "Select all languages spoken at this event" and
+  cross-referencing `visibleLocales` to prevent confusion between the two. Live Studio verification
+  was attempted and blocked by Sanity's own OAuth login wall (GitHub/Google/email — no credentials
+  available in this environment); confirmed via schema source instead.
+- No production dataset mutation was performed by this pass — only read-only verification queries.
+
+## 20.22 Part 39 — Formspree email readability, all 6 forms (2026-09-19)
+
+Not a Sanity migration — a Formspree-delivery correctness/consistency pass (`lib/formspree.ts` +
+`lib/useFormspreeSubmit.ts`), recorded here because it's the same shared forms infrastructure
+audited in §20.12.
+
+- **Root cause, verified against a real Formspree Free-plan submission** (not assumed): the earlier
+  "duplicate subject" came from stamping BOTH a plain `subject` field and the undocumented `_subject`
+  onto every submission. Formspree's own docs (`email-subject-line`, `email-reply-to-address`)
+  document exactly `subject` (email Subject header) and a field literally named `email` (Reply-To) —
+  `_subject`/`_replyto` are not documented anywhere and, confirmed live, still show up as ordinary
+  visible fields rather than being hidden. Switched to the documented `subject`/`email` fields
+  everywhere; dropped `_subject`/`_replyto`/`form_name` entirely (subject already identifies the form
+  type, so `form_name` was redundant).
+- **New finding, verified live**: Formspree renders the notification email and the submissions
+  dashboard with fields sorted **alphabetically by field name**, not in FormData submission order —
+  not documented, not configurable on the Free plan. So field **order** cannot be controlled without
+  an artificial naming trick (explicitly ruled out — no numeric prefixes, no invisible characters).
+  Field **labels** ARE controllable (the field name IS the label on the default template), so that's
+  the entire lever this pass uses.
+- `lib/formspree.ts`'s new `humanizeFormFields()` relabels every submitted field to a human-readable
+  key (`eventDate` → "Event Date", `roleInterest` → "Interested in", etc. — override table + a
+  generic camelCase/snake_case splitter for anything else, including a manager-added Sanity Contact
+  field this file can't know about in advance) — except `email`/`subject`/`privacyConsent`, which
+  keep their functional meaning. `applyFormspreeMetadata()` now always appends a "Submission details"
+  group (Language/Page/Consent/Submitted — English locale names, Yes/No, a readable timestamp) in
+  place of the old raw `locale`/`page_url`/`privacyConsent`. Both run inside
+  `useFormspreeSubmit.submit()` itself — every one of the 6 forms gets this for free with no
+  component-level changes (Work With Us's earlier bespoke per-field renaming was removed again as
+  redundant once this became the shared, centralized behavior).
+- Applies uniformly to Contact, Volunteer, Work With Us, Catering, Event Decoration, and Host at
+  RORUM. No visible form design, validation, locale behavior, loading/success/error state, or
+  Formspree endpoint/recipient changed.
+
+---
+
+# 21. Shared Components
+
+Audited in §20.3. In-repo shared components and their CMS sources:
+
+- `components/Header.tsx` → `navigation` singleton (+ `contactInfo` for the top bar).
+- `components/Footer.tsx` → `footer` + `contactInfo` + `socialLinks` singletons.
+- `components/SiteShell.tsx` / `app/[locale]/(site)/layout.tsx` → fetches nav/footer/formMessages/
+  privacy `legalPage`/contactInfo/socialLinks once and passes plain resolved data down.
+- `components/ui.tsx` `CTASection` / `SectionHeader` / `HomeHero` — presentational; content comes
+  from each page's `page.sections`.
+- `components/HorizontalGallery.tsx` — Catering / Event Decoration / Host / (Community uses its
+  own `resolveMembershipMedia`). Mixed photo+video, unified Lightbox (Parts 18–19).
+- `components/FAQAccordion.tsx` / `FAQInlinePrompt.tsx` — `page-faq` + `formMessages`.
+- Forms: `ContactForm`, `CateringInquiryForm`, `InquiryForm`, `VolunteerApplicationForm`,
+  `WorkWithUsApplicationForm`, `ApplicationModal`, `FormSuccessModal`, `FormSuccessContent` — copy
+  from `formMessages` + page-specific `contentItem` roles; **all submit through the one shared
+  `useFormspreeSubmit` → `submitToFormspree` path** (Task 4 / §20.12), with a shared success
+  dialog/content experience (`FormSuccessModal` for page-embedded forms; `FormSuccessContent`
+  swapped directly into an already-open modal for Volunteer/Work With Us). `CvUploadModal` no
+  longer exists — Work With Us was rebuilt as `WorkWithUsApplicationForm`, a fully text-based
+  application with no CV/file upload (§20.2 row 10).
+- SEO: `lib/seo.ts` + `shared/seoResolution.ts` + `components/JsonLd.tsx` + `SeoObjectInput` /
+  `SeoAllLanguagesInput` Studio components.
+
+Shared components should get one representative deep Publish/interaction test and a regression
+check on every page that reuses them.
+
+---
+
+# 22. Migration Reporting
+
+`SANITY_MIGRATION.md` (this file) = current status and what remains (§20).
+`MIGRATION_REPORT.md`, the original development diary that once held history and rationale (Parts
+1–28; the `page`/`sections[]` migration was Parts 16–28), was intentionally removed from the repo
+during handoff cleanup — see `HANDOFF.md` §18. It's recoverable from git history if ever needed but
+does not need to be recreated. This file's own dated §20.x Part/Phase entries now serve that
+"history and rationale" purpose going forward.
+
+Do not duplicate large historical explanations here.

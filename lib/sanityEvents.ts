@@ -1,0 +1,200 @@
+import type { Image } from "sanity";
+import {
+  events as staticEvents,
+  DEFAULT_SHARE_ACTIONS,
+  type RorumEvent,
+  type ShareAction,
+  type ShareActionType,
+  type TicketProviderInfo,
+} from "@/lib/data";
+import { pickExactLocalized, pickLocalized, type I18nEntry } from "@/lib/sanity-i18n";
+import type { Locale } from "@/lib/i18n";
+import { computeDurationFromTimeRange, parseDurationText, type EventDuration } from "@/lib/eventDuration";
+import { sanityEventImageAttr, sanityEventDetailHeroImageAttr } from "@/sanity/lib/dataAttr";
+import { urlForImage } from "@/sanity/lib/image";
+import { normalizeEventLanguages } from "@/lib/eventLanguage";
+
+// Used only when a Sanity event has no uploaded image asset of its own —
+// looked up by slug so an editor who hasn't uploaded a banner yet still
+// sees *a* picture rather than a broken one. Once an image is uploaded in
+// Studio, `urlForImage(doc.image)` below takes priority over this.
+const staticBySlug = new Map(staticEvents.map((e) => [e.slug, e]));
+const DEFAULT_EVENT_IMAGE = "/images/hero.jpg";
+const DEFAULT_ARRIVAL_TEXT = "Please arrive 5-10 minutes before the event begins.";
+
+type Localized = I18nEntry<string>[] | null | undefined;
+
+// Loosely typed to match sanity.types.ts's generated (heavily optional)
+// shape rather than fighting it with casts — same reasoning as
+// lib/sanity-i18n.ts's I18nEntry.
+export interface SanityEventLike {
+  _id?: string | null;
+  slug?: { current?: string | null } | null;
+  title?: Localized;
+  image?: (Image & { alt?: Localized }) | null;
+  // Decorative Event Detail hero background — deliberately independent from
+  // `image` above (see lib/data.ts's "TWO INDEPENDENT IMAGE CONCERNS"
+  // comment). Plain image, no `alt` subfield: it's rendered alt="" /
+  // aria-hidden="true", never a real accessible name.
+  detailHeroImage?: Image | null;
+  date?: string | null;
+  time?: string | null;
+  price?: string | null;
+  address?: string | null;
+  language?: string[] | null;
+  formattedDescription?: I18nEntry<unknown[]>[] | null;
+  whatToExpect?: Localized;
+  included?: { text?: Localized }[] | null;
+  duration?: { value?: number | null; unit?: "minutes" | "hours" | null } | null;
+  arrival?: Localized;
+  ticketProviderInfo?: { label?: Localized; value?: Localized } | null;
+  shareSettings?: { type?: string | null; label?: Localized; enabled?: boolean | null }[] | null;
+  ticketUrl?: string | null;
+  billettoEventUrl?: string | null;
+  ticketButtonLabel?: Localized;
+  calendarUrl?: string | null;
+  waitlistUrl?: string | null;
+  isSoldOut?: boolean | null;
+  ticketsLeft?: number | null;
+  // Legacy fields — superseded by `address`/`duration`/`arrival`/
+  // `ticketProviderInfo` above, but a document that predates this schema
+  // change may still only have data here. Read as a fallback only; see
+  // sanity/schemaTypes/documents/event.ts's "LEGACY FIELDS" comment.
+  practicalDetails?: { label?: Localized; value?: Localized }[] | null;
+  ticketProvider?: string | null;
+  seo?: { title?: Localized; description?: Localized; ogImage?: (Image & { alt?: Localized }) | null } | null;
+  visibleLocales?: string[] | null;
+}
+
+/** Finds a legacy `practicalDetails` entry by its (English-only) label — the shape every pre-migration document used. */
+function getLegacyDetail(doc: SanityEventLike, label: string): string | undefined {
+  const entry = doc.practicalDetails?.find((d) => pickLocalized(d.label, "en") === label);
+  return entry ? pickLocalized(entry.value, "en") : undefined;
+}
+
+const SHARE_ACTION_TYPES: ShareActionType[] = ["share", "copyLink", "whatsapp", "email", "linkedin", "facebook", "instagram"];
+
+function isShareActionType(value: string | null | undefined): value is ShareActionType {
+  return !!value && (SHARE_ACTION_TYPES as string[]).includes(value);
+}
+
+export function sanityEventToRorumEvent(doc: SanityEventLike, locale: Locale, editable = false): RorumEvent {
+  const slug = doc.slug?.current ?? "";
+  const fallback = staticBySlug.get(slug);
+
+  // The uploaded Sanity image always wins when present; only an event with
+  // no image asset of its own falls back to a matching static event's
+  // `/public` path, and only then to the generic placeholder.
+  const sanityImageBuilder = urlForImage(doc.image);
+  const sanityImageUrl = sanityImageBuilder?.width(1200).url();
+  const sanitySocialImageUrl = sanityImageBuilder?.width(1200).height(630).fit("crop").url();
+  const image = sanityImageUrl ?? fallback?.image ?? DEFAULT_EVENT_IMAGE;
+  const imageAlt = pickLocalized(doc.image?.alt, locale) ?? fallback?.imageAlt ?? undefined;
+  const imageEditAttr = sanityImageUrl ? sanityEventImageAttr(editable, doc._id) : undefined;
+
+  // Decorative Event Detail hero background — independent field, independent
+  // fallback. Falls back onto the already-computed `image` (banner) URL
+  // above, NOT onto DEFAULT_EVENT_IMAGE directly and NOT onto `doc.image` a
+  // second time, so an already-published event with no `detailHeroImage`
+  // asset of its own renders pixel-identical to before this field existed —
+  // no content migration required. The `data-sanity` overlay only targets
+  // `detailHeroImage` itself when this event has its own asset there;
+  // otherwise it points at the banner `image` field, since that's what's
+  // actually rendering while `detailHeroImage` is unset.
+  const detailHeroImageBuilder = urlForImage(doc.detailHeroImage);
+  const detailHeroImageUrl = detailHeroImageBuilder?.width(1200).url() ?? image;
+  const detailHeroImageEditAttr = detailHeroImageBuilder
+    ? sanityEventDetailHeroImageAttr(editable, doc._id)
+    : imageEditAttr;
+
+  const address = doc.address ?? getLegacyDetail(doc, "Address") ?? fallback?.address ?? "";
+
+  const duration: EventDuration | undefined =
+    doc.duration?.value && doc.duration.unit
+      ? { value: doc.duration.value, unit: doc.duration.unit }
+      : parseDurationText(getLegacyDetail(doc, "Duration")) ?? computeDurationFromTimeRange(doc.time) ?? fallback?.duration;
+
+  const arrival = pickLocalized(doc.arrival, locale) ?? getLegacyDetail(doc, "Arrival") ?? fallback?.arrival ?? DEFAULT_ARRIVAL_TEXT;
+
+  // `labelExactLocale`/`labelEnglish`: exact-locale-only (no fallback of any
+  // kind), whitespace-only treated as unset — a blank translation shouldn't
+  // count as "this event has its own label here" (see the event detail
+  // page's priority chain, which needs to know the difference between "not
+  // translated" and "translated to an empty string").
+  const rawExactLabel = pickExactLocalized(doc.ticketProviderInfo?.label, locale);
+  const rawEnglishLabel = pickExactLocalized(doc.ticketProviderInfo?.label, "en");
+  const ticketProviderInfo: TicketProviderInfo = {
+    label: pickLocalized(doc.ticketProviderInfo?.label, locale) ?? fallback?.ticketProviderInfo?.label ?? "Ticket provider",
+    labelExactLocale: rawExactLabel?.trim() ? rawExactLabel : undefined,
+    labelEnglish: rawEnglishLabel?.trim() ? rawEnglishLabel : undefined,
+    value:
+      pickLocalized(doc.ticketProviderInfo?.value, locale) ??
+      doc.ticketProvider ??
+      fallback?.ticketProviderInfo?.value ??
+      "Billetto",
+  };
+
+  const shareActions: ShareAction[] = doc.shareSettings?.length
+    ? doc.shareSettings
+        .filter((a): a is typeof a & { type: string } => isShareActionType(a.type))
+        .map((a) => ({
+          type: a.type as ShareActionType,
+          label: pickLocalized(a.label, locale) ?? a.type,
+          enabled: a.enabled ?? true,
+        }))
+    : (fallback?.shareActions ?? DEFAULT_SHARE_ACTIONS);
+
+  return {
+    slug,
+    title: pickLocalized(doc.title, locale) ?? fallback?.title ?? "",
+    date: doc.date ?? fallback?.date ?? "",
+    time: doc.time ?? fallback?.time ?? "",
+    price: doc.price ?? fallback?.price ?? "",
+    address,
+    language: normalizeEventLanguages(doc.language ?? fallback?.language ?? ["English"]),
+    formattedDescription: pickLocalized(doc.formattedDescription, locale) ?? fallback?.formattedDescription,
+    included:
+      doc.included?.map((b) => pickLocalized(b.text, locale) ?? "").filter(Boolean) ??
+      fallback?.included ??
+      [],
+    whatToExpect:
+      pickLocalized(doc.whatToExpect, locale)
+        ?.split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean) ??
+      fallback?.whatToExpect ??
+      [],
+    duration,
+    arrival,
+    ticketProviderInfo,
+    shareActions,
+    // A Billetto-connected event's buy destination is its Billetto link
+    // (filled in by lib/eventAvailability.ts) — so DON'T let the static
+    // fallback's own `ticketUrl` (often the generic "https://billetto.dk/"
+    // placeholder) leak in and win over it. Non-connected events keep the
+    // existing fallback behaviour.
+    ticketUrl: doc.ticketUrl ?? (doc.billettoEventUrl?.trim() ? "" : fallback?.ticketUrl) ?? "",
+    billettoEventUrl: doc.billettoEventUrl?.trim() || undefined,
+    ticketButtonLabel: pickLocalized(doc.ticketButtonLabel, locale) ?? fallback?.ticketButtonLabel,
+    calendarUrl: doc.calendarUrl ?? fallback?.calendarUrl ?? "",
+    waitlistUrl: doc.waitlistUrl ?? fallback?.waitlistUrl ?? "",
+    isSoldOut: doc.isSoldOut ?? fallback?.isSoldOut ?? false,
+    image,
+    socialImageUrl: sanitySocialImageUrl,
+    imageAlt,
+    // Only real when this event has its own uploaded Sanity image AND we're
+    // rendering in Draft Mode — a `data-sanity` on a static/fallback image
+    // would point Studio at a field the visible picture doesn't come from.
+    imageEditAttr,
+    detailHeroImage: detailHeroImageUrl,
+    detailHeroImageEditAttr,
+    ticketsLeft: doc.ticketsLeft ?? fallback?.ticketsLeft,
+    seo: {
+      title: pickLocalized(doc.seo?.title, locale) ?? undefined,
+      description: pickLocalized(doc.seo?.description, locale) ?? undefined,
+      ogImageUrl: urlForImage(doc.seo?.ogImage)?.width(1200).height(630).fit("crop").url() ?? undefined,
+      ogImageAlt: pickLocalized(doc.seo?.ogImage?.alt, locale) ?? undefined,
+    },
+    visibleLocales: doc.visibleLocales ?? undefined,
+  };
+}

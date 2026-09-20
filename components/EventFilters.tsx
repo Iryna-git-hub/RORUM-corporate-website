@@ -1,10 +1,12 @@
 "use client";
 
 import type { FocusEvent } from "react";
-import Link from "next/link";
+import { LocaleLink as Link } from "@/components/LocaleLink";
 import { ChevronDown } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLayoutEffect, useRef, useState } from "react";
+import { localizedHref } from "@/lib/i18n";
+import { useLocale } from "@/lib/useLocale";
 
 export type EventDateFilter = "soonest" | "week" | "month" | "all";
 export type EventPriceFilter = "price-asc" | "price-desc" | "all";
@@ -15,24 +17,35 @@ interface FilterOption {
   label: string;
 }
 
-const dateOptions: { value: Exclude<EventDateFilter, "all">; label: string }[] = [
-  { value: "soonest", label: "Soonest first" },
-  { value: "week", label: "This week" },
-  { value: "month", label: "This month" },
-];
+export interface EventFilterLabels {
+  dateLabel: string;
+  languageLabel: string;
+  priceLabel: string;
+  availabilityLabel: string;
+  soonestLabel: string;
+  weekLabel: string;
+  monthLabel: string;
+  priceAscLabel: string;
+  priceDescLabel: string;
+  availableLabel: string;
+  soldOutLabel: string;
+  clearFiltersLabel: string;
+}
 
-const priceOptions: { value: Exclude<EventPriceFilter, "all">; label: string }[] = [
-  { value: "price-asc", label: "From low to high" },
-  { value: "price-desc", label: "From high to low" },
-];
-
-const availabilityOptions: {
-  value: Exclude<EventAvailabilityFilter, "all">;
-  label: string;
-}[] = [
-  { value: "available", label: "Available" },
-  { value: "sold-out", label: "Sold out" },
-];
+export const defaultEventFilterLabels: EventFilterLabels = {
+  dateLabel: "Date",
+  languageLabel: "Languages",
+  priceLabel: "Price",
+  availabilityLabel: "Availability",
+  soonestLabel: "Soonest first",
+  weekLabel: "This week",
+  monthLabel: "This month",
+  priceAscLabel: "From low to high",
+  priceDescLabel: "From high to low",
+  availableLabel: "Available",
+  soldOutLabel: "Sold out",
+  clearFiltersLabel: "Clear filters",
+};
 
 function EventFilterDropdown({
   name,
@@ -49,22 +62,41 @@ function EventFilterDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const wasOpenRef = useRef(false);
 
   // A fixed `left`/`right` anchor can't know ahead of time which edge of the
   // viewport a given trigger will end up near on a flex-wrap row - any of
   // the four filters can land next to either edge depending on screen width.
-  // This menu is `visibility: hidden` (not `display: none`) while closed, so
-  // it still occupies its full layout box even when nobody's opened it -
-  // meaning an uncorrected position can push the page wider than the
-  // viewport before any dropdown is ever clicked. Measure and correct on
-  // mount and on resize (not just on open) so the closed state is safe too,
-  // nudging back in bounds via a CSS custom property whenever it overflows
-  // either edge. This sets the property directly on the DOM node (an
-  // external-system side effect, not React state) rather than routing it
-  // through a re-render.
+  // This menu still uses `visibility: hidden` (via CSS, for the fade
+  // transition below) while closed, but `visibility: hidden` alone keeps a
+  // box in the layout - a closed, off-screen-positioned menu can still
+  // contribute to the PAGE's scrollable width even though nobody can see it.
+  // `display: none` removes it from layout entirely, but flips instantly
+  // (unlike `visibility`, which the CSS transition below can delay until an
+  // animation finishes) - so it's applied here via a short JS-timed delay
+  // that matches the CSS transition duration, instead of a plain class
+  // toggle, specifically so the existing open/close fade keeps animating
+  // exactly as before while the closed, at-rest state never occupies layout.
   useLayoutEffect(() => {
     const menu = menuRef.current;
     if (!menu) return;
+
+    let hideTimeout: ReturnType<typeof setTimeout> | undefined;
+    if (open) {
+      // About to animate in - make sure it's actually laid out first.
+      menu.style.removeProperty("display");
+    } else if (wasOpenRef.current) {
+      // Just closed - let the existing fade-out transition finish playing,
+      // then drop it from layout so it can't contribute to page overflow.
+      hideTimeout = setTimeout(() => {
+        menu.style.display = "none";
+      }, 180);
+    } else {
+      // Was never open (initial mount, or already closed) - nothing to
+      // animate, so it's safe to remove from layout immediately.
+      menu.style.display = "none";
+    }
+    wasOpenRef.current = open;
 
     function reposition() {
       if (!menu) return;
@@ -93,7 +125,10 @@ function EventFilterDropdown({
 
     reposition();
     window.addEventListener("resize", reposition);
-    return () => window.removeEventListener("resize", reposition);
+    return () => {
+      window.removeEventListener("resize", reposition);
+      if (hideTimeout) clearTimeout(hideTimeout);
+    };
   }, [open]);
 
   return (
@@ -141,30 +176,60 @@ export function EventFilters({
   selectedLanguage,
   selectedPrice,
   selectedAvailability,
-  languageOptions,
+  languageOptionOrder,
   hasActiveFilters,
+  labels = defaultEventFilterLabels,
+  dateOptionOrder,
+  priceOptionOrder,
+  availabilityOptionOrder,
 }: {
   selectedDate: EventDateFilter;
   selectedLanguage: string;
   selectedPrice: EventPriceFilter;
   selectedAvailability: EventAvailabilityFilter;
-  languageOptions: string[];
+  /** The manager's own stored Language order + CMS label, from lib/eventFilters.ts's `resolveOrderedEventLanguageOptions` — the sole authority for which languages are offered and in what order (never re-derived or re-sorted here). `value` is always one of `event.language`'s own real stored strings, unaffected by relabeling or reordering. Falls back to an empty list only if genuinely absent (shouldn't happen — the caller always computes it now). */
+  languageOptionOrder?: { value: string; label: string }[];
   hasActiveFilters: boolean;
+  labels?: EventFilterLabels;
+  /** Manager-controlled option order + label, from lib/eventFilters.ts's `resolveOrderedFilterOptions` — falls back to this component's own fixed default order (unchanged from before) when absent, e.g. the `!isSanityConfigured` static-fallback path. `value` is always one of the fixed stable strings the filtering/URL logic below already expects — reordering in Studio can never change it. */
+  dateOptionOrder?: { value: string; label: string }[];
+  priceOptionOrder?: { value: string; label: string }[];
+  availabilityOptionOrder?: { value: string; label: string }[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { locale, path } = useLocale();
 
   function selectFilter(name: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.set(name, value);
     params.delete("page");
-    router.push(`/events?${params.toString()}`);
+    router.push(`${localizedHref(path, locale)}?${params.toString()}`);
   }
 
-  const languageMenuOptions = languageOptions.map((language) => ({
-    value: language,
-    label: language,
-  }));
+  const languageMenuOptions = languageOptionOrder ?? [];
+
+  const dateOptions: { value: Exclude<EventDateFilter, "all">; label: string }[] =
+    (dateOptionOrder as { value: Exclude<EventDateFilter, "all">; label: string }[] | undefined) ?? [
+      { value: "soonest", label: labels.soonestLabel },
+      { value: "week", label: labels.weekLabel },
+      { value: "month", label: labels.monthLabel },
+    ];
+
+  const priceOptions: { value: Exclude<EventPriceFilter, "all">; label: string }[] =
+    (priceOptionOrder as { value: Exclude<EventPriceFilter, "all">; label: string }[] | undefined) ?? [
+      { value: "price-asc", label: labels.priceAscLabel },
+      { value: "price-desc", label: labels.priceDescLabel },
+    ];
+
+  const availabilityOptions: {
+    value: Exclude<EventAvailabilityFilter, "all">;
+    label: string;
+  }[] =
+    (availabilityOptionOrder as { value: Exclude<EventAvailabilityFilter, "all">; label: string }[] | undefined) ?? [
+      { value: "available", label: labels.availableLabel },
+      { value: "sold-out", label: labels.soldOutLabel },
+    ];
 
   return (
     <div
@@ -178,28 +243,28 @@ export function EventFilters({
       >
         <EventFilterDropdown
           name="date"
-          label="Date"
+          label={labels.dateLabel}
           value={selectedDate}
           options={dateOptions}
           onSelect={selectFilter}
         />
         <EventFilterDropdown
           name="language"
-          label="Languages"
+          label={labels.languageLabel}
           value={selectedLanguage}
           options={languageMenuOptions}
           onSelect={selectFilter}
         />
         <EventFilterDropdown
           name="price"
-          label="Price"
+          label={labels.priceLabel}
           value={selectedPrice}
           options={priceOptions}
           onSelect={selectFilter}
         />
         <EventFilterDropdown
           name="availability"
-          label="Availability"
+          label={labels.availabilityLabel}
           value={selectedAvailability}
           options={availabilityOptions}
           onSelect={selectFilter}
@@ -209,7 +274,7 @@ export function EventFilters({
             className="min-h-8.5 inline-flex items-center justify-center p-0 border-0 border-b border-b-[rgba(var(--rgb-red),0.32)] rounded-none text-red text-[13px] font-semibold uppercase tracking-[0.02em] transition-colors duration-180 ease-[ease] hover:bg-[rgba(var(--rgb-red),0.08)] hover:text-red focus-visible:bg-[rgba(var(--rgb-red),0.08)] focus-visible:text-red focus-visible:outline-none"
             href="/events"
           >
-            Clear filters
+            {labels.clearFiltersLabel}
           </Link>
         ) : null}
       </div>
