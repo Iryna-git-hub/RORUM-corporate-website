@@ -250,13 +250,9 @@ function resolveTicketProviderLabel(event: RorumEvent, messages: EventDetailMess
     );
 }
 
-// `max-sm:w-full` (not `max-lg:`): the CTA is meant to keep its intrinsic,
-// non-wrapping width in both the wide single-row layout (>=1280px) and the
-// narrower 2-column desktop/tablet layout (640-1279px, where it shares a
-// row with Price) — only true mobile's stacked layout (<640px) wants the
-// full-width button.
+// The mobile stack gives the CTA the full card width; grid layouts keep its intrinsic width.
 const ticketButtonBase =
-    "group inline-flex items-center justify-center gap-2 w-fit whitespace-nowrap min-h-11.5 border rounded-pill px-6 py-3 text-[12.5px] font-extrabold tracking-[0.04em] uppercase transition-[transform,color,background,border-color] duration-180 ease-[ease] max-sm:w-full";
+    "group inline-flex items-center justify-center gap-2 w-full md:w-fit whitespace-nowrap min-h-11.5 border rounded-pill px-6 py-3 text-[12.5px] font-extrabold tracking-[0.04em] uppercase transition-[transform,color,background,border-color] duration-180 ease-[ease]";
 const ticketArrowClass =
     "w-3.75 h-3.75 text-current shrink-0 transition-transform duration-180 ease-[ease] group-hover:translate-x-1 group-focus-visible:translate-x-1";
 
@@ -311,8 +307,8 @@ function DetailRow({ label, value }: { label: string; value?: ReactNode }) {
 // Desktop (default): `grid` stacks each child on its own row, so weekday and
 // month/day render as two intentional lines with no in-between text — the
 // comma stays `hidden` so nothing appears where the break is. Mobile
-// (`max-sm:`): the container becomes a `flex` row instead, and the comma
-// switches to `inline`, joining everything back onto one line ("Wednesday,
+// (`max-md:`): the container becomes a wrapping `flex` row, and the comma
+// switches to `inline`, joining the date when space permits ("Wednesday,
 // August 19"). Same two strings either way — only the CSS layout changes.
 // `whitespace-nowrap` on both spans: `monthDay` ("15 травня") must never
 // split its numeric day from its month name (the failure mode this guards
@@ -323,9 +319,9 @@ function DetailRow({ label, value }: { label: string; value?: ReactNode }) {
 function EventDateDisplay({ dateValue, locale }: { dateValue: string; locale: Locale }) {
     const { weekday, monthDay } = formatDateParts(dateValue, locale);
     return (
-      <span className="grid leading-tight max-sm:flex max-sm:flex-row max-sm:flex-nowrap max-sm:items-baseline">
+      <span className="grid leading-tight max-md:flex max-md:flex-row max-md:flex-wrap max-md:items-baseline">
         <span className="whitespace-nowrap">{weekday}</span>
-        <span className="hidden max-sm:inline">, </span>
+        <span className="hidden max-md:inline">, </span>
         <span className="whitespace-nowrap">{monthDay}</span>
       </span>
     );
@@ -373,7 +369,7 @@ function EventAddressDisplay({ address }: { address: string }) {
 }
 
 // `min-w-0`: without it, this div (a grid item of the outer info-row grid
-// in both its wide single-row and narrower 2-column arrangements) defaults
+// in both its wide single-row and narrower two-row arrangements) defaults
 // to `min-width: auto`, which for a grid item resolves to its content's
 // intrinsic minimum — and several of its descendants are deliberately
 // `whitespace-nowrap` (day+month, time range and price),
@@ -384,7 +380,7 @@ function EventAddressDisplay({ address }: { address: string }) {
 // own inner `minmax(0,1fr)` text column just below, is what actually lets
 // the outer grid's `minmax(floor, …fr)` floors govern column width.
 const infoItemGridClass =
-    "grid grid-cols-[48px_minmax(0,1fr)] gap-3 items-center min-h-23 px-5 py-4.5 border-r-0 min-w-0 max-xl:min-h-0 max-xl:border-b-0 max-sm:grid-cols-[44px_minmax(0,1fr)] max-sm:p-3.25";
+    "grid grid-cols-[48px_minmax(0,1fr)] gap-3 items-center xl:min-h-23 px-5 py-4.5 border-r-0 min-w-0 max-xl:border-b-0 max-md:grid-cols-[44px_minmax(0,1fr)] max-md:p-3.25";
 
 function InfoGridItem({
     icon: Icon,
@@ -401,8 +397,8 @@ function InfoGridItem({
 }) {
     return (
       <div className={`${infoItemGridClass} ${className}`.trim()}>
-        <span className="inline-flex items-center justify-center w-12 h-12 rounded-none bg-[rgba(var(--rgb-light-green),0.12)] text-light-green max-sm:w-11 max-sm:h-11">
-          <Icon aria-hidden="true" strokeWidth={1.85} className="w-6.5 h-6.5 text-current max-sm:w-5.75 max-sm:h-5.75" />
+        <span className="inline-flex items-center justify-center w-12 h-12 rounded-none bg-[rgba(var(--rgb-light-green),0.12)] text-light-green max-md:w-11 max-md:h-11">
+          <Icon aria-hidden="true" strokeWidth={1.85} className="w-6.5 h-6.5 text-current max-md:w-5.75 max-md:h-5.75" />
         </span>
         <div className="min-w-0">
           <dt className="sr-only">{label}</dt>
@@ -410,7 +406,7 @@ function InfoGridItem({
             className={
               prominent
                 ? "text-light-green text-[clamp(1.05rem,1.45vw,1.25rem)] leading-[1.25] font-semibold"
-                : "m-0 text-text-primary text-[15.5px] leading-[1.35] font-medium max-sm:text-[15px]"
+                : "m-0 text-text-primary text-[15.5px] leading-[1.35] font-medium max-md:text-[15px]"
             }
           >
             {value}
@@ -588,72 +584,20 @@ export default async function EventDetailPage({
 
         <section className="relative z-2 -mt-11 p-0 max-sm:-mt-7" aria-label="Event information">
           <Container>
-            {/*
-              Three tiers, not two — content-aware `minmax(floor, Nfr)`
-              columns (same idiom as DetailRow's/InfoGridItem's own inner
-              two-column grids) at the wide tier, an intermediate 2-column
-              arrangement, then the original single-column mobile stack:
-
-              - `xl:` and up (>=1280px; Container is capped at 1180px, so
-                nothing gets wider from here): the full 5-column row. Each
-                floor below is that column's real measured worst-case
-                content width (rendered in the site's own fonts — see
-                scripts/_tmp-measure-info-grid.ts, run against live Sanity
-                event data) plus its fixed 100px chrome (48px icon + 12px
-                gap + 40px horizontal padding — see `infoItemGridClass`),
-                plus a small safety margin:
-                  Date   215px = 106.5px longest uk "day month" ("28
-                         листопада") + 100 + ~8. Weekday never dominates
-                         (86px max) since day+month is longer in all 3
-                         locales.
-                  Time   205px = 96px longest uk range ("09:30–12:00") + 100
-                         + ~9.
-                  Address 310px = 194.5px longest real stored address's
-                         street+floor line (uk font renders it widest) + 100
-                         + ~15.
-                  Price  200px = 86px "1,250 kr." (uk, `prominent`'s larger
-                         20px/600 font) + 100 + ~14 — sized for a 4-digit
-                         amount per the task, not today's actual "95 kr."
-                floor sum (930px) + the widest real CTA label ("Купити
-                квиток", ~230px incl. its own padding) = ~1160px, comfortably
-                under the 1180px cap even before the small fr-share top-up
-                below — this is *why* xl (1280px) is the wide-row
-                threshold: it's the smallest named breakpoint whose 1180px
-                capped Container width covers that real minimum content
-                width with a safety margin, not an arbitrary device size.
-                fr-shares (1.1 / 1 / 1.5 / 1) split what little leftover
-                space remains beyond the floors — Address gets the largest
-                single share (it's explicitly "the widest column"), but
-                because the floors already track real content closely and
-                Container never exceeds 1180px, there's rarely more than a
-                few dozen leftover px to distribute, so no column balloons
-                the way a large fr-share on a small floor could.
-              - `sm:` to `<xl` (640–1279px, "narrow desktop/tablet"): 5
-                columns would compress below their floors here, so this
-                switches to 2 columns instead — Date+Time share row 1,
-                Address (see `col-span-2` below) gets its own full-width
-                row 2, Price+CTA share row 3. Every item still has far more
-                room per column here (>=~300px) than any floor above
-                requires.
-              - `<sm` (<640px, mobile): unchanged single-column stack.
-
-              `min-w-0` on every InfoGridItem (see its definition) is what
-              lets these floors actually govern column width instead of
-              nowrap content's intrinsic min-size forcing tracks wider; the
-              CTA cell deliberately has no `min-w-0` — `auto` columns are
-              supposed to size to their (also nowrap) content, unshrunk.
-            */}
-            <div className="event-facts-grid grid grid-cols-[minmax(215px,1.1fr)_minmax(205px,1fr)_minmax(310px,1.5fr)_minmax(200px,1fr)_auto] items-stretch gap-0 m-0 border-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] max-xl:grid-cols-2 max-sm:grid-cols-1 max-sm:p-3.25 max-sm:border-x-0 max-sm:shadow-[0_8px_20px_rgba(var(--rgb-brown),0.06)]">
-              <InfoGridItem icon={CalendarDays} label={messages.dateLabel} value={<EventDateDisplay dateValue={event.date} locale={locale} />} />
-              <InfoGridItem icon={Clock} label={messages.timeLabel} value={<span className="whitespace-nowrap">{time}</span>} />
+            {/* The 1180px container fits the measured EN/DA/UK five-item row at xl.
+                Below xl, place the four facts in two rows and center the CTA
+                across them; below md, return to the mobile stack. */}
+            <div className="event-facts-grid grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] xl:grid-cols-[minmax(215px,1.1fr)_minmax(205px,1fr)_minmax(310px,1.5fr)_minmax(200px,1fr)_auto] items-stretch gap-0 m-0 border-none bg-white shadow-[0_16px_34px_rgba(var(--rgb-brown),0.09)] max-md:p-3.25 max-md:border-x-0 max-md:shadow-[0_8px_20px_rgba(var(--rgb-brown),0.06)]">
+              <InfoGridItem icon={CalendarDays} label={messages.dateLabel} value={<EventDateDisplay dateValue={event.date} locale={locale} />} className="md:col-start-1 md:row-start-1 xl:col-auto xl:row-auto" />
+              <InfoGridItem icon={Clock} label={messages.timeLabel} value={<span className="whitespace-nowrap">{time}</span>} className="md:col-start-2 md:row-start-1 xl:col-auto xl:row-auto" />
               <InfoGridItem
                 icon={MapPin}
                 label={messages.locationLabel}
                 value={<EventAddressDisplay address={location} />}
-                className="event-address-item max-xl:col-span-2 max-sm:col-span-1"
+                className="event-address-item md:col-start-1 md:row-start-2 xl:col-auto xl:row-auto"
               />
-              <InfoGridItem icon={Ticket} label={messages.priceLabel} value={<span className="whitespace-nowrap">{event.price}</span>} prominent className="event-price-item" />
-              <div className="event-ticket-item flex items-center justify-end min-h-23 px-5 py-4.5 border-r-0 min-w-47 max-xl:min-h-0 max-xl:border-b-0 max-sm:p-3.25">
+              <InfoGridItem icon={Ticket} label={messages.priceLabel} value={<span className="whitespace-nowrap">{event.price}</span>} prominent className="event-price-item md:col-start-2 md:row-start-2 xl:col-auto xl:row-auto" />
+              <div className="event-ticket-item flex items-center justify-end xl:min-h-23 px-5 py-4.5 border-r-0 min-w-0 md:min-w-47 md:col-start-3 md:row-start-1 md:row-span-2 xl:col-auto xl:row-auto xl:row-span-1 max-xl:border-b-0 max-md:p-3.25">
                 <TicketButton event={event} messages={messages} />
               </div>
             </div>

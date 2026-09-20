@@ -2609,3 +2609,28 @@ button.btn,
     margin-top: 0;
   }
 }
+
+/* Home Hero — short mobile viewports (e.g. 375x667, 360x740). The trust/
+   benefits bar (`.home-hero-trust`, absolutely positioned at the bottom of
+   `.home-hero-full`'s `100svh` box) can overlap the Hero copy above it
+   (CTA row, sometimes the paragraph text) when the copy's own content is
+   tall enough to need most of that height — worse in Danish/Ukrainian,
+   which wrap onto more lines than English at the same width. Measured live:
+   Ukrainian still overlapped at 390x844 (English did not), so 860px (not
+   the 639/640px width breakpoint this project's other `.home-hero-*` mobile
+   rules use) is the actual, measured cutoff, not a guess.
+   An earlier attempt reflowed the Hero into normal document flow below this
+   threshold (`min-height: 0`, `display: block`, trust bar `position:
+   static`) so it would grow to fit instead of overlapping. That was
+   reverted: it changed the Hero's height model and, combined with small
+   anti-aliased text over a photo backdrop, made the trust bar's own content
+   read as harder to see. Simplest fix instead: below this size, don't try
+   to fit the trust bar at all — hide it outright and leave the rest of the
+   original Hero (100svh, centered, absolutely-positioned trust bar)
+   completely untouched. Above 860px (e.g. 414x896) or above 639px wide,
+   nothing in this rule applies. */
+@media (max-width: 639px) and (max-height: 860px) {
+  .home-hero-trust {
+    display: none;
+  }
+}
