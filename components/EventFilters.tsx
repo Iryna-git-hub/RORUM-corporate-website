@@ -62,22 +62,41 @@ function EventFilterDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const wasOpenRef = useRef(false);
 
   // A fixed `left`/`right` anchor can't know ahead of time which edge of the
   // viewport a given trigger will end up near on a flex-wrap row - any of
   // the four filters can land next to either edge depending on screen width.
-  // This menu is `visibility: hidden` (not `display: none`) while closed, so
-  // it still occupies its full layout box even when nobody's opened it -
-  // meaning an uncorrected position can push the page wider than the
-  // viewport before any dropdown is ever clicked. Measure and correct on
-  // mount and on resize (not just on open) so the closed state is safe too,
-  // nudging back in bounds via a CSS custom property whenever it overflows
-  // either edge. This sets the property directly on the DOM node (an
-  // external-system side effect, not React state) rather than routing it
-  // through a re-render.
+  // This menu still uses `visibility: hidden` (via CSS, for the fade
+  // transition below) while closed, but `visibility: hidden` alone keeps a
+  // box in the layout - a closed, off-screen-positioned menu can still
+  // contribute to the PAGE's scrollable width even though nobody can see it.
+  // `display: none` removes it from layout entirely, but flips instantly
+  // (unlike `visibility`, which the CSS transition below can delay until an
+  // animation finishes) - so it's applied here via a short JS-timed delay
+  // that matches the CSS transition duration, instead of a plain class
+  // toggle, specifically so the existing open/close fade keeps animating
+  // exactly as before while the closed, at-rest state never occupies layout.
   useLayoutEffect(() => {
     const menu = menuRef.current;
     if (!menu) return;
+
+    let hideTimeout: ReturnType<typeof setTimeout> | undefined;
+    if (open) {
+      // About to animate in - make sure it's actually laid out first.
+      menu.style.removeProperty("display");
+    } else if (wasOpenRef.current) {
+      // Just closed - let the existing fade-out transition finish playing,
+      // then drop it from layout so it can't contribute to page overflow.
+      hideTimeout = setTimeout(() => {
+        menu.style.display = "none";
+      }, 180);
+    } else {
+      // Was never open (initial mount, or already closed) - nothing to
+      // animate, so it's safe to remove from layout immediately.
+      menu.style.display = "none";
+    }
+    wasOpenRef.current = open;
 
     function reposition() {
       if (!menu) return;
@@ -106,7 +125,10 @@ function EventFilterDropdown({
 
     reposition();
     window.addEventListener("resize", reposition);
-    return () => window.removeEventListener("resize", reposition);
+    return () => {
+      window.removeEventListener("resize", reposition);
+      if (hideTimeout) clearTimeout(hideTimeout);
+    };
   }, [open]);
 
   return (
